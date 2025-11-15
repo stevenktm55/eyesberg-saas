@@ -1,0 +1,23 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "framework": "nextjs",
+  "functions": {
+    "src/app/configure/page.tsx": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://*.myshopify.com https://*.shopify.com https://5ae84f-3.myshopify.com https://stretchmx.com https://*.stretchmx.com https://configurator.stretchmx.com"
+        }
+      ]
+    }
+  ]
+}
+

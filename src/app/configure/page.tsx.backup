@@ -1,0 +1,3149 @@
+"use client";
+
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { ModelViewer } from "@/components/ModelViewer";
+import { ShopifyAddToCart } from "@/components/ShopifyAddToCart";
+import Image from "next/image";
+
+// Interface pour les zones de texte
+interface TextZone {
+  id: string;
+  name: string;
+  position: [number, number, number];
+  color: string;
+  image?: string; // Chemin vers l'image de la vignette
+  categories?: string[]; // Catégories: 'text', 'nom', 'numero'
+}
+
+// Hook pour charger les zones de texte depuis l'API
+function useTextZones() {
+  const [zones, setZones] = useState<TextZone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadZones() {
+      try {
+        const response = await fetch('/api/text-zones');
+        if (response.ok) {
+          const data = await response.json();
+          setZones(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des zones:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadZones();
+  }, []);
+
+  return { zones, isLoading };
+}
+
+// Interface pour les polices
+interface FontItem {
+  id: string;
+  name: string;
+  fileName: string;
+  fontUrl: string;
+  format: string;
+  createdAt: string;
+}
+
+// Hook pour charger les polices depuis l'API
+function useFonts() {
+  const [fonts, setFonts] = useState<FontItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFonts() {
+      try {
+        const response = await fetch('/api/fonts');
+        if (response.ok) {
+          const data = await response.json();
+          setFonts(data);
+          
+          // Charger dynamiquement les polices dans le document
+          data.forEach((font: FontItem) => {
+            const fontFace = new FontFace(font.name, `url(${font.fontUrl})`);
+            fontFace.load().then(() => {
+              document.fonts.add(fontFace);
+              console.log('✅ Police chargée:', font.name);
+            }).catch(err => {
+              console.error('❌ Erreur lors du chargement de la police:', font.name, err);
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des polices:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadFonts();
+  }, []);
+
+  return { fonts, isLoading };
+}
+
+// Interface pour les logos
+interface LogoVariant {
+  id: string;
+  name: string;
+  file: string;
+}
+
+interface Logo {
+  id: string;
+  name: string;
+  tags?: string[];
+  variants: LogoVariant[];
+}
+
+// Hook pour charger les logos depuis l'API
+function useLogos() {
+  const [logos, setLogos] = useState<Logo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadLogos() {
+      try {
+        const response = await fetch('/api/logos');
+        if (response.ok) {
+          const data = await response.json();
+          setLogos(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des logos:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadLogos();
+  }, []);
+
+  return { logos, isLoading };
+}
+
+// Hook pour charger automatiquement le premier modèle disponible
+function useAutoLoadModel() {
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFirstModel() {
+      try {
+        const response = await fetch('/api/models');
+        const models = await response.json();
+        
+        if (models.length > 0) {
+          setModelUrl(models[0].glbUrl);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des modèles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadFirstModel();
+  }, []);
+
+  return { modelUrl, isLoading };
+}
+
+// Hook pour gérer la sélection de design
+function useDesignSelection() {
+  const [selectedDesign, setSelectedDesign] = useState<{
+    id: string | null;
+    svgUrl: string | null;
+  }>({ id: null, svgUrl: null });
+
+  const selectDesign = (design: { id: string; svgUrl: string } | null) => {
+    if (design) {
+      setSelectedDesign({ id: design.id, svgUrl: design.svgUrl });
+    } else {
+      setSelectedDesign({ id: null, svgUrl: null });
+    }
+  };
+
+  return { selectedDesign, selectDesign };
+}
+
+// Hook pour gérer les couleurs
+function useColorSelection() {
+  const [colors, setColors] = useState({
+    primary: '#ff0000',
+    secondary: '#00ff00', 
+    tertiary: '#0000ff'
+  });
+
+  const updateColor = (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => {
+    setColors(prev => ({
+      ...prev,
+      [colorType]: color
+    }));
+  };
+
+  return { colors, updateColor };
+}
+
+// Hook pour gérer le texte
+  function useTextSelection(onTextSelectionChange?: (textId: string | null, autoOpenTypography: boolean) => void) {
+  const lockToggleRef = useRef<Map<string, boolean>>(new Map());
+  const [texts, setTexts] = useState<Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+      rotation: number; // Rotation en degrés
+      locked?: boolean; // Verrouillage du texte
+      category: 'text' | 'nom' | 'numero'; // Catégorie du texte
+      fontFamily?: string;
+      strokeColor?: string;
+      strokeWidth?: number;
+      deformation?: string; // Type de déformation (arc, flag, wave, etc.)
+      deformationIntensity?: number; // Intensité de la déformation (0-100)
+  }>>([]);
+    const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+    const [isDraggingText, setIsDraggingText] = useState(false);
+
+    const addText = (content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text') => {
+    const newText = {
+      id: crypto.randomUUID(),
+      content,
+        position: position || [0.5, 0.5, 0] as [number, number, number], // Position fournie ou centre par défaut
+        fontSize: 0.05,
+      color: '#000000',
+        editable: true,
+        rotation: 0, // Pas de rotation par défaut
+        category, // Catégorie du texte
+        fontFamily: defaultFontFamily || 'Arial',
+        strokeColor: '#000000',
+        strokeWidth: 0.01, // 10px par défaut (0.01 * 1000 = 10px)
+        deformation: 'none',
+        deformationIntensity: 50
+      };
+      console.log('📝 Ajout texte - Position:', position, '→ UV final:', newText.position);
+    setTexts(prev => [...prev, newText]);
+      setSelectedTextId(newText.id); // Sélectionner automatiquement le nouveau texte
+  };
+
+  const updateText = (id: string, updates: Partial<typeof texts[0]>) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, ...updates } : text
+    ));
+  };
+
+  const removeText = (id: string) => {
+    setTexts(prev => prev.filter(text => text.id !== id));
+  };
+
+  const updateTextPosition = (id: string, position: [number, number, number]) => {
+    console.log('🔄 updateTextPosition called:', { id, position });
+    setTexts(prev => {
+      const updated = prev.map(text => 
+        text.id === id ? { ...text, position } : text
+      );
+      console.log('📝 Texts updated:', updated);
+      return updated;
+    });
+  };
+
+  const updateTextRotation = (id: string, rotation: number) => {
+    console.log('🔄 updateTextRotation called:', { id, rotation });
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, rotation } : text
+    ));
+  };
+
+  const updateTextSize = (id: string, fontSize: number) => {
+    console.log('📏 updateTextSize called:', { id, fontSize });
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, fontSize } : text
+    ));
+  };
+
+
+  const selectText = (id: string | null, autoOpenTypography = false) => {
+    console.log('🔄 selectText appelé:', { id, autoOpenTypography });
+    setSelectedTextId(id);
+    
+    // Callback pour notifier le parent de l'ouverture/fermeture du panneau typographie
+    if (onTextSelectionChange) {
+      console.log('📞 Appel du callback onTextSelectionChange');
+      onTextSelectionChange(id, autoOpenTypography);
+    } else {
+      console.log('⚠️ onTextSelectionChange n\'est pas défini');
+    }
+  };
+
+  const startDraggingText = () => {
+    setIsDraggingText(true);
+  };
+
+  const stopDraggingText = () => {
+    setIsDraggingText(false);
+  };
+
+  const toggleTextLock = useCallback((id: string) => {
+    console.log('🔒 toggleTextLock appelé pour:', id);
+    
+    setTexts(currentTexts => {
+      const currentText = currentTexts.find(t => t.id === id);
+      if (!currentText) {
+        console.log('🔒 Texte non trouvé:', id);
+        return currentTexts;
+      }
+      
+      // Utiliser une ref pour mémoriser le nouvel état cible
+      // Si la ref existe déjà pour cet ID, utiliser cette valeur
+      // Sinon, calculer le toggle et le stocker
+      if (!lockToggleRef.current.has(id)) {
+        const targetLockState = !currentText.locked;
+        lockToggleRef.current.set(id, targetLockState);
+        console.log('🔒 Première exécution - Ancien état:', currentText.locked, '→ Nouveau:', targetLockState);
+      } else {
+        console.log('🔒 Exécution suivante - Utilisation valeur mémorisée:', lockToggleRef.current.get(id));
+      }
+      
+      const targetLockState = lockToggleRef.current.get(id)!;
+      
+      return currentTexts.map(text => 
+        text.id === id ? { ...text, locked: targetLockState } : text
+      );
+    });
+    
+    // Nettoyer la ref après un court délai (après le batch de setState)
+    setTimeout(() => {
+      lockToggleRef.current.delete(id);
+      console.log('🔒 Nettoyage ref pour:', id);
+    }, 100);
+  }, []);
+
+  return { 
+    texts, 
+    addText, 
+    updateText, 
+    removeText, 
+    updateTextPosition,
+    updateTextRotation,
+    updateTextSize,
+    toggleTextLock,
+    selectedTextId,
+    selectText,
+    isDraggingText,
+    startDraggingText,
+    stopDraggingText,
+  };
+}
+
+// Hook pour gérer les logos placés sur le modèle
+function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => void) {
+  const lockToggleRef = useRef<Map<string, boolean>>(new Map());
+  const [placedLogos, setPlacedLogos] = useState<Array<{
+    id: string;
+    logoId: string; // ID du logo de la bibliothèque
+    variantId: string; // ID de la variante choisie
+    variantFile: string; // Fichier de la variante (pour affichage rapide)
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>>([]);
+  const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+
+  const addLogo = (
+    logoId: string, 
+    variantId: string, 
+    variantFile: string,
+    position?: [number, number, number], 
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' = 'torse'
+  ) => {
+    const newLogo = {
+      id: crypto.randomUUID(),
+      logoId,
+      variantId,
+      variantFile,
+      position: position || [0.5, 0.5, 0] as [number, number, number],
+      scale: 0.1, // Taille par défaut
+      rotation: 0,
+      category,
+    };
+    console.log('🖼️ Ajout logo - Position:', position, '→ UV final:', newLogo.position);
+    setPlacedLogos(prev => [...prev, newLogo]);
+    setSelectedLogoId(newLogo.id);
+  };
+
+  const updateLogo = (id: string, updates: Partial<typeof placedLogos[0]>) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, ...updates } : logo
+    ));
+  };
+
+  const removeLogo = (id: string) => {
+    setPlacedLogos(prev => prev.filter(logo => logo.id !== id));
+  };
+
+  const updateLogoPosition = (id: string, position: [number, number, number]) => {
+    console.log('🔄 updateLogoPosition called:', { id, position });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, position } : logo
+    ));
+  };
+
+  const updateLogoRotation = (id: string, rotation: number) => {
+    console.log('🔄 updateLogoRotation called:', { id, rotation });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, rotation } : logo
+    ));
+  };
+
+  const updateLogoScale = (id: string, scale: number) => {
+    console.log('📏 updateLogoScale called:', { id, scale });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, scale } : logo
+    ));
+  };
+
+  const selectLogo = (id: string | null) => {
+    console.log('🔄 selectLogo appelé:', { id });
+    setSelectedLogoId(id);
+    
+    if (onLogoSelectionChange) {
+      onLogoSelectionChange(id);
+    }
+  };
+
+  const startDraggingLogo = () => {
+    setIsDraggingLogo(true);
+  };
+
+  const stopDraggingLogo = () => {
+    setIsDraggingLogo(false);
+  };
+
+  const toggleLogoLock = useCallback((id: string) => {
+    console.log('🔒 toggleLogoLock appelé pour:', id);
+    
+    setPlacedLogos(currentLogos => {
+      const currentLogo = currentLogos.find(l => l.id === id);
+      if (!currentLogo) {
+        console.log('🔒 Logo non trouvé:', id);
+        return currentLogos;
+      }
+      
+      if (!lockToggleRef.current.has(id)) {
+        const targetLockState = !currentLogo.locked;
+        lockToggleRef.current.set(id, targetLockState);
+        console.log('🔒 Première exécution - Ancien état:', currentLogo.locked, '→ Nouveau:', targetLockState);
+      } else {
+        console.log('🔒 Exécution suivante - Utilisation valeur mémorisée:', lockToggleRef.current.get(id));
+      }
+      
+      const targetLockState = lockToggleRef.current.get(id)!;
+      
+      return currentLogos.map(logo => 
+        logo.id === id ? { ...logo, locked: targetLockState } : logo
+      );
+    });
+    
+    setTimeout(() => {
+      lockToggleRef.current.delete(id);
+      console.log('🔒 Nettoyage ref pour:', id);
+    }, 100);
+  }, []);
+
+  return {
+    placedLogos,
+    addLogo,
+    updateLogo,
+    removeLogo,
+    updateLogoPosition,
+    updateLogoRotation,
+    updateLogoScale,
+    toggleLogoLock,
+    selectedLogoId,
+    selectLogo,
+    isDraggingLogo,
+    startDraggingLogo,
+    stopDraggingLogo,
+  };
+}
+
+// Fonction pour créer une UV map de test
+function createTestUVMap() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Fond blanc
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 512, 512);
+  
+  // Grille UV
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 2;
+  
+  // Lignes verticales
+  for (let i = 0; i <= 10; i++) {
+    const x = (i / 10) * 512;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 512);
+    ctx.stroke();
+  }
+  
+  // Lignes horizontales
+  for (let i = 0; i <= 10; i++) {
+    const y = (i / 10) * 512;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(512, y);
+    ctx.stroke();
+  }
+  
+  // Marquer les coins
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(0, 0, 20, 20); // Coin bas-gauche (0,0)
+  ctx.fillStyle = '#00ff00';
+  ctx.fillRect(492, 0, 20, 20); // Coin bas-droit (1,0)
+  ctx.fillStyle = '#0000ff';
+  ctx.fillRect(0, 492, 20, 20); // Coin haut-gauche (0,1)
+  ctx.fillStyle = '#ffff00';
+  ctx.fillRect(492, 492, 20, 20); // Coin haut-droit (1,1)
+  
+  // Ajouter des labels
+  ctx.fillStyle = '#000000';
+  ctx.font = '16px Arial';
+  ctx.fillText('UV(0,0)', 5, 35);
+  ctx.fillText('UV(1,0)', 400, 35);
+  ctx.fillText('UV(0,1)', 5, 480);
+  ctx.fillText('UV(1,1)', 400, 480);
+  
+  return canvas.toDataURL();
+}
+
+function Viewer3D({ 
+  designTexture, 
+  colors, 
+  fonts,
+  texts,
+  updateTextPosition,
+  updateTextRotation,
+  updateTextSize,
+  toggleTextLock,
+  removeText,
+  selectedTextId,
+  selectText,
+  isDraggingText,
+  setIsDraggingText,
+  isRotatingText,
+  setIsRotatingText,
+  isResizingText,
+  setIsResizingText,
+  onTextAdded,
+  placedLogos,
+  updateLogoPosition,
+  updateLogoRotation,
+  updateLogoScale,
+  toggleLogoLock,
+  removeLogo,
+  selectedLogoId,
+  selectLogo,
+}: { 
+  designTexture: string | null; 
+  colors: { primary: string; secondary: string; tertiary: string };
+  fonts: FontItem[];
+  texts: Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    rotation: number;
+    locked?: boolean;
+    category: 'text' | 'nom' | 'numero';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    deformation?: string;
+    deformationIntensity?: number;
+  }>;
+  updateTextPosition: (id: string, position: [number, number, number]) => void;
+  updateTextRotation: (id: string, rotation: number) => void;
+  updateTextSize: (id: string, fontSize: number) => void;
+  toggleTextLock: (id: string) => void;
+  removeText: (id: string) => void;
+  selectedTextId: string | null;
+  selectText: (id: string | null) => void;
+  isDraggingText: boolean;
+  setIsDraggingText: (dragging: boolean) => void;
+  isRotatingText: boolean;
+  setIsRotatingText: (rotating: boolean) => void;
+  isResizingText: boolean;
+  setIsResizingText: (resizing: boolean) => void;
+  onTextAdded?: (textId: string, position: [number, number, number]) => void;
+  placedLogos: Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>;
+  updateLogoPosition: (id: string, position: [number, number, number]) => void;
+  updateLogoRotation: (id: string, rotation: number) => void;
+  updateLogoScale: (id: string, scale: number) => void;
+  toggleLogoLock: (id: string) => void;
+  removeLogo: (id: string) => void;
+  selectedLogoId: string | null;
+  selectLogo: (id: string | null) => void;
+}) {
+  const { modelUrl, isLoading } = useAutoLoadModel();
+  const [processedSvgUrl, setProcessedSvgUrl] = useState<string | null>(null);
+  const [testUVMap, setTestUVMap] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTestUVMap(createTestUVMap());
+  }, []);
+
+  // États pour le modal de sélection de zone des logos
+  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string} | null>(null);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+
+  // Modal de sélection de zone pour les logos
+  console.log('🔍 Modal de zone - showZoneSelector:', showZoneSelector);
+  if (showZoneSelector) {
+    console.log('🔍 RENDU DU MODAL DE ZONE AU NIVEAU RACINE!');
+  }
+  const zoneModal = showZoneSelector && (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
+          
+          {/* Sélection de zone par vignettes */}
+          <div className="mb-6">
+            {isLoadingZones ? (
+              <div className="text-center py-4 text-gray-500">Chargement...</div>
+            ) : textZones.filter(zone => zone.categories && zone.categories.includes('logo-torse')).length > 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                {textZones.filter(zone => zone.categories && zone.categories.includes('logo-torse')).map((zone) => (
+                  <button
+                    key={zone.id}
+                    onClick={() => setSelectedZone(zone.id)}
+                    className={`relative rounded-lg border-2 overflow-hidden transition-all ${
+                      selectedZone === zone.id
+                        ? 'border-blue-500 ring-2 ring-blue-200'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {zone.image ? (
+                      <div className="relative h-32 bg-gray-100">
+                        <Image
+                          src={zone.image}
+                          alt={zone.name}
+                          width={160}
+                          height={128}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
+                            <span className="text-xs font-bold text-black">LOGO</span>
+                          </div>
+                          <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedZone === zone.id && (
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
+              </div>
+            )}
+          </div>
+
+          {/* Boutons */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => onOpenZoneSelector(null)}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={() => {
+                if (showZoneSelector && selectedZone) {
+                  const zone = textZones.find(z => z.id === selectedZone);
+                  addLogo(showZoneSelector.logoId, showZoneSelector.variantId, showZoneSelector.variantFile, zone?.position, 'torse');
+                  onOpenZoneSelector(null);
+                }
+              }}
+              disabled={!selectedZone}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Confirmer {selectedZone ? '✅' : '❌'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {zoneModal}
+      <div className="h-full flex flex-col bg-white">
+      {/* Header du viewer 3D */}
+      <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">Visualiseur 3D</h2>
+        <div className="flex items-center gap-2">
+          {isLoading ? (
+            <>
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-yellow-600 font-medium">Chargement...</span>
+            </>
+          ) : (
+            <>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-green-600 font-medium">Actif</span>
+            </>
+          )}
+          {designTexture && (
+            <>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-blue-600 font-medium">Design en cours...</span>
+            </>
+          )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Canvas 3D - prend tout l'espace */}
+      <div className="flex-1 bg-gray-100 relative">
+        <Canvas 
+          camera={{ position: [3, 2.5, 10], fov: 50 }}
+          style={{ 
+            background: 'linear-gradient(to bottom, #f8fafc, #e2e8f0)',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {/* Éclairage fixe uniforme - élimine toutes les ombres */}
+          <ambientLight intensity={0.8} />
+          <directionalLight 
+            position={[10, 10, 5]} 
+            intensity={0.6}
+          />
+          <directionalLight 
+            position={[-10, 10, 5]} 
+            intensity={0.6}
+          />
+          <directionalLight 
+            position={[0, 10, -5]} 
+            intensity={0.4}
+          />
+          <directionalLight 
+            position={[0, -10, 5]} 
+            intensity={0.4}
+          />
+          <directionalLight 
+            position={[5, 0, 10]} 
+            intensity={0.3}
+          />
+          <directionalLight 
+            position={[-5, 0, 10]} 
+            intensity={0.3}
+          />
+          
+          {/* Modèle 3D */}
+          {modelUrl ? (
+            <Suspense fallback={
+              <mesh>
+                <boxGeometry args={[1, 1, 1]} />
+                <meshStandardMaterial color="#3b82f6" wireframe />
+              </mesh>
+            }>
+              <ModelViewer 
+                url={modelUrl} 
+                color="#ffffff"
+                designTexture={designTexture || undefined}
+                colors={colors}
+                fonts={fonts}
+                texts={texts}
+                updateTextPosition={updateTextPosition}
+                updateTextRotation={updateTextRotation}
+                updateTextSize={updateTextSize}
+                toggleTextLock={toggleTextLock}
+                removeText={removeText}
+                selectedTextId={selectedTextId}
+                selectText={selectText}
+                isDraggingText={isDraggingText}
+                setIsDraggingText={setIsDraggingText}
+                isRotatingText={isRotatingText}
+                setIsRotatingText={setIsRotatingText}
+                isResizingText={isResizingText}
+                setIsResizingText={setIsResizingText}
+                onSvgProcessed={setProcessedSvgUrl}
+                onTextAdded={onTextAdded}
+                placedLogos={placedLogos}
+                updateLogoPosition={updateLogoPosition}
+                updateLogoRotation={updateLogoRotation}
+                updateLogoScale={updateLogoScale}
+                toggleLogoLock={toggleLogoLock}
+                removeLogo={removeLogo}
+                selectedLogoId={selectedLogoId}
+                selectLogo={selectLogo}
+              />
+            </Suspense>
+          ) : null}
+          
+          <OrbitControls 
+            enablePan={!isDraggingText && !isRotatingText && !isResizingText} 
+            enableZoom={!isDraggingText && !isRotatingText && !isResizingText} 
+            enableRotate={!isDraggingText && !isRotatingText && !isResizingText}
+            enabled={!isDraggingText && !isRotatingText && !isResizingText}
+            minDistance={2.5}
+            maxDistance={10}
+            makeDefault={false}
+          />
+        </Canvas>
+      </div>
+      
+      {/* Barre d'état en bas */}
+      <div className="flex-shrink-0 px-6 py-3 bg-white border-t border-gray-200">
+        <div className="text-sm text-center">
+          {selectedTextId ? (
+            <div className="text-blue-600 font-medium space-y-1">
+              <div>✏️ Mode édition : Cliquez SUR le texte + Glissez pour déplacer</div>
+              <div className="text-xs">
+                Clic en dehors du texte = Rotation 3D
+                <button
+                  onClick={() => selectText(null)}
+                  className="ml-3 px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs"
+                >
+                  ❌ Désélectionner
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-gray-500">
+              🖱️ Glisser pour tourner • 🔍 Molette pour zoomer • 📝 Utilisez la sidebar pour ajouter du contenu
+        </div>
+      )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Sidebar({ 
+  selectedDesign, 
+  selectDesign,
+  colors,
+  updateColor,
+  texts,
+  addText,
+  updateText,
+  removeText,
+  updateTextPosition,
+  selectedTextId,
+  selectText,
+  textZones,
+  isLoadingZones,
+  fonts,
+  placedLogos,
+  addLogo,
+  updateLogo,
+  removeLogo,
+  selectedLogoId,
+  selectLogo,
+  logos,
+  isLoadingLogos,
+  autoOpenTypography,
+  shouldOpenTypographyPanel,
+  onTypographyPanelOpened,
+  activeTab,
+  setActiveTab,
+}: { 
+  selectedDesign: { id: string | null; svgUrl: string | null }; 
+  selectDesign: (design: { id: string; svgUrl: string } | null) => void;
+  colors: { primary: string; secondary: string; tertiary: string };
+  updateColor: (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => void;
+  texts: Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    category: 'text' | 'nom' | 'numero';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+  }>;
+  addText: (content: string, position?: [number, number, number], defaultFontFamily?: string, category?: 'text' | 'nom' | 'numero') => void;
+  updateText: (id: string, updates: Partial<any>) => void;
+  removeText: (id: string) => void;
+  updateTextPosition: (id: string, position: [number, number, number]) => void;
+  selectedTextId: string | null;
+  selectText: (id: string | null, autoOpenTypography?: boolean) => void;
+  textZones: TextZone[];
+  isLoadingZones: boolean;
+  fonts: FontItem[];
+  placedLogos: Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>;
+  addLogo: (logoId: string, variantId: string, variantFile: string, position?: [number, number, number], category?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit') => void;
+  updateLogo: (id: string, updates: Partial<any>) => void;
+  removeLogo: (id: string) => void;
+  selectedLogoId: string | null;
+  selectLogo: (id: string | null) => void;
+  logos: Logo[];
+  isLoadingLogos: boolean;
+  autoOpenTypography?: {textId: string | null, shouldOpen: boolean};
+  shouldOpenTypographyPanel?: string | null;
+  onTypographyPanelOpened?: () => void;
+  activeTab: 'design' | 'color' | 'motif' | 'degrade' | 'numero' | 'nom' | 'text' | 'logo';
+  setActiveTab: (tab: 'design' | 'color' | 'motif' | 'degrade' | 'numero' | 'nom' | 'text' | 'logo') => void;
+}) {
+  console.log('🎯 Sidebar RENDU avec activeTab:', activeTab);
+
+  const tabs = [
+    { id: 'design', label: 'Design', title: 'Sélectionner le design', icon: '✏️', bgColor: 'bg-blue-500', textColor: 'text-blue-500' },
+    { id: 'color', label: 'Couleur', title: 'Choisir une couleur', icon: '🎨', bgColor: 'bg-green-500', textColor: 'text-green-500' },
+    { id: 'motif', label: 'Motif', title: 'Sélectionner le motif', icon: '⚫', bgColor: 'bg-purple-500', textColor: 'text-purple-500' },
+    { id: 'degrade', label: 'Dégradé', title: 'Sélectionner le dégradé', icon: '⚫', bgColor: 'bg-gray-500', textColor: 'text-gray-500' },
+    { id: 'numero', label: 'Numéro', title: 'Ajouter des numéros', icon: 'ℹ️', bgColor: 'bg-orange-500', textColor: 'text-orange-500' },
+    { id: 'nom', label: 'Nom', title: 'Ajouter un nom', icon: '👤', bgColor: 'bg-pink-500', textColor: 'text-pink-500' },
+    { id: 'text', label: 'Texte', title: 'Ajouter du texte', icon: '📝', bgColor: 'bg-red-500', textColor: 'text-red-500' },
+    { id: 'logo', label: 'Logo', title: 'Ajouter des logos', icon: '🖼️', bgColor: 'bg-yellow-500', textColor: 'text-yellow-500' },
+  ];
+
+  return (
+    <div className="h-full flex">
+      {/* Onglets verticaux à gauche */}
+      <div className="w-20 bg-gray-50 p-2 flex flex-col gap-2 flex-shrink-0">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`w-16 h-16 rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
+              activeTab === tab.id
+                ? `${tab.bgColor} text-white shadow-lg scale-105`
+                : 'bg-white text-gray-600 hover:bg-gray-100 hover:scale-102 shadow-sm'
+            }`}
+            title={tab.label}
+          >
+            <span className="text-lg">{tab.icon}</span>
+            <span className="text-xs font-medium leading-tight text-center">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Contenu des onglets à droite */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* En-tête fixe */}
+        <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <span className={`w-8 h-8 rounded-lg ${tabs.find(t => t.id === activeTab)?.bgColor} text-white flex items-center justify-center text-sm`}>
+              {tabs.find(t => t.id === activeTab)?.icon}
+            </span>
+            {tabs.find(t => t.id === activeTab)?.title}
+          </h2>
+        </div>
+
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Contenu spécifique à chaque onglet */}
+        {activeTab === 'design' && <DesignTab selectedDesign={selectedDesign} selectDesign={selectDesign} />}
+        {activeTab === 'color' && <ColorTab colors={colors} updateColor={updateColor} />}
+          {activeTab === 'text' && (console.log('🖥️ DESKTOP: Rendu TextTab avec activeTab:', activeTab), <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={onTypographyPanelOpened} />)}
+          
+          {/* Onglets temporaires (à implémenter plus tard) */}
+          {activeTab === 'motif' && (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">⚫</div>
+              <h3 className="text-lg font-medium mb-2">Motifs</h3>
+              <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+            </div>
+          )}
+          {activeTab === 'degrade' && (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">⚫</div>
+              <h3 className="text-lg font-medium mb-2">Dégradés</h3>
+              <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+            </div>
+          )}
+          {activeTab === 'numero' && <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} category="numero" autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={onTypographyPanelOpened} />}
+          {activeTab === 'nom' && <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} category="nom" autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={onTypographyPanelOpened} />}
+          {activeTab === 'logo' && <LogoTab placedLogos={placedLogos} addLogo={addLogo} updateLogo={updateLogo} removeLogo={removeLogo} selectedLogoId={selectedLogoId} selectLogo={selectLogo} textZones={textZones} isLoadingZones={isLoadingZones} logos={logos} isLoadingLogos={isLoadingLogos} category="torse" onOpenZoneSelector={setShowZoneSelector} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesignTab({ selectedDesign, selectDesign }: { 
+  selectedDesign: { id: string | null; svgUrl: string | null }; 
+  selectDesign: (design: { id: string; svgUrl: string } | null) => void;
+}) {
+  const [designs, setDesigns] = useState<Array<{
+    id: string;
+    name: string;
+    svgUrl: string;
+    thumbUrl?: string;
+  }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDesigns() {
+      try {
+        const response = await fetch('/api/designs');
+        const designsData = await response.json();
+        setDesigns(designsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des designs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadDesigns();
+  }, []);
+
+  const [designTab, setDesignTab] = useState<'designs' | 'best'>('designs');
+
+  return (
+    <div className="space-y-4">
+      {/* Sous-onglets pour les designs */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setDesignTab('designs')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+            designTab === 'designs'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Designs
+        </button>
+        <button
+          onClick={() => setDesignTab('best')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+            designTab === 'best'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Meilleurs designs des clients
+        </button>
+      </div>
+
+      {/* Contenu des sous-onglets */}
+      {designTab === 'designs' && (
+        <>
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500">Chargement des designs...</div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {/* Design "Aucun" */}
+          <button
+            className={`w-full p-3 rounded-lg border-2 transition-all ${
+              !selectedDesign.id 
+                ? "border-blue-500 bg-blue-50 text-blue-700" 
+                : "border-gray-200 hover:border-gray-300 text-gray-900"
+            }`}
+            onClick={() => selectDesign(null)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-xs">Aucun</span>
+              </div>
+              <span className="font-medium">Aucun design</span>
+            </div>
+          </button>
+
+          {/* Grille des designs */}
+          {designs.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {designs.map((design) => (
+                <button
+                  key={design.id}
+                  className={`p-3 rounded-lg border-2 transition-all ${
+                    selectedDesign.id === design.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => selectDesign(design)}
+                >
+                  <div className="space-y-2">
+                    <div className="w-full h-16 bg-white rounded border flex items-center justify-center overflow-hidden">
+                      {design.thumbUrl ? (
+                        <img 
+                          src={design.thumbUrl} 
+                          alt={design.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">SVG</span>
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-center text-gray-900 truncate">
+                      {design.name}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">Aucun design disponible</p>
+              <p className="text-xs mt-1">Uploadez des designs dans l'admin</p>
+            </div>
+          )}
+            </div>
+          )}
+        </>
+      )}
+
+      {designTab === 'best' && (
+        <div className="text-center py-12 text-gray-500">
+          <div className="text-4xl mb-4">⭐</div>
+          <h3 className="text-lg font-medium mb-2">Meilleurs designs des clients</h3>
+          <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+        </div>
+      )}
+      
+      {selectedDesign.id && (
+        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm font-medium text-green-800">Design sélectionné</span>
+          </div>
+          <p className="text-xs text-green-600 mt-1">
+            Le design est appliqué au modèle 3D
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Fonction pour déterminer la couleur du texte en fonction de la couleur de fond
+function getContrastColor(hexColor: string): string {
+  // Convertir hex en RGB
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculer la luminance relative
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Retourner blanc pour les couleurs sombres, noir pour les couleurs claires
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+}
+
+function ColorTab({ colors, updateColor }: { 
+  colors: { primary: string; secondary: string; tertiary: string };
+  updateColor: (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => void;
+}) {
+  const [palettes, setPalettes] = useState<Array<{
+    id: string;
+    name: string;
+    colors: Array<{ hex: string; name: string }>;
+  }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedPalette, setSelectedPalette] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState<{
+    colorType: 'primary' | 'secondary' | 'tertiary' | null;
+  }>({ colorType: null });
+
+  const colorTypes = [
+    { 
+      key: 'primary' as const, 
+      label: 'Couleur Primaire', 
+      description: 'Couleur principale du design'
+    },
+    { 
+      key: 'secondary' as const, 
+      label: 'Couleur Secondaire', 
+      description: 'Couleur d\'accent du design'
+    },
+    { 
+      key: 'tertiary' as const, 
+      label: 'Couleur Tertiaire', 
+      description: 'Couleur de détail du design'
+    }
+  ];
+
+  // Charger les palettes depuis l'admin
+  useEffect(() => {
+    async function loadPalettes() {
+      try {
+        const response = await fetch('/api/palettes');
+        const palettesData = await response.json();
+        setPalettes(palettesData);
+        
+        // Sélectionner la première palette par défaut
+        if (palettesData.length > 0 && !selectedPalette) {
+          setSelectedPalette(palettesData[0].id);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des palettes:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadPalettes();
+  }, []);
+
+  // Obtenir toutes les couleurs de toutes les palettes
+  const allColors = palettes.flatMap(palette => 
+    palette.colors.map(color => ({
+      ...color,
+      paletteName: palette.name
+    }))
+  );
+
+  // Gérer l'ouverture du sélecteur de couleur
+  const handleColorClick = (colorType: 'primary' | 'secondary' | 'tertiary') => {
+    setShowColorPicker({
+      colorType
+    });
+  };
+
+  // Gérer la sélection d'une couleur
+  const handleColorSelect = (colorHex: string) => {
+    if (showColorPicker.colorType) {
+      updateColor(showColorPicker.colorType, colorHex);
+      // Ne pas fermer automatiquement - l'utilisateur doit cliquer sur "Retour"
+    }
+  };
+
+  // Gérer la fermeture du sélecteur
+  const handleClosePicker = () => {
+    setShowColorPicker({ colorType: null });
+  };
+
+  // Si on est en mode sélection de couleur, afficher la palette full-screen
+  if (showColorPicker.colorType) {
+    const currentColor = colors[showColorPicker.colorType];
+    const currentColorName = allColors.find(c => c.hex === currentColor)?.name || 'Couleur sélectionnée';
+    const colorIndex = colorTypes.findIndex(t => t.key === showColorPicker.colorType) + 1;
+
+  return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour et couleur actuelle */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={handleClosePicker}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">{currentColorName}</span>
+            <div 
+              className="w-8 h-8 rounded-full border-2 border-gray-300"
+              style={{ backgroundColor: currentColor || 'transparent' }}
+            />
+          </div>
+      </div>
+      
+        {/* Grille de couleurs */}
+        <div className="flex-1 p-4 overflow-y-auto">
+      {isLoading ? (
+            <div className="text-center py-12">
+          <div className="text-gray-500">Chargement des couleurs...</div>
+        </div>
+      ) : allColors.length > 0 ? (
+            <div className="grid grid-cols-6 gap-3">
+              {allColors.map((colorObj, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleColorSelect(colorObj.hex)}
+                  className="relative aspect-square rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
+                  style={{ backgroundColor: colorObj.hex }}
+                >
+                  {/* Coche si couleur sélectionnée */}
+                  {currentColor === colorObj.hex && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                </div>
+                </div>
+                  )}
+                </button>
+              ))}
+              
+              {/* Cercle vide pour "aucune couleur" */}
+              <button
+                onClick={() => handleColorSelect('')}
+                className="relative aspect-square rounded-full border-2 border-gray-400 border-dashed hover:border-gray-500 transition-colors bg-transparent flex items-center justify-center"
+              >
+                {!currentColor && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                  </div>
+                )}
+              </button>
+        </div>
+      ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-lg mb-2">🎨</div>
+              <div className="text-sm">Aucune couleur disponible</div>
+              <div className="text-xs mt-1">Ajoutez des palettes via l'interface admin</div>
+        </div>
+      )}
+            </div>
+      </div>
+    );
+  }
+
+  // Vue normale avec la liste des couleurs
+  return (
+    <div className="space-y-6">
+      {/* Liste des couleurs comme dans l'image */}
+      <div className="space-y-3">
+        {colorTypes.map((colorType, index) => (
+                <button
+            key={colorType.key}
+            onClick={() => handleColorClick(colorType.key)}
+            className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {/* Cercle de couleur */}
+              <div 
+                className={`w-6 h-6 rounded-full border-2 ${
+                  colors[colorType.key] && colors[colorType.key] !== '#ffffff' && colors[colorType.key] !== '#FFFFFF'
+                    ? 'border-gray-300' 
+                    : 'border-gray-400'
+                }`}
+                style={{ 
+                  backgroundColor: colors[colorType.key] && colors[colorType.key] !== '#ffffff' && colors[colorType.key] !== '#FFFFFF'
+                    ? colors[colorType.key]
+                    : 'transparent'
+                }}
+              />
+              
+              {/* Label */}
+              <span className="font-medium text-gray-900">
+                Couleur {index + 1}
+                  </span>
+            </div>
+            
+            {/* Flèche */}
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TextTab({ 
+  texts, 
+  addText, 
+  updateText, 
+  removeText,
+  updateTextPosition,
+  selectedTextId,
+  selectText,
+  textZones,
+  isLoadingZones,
+  fonts,
+  category = 'text', // Catégorie par défaut
+  autoOpenTypography,
+  shouldOpenTypographyPanel,
+  onTypographyPanelOpened,
+}: {
+  texts: Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    locked?: boolean;
+    category: 'text' | 'nom' | 'numero';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    deformation?: string;
+    deformationIntensity?: number;
+  }>;
+  addText: (content: string, position?: [number, number, number], defaultFontFamily?: string, category?: 'text' | 'nom' | 'numero') => void;
+  updateText: (id: string, updates: Partial<any>) => void;
+  removeText: (id: string) => void;
+  updateTextPosition: (id: string, position: [number, number, number]) => void;
+  selectedTextId: string | null;
+  selectText: (id: string | null, autoOpenTypography?: boolean) => void;
+  textZones: TextZone[];
+  isLoadingZones: boolean;
+  fonts: FontItem[];
+  category?: 'text' | 'nom' | 'numero'; // Catégorie de l'onglet
+  autoOpenTypography?: {textId: string | null, shouldOpen: boolean};
+  shouldOpenTypographyPanel?: string | null;
+  onTypographyPanelOpened?: () => void;
+}) {
+  console.log('🎭 TextTab RENDU avec props:', { shouldOpenTypographyPanel, autoOpenTypography, category });
+  
+  // Filtrer les textes selon la catégorie
+  const filteredTexts = texts.filter(t => t.category === category);
+  
+  // Filtrer les zones selon la catégorie
+  const filteredZones = textZones.filter(zone => 
+    zone.categories && zone.categories.includes(category)
+  );
+  
+  const [newTextContent, setNewTextContent] = useState('');
+  const [selectedZone, setSelectedZone] = useState('');
+  const [isAddingText, setIsAddingText] = useState(false);
+  const [showTypographyPanel, setShowTypographyPanel] = useState(false);
+  const [selectedTextForTypography, setSelectedTextForTypography] = useState<string | null>(null);
+  const [typographyColorTab, setTypographyColorTab] = useState<'text' | 'stroke' | null>(null);
+  const [allColors, setAllColors] = useState<Array<{ hex: string; name?: string }>>([]);
+  const [isLoadingColors, setIsLoadingColors] = useState(false);
+  const [showDeformationSelector, setShowDeformationSelector] = useState(false);
+
+  // Gérer l'ouverture automatique du panneau typographie quand le composant se monte
+  useEffect(() => {
+    console.log('🎭 TextTab monté avec shouldOpenTypographyPanel:', shouldOpenTypographyPanel);
+    if (shouldOpenTypographyPanel) {
+      console.log('🎨 TextTab monté - Ouverture automatique du panneau typographie pour:', shouldOpenTypographyPanel);
+      setShowTypographyPanel(true);
+      setSelectedTextForTypography(shouldOpenTypographyPanel);
+      onTypographyPanelOpened?.(); // Notifier que le panneau a été ouvert
+    }
+  }, [shouldOpenTypographyPanel, onTypographyPanelOpened]);
+
+  // Surveiller spécifiquement les changements de shouldOpenTypographyPanel (même si déjà monté)
+  useEffect(() => {
+    console.log('🔄 shouldOpenTypographyPanel a changé dans TextTab:', shouldOpenTypographyPanel);
+    if (shouldOpenTypographyPanel) {
+      console.log('🎨 Ouverture du panneau typographie suite au changement de shouldOpenTypographyPanel:', shouldOpenTypographyPanel);
+      setShowTypographyPanel(true);
+      setSelectedTextForTypography(shouldOpenTypographyPanel);
+    }
+  }, [shouldOpenTypographyPanel]);
+
+  // Gérer l'ouverture/fermeture automatique du panneau typographie
+  useEffect(() => {
+    console.log('📋 TextTab useEffect - autoOpenTypography changé:', autoOpenTypography);
+    
+    if (autoOpenTypography?.shouldOpen && autoOpenTypography.textId) {
+      console.log('🎨 Ouverture du panneau typographie dans TextTab pour:', autoOpenTypography.textId);
+      setShowTypographyPanel(true);
+      setSelectedTextForTypography(autoOpenTypography.textId);
+    } else if (autoOpenTypography?.shouldOpen === false) {
+      console.log('🚫 Fermeture du panneau typographie dans TextTab');
+      setShowTypographyPanel(false);
+      setSelectedTextForTypography(null);
+      setTypographyColorTab(null);
+      setShowDeformationSelector(false);
+    }
+  }, [autoOpenTypography?.textId, autoOpenTypography?.shouldOpen]);
+
+  // Mettre à jour la zone sélectionnée quand les zones sont chargées
+  useEffect(() => {
+    if (filteredZones.length > 0 && !selectedZone) {
+      setSelectedZone(filteredZones[0].id);
+    }
+  }, [filteredZones, selectedZone]);
+
+  const handleTypographyClick = (textId: string) => {
+    setSelectedTextForTypography(textId);
+    setShowTypographyPanel(true);
+  };
+
+  const handleCloseTypography = () => {
+    setShowTypographyPanel(false);
+    setSelectedTextForTypography(null);
+    setTypographyColorTab(null);
+    setShowDeformationSelector(false);
+  };
+
+
+  // Charger les couleurs depuis l'API
+  useEffect(() => {
+    if (showTypographyPanel || typographyColorTab) {
+      const loadColors = async () => {
+        setIsLoadingColors(true);
+        try {
+          const response = await fetch('/api/palettes');
+          if (response.ok) {
+            const palettes = await response.json();
+            const colors = palettes.flatMap((palette: any) => 
+              palette.colors.map((color: any) => ({
+                hex: color.hex,
+                name: color.name
+              }))
+            );
+            setAllColors(colors);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des couleurs:', error);
+        } finally {
+          setIsLoadingColors(false);
+        }
+      };
+
+      loadColors();
+    }
+  }, [showTypographyPanel, typographyColorTab]);
+
+  const handleColorClick = (colorType: 'text' | 'stroke') => {
+    setTypographyColorTab(colorType);
+  };
+
+  const handleColorSelect = (colorHex: string) => {
+    if (selectedTextForTypography && typographyColorTab) {
+      if (typographyColorTab === 'text') {
+        updateText(selectedTextForTypography, { color: colorHex });
+      } else {
+        updateText(selectedTextForTypography, { strokeColor: colorHex });
+      }
+    }
+  };
+
+  const handleBackToTypography = () => {
+    setTypographyColorTab(null);
+  };
+
+  const handleDeformationSelect = (deformationType: string) => {
+    if (selectedTextForTypography) {
+      updateText(selectedTextForTypography, { deformation: deformationType });
+    }
+    // Ne pas fermer l'onglet automatiquement pour permettre l'ajustement de l'intensité
+  };
+
+  const handleAddText = () => {
+    if (newTextContent.trim()) {
+      const zone = filteredZones.find(z => z.id === selectedZone);
+      const defaultFont = fonts.length > 0 ? fonts[0].name : 'Arial';
+      addText(newTextContent.trim(), zone?.position, defaultFont, category);
+      setNewTextContent('');
+      setIsAddingText(false); // Fermer le formulaire après ajout
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddText();
+    }
+  };
+
+  // Si on est en mode sélecteur de déformation, afficher les déformations
+  if (showDeformationSelector && selectedTextForTypography) {
+    const selectedText = texts.find(t => t.id === selectedTextForTypography);
+    if (!selectedText) {
+      setShowDeformationSelector(false);
+      return null;
+    }
+
+    const deformations = [
+      { id: 'none', name: 'Aucune déformation', icon: '📝' },
+      { id: 'arc', name: 'Arc', icon: '🌈' },
+      { id: 'flag', name: 'Drapeau', icon: '🏳️' },
+      { id: 'wave', name: 'Vague', icon: '🌊' }
+    ];
+
+  return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowDeformationSelector(false)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Déformation</span>
+          </div>
+      </div>
+      
+        {/* Contenu des déformations */}
+        <div className="flex-1 p-4 overflow-y-auto">
+      <div className="space-y-3">
+            {deformations.map((deformation) => (
+              <button
+                key={deformation.id}
+                onClick={() => handleDeformationSelect(deformation.id)}
+                className={`w-full flex items-center justify-between p-4 border-2 rounded-lg transition-colors ${
+                  (selectedText as any).deformation === deformation.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Icône de déformation */}
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-lg">
+                    {deformation.icon}
+                  </div>
+                  
+                  {/* Nom de la déformation */}
+                  <span className="font-medium text-gray-900">
+                    {deformation.name}
+                  </span>
+                </div>
+                
+                {/* Indicateur de sélection */}
+                {(selectedText as any).deformation === deformation.id && (
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+          
+          {/* Jauge d'intensité - Affichée seulement si une déformation est sélectionnée */}
+          {(selectedText as any).deformation && (selectedText as any).deformation !== 'none' && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <label className="block text-sm font-medium text-gray-900 mb-3">
+                Intensité de l'effet
+          </label>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 w-8">0%</span>
+            <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={(selectedText as any).deformationIntensity || 50}
+                  onChange={(e) => updateText((selectedText as any).id, { deformationIntensity: parseInt(e.target.value) })}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${(selectedText as any).deformationIntensity || 50}%, #e5e7eb ${(selectedText as any).deformationIntensity || 50}%, #e5e7eb 100%)`
+                  }}
+                />
+                <span className="text-xs text-gray-500 w-12">100%</span>
+                <span className="text-sm font-medium text-gray-900 w-8">{(selectedText as any).deformationIntensity || 50}%</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+
+  // Si on est en mode sous-onglet couleur, afficher la palette
+  if (typographyColorTab && selectedTextForTypography) {
+    const selectedText = texts.find(t => t.id === selectedTextForTypography);
+    if (!selectedText) {
+      setTypographyColorTab(null);
+      return null;
+    }
+
+    const currentColor = typographyColorTab === 'text' ? selectedText.color : selectedText.strokeColor;
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <button
+            onClick={handleBackToTypography}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+            </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">
+              {typographyColorTab === 'text' ? 'Couleur du texte' : 'Couleur du contour'}
+            </span>
+        </div>
+      </div>
+
+        {/* Contenu de la palette */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          {isLoadingColors ? (
+            <div className="text-center py-4">
+              <div className="text-gray-500">Chargement des couleurs...</div>
+        </div>
+          ) : allColors.length > 0 ? (
+            <div className="grid grid-cols-6 gap-3">
+              {allColors.map((colorObj, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleColorSelect(colorObj.hex)}
+                  className="relative aspect-square rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
+                  style={{ backgroundColor: colorObj.hex }}
+                >
+                  {/* Coche si couleur sélectionnée */}
+                  {currentColor === colorObj.hex && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              ))}
+              {/* Cercle vide pour "aucune couleur" (seulement pour le contour) */}
+              {typographyColorTab === 'stroke' && (
+                <button
+                  onClick={() => handleColorSelect('')}
+                  className="relative aspect-square rounded-full border-2 border-gray-400 border-dashed hover:border-gray-500 transition-colors bg-transparent flex items-center justify-center"
+                >
+                  {!currentColor && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              )}
+          </div>
+        ) : (
+            <div className="text-center py-4 text-gray-500">
+              <div className="text-sm">Aucune couleur disponible</div>
+              <div className="text-xs mt-1">Ajoutez des palettes via l'interface admin</div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Si on est en mode typographie, afficher le panel typographie
+  if (showTypographyPanel && selectedTextForTypography) {
+    const selectedText = texts.find(t => t.id === selectedTextForTypography);
+    if (!selectedText) {
+      setShowTypographyPanel(false);
+      return null;
+    }
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <button
+            onClick={handleCloseTypography}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+                  </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Typographie</span>
+          </div>
+                </div>
+                
+        {/* Contenu du panel typographie */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-6">
+          {/* Contenu du texte */}
+                  <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Contenu du texte
+                    </label>
+                    <input
+              type="text"
+              value={selectedText.content}
+              onChange={(e) => updateText(selectedText.id, { content: e.target.value })}
+              placeholder="Saisir l'inscription ici..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            />
+                    </div>
+
+          {/* Sélecteur de police */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Police
+            </label>
+            <select
+              value={selectedText.fontFamily || (fonts.length > 0 ? fonts[0].name : 'Arial')}
+              onChange={(e) => updateText(selectedText.id, { fontFamily: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+            >
+              {fonts.length > 0 ? (
+                fonts.map((font) => (
+                  <option key={font.id} value={font.name}>
+                    {font.name}
+                  </option>
+                ))
+              ) : (
+                <option value="Arial">Aucune police disponible - Ajoutez-en dans l'admin</option>
+              )}
+            </select>
+                  </div>
+                  
+          {/* Couleur du texte */}
+                  <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Couleur du texte
+                    </label>
+            <button
+              onClick={() => handleColorClick('text')}
+              className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                {/* Cercle de couleur */}
+                <div 
+                  className="w-6 h-6 rounded-full border-2 border-gray-300"
+                  style={{ backgroundColor: selectedText.color }}
+                />
+                
+                {/* Label */}
+                <span className="font-medium text-gray-900">
+                  Couleur du texte
+                </span>
+                  </div>
+                  
+              {/* Flèche */}
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Couleur du contour */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Couleur du contour
+                      </label>
+            <button
+              onClick={() => handleColorClick('stroke')}
+              className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                {/* Cercle de couleur */}
+                <div 
+                  className="w-6 h-6 rounded-full border-2 border-gray-300"
+                  style={{ backgroundColor: selectedText.strokeColor || '#000000' }}
+                />
+                
+                {/* Label */}
+                <span className="font-medium text-gray-900">
+                  Couleur du contour
+                </span>
+                    </div>
+                    
+              {/* Flèche */}
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+            </button>
+          </div>
+                      
+          {/* Épaisseur du contour */}
+                        <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Épaisseur du contour
+                          </label>
+            <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                            min="0"
+                max="0.02"
+                step="0.001"
+                value={selectedText.strokeWidth || 0}
+                onChange={(e) => updateText(selectedText.id, { strokeWidth: parseFloat(e.target.value) })}
+                className="flex-1"
+              />
+              <span className="text-sm text-gray-600 min-w-[60px]">
+                {((selectedText.strokeWidth || 0) * 1000).toFixed(0)}px
+              </span>
+            </div>
+                        </div>
+                        
+          {/* Taille de police */}
+                        <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Taille de police
+                          </label>
+            <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                min="0.03"
+                max="0.3"
+                            step="0.01"
+                value={selectedText.fontSize}
+                onChange={(e) => updateText(selectedText.id, { fontSize: parseFloat(e.target.value) })}
+                disabled={selectedText.locked}
+                className={`flex-1 ${selectedText.locked ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+              <span className={`text-sm min-w-[60px] ${selectedText.locked ? 'text-gray-400' : 'text-gray-600'}`}>
+                {(selectedText.fontSize * 100).toFixed(0)}%
+              </span>
+                        </div>
+                      </div>
+
+
+          {/* Déformation */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Déformation du texte
+            </label>
+            <button
+              onClick={() => setShowDeformationSelector(true)}
+              className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                {/* Icône de déformation */}
+                <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                  <span className="text-sm">🌈</span>
+                  </div>
+                
+                {/* Label */}
+                <span className="font-medium text-gray-900">
+                  {(selectedText as any).deformation === 'arc' ? 'Arc' :
+                   (selectedText as any).deformation === 'flag' ? 'Drapeau' :
+                   (selectedText as any).deformation === 'wave' ? 'Vague' :
+                   'Aucune déformation'}
+                </span>
+                </div>
+              
+              {/* Flèche */}
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+              </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Vue normale avec la liste des textes
+  // Labels selon la catégorie
+  const categoryLabels = {
+    text: { button: 'Ajouter du texte', title: 'Ajouter un texte' },
+    nom: { button: 'Ajouter un nom', title: 'Ajouter un nom' },
+    numero: { button: 'Ajouter des numéros', title: 'Ajouter des numéros' }
+  };
+  
+  const labels = categoryLabels[category];
+  
+  return (
+    <div className="space-y-4">
+      {/* Bouton Ajouter */}
+      <button
+        onClick={() => setIsAddingText(true)}
+        className="w-full px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center gap-2 font-medium"
+      >
+        {labels.button}
+      </button>
+
+      {/* Modal d'ajout de texte */}
+      {isAddingText && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{labels.title}</h3>
+            
+            {/* Sélecteur de zone avec vignettes */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-900 mb-3">
+                Choisissez une position standard
+              </label>
+              
+              {isLoadingZones ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  Chargement des zones...
+                </div>
+              ) : filteredZones.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Aucune zone définie pour cette catégorie</p>
+                  <p className="text-xs mt-1">Configurez des zones via l'interface admin</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {filteredZones.map(zone => (
+                    <button
+                      key={zone.id}
+                      onClick={() => setSelectedZone(zone.id)}
+                      className={`relative p-3 border-2 rounded-lg transition-all hover:shadow-md ${
+                        selectedZone === zone.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      {/* Image de la vignette */}
+                      {zone.image ? (
+                        <div className="w-full h-32 rounded-md overflow-hidden mb-2 bg-gray-50 flex items-center justify-center">
+                          <Image
+                            src={zone.image}
+                            alt={zone.name}
+                            width={160}
+                            height={128}
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full h-32 rounded-md bg-gray-100 flex items-center justify-center mb-2">
+                          <div className="text-gray-400 text-center">
+                            <div className="text-2xl mb-1">👕</div>
+                            <div className="text-xs">Pas d'image</div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Nom de la zone */}
+                      <div className="text-sm font-medium text-gray-900 text-center">
+                        {zone.name}
+                      </div>
+                      
+                      {/* Indicateur de sélection */}
+                      {selectedZone === zone.id && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+            {/* Champ de texte */}
+            <div className="mb-6">
+              <label htmlFor="newText" className="block text-sm font-medium text-gray-900 mb-1">
+                Contenu du texte
+              </label>
+              <input
+                type="text"
+                id="newText"
+                value={newTextContent}
+                onChange={(e) => setNewTextContent(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Saisir l'inscription ici..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                autoFocus
+              />
+        </div>
+            
+            {/* Boutons d'action */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setIsAddingText(false);
+                  setNewTextContent('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleAddText}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={!newTextContent.trim()}
+              >
+                {labels.button}
+              </button>
+        </div>
+      </div>
+        </div>
+      )}
+      
+      {/* Liste des textes existants */}
+      {filteredTexts.length > 0 && (
+        <div className="space-y-3">
+          {filteredTexts.map((text) => (
+            <TextItem 
+              key={text.id}
+              text={text}
+              updateText={updateText}
+              removeText={removeText}
+              onTypographyClick={handleTypographyClick}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Composant LogoTab
+function LogoTab({
+  placedLogos,
+  addLogo,
+  updateLogo,
+  removeLogo,
+  selectedLogoId,
+  selectLogo,
+  textZones,
+  isLoadingZones,
+  logos,
+  isLoadingLogos,
+  category = 'torse',
+  onOpenZoneSelector,
+}: {
+  placedLogos: Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>;
+  addLogo: (logoId: string, variantId: string, variantFile: string, position?: [number, number, number], category?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit') => void;
+  updateLogo: (id: string, updates: Partial<any>) => void;
+  removeLogo: (id: string) => void;
+  selectedLogoId: string | null;
+  selectLogo: (id: string | null) => void;
+  textZones: TextZone[];
+  isLoadingZones: boolean;
+  logos: Logo[];
+  isLoadingLogos: boolean;
+  category?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  onOpenZoneSelector: (data: {logoId: string, variantId: string, variantFile: string} | null) => void;
+}) {
+  const [activeCategory, setActiveCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [selectedZone, setSelectedZone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showVariantSelector, setShowVariantSelector] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [logoName, setLogoName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Filtrer les logos placés selon la catégorie active
+  const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
+
+  // Filtrer les zones selon la catégorie active
+  const filteredZones = textZones.filter(zone => 
+    zone.categories && zone.categories.includes(`logo-${activeCategory}`)
+  );
+  
+  // Debug: afficher les zones et catégories
+  console.log('🔍 Debug zones:', {
+    activeCategory,
+    allZones: textZones.map(z => ({ id: z.id, name: z.name, categories: z.categories })),
+    filteredZones: filteredZones.map(z => ({ id: z.id, name: z.name, categories: z.categories }))
+  });
+
+  // Mettre à jour la zone sélectionnée quand les zones sont chargées
+  useEffect(() => {
+    if (filteredZones.length > 0 && !selectedZone) {
+      setSelectedZone(filteredZones[0].id);
+    }
+  }, [filteredZones, selectedZone]);
+
+  // Libellés par catégorie
+  const categoryLabels = {
+    'torse': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Torse' },
+    'dos': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Dos' },
+    'bras-gauche': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras gauche' },
+    'bras-droit': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras droit' },
+  };
+  const labels = categoryLabels[activeCategory];
+
+  // Filtrer les logos par recherche
+  const filteredLibraryLogos = logos.filter(logo => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      logo.name.toLowerCase().includes(query) ||
+      (logo.tags && logo.tags.some(tag => tag.toLowerCase().includes(query)))
+    );
+  });
+
+  // Gérer la sélection d'une variante (ouvre le sélecteur de zone)
+  const handleVariantSelect = (logoId: string, variantId: string, variantFile: string) => {
+    console.log('🎯 handleVariantSelect appelé:', { logoId, variantId, variantFile, activeCategory });
+        onOpenZoneSelector({ logoId, variantId, variantFile });
+    setShowVariantSelector(null);
+  };
+
+  // Gérer la sélection finale de zone
+  const handleZoneSelect = () => {
+    console.log('🎯 handleZoneSelect appelé:', { showZoneSelector, selectedZone, filteredZones: filteredZones.length });
+    if (showZoneSelector && selectedZone) {
+      const zone = filteredZones.find(z => z.id === selectedZone);
+      console.log('🎯 Zone trouvée:', zone);
+      
+      // Si pas de variante, utiliser le logo principal
+      let variantId = showZoneSelector.variantId;
+      let variantFile = showZoneSelector.variantFile;
+      
+      if (!variantId || !variantFile) {
+        const logo = logos.find(l => l.id === showZoneSelector.logoId);
+        if (logo && logo.variants.length > 0) {
+          variantId = logo.variants[0].id;
+          variantFile = logo.variants[0].file;
+        }
+      }
+      
+      console.log('🎯 Ajout du logo:', { logoId: showZoneSelector.logoId, variantId, variantFile, position: zone?.position, category: activeCategory });
+      addLogo(showZoneSelector.logoId, variantId, variantFile, zone?.position, activeCategory);
+      onOpenZoneSelector(null);
+    }
+  };
+
+  // Gérer l'upload d'un logo personnalisé (envoi direct vers sélection de zone)
+  const handleUploadLogo = async () => {
+    if (!selectedFile || !logoName.trim()) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('name', logoName);
+      formData.append('variantName', 'Original');
+
+      const response = await fetch('/api/logos', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Récupérer le logo et sa variante créés
+        const uploadedLogos = data.logos;
+        const uploadedLogo = uploadedLogos[uploadedLogos.length - 1]; // Le dernier ajouté
+        const uploadedVariant = uploadedLogo.variants[0]; // La première variante
+
+        // Fermer le modal d'import
+        setShowImportModal(false);
+        setSelectedFile(null);
+        setLogoName('');
+
+        // Ouvrir directement le sélecteur de zone avec le logo uploadé
+        setShowZoneSelector({
+          logoId: uploadedLogo.id,
+          variantId: uploadedVariant.id,
+          variantFile: uploadedVariant.file
+        });
+      } else {
+        alert('Erreur lors de l\'upload du logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Erreur lors de l\'upload');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+
+  // Si on est en mode sélecteur de variantes
+  console.log('🔍 showVariantSelector:', showVariantSelector);
+  if (showVariantSelector) {
+    const selectedLibraryLogo = logos.find(l => l.id === showVariantSelector);
+    if (!selectedLibraryLogo) {
+      setShowVariantSelector(null);
+      return null;
+    }
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowVariantSelector(null)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Choisir une variante</span>
+          </div>
+        </div>
+        
+        {/* Contenu des variantes */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{selectedLibraryLogo.name}</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {selectedLibraryLogo.variants.map((variant) => (
+              <button
+                key={variant.id}
+                onClick={() => handleVariantSelect(selectedLibraryLogo.id, variant.id, variant.file)}
+                className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="relative w-full h-24 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                  {variant.file.endsWith('.svg') ? (
+                    <img
+                      src={variant.file}
+                      alt={variant.name}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <Image
+                      src={variant.file}
+                      alt={variant.name}
+                      width={96}
+                      height={96}
+                      className="object-contain"
+                    />
+                  )}
+                </div>
+                <p className="text-sm font-medium text-gray-900 text-center">{variant.name}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Modal d'import de logo
+  const importModal = showImportModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Importer un logo</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Nom du logo
+              </label>
+              <input
+                type="text"
+                value={logoName}
+                onChange={(e) => setLogoName(e.target.value)}
+                placeholder="Ex: Mon logo"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Fichier (SVG, PNG, JPG, JPEG)
+              </label>
+              <input
+                type="file"
+                accept=".svg,.png,.jpg,.jpeg"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            {selectedFile && (
+              <div className="text-sm text-gray-600">
+                Fichier sélectionné : {selectedFile.name}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => {
+                setShowImportModal(false);
+                setSelectedFile(null);
+                setLogoName('');
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleUploadLogo}
+              disabled={!selectedFile || !logoName.trim() || isUploading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              {isUploading ? 'Upload...' : 'Importer'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+
+  // Si on est en mode bibliothèque
+  console.log('🔍 showLibrary:', showLibrary);
+  if (showLibrary) {
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowLibrary(false)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Ajouter un logo - {categoryLabels[activeCategory].label}</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Bouton d'importation */}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Importer un logo
+            </button>
+          </div>
+
+          {/* Barre de recherche */}
+          <input
+            type="text"
+            placeholder="Rechercher un logo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+          />
+
+          {/* Bibliothèque de logos */}
+          {isLoadingLogos ? (
+            <div className="text-center py-4 text-gray-500">Chargement...</div>
+          ) : filteredLibraryLogos.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {filteredLibraryLogos.map((logo) => (
+                <button
+                  key={logo.id}
+                  onClick={() => {
+                    console.log('🎯 Clic sur logo:', { logoId: logo.id, variantsCount: logo.variants.length });
+                    if (logo.variants.length === 0) {
+                      // Pas de variantes, ouvrir directement le sélecteur de zone
+                      console.log('🎯 Pas de variantes, ouverture directe du sélecteur de zone');
+                      onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '' });
+                    } else if (logo.variants.length === 1) {
+                      // Une seule variante, ouvrir directement le sélecteur de zone
+                      console.log('🎯 Une seule variante, ouverture directe du sélecteur de zone');
+                      onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file });
+                    } else {
+                      // Plusieurs variantes, ouvrir le sélecteur de variantes
+                      console.log('🎯 Plusieurs variantes, ouverture du sélecteur de variantes');
+                      setShowVariantSelector(logo.id);
+                    }
+                  }}
+                  className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="relative w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                    {logo.variants.length > 0 ? (
+                      logo.variants[0].file.endsWith('.svg') ? (
+                        <img
+                          src={logo.variants[0].file}
+                          alt={logo.name}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      ) : (
+                        <Image
+                          src={logo.variants[0].file}
+                          alt={logo.name}
+                          width={80}
+                          height={80}
+                          className="object-contain"
+                        />
+                      )
+                    ) : (
+                      <span className="text-gray-400 text-xs">Pas d'image</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-gray-900 text-center truncate">
+                    {logo.name}
+                  </p>
+                  {logo.variants.length > 1 && (
+                    <p className="text-xs text-gray-500 text-center">
+                      {logo.variants.length} variantes
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              {searchQuery ? 'Aucun logo trouvé' : 'Aucun logo disponible. Ajoutez des logos dans l\'admin.'}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Vue par défaut : Liste des logos placés
+  return (
+    <div className="h-full flex flex-col">
+      {/* Onglets de catégories */}
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+        <div className="flex">
+          {(['torse', 'dos', 'bras-gauche', 'bras-droit'] as const).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                activeCategory === cat
+                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              {categoryLabels[cat].label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Bouton Ajouter un logo */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowLibrary(true)}
+            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter un logo
+          </button>
+        </div>
+
+        {/* Liste des logos placés */}
+        <div className="mb-3">
+          <h3 className="text-base font-semibold text-gray-900">Logos placés ({activeCategoryLogos.length})</h3>
+        </div>
+        
+        {activeCategoryLogos.length > 0 ? (
+          <div className="space-y-3">
+            {activeCategoryLogos.map((logo) => {
+              const libraryLogo = logos.find(l => l.id === logo.logoId);
+              const variant = libraryLogo?.variants.find(v => v.id === logo.variantId);
+              
+              return (
+                <div 
+                  key={logo.id} 
+                  className={`flex items-center gap-3 p-3 bg-white border-2 rounded-lg transition-colors ${
+                    selectedLogoId === logo.id ? 'border-blue-500' : 'border-gray-200'
+                  }`}
+                >
+                  {/* Aperçu du logo */}
+                  <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                    {logo.variantFile.endsWith('.svg') ? (
+                      <img
+                        src={logo.variantFile}
+                        alt={libraryLogo?.name || 'Logo'}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <Image
+                        src={logo.variantFile}
+                        alt={libraryLogo?.name || 'Logo'}
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    )}
+                  </div>
+
+                  {/* Infos du logo */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {libraryLogo?.name || 'Logo'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {variant?.name || 'Variante'}
+                    </p>
+                  </div>
+
+                  {/* Bouton supprimer */}
+                  <button
+                    onClick={() => removeLogo(logo.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-sm font-medium">Aucun logo ajouté</p>
+            <p className="text-xs mt-1">Cliquez sur "Ajouter un logo" pour commencer</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Modals */}
+      {importModal}
+    </div>
+  );
+}
+
+function TextItem({ 
+  text, 
+  updateText, 
+  removeText,
+  onTypographyClick
+}: {
+  text: {
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    locked?: boolean;
+    category: 'text' | 'nom' | 'numero';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    deformation?: string;
+    deformationIntensity?: number;
+  };
+  updateText: (id: string, updates: Partial<any>) => void;
+  removeText: (id: string) => void;
+  onTypographyClick: (textId: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
+      {/* Aperçu du texte avec styles */}
+      <div className="flex-1 px-4 py-3 min-h-[50px] flex items-center">
+        <span 
+          className="font-medium truncate text-xl"
+          style={{
+            color: text.color,
+            fontFamily: text.fontFamily || 'Arial',
+            textShadow: text.strokeColor && text.strokeWidth && text.strokeWidth > 0
+              ? `
+                -1px -1px 0 ${text.strokeColor},
+                1px -1px 0 ${text.strokeColor},
+                -1px 1px 0 ${text.strokeColor},
+                1px 1px 0 ${text.strokeColor}
+              `
+              : 'none'
+          }}
+        >
+          {text.content || 'Texte vide'}
+        </span>
+      </div>
+      
+      {/* Bouton typographie avec flèche */}
+      <button
+        onClick={() => onTypographyClick(text.id)}
+        className="flex items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-12 h-12"
+        title="Modifier la typographie"
+      >
+        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      
+      {/* Bouton supprimer */}
+      <button
+        onClick={() => !text.locked && removeText(text.id)}
+        disabled={text.locked}
+        className={`p-2 rounded-lg transition-colors ${
+          text.locked 
+            ? 'text-gray-300 cursor-not-allowed' 
+            : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+        }`}
+        title={text.locked ? "Texte verrouillé - Impossible de supprimer" : "Supprimer le texte"}
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+export default function ConfigurePage() {
+  const { selectedDesign, selectDesign } = useDesignSelection();
+  const { colors, updateColor } = useColorSelection();
+  const { fonts } = useFonts();
+  const { logos, isLoading: isLoadingLogos } = useLogos();
+  
+  // États pour l'interface
+  const [isDraggingText, setIsDraggingText] = useState(false);
+  const [isRotatingText, setIsRotatingText] = useState(false);
+  const [isResizingText, setIsResizingText] = useState(false);
+  const [autoOpenTypography, setAutoOpenTypography] = useState<{textId: string | null, shouldOpen: boolean}>({textId: null, shouldOpen: false});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'design' | 'color' | 'motif' | 'degrade' | 'numero' | 'nom' | 'text' | 'logo'>('design');
+  const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{textId: string, textContent: string} | null>(null);
+
+  // Debug: Observer les changements d'activeTab
+  useEffect(() => {
+    console.log('🔄 activeTab changé vers:', activeTab);
+  }, [activeTab]);
+
+  // Debug: Observer les changements d'autoOpenTypography
+  useEffect(() => {
+    console.log('🔄 autoOpenTypography changé vers:', autoOpenTypography);
+  }, [autoOpenTypography]);
+
+  // État pour gérer l'ouverture automatique du panneau typographie
+  const [shouldOpenTypographyPanel, setShouldOpenTypographyPanel] = useState<string | null>(null);
+
+  // Debug: Observer les changements de shouldOpenTypographyPanel
+  useEffect(() => {
+    console.log('🔄 shouldOpenTypographyPanel changé vers:', shouldOpenTypographyPanel);
+  }, [shouldOpenTypographyPanel]);
+
+  // Gérer l'ouverture automatique du panneau quand on passe à l'onglet 'text'
+  useEffect(() => {
+    console.log('🎯 activeTab changé vers:', activeTab, 'autoOpenTypography:', autoOpenTypography);
+    
+    // Si on vient de passer à l'onglet 'text' et qu'il y a une demande d'ouverture automatique
+    if (activeTab === 'text' && autoOpenTypography?.shouldOpen && autoOpenTypography.textId) {
+      console.log('🚀 Déclenchement de l\'ouverture automatique du panneau pour:', autoOpenTypography.textId);
+      setShouldOpenTypographyPanel(autoOpenTypography.textId);
+    }
+  }, [activeTab, autoOpenTypography?.shouldOpen, autoOpenTypography?.textId]);
+
+  // Fonction de callback pour gérer l'ouverture/fermeture automatique du panneau typographie
+  const handleTextSelectionChange = (textId: string | null, shouldAutoOpen: boolean) => {
+    console.log('🎯 handleTextSelectionChange appelé:', { textId, shouldAutoOpen });
+    
+    if (shouldAutoOpen && textId) {
+      // Ouvrir automatiquement le panneau typographie et basculer sur l'onglet text
+      console.log('✅ Ouverture automatique du panneau typographie pour:', textId);
+      console.log('📱 État avant changement:', { activeTab, isMobileModalOpen, isSidebarOpen });
+      
+      setActiveTab('text');
+      setAutoOpenTypography({textId, shouldOpen: true});
+      setShouldOpenTypographyPanel(textId); // Marquer qu'on doit ouvrir le panneau
+      
+      // Sur mobile, s'assurer que le modal s'ouvre
+      if (window.innerWidth < 768) {
+        console.log('📱 Mode mobile détecté - Ouverture du modal');
+        setIsMobileModalOpen(true);
+      }
+      
+      console.log('📱 État après changement - activeTab devrait être "text"');
+    } else if (!textId) {
+      // Fermer le panneau typographie si aucun texte n'est sélectionné
+      console.log('❌ Fermeture automatique du panneau typographie');
+      setAutoOpenTypography({textId: null, shouldOpen: false});
+      setShouldOpenTypographyPanel(null);
+    }
+  };
+
+  // Hook pour gérer le texte avec callback
+  const { 
+    texts, 
+    addText, 
+    updateText, 
+    removeText, 
+    updateTextPosition,
+    updateTextRotation,
+    updateTextSize,
+    toggleTextLock,
+    selectedTextId,
+    selectText,
+  } = useTextSelection(handleTextSelectionChange);
+  
+  // Hook pour gérer les logos
+  const {
+    placedLogos,
+    addLogo,
+    updateLogo,
+    removeLogo,
+    updateLogoPosition,
+    updateLogoRotation,
+    updateLogoScale,
+    toggleLogoLock,
+    selectedLogoId,
+    selectLogo,
+  } = useLogoSelection();
+  
+  // Fonction pour demander la confirmation de suppression
+  const requestDeleteConfirmation = (textId: string) => {
+    const text = texts.find(t => t.id === textId);
+    if (text) {
+      setDeleteConfirmation({
+        textId: textId,
+        textContent: text.content
+      });
+    }
+  };
+
+  // Fonction pour confirmer la suppression
+  const confirmDelete = () => {
+    if (deleteConfirmation) {
+      removeText(deleteConfirmation.textId);
+      // Désélectionner le texte supprimé
+      if (selectedTextId === deleteConfirmation.textId) {
+        selectText(null, false);
+      }
+      setDeleteConfirmation(null);
+    }
+  };
+
+  // Fonction pour annuler la suppression
+  const cancelDelete = () => {
+    setDeleteConfirmation(null);
+  };
+  
+  const { modelUrl } = useAutoLoadModel();
+  const { zones: textZones, isLoading: isLoadingZones } = useTextZones();
+
+  // Récupérer les paramètres Shopify depuis l'URL (si disponibles)
+  const [shopifyConfig, setShopifyConfig] = useState<{
+    shopDomain?: string;
+    productId?: string;
+    variantId?: string;
+  }>({});
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setShopifyConfig({
+      shopDomain: params.get('shop') || undefined,
+      productId: params.get('productId') || undefined,
+      variantId: params.get('variantId') || undefined,
+    });
+  }, []);
+
+  const tabs = [
+    { id: 'design', label: 'Design', title: 'Sélectionner le design', icon: '✏️', bgColor: 'bg-blue-500', textColor: 'text-blue-500' },
+    { id: 'color', label: 'Couleur', title: 'Choisir une couleur', icon: '🎨', bgColor: 'bg-green-500', textColor: 'text-green-500' },
+    { id: 'motif', label: 'Motif', title: 'Sélectionner le motif', icon: '⚫', bgColor: 'bg-purple-500', textColor: 'text-purple-500' },
+    { id: 'degrade', label: 'Dégradé', title: 'Sélectionner le dégradé', icon: '⚫', bgColor: 'bg-gray-500', textColor: 'text-gray-500' },
+    { id: 'numero', label: 'Numéro', title: 'Ajouter des numéros', icon: 'ℹ️', bgColor: 'bg-orange-500', textColor: 'text-orange-500' },
+    { id: 'nom', label: 'Nom', title: 'Ajouter un nom', icon: '👤', bgColor: 'bg-pink-500', textColor: 'text-pink-500' },
+    { id: 'text', label: 'Texte', title: 'Ajouter du texte', icon: '📝', bgColor: 'bg-red-500', textColor: 'text-red-500' },
+    { id: 'logo', label: 'Logo', title: 'Ajouter des logos', icon: '🖼️', bgColor: 'bg-yellow-500', textColor: 'text-yellow-500' },
+  ];
+
+  const handleTabClick = (tabId: typeof activeTab) => {
+    setActiveTab(tabId);
+    setIsMobileModalOpen(true);
+  };
+
+  return (
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Header compact */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+            Configurateur StretchMX
+          </h1>
+          <div className="hidden sm:block text-sm text-gray-500">
+            Configurez votre produit en temps réel
+          </div>
+          </div>
+        </div>
+        
+      {/* Contenu principal */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar Desktop uniquement */}
+        <div className="hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
+          <div className="flex-1 overflow-hidden">
+            <Sidebar 
+              selectedDesign={selectedDesign} 
+              selectDesign={selectDesign}
+              colors={colors}
+              updateColor={updateColor}
+              texts={texts}
+              addText={addText}
+              updateText={updateText}
+              removeText={requestDeleteConfirmation}
+              updateTextPosition={updateTextPosition}
+              selectedTextId={selectedTextId}
+              selectText={selectText}
+              textZones={textZones}
+              isLoadingZones={isLoadingZones}
+              fonts={fonts}
+              placedLogos={placedLogos}
+              addLogo={addLogo}
+              updateLogo={updateLogo}
+              removeLogo={removeLogo}
+              selectedLogoId={selectedLogoId}
+              selectLogo={selectLogo}
+              logos={logos}
+              isLoadingLogos={isLoadingLogos}
+              autoOpenTypography={autoOpenTypography}
+              shouldOpenTypographyPanel={shouldOpenTypographyPanel}
+              onTypographyPanelOpened={() => setShouldOpenTypographyPanel(null)}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          </div>
+
+          {/* Bouton Shopify Add to Cart - fixé en bas */}
+          <div className="flex-shrink-0 p-2 border-t border-gray-200">
+            <ShopifyAddToCart
+              modelUrl={modelUrl || undefined}
+              designId={selectedDesign.id || undefined}
+              designUrl={selectedDesign.svgUrl || undefined}
+              colors={colors}
+              texts={texts}
+              shopDomain={shopifyConfig.shopDomain}
+              productId={shopifyConfig.productId}
+              variantId={shopifyConfig.variantId}
+            />
+          </div>
+        </div>
+
+        {/* Viewer 3D - prend tout l'espace restant */}
+        <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+            <Viewer3D 
+              designTexture={selectedDesign.svgUrl} 
+              colors={colors}
+              fonts={fonts}
+              texts={texts}
+              updateTextPosition={updateTextPosition}
+              updateTextRotation={updateTextRotation}
+              updateTextSize={updateTextSize}
+              toggleTextLock={toggleTextLock}
+              removeText={requestDeleteConfirmation}
+              selectedTextId={selectedTextId}
+              selectText={selectText}
+              isDraggingText={isDraggingText}
+              setIsDraggingText={setIsDraggingText}
+              isRotatingText={isRotatingText}
+              setIsRotatingText={setIsRotatingText}
+              isResizingText={isResizingText}
+              setIsResizingText={setIsResizingText}
+              onTextAdded={(textId, position) => {
+                console.log('🎥 Texte ajouté - ID:', textId, 'Position:', position);
+                // Ouvrir automatiquement le panneau typographie après ajout
+                selectText(textId, true);
+              }}
+              placedLogos={placedLogos}
+              updateLogoPosition={updateLogoPosition}
+              updateLogoRotation={updateLogoRotation}
+              updateLogoScale={updateLogoScale}
+              toggleLogoLock={toggleLogoLock}
+              removeLogo={removeLogo}
+              selectedLogoId={selectedLogoId}
+              selectLogo={selectLogo}
+            />
+          </div>
+        </div>
+
+      {/* Bottom Bar Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div className="flex justify-around py-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id as typeof activeTab)}
+              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+                activeTab === tab.id
+                  ? `${tab.bgColor} text-white shadow-lg`
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className="text-lg mb-1">{tab.icon}</span>
+              <span className="text-xs font-medium">{tab.label}</span>
+            </button>
+          ))}
+      </div>
+      </div>
+
+      {/* Modal Mobile qui s'ouvre vers le haut */}
+      {isMobileModalOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex items-end">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-20"
+            onClick={() => setIsMobileModalOpen(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative w-full bg-white rounded-t-2xl max-h-[50vh] flex flex-col animate-slide-up">
+            {/* Header du modal */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <span className={`w-8 h-8 rounded-lg ${tabs.find(t => t.id === activeTab)?.bgColor} text-white flex items-center justify-center text-sm`}>
+                  {tabs.find(t => t.id === activeTab)?.icon}
+                </span>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {tabs.find(t => t.id === activeTab)?.label}
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsMobileModalOpen(false)}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Contenu scrollable */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {activeTab === 'design' && <DesignTab selectedDesign={selectedDesign} selectDesign={selectDesign} />}
+              {activeTab === 'color' && <ColorTab colors={colors} updateColor={updateColor} />}
+              {activeTab === 'text' && (console.log('📱 MOBILE: Rendu TextTab avec activeTab:', activeTab), <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={() => setShouldOpenTypographyPanel(null)} />)}
+              
+              {/* Onglets temporaires */}
+              {activeTab === 'motif' && (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">⚫</div>
+                  <h3 className="text-lg font-medium mb-2">Motifs</h3>
+                  <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+                </div>
+              )}
+              {activeTab === 'degrade' && (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">⚫</div>
+                  <h3 className="text-lg font-medium mb-2">Dégradés</h3>
+                  <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+                </div>
+              )}
+              {activeTab === 'numero' && (console.log('📱 MOBILE: Rendu NumeroTab avec activeTab:', activeTab), <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} category="numero" autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={() => setShouldOpenTypographyPanel(null)} />)}
+              {activeTab === 'nom' && (console.log('📱 MOBILE: Rendu NomTab avec activeTab:', activeTab), <TextTab texts={texts} addText={addText} updateText={updateText} removeText={removeText} updateTextPosition={updateTextPosition} selectedTextId={selectedTextId} selectText={selectText} textZones={textZones} isLoadingZones={isLoadingZones} fonts={fonts} category="nom" autoOpenTypography={autoOpenTypography} shouldOpenTypographyPanel={shouldOpenTypographyPanel} onTypographyPanelOpened={() => setShouldOpenTypographyPanel(null)} />)}
+              {activeTab === 'logo' && (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-4xl mb-4">🖼️</div>
+                  <h3 className="text-lg font-medium mb-2">Logos</h3>
+                  <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer avec bouton Shopify sur mobile */}
+            <div className="border-t border-gray-200 p-4">
+              <ShopifyAddToCart
+                modelUrl={modelUrl || undefined}
+                designId={selectedDesign.id || undefined}
+                designUrl={selectedDesign.svgUrl || undefined}
+                colors={colors}
+                texts={texts}
+                shopDomain={shopifyConfig.shopDomain}
+                productId={shopifyConfig.productId}
+                variantId={shopifyConfig.variantId}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {deleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={cancelDelete}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
+            <div className="text-center">
+              {/* Icône */}
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              
+              {/* Titre */}
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Supprimer l'élément ?
+              </h3>
+              
+              {/* Message */}
+              <p className="text-sm text-gray-500 mb-6">
+                Êtes-vous sûr de vouloir supprimer le texte <span className="font-medium text-gray-900">"{deleteConfirmation.textContent}"</span> ? Cette action ne peut pas être annulée.
+              </p>
+              
+              {/* Boutons */}
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  Non
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                >
+                  Oui
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    </>
+  );
+}
+}

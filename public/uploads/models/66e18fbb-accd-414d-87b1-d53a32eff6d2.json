@@ -1,0 +1,47 @@
+{
+  "id": "66e18fbb-accd-414d-87b1-d53a32eff6d2",
+  "name": "maillot",
+  "textureMaps": {},
+  "materialMaps": {
+    "ripstop_FRONT_2928": {
+      "materialName": "ripstop_FRONT_2928",
+      "normalMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_FRONT_2928_normalMap.png",
+      "repeatX": 35,
+      "repeatY": 50,
+      "opacityMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_FRONT_2928_opacityMap.png",
+      "roughnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_FRONT_2928_roughnessMap.png",
+      "metalnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_FRONT_2928_metalnessMap.png",
+      "aoMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_FRONT_2928_aoMap.png",
+      "normalIntensity": 0.5
+    },
+    "ripstop_BACK_2928": {
+      "materialName": "ripstop_BACK_2928",
+      "normalMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_BACK_2928_normalMap.png",
+      "roughnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_BACK_2928_roughnessMap.png",
+      "metalnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_ripstop_BACK_2928_metalnessMap.png",
+      "repeatX": 35,
+      "repeatY": 50,
+      "normalIntensity": 0.5
+    },
+    "mesh_FRONT_2917": {
+      "materialName": "mesh_FRONT_2917",
+      "normalMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_FRONT_2917_normalMap.png",
+      "roughnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_FRONT_2917_roughnessMap.png",
+      "metalnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_FRONT_2917_metalnessMap.png",
+      "aoMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_FRONT_2917_aoMap.png",
+      "opacityMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_FRONT_2917_opacityMap.png",
+      "repeatX": 35,
+      "repeatY": 35,
+      "normalIntensity": 0.5
+    },
+    "mesh_BACK_2917": {
+      "materialName": "mesh_BACK_2917",
+      "normalMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_BACK_2917_normalMap.png",
+      "roughnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_BACK_2917_roughnessMap.png",
+      "metalnessMap": "/uploads/models/66e18fbb-accd-414d-87b1-d53a32eff6d2_mesh_BACK_2917_metalnessMap.png",
+      "repeatX": 35,
+      "repeatY": 35,
+      "normalIntensity": 0.5
+    }
+  }
+}

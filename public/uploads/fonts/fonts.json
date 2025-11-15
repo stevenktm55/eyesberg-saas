@@ -1,0 +1,29 @@
+[
+  {
+    "id": "09c3e989-e06a-4588-a962-e44669c8b215",
+    "name": "STOCK",
+    "fileName": "1759436618786-BYD-Name-Font-Stock-New.ttf",
+    "fontUrl": "/uploads/fonts/1759436618786-BYD-Name-Font-Stock-New.ttf",
+    "format": "ttf",
+    "createdAt": "2025-10-02T20:23:38.786Z",
+    "letterSpacing": 2
+  },
+  {
+    "id": "988d9e64-d8e0-437a-9d02-ce7036e1dac7",
+    "name": "MODERN",
+    "fileName": "1759436675832-MODERN.ttf",
+    "fontUrl": "/uploads/fonts/1759436675832-MODERN.ttf",
+    "format": "ttf",
+    "createdAt": "2025-10-02T20:24:35.832Z",
+    "letterSpacing": 0
+  },
+  {
+    "id": "5f5d478e-c254-434e-b988-345a728b2729",
+    "name": "Space grotesk",
+    "fileName": "1759438914684-SpaceGrotesk-VariableFont_wght.ttf",
+    "fontUrl": "/uploads/fonts/1759438914684-SpaceGrotesk-VariableFont_wght.ttf",
+    "format": "ttf",
+    "createdAt": "2025-10-02T21:01:54.685Z",
+    "letterSpacing": 0
+  }
+]

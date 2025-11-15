@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  shopDomain  String   @unique
+  shopGid     String?  @unique
+  accessToken String? // Shopify Admin API token if app installed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products       Product[]
+  models3d       Model3D[]
+  designs2d      Design2D[]
+  colors         Color[]
+  fonts          Font[]
+  logos          Logo[]
+  configurations Configuration[]
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  shopId         String
+  productGid     String   @unique
+  handle         String
+  defaultModel   Model3D? @relation("DefaultModel", fields: [defaultModelId], references: [id])
+  defaultModelId String?
+
+  shop      Shop      @relation(fields: [shopId], references: [id])
+  variants  Variant[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Variant {
+  id         String  @id @default(cuid())
+  productId  String
+  variantGid String  @unique
+  presetId   String?
+
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Model3D {
+  id              String   @id @default(cuid())
+  shopId          String
+  name            String
+  glbUrl          String
+  materialsSchema Json // definition of material slots and bindings keys
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop               Shop      @relation(fields: [shopId], references: [id])
+  productsDefaulting Product[] @relation("DefaultModel")
+}
+
+model Design2D {
+  id            String   @id @default(cuid())
+  shopId        String
+  name          String
+  svgUrl        String
+  mappedRegions Json // per-mesh/material placement metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}
+
+model Color {
+  id               String   @id @default(cuid())
+  shopId           String
+  name             String
+  hex              String
+  materialBindings Json // mapping of material slot -> color usage
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}
+
+model Font {
+  id        String   @id @default(cuid())
+  shopId    String
+  name      String
+  woffUrl   String
+  sdfMeta   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}
+
+model Logo {
+  id        String   @id @default(cuid())
+  shopId    String
+  name      String
+  fileUrl   String
+  vector    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}
+
+model Configuration {
+  id           String   @id @default(cuid())
+  shopId       String
+  productGid   String
+  variantGid   String?
+  payloadJSON  Json
+  thumbnailUrl String?
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}

@@ -1,0 +1,70 @@
+[
+  {
+    "id": "2a6ac43f-7cdc-4234-bf14-920981fb288f",
+    "name": "Nom dos",
+    "position": [
+      0.6668215707271735,
+      0.5917706888580675,
+      0
+    ],
+    "color": "unknown",
+    "image": "/uploads/zone_images/b0e60543-39ca-47b3-9022-03ea96ce013f.png",
+    "categories": [
+      "nom"
+    ],
+    "defaultTextWidth": 700,
+    "defaultTextHeight": 200,
+    "zoneCategory": "dos"
+  },
+  {
+    "id": "f82b4ea2-5ae0-47b7-b84c-ca5f15dc5a76",
+    "name": "Numéro dos",
+    "position": [
+      0.6655284585698987,
+      0.6959737884178576,
+      0
+    ],
+    "color": "unknown",
+    "image": "/uploads/zone_images/8cdca4a6-e816-4bec-bf94-46c5bdcd637b.png",
+    "categories": [
+      "numero"
+    ],
+    "defaultTextWidth": 800,
+    "defaultTextHeight": 600,
+    "zoneCategory": "dos"
+  },
+  {
+    "id": "85b6dd3a-11d9-40e9-8c24-b16921dcc5de",
+    "name": "Logo dos",
+    "position": [
+      0.6629422342553493,
+      0.8104685521317011,
+      0
+    ],
+    "color": "unknown",
+    "image": "/uploads/zone_images/0c706bdb-a626-43ec-89aa-b899475965f2.png",
+    "categories": [
+      "logo-dos"
+    ],
+    "defaultLogoWidth": 600,
+    "defaultLogoHeight": 250,
+    "zoneCategory": "dos"
+  },
+  {
+    "id": "1e1634df-60eb-46f5-a525-0d278480b648",
+    "name": "Logo face 3",
+    "position": [
+      0.2426807831410503,
+      0.8529216667671712,
+      0
+    ],
+    "color": "unknown",
+    "image": "/uploads/zone_images/f94c7742-fe79-40b7-ba1c-5165527a144a.png",
+    "categories": [
+      "logo-torse"
+    ],
+    "defaultLogoWidth": 600,
+    "defaultLogoHeight": 250,
+    "zoneCategory": "torse"
+  }
+]

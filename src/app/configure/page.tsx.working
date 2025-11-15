@@ -1,0 +1,620 @@
+"use client";
+
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { ModelViewer } from "@/components/ModelViewer";
+import { ShopifyAddToCart } from "@/components/ShopifyAddToCart";
+import Image from "next/image";
+
+// Interface pour les zones de texte
+interface TextZone {
+  id: string;
+  name: string;
+  position: [number, number, number];
+  color: string;
+  image?: string; // Chemin vers l'image de la vignette
+  categories?: string[]; // Catégories: 'text', 'nom', 'numero'
+}
+
+// Hook pour charger les zones de texte depuis l'API
+function useTextZones() {
+  const [zones, setZones] = useState<TextZone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadZones() {
+      try {
+        const response = await fetch('/api/text-zones');
+        if (response.ok) {
+          const data = await response.json();
+          setZones(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des zones:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadZones();
+  }, []);
+
+  return { zones, isLoading };
+}
+
+// Interface pour les polices
+interface FontItem {
+  id: string;
+  name: string;
+  fileName: string;
+  fontUrl: string;
+  format: string;
+  createdAt: string;
+}
+
+// Hook pour charger les polices depuis l'API
+function useFonts() {
+  const [fonts, setFonts] = useState<FontItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFonts() {
+      try {
+        const response = await fetch('/api/fonts');
+        if (response.ok) {
+          const data = await response.json();
+          setFonts(data);
+          
+          // Charger dynamiquement les polices dans le document
+          data.forEach((font: FontItem) => {
+            const fontFace = new FontFace(font.name, `url(${font.fontUrl})`);
+            fontFace.load().then(() => {
+              document.fonts.add(fontFace);
+              console.log('✅ Police chargée:', font.name);
+            }).catch(err => {
+              console.error('❌ Erreur lors du chargement de la police:', font.name, err);
+            });
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des polices:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadFonts();
+  }, []);
+
+  return { fonts, isLoading };
+}
+
+// Interface pour les logos
+interface LogoVariant {
+  id: string;
+  name: string;
+  file: string;
+}
+
+interface Logo {
+  id: string;
+  name: string;
+  tags?: string[];
+  variants: LogoVariant[];
+}
+
+// Hook pour charger les logos depuis l'API
+function useLogos() {
+  const [logos, setLogos] = useState<Logo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadLogos() {
+      try {
+        const response = await fetch('/api/logos');
+        if (response.ok) {
+          const data = await response.json();
+          setLogos(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des logos:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadLogos();
+  }, []);
+
+  return { logos, isLoading };
+}
+
+// Hook pour charger automatiquement le premier modèle disponible
+function useAutoLoadModel() {
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadFirstModel() {
+      try {
+        const response = await fetch('/api/models');
+        const models = await response.json();
+        
+        if (models.length > 0) {
+          setModelUrl(models[0].glbUrl);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des modèles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadFirstModel();
+  }, []);
+
+  return { modelUrl, isLoading };
+}
+
+// Hook pour gérer la sélection de design
+function useDesignSelection() {
+  const [selectedDesign, setSelectedDesign] = useState<{
+    id: string | null;
+    svgUrl: string | null;
+  }>({ id: null, svgUrl: null });
+
+  const selectDesign = (design: { id: string; svgUrl: string } | null) => {
+    if (design) {
+      setSelectedDesign({ id: design.id, svgUrl: design.svgUrl });
+    } else {
+      setSelectedDesign({ id: null, svgUrl: null });
+    }
+  };
+
+  return { selectedDesign, selectDesign };
+}
+
+// Hook pour gérer les couleurs
+function useColorSelection() {
+  const [colors, setColors] = useState({
+    primary: '#ff0000',
+    secondary: '#00ff00', 
+    tertiary: '#0000ff'
+  });
+
+  const updateColor = (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => {
+    setColors(prev => ({
+      ...prev,
+      [colorType]: color
+    }));
+  };
+
+  return { colors, updateColor };
+}
+
+// Hook pour gérer le texte
+  function useTextSelection(onTextSelectionChange?: (textId: string | null, autoOpenTypography: boolean) => void) {
+  const lockToggleRef = useRef<Map<string, boolean>>(new Map());
+  const [texts, setTexts] = useState<Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+      rotation: number; // Rotation en degrés
+      locked?: boolean; // Verrouillage du texte
+      category: 'text' | 'nom' | 'numero'; // Catégorie du texte
+      fontFamily?: string;
+      strokeColor?: string;
+      strokeWidth?: number;
+      deformation?: string; // Type de déformation (arc, flag, wave, etc.)
+      deformationIntensity?: number; // Intensité de la déformation (0-100)
+  }>>([]);
+    const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+    const [isDraggingText, setIsDraggingText] = useState(false);
+
+    const addText = (content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text') => {
+    const newText = {
+      id: crypto.randomUUID(),
+      content,
+        position: position || [0.5, 0.5, 0] as [number, number, number], // Position fournie ou centre par défaut
+        fontSize: 0.05,
+      color: '#000000',
+        editable: true,
+        rotation: 0, // Pas de rotation par défaut
+        category, // Catégorie du texte
+        fontFamily: defaultFontFamily || 'Arial',
+        strokeColor: '#000000',
+        strokeWidth: 0.01, // 10px par défaut (0.01 * 1000 = 10px)
+        deformation: 'none',
+        deformationIntensity: 50
+      };
+      console.log('📝 Ajout texte - Position:', position, '→ UV final:', newText.position);
+    setTexts(prev => [...prev, newText]);
+      setSelectedTextId(newText.id); // Sélectionner automatiquement le nouveau texte
+  };
+
+  const updateText = (id: string, updates: Partial<typeof texts[0]>) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, ...updates } : text
+    ));
+  };
+
+  const removeText = (id: string) => {
+    setTexts(prev => prev.filter(text => text.id !== id));
+  };
+
+  const updateTextPosition = (id: string, position: [number, number, number]) => {
+    console.log('🔄 updateTextPosition called:', { id, position });
+    setTexts(prev => {
+      const updated = prev.map(text => 
+        text.id === id ? { ...text, position } : text
+      );
+      console.log('📝 Texts updated:', updated);
+      return updated;
+    });
+  };
+
+  const updateTextRotation = (id: string, rotation: number) => {
+    console.log('🔄 updateTextRotation called:', { id, rotation });
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, rotation } : text
+    ));
+  };
+
+  const updateTextSize = (id: string, fontSize: number) => {
+    console.log('📏 updateTextSize called:', { id, fontSize });
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, fontSize } : text
+    ));
+  };
+
+
+  const selectText = (id: string | null, autoOpenTypography = false) => {
+    console.log('🔄 selectText appelé:', { id, autoOpenTypography });
+    setSelectedTextId(id);
+    
+    // Callback pour notifier le parent de l'ouverture/fermeture du panneau typographie
+    if (onTextSelectionChange) {
+      console.log('📞 Appel du callback onTextSelectionChange');
+      onTextSelectionChange(id, autoOpenTypography);
+    } else {
+      console.log('⚠️ onTextSelectionChange n\'est pas défini');
+    }
+  };
+
+  const startDraggingText = () => {
+    setIsDraggingText(true);
+  };
+
+  const stopDraggingText = () => {
+    setIsDraggingText(false);
+  };
+
+  const toggleTextLock = useCallback((id: string) => {
+    console.log('🔒 toggleTextLock appelé pour:', id);
+    
+    setTexts(currentTexts => {
+      const currentText = currentTexts.find(t => t.id === id);
+      if (!currentText) {
+        console.log('🔒 Texte non trouvé:', id);
+        return currentTexts;
+      }
+      
+      // Utiliser une ref pour mémoriser le nouvel état cible
+      // Si la ref existe déjà pour cet ID, utiliser cette valeur
+      // Sinon, calculer le toggle et le stocker
+      if (!lockToggleRef.current.has(id)) {
+        const targetLockState = !currentText.locked;
+        lockToggleRef.current.set(id, targetLockState);
+        console.log('🔒 Première exécution - Ancien état:', currentText.locked, '→ Nouveau:', targetLockState);
+      } else {
+        console.log('🔒 Exécution suivante - Utilisation valeur mémorisée:', lockToggleRef.current.get(id));
+      }
+      
+      const targetLockState = lockToggleRef.current.get(id)!;
+      
+      return currentTexts.map(text => 
+        text.id === id ? { ...text, locked: targetLockState } : text
+      );
+    });
+    
+    // Nettoyer la ref après un court délai (après le batch de setState)
+    setTimeout(() => {
+      lockToggleRef.current.delete(id);
+      console.log('🔒 Nettoyage ref pour:', id);
+    }, 100);
+  }, []);
+
+  return { 
+    texts, 
+    addText, 
+    updateText, 
+    removeText, 
+    updateTextPosition,
+    updateTextRotation,
+    updateTextSize,
+    toggleTextLock,
+    selectedTextId,
+    selectText,
+    isDraggingText,
+    startDraggingText,
+    stopDraggingText,
+  };
+}
+
+// Hook pour gérer les logos placés sur le modèle
+function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => void) {
+  const lockToggleRef = useRef<Map<string, boolean>>(new Map());
+  const [placedLogos, setPlacedLogos] = useState<Array<{
+    id: string;
+    logoId: string; // ID du logo de la bibliothèque
+    variantId: string; // ID de la variante choisie
+    variantFile: string; // Fichier de la variante (pour affichage rapide)
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>>([]);
+  const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+
+  const addLogo = (
+    logoId: string, 
+    variantId: string, 
+    variantFile: string,
+    position?: [number, number, number], 
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' = 'torse'
+  ) => {
+    const newLogo = {
+      id: crypto.randomUUID(),
+      logoId,
+      variantId,
+      variantFile,
+      position: position || [0.5, 0.5, 0] as [number, number, number],
+      scale: 0.1, // Taille par défaut
+      rotation: 0,
+      category,
+    };
+    console.log('🖼️ Ajout logo - Position:', position, '→ UV final:', newLogo.position);
+    setPlacedLogos(prev => [...prev, newLogo]);
+    setSelectedLogoId(newLogo.id);
+  };
+
+  const updateLogo = (id: string, updates: Partial<typeof placedLogos[0]>) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, ...updates } : logo
+    ));
+  };
+
+  const removeLogo = (id: string) => {
+    setPlacedLogos(prev => prev.filter(logo => logo.id !== id));
+  };
+
+  const updateLogoPosition = (id: string, position: [number, number, number]) => {
+    console.log('🔄 updateLogoPosition called:', { id, position });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, position } : logo
+    ));
+  };
+
+  const updateLogoRotation = (id: string, rotation: number) => {
+    console.log('🔄 updateLogoRotation called:', { id, rotation });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, rotation } : logo
+    ));
+  };
+
+  const updateLogoScale = (id: string, scale: number) => {
+    console.log('📏 updateLogoScale called:', { id, scale });
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, scale } : logo
+    ));
+  };
+
+  const selectLogo = (id: string | null) => {
+    console.log('🔄 selectLogo appelé:', { id });
+    setSelectedLogoId(id);
+    
+    if (onLogoSelectionChange) {
+      onLogoSelectionChange(id);
+    }
+  };
+
+  const startDraggingLogo = () => {
+    setIsDraggingLogo(true);
+  };
+
+  const stopDraggingLogo = () => {
+    setIsDraggingLogo(false);
+  };
+
+  const toggleLogoLock = useCallback((id: string) => {
+    console.log('🔒 toggleLogoLock appelé pour:', id);
+    
+    setPlacedLogos(currentLogos => {
+      const currentLogo = currentLogos.find(l => l.id === id);
+      if (!currentLogo) {
+        console.log('🔒 Logo non trouvé:', id);
+        return currentLogos;
+      }
+      
+      if (!lockToggleRef.current.has(id)) {
+        const targetLockState = !currentLogo.locked;
+        lockToggleRef.current.set(id, targetLockState);
+        console.log('🔒 Première exécution - Ancien état:', currentLogo.locked, '→ Nouveau:', targetLockState);
+      } else {
+        console.log('🔒 Exécution suivante - Utilisation valeur mémorisée:', lockToggleRef.current.get(id));
+      }
+      
+      const targetLockState = lockToggleRef.current.get(id)!;
+      
+      return currentLogos.map(logo => 
+        logo.id === id ? { ...logo, locked: targetLockState } : logo
+      );
+    });
+    
+    setTimeout(() => {
+      lockToggleRef.current.delete(id);
+      console.log('🔒 Nettoyage ref pour:', id);
+    }, 100);
+  }, []);
+
+  return {
+    placedLogos,
+    addLogo,
+    updateLogo,
+    removeLogo,
+    updateLogoPosition,
+    updateLogoRotation,
+    updateLogoScale,
+    toggleLogoLock,
+    selectedLogoId,
+    selectLogo,
+    isDraggingLogo,
+    startDraggingLogo,
+    stopDraggingLogo,
+  };
+}
+
+// Fonction pour créer une UV map de test
+function createTestUVMap() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Fond blanc
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 512, 512);
+  
+  // Grille UV
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 2;
+  
+  // Lignes verticales
+  for (let i = 0; i <= 10; i++) {
+    const x = (i / 10) * 512;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 512);
+    ctx.stroke();
+  }
+  
+  // Lignes horizontales
+  for (let i = 0; i <= 10; i++) {
+    const y = (i / 10) * 512;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(512, y);
+    ctx.stroke();
+  }
+  
+  // Marquer les coins
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(0, 0, 20, 20); // Coin bas-gauche (0,0)
+  ctx.fillStyle = '#00ff00';
+  ctx.fillRect(492, 0, 20, 20); // Coin bas-droit (1,0)
+  ctx.fillStyle = '#0000ff';
+  ctx.fillRect(0, 492, 20, 20); // Coin haut-gauche (0,1)
+  ctx.fillStyle = '#ffff00';
+  ctx.fillRect(492, 492, 20, 20); // Coin haut-droit (1,1)
+  
+  // Ajouter des labels
+  ctx.fillStyle = '#000000';
+  ctx.font = '16px Arial';
+  ctx.fillText('UV(0,0)', 5, 35);
+  ctx.fillText('UV(1,0)', 400, 35);
+  ctx.fillText('UV(0,1)', 5, 480);
+  ctx.fillText('UV(1,1)', 400, 480);
+  
+  return canvas.toDataURL();
+}
+
+function Viewer3D({ 
+  designTexture, 
+  colors, 
+  fonts,
+  texts,
+  updateTextPosition,
+  updateTextRotation,
+  updateTextSize,
+  toggleTextLock,
+  removeText,
+  selectedTextId,
+  selectText,
+  isDraggingText,
+  setIsDraggingText,
+  isRotatingText,
+  setIsRotatingText,
+  isResizingText,
+  setIsResizingText,
+  onTextAdded,
+  placedLogos,
+  updateLogoPosition,
+  updateLogoRotation,
+  updateLogoScale,
+  toggleLogoLock,
+  removeLogo,
+  selectedLogoId,
+  selectLogo,
+}: { 
+  designTexture: string | null; 
+  colors: { primary: string; secondary: string; tertiary: string };
+  fonts: FontItem[];
+  texts: Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    rotation: number;
+    locked?: boolean;
+    category: 'text' | 'nom' | 'numero';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    deformation?: string;
+    deformationIntensity?: number;
+  }>;
+  updateTextPosition: (id: string, position: [number, number, number]) => void;
+  updateTextRotation: (id: string, rotation: number) => void;
+  updateTextSize: (id: string, fontSize: number) => void;
+  toggleTextLock: (id: string) => void;
+  removeText: (id: string) => void;
+  selectedTextId: string | null;
+  selectText: (id: string | null) => void;
+  isDraggingText: boolean;
+  setIsDraggingText: (dragging: boolean) => void;
+  isRotatingText: boolean;
+  setIsRotatingText: (rotating: boolean) => void;
+  isResizingText: boolean;
+  setIsResizingText: (resizing: boolean) => void;
+  onTextAdded?: (textId: string, position: [number, number, number]) => void;
+  placedLogos: Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+  }>;
+  updateLogoPosition: (id: string, position: [number, number, number]) => void;
+  updateLogoRotation: (id: string, rotation: number) => void;
+  updateLogoScale: (id: string, scale: number) => void;
+  toggleLogoLock: (id: string) => void;
+  removeLogo: (id: string) => void;
+  selectedLogoId: string | null;
+  selectLogo: (id: string | null) => void;
+}) {
+  const { modelUrl, isLoading } = useAutoLoadModel();
+  const [processedSvgUrl, setProcessedSvgUrl] = useState<string | null>(null);
+  const [testUVMap, setTestUVMap] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTestUVMap(createTestUVMap());
+  }, []);
