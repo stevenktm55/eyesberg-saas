@@ -126,7 +126,7 @@ export default function LoginPage() {
             letterSpacing: '-2.32px',
             textTransform: 'uppercase',
             color: '#8eff36',
-            fontStyle: 'italic',
+            fontStyle: 'normal',
           }}
         >
           Log In
