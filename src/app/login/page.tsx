@@ -28,10 +28,21 @@ export default function LoginPage() {
         'url(/fonts/pp-neue-machina-ultrabold-italic.woff2) format("woff2")'
       );
       
-      // Charger Inter depuis Google Fonts
-      const interFont = new FontFace(
+      // Charger Inter depuis Google Fonts avec plusieurs variantes
+      const interFont400 = new FontFace(
         'Inter',
-        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")'
+        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
+        { weight: '400' }
+      );
+      const interFont500 = new FontFace(
+        'Inter',
+        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
+        { weight: '500' }
+      );
+      const interFont600 = new FontFace(
+        'Inter',
+        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
+        { weight: '600' }
       );
       
       const timeout = setTimeout(() => {
@@ -40,7 +51,9 @@ export default function LoginPage() {
       
       Promise.all([
         ppFont.load().then(f => document.fonts.add(f)).catch(() => {}),
-        interFont.load().then(f => document.fonts.add(f)).catch(() => {})
+        interFont400.load().then(f => document.fonts.add(f)).catch(() => {}),
+        interFont500.load().then(f => document.fonts.add(f)).catch(() => {}),
+        interFont600.load().then(f => document.fonts.add(f)).catch(() => {})
       ]).then(() => {
         clearTimeout(timeout);
         // Vérifier que les fonts sont chargées
@@ -69,20 +82,42 @@ export default function LoginPage() {
                 
                 const labels = document.querySelectorAll('label');
                 labels.forEach(label => {
-                  const originalFont = label.style.fontFamily;
                   label.style.fontFamily = 'sans-serif';
                   void label.offsetWidth;
-                  label.style.fontFamily = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                  label.style.fontFamily = 'Inter, sans-serif';
                   void label.offsetWidth;
+                  // Forcer à nouveau après un court délai
+                  setTimeout(() => {
+                    label.style.fontFamily = 'Inter, sans-serif';
+                  }, 10);
                 });
                 
                 const inputs = document.querySelectorAll('input');
                 inputs.forEach(input => {
-                  const originalFont = input.style.fontFamily;
                   input.style.fontFamily = 'sans-serif';
                   void input.offsetWidth;
-                  input.style.fontFamily = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                  input.style.fontFamily = 'Inter, sans-serif';
                   void input.offsetWidth;
+                  // Forcer à nouveau après un court délai
+                  setTimeout(() => {
+                    input.style.fontFamily = 'Inter, sans-serif';
+                  }, 10);
+                });
+                
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                  button.style.fontFamily = 'sans-serif';
+                  void button.offsetWidth;
+                  button.style.fontFamily = 'Inter, sans-serif';
+                  void button.offsetWidth;
+                });
+                
+                const paragraphs = document.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                  p.style.fontFamily = 'sans-serif';
+                  void p.offsetWidth;
+                  p.style.fontFamily = 'Inter, sans-serif';
+                  void p.offsetWidth;
                 });
               }, 50);
             }
