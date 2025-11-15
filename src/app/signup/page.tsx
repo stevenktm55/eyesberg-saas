@@ -77,16 +77,20 @@ export default function SignupPage() {
         width: '100%',
         maxWidth: '400px',
       }}>
-        <h1 style={{ 
-          fontSize: '48px', 
-          fontWeight: '400',
-          fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif',
-          letterSpacing: '-2.32px',
-          marginBottom: '32px',
-          textAlign: 'center',
-          color: '#8eff36',
-          textTransform: 'uppercase',
-        }}>
+        <h1 
+          className="stepn-title-ultrabold"
+          style={{ 
+            fontSize: '48px', 
+            marginBottom: '32px',
+            textAlign: 'center',
+            fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif',
+            fontWeight: '400',
+            letterSpacing: '-2.32px',
+            textTransform: 'uppercase',
+            color: '#8eff36',
+            fontStyle: 'italic',
+          }}
+        >
           Create your account
         </h1>
 

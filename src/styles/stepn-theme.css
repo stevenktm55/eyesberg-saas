@@ -11,6 +11,7 @@
   font-weight: 400;
   font-style: italic;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -19,6 +20,7 @@
   font-weight: 400;
   font-style: italic;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -27,6 +29,7 @@
   font-weight: 300;
   font-style: italic;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* Inter sera chargé via Google Fonts dans le layout */
@@ -81,12 +84,13 @@ body {
 
 /* Typographie STEPN */
 h1, h2 {
-  font-family: var(--stepn-font-heading-ultrabold);
-  font-weight: 400;
-  letter-spacing: -2.32px;
+  font-family: var(--stepn-font-heading-ultrabold) !important;
+  font-weight: 400 !important;
+  letter-spacing: -2.32px !important;
   margin: 0;
-  color: var(--stepn-accent);
-  text-transform: uppercase;
+  color: var(--stepn-accent) !important;
+  text-transform: uppercase !important;
+  font-style: italic !important;
 }
 
 h3, h4 {
@@ -200,11 +204,12 @@ a:hover {
 
 /* Classes utilitaires STEPN */
 .stepn-title-ultrabold {
-  font-family: var(--stepn-font-heading-ultrabold);
-  font-weight: 400;
-  letter-spacing: -2.32px;
-  text-transform: uppercase;
-  color: var(--stepn-accent);
+  font-family: var(--stepn-font-heading-ultrabold) !important;
+  font-weight: 400 !important;
+  letter-spacing: -2.32px !important;
+  text-transform: uppercase !important;
+  color: var(--stepn-accent) !important;
+  font-style: italic !important;
 }
 
 .stepn-title-regular {

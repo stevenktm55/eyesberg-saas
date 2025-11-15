@@ -76,10 +76,10 @@ input::placeholder, textarea::placeholder {
   color: #6b7280; /* text-gray-500 */
 }
 
-/* Titres en gris très foncé pour meilleure lisibilité */
-h1, h2, h3, h4, h5, h6 {
-  color: #111827; /* text-gray-900 */
-}
+/* Titres en gris très foncé pour meilleure lisibilité - Sauf pour les pages SAAS qui utilisent stepn-theme.css */
+/* h1, h2, h3, h4, h5, h6 {
+  color: #111827;
+} */
 
 /* Labels et textes importants */
 label {
