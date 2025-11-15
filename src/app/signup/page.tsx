@@ -98,6 +98,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               Email
             </label>
@@ -127,6 +128,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               Password
             </label>
@@ -157,6 +159,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               Your customizer url
             </label>
@@ -198,8 +201,9 @@ export default function SignupPage() {
               fontSize: '12px', 
               color: '#a0a0a0', 
               marginTop: '8px',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
-              Your admin will be accessible at: <strong style={{ color: '#ffffff' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
+              Your admin will be accessible at: <strong style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
             </p>
           </div>
 
@@ -212,6 +216,7 @@ export default function SignupPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               {error}
             </div>
@@ -234,6 +239,7 @@ export default function SignupPage() {
               cursor: loading || !email || !password || !subdomain ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}
           >
             {loading ? 'Creating account...' : 'Start free trial'}
@@ -246,11 +252,12 @@ export default function SignupPage() {
           textAlign: 'center',
           marginBottom: '16px',
           lineHeight: '1.5',
+          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
         }}>
           By clicking &quot;Start free trial&quot; you agree to our{' '}
-          <a href="/terms" style={{ color: '#ffffff' }}>Terms</a>
+          <a href="/terms" style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>Terms</a>
           {' '}and{' '}
-          <a href="/privacy" style={{ color: '#ffffff' }}>Privacy policy</a>
+          <a href="/privacy" style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>Privacy policy</a>
         </p>
 
         <div style={{
@@ -258,10 +265,10 @@ export default function SignupPage() {
           paddingTop: '16px',
           textAlign: 'center',
         }}>
-          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px' }}>
+          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
             Already have an account?
           </p>
-          <a href="/login" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500' }}>
+          <a href="/login" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
             Log In
           </a>
         </div>

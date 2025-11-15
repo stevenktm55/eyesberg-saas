@@ -4,11 +4,27 @@
  * Fonts et couleurs exactes de stepn.com
  */
 
-/* Charger les fonts STEPN */
+/* Charger toutes les fonts STEPN */
 @font-face {
   font-family: 'PP Neue Machina Inktrap Ultrabold Italic';
   src: url('https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2') format('woff2');
   font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina Inktrap Regular Italic';
+  src: url('https://framerusercontent.com/assets/fIeNE54FZibE88XZiMM5dx9x20.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina Inktrap Light Italic';
+  src: url('https://framerusercontent.com/assets/QK6K1hfczdtpj0XfotVM82IA.woff2') format('woff2');
+  font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
@@ -44,7 +60,9 @@
   
   /* Typographie STEPN */
   --stepn-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-  --stepn-font-heading: 'PP Neue Machina Inktrap Ultrabold Italic', 'PP Neue Machina Inktrap Ultrabold Italic Placeholder', sans-serif;
+  --stepn-font-heading-ultrabold: 'PP Neue Machina Inktrap Ultrabold Italic', 'PP Neue Machina Inktrap Ultrabold Italic Placeholder', sans-serif;
+  --stepn-font-heading-regular: 'PP Neue Machina Inktrap Regular Italic', 'PP Neue Machina Inktrap Regular Italic Placeholder', sans-serif;
+  --stepn-font-heading-light: 'PP Neue Machina Inktrap Light Italic', 'PP Neue Machina Inktrap Light Italic Placeholder', sans-serif;
 }
 
 * {
@@ -61,12 +79,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typographie */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--stepn-font-heading);
-  font-weight: 900;
-  letter-spacing: 0.05em;
+/* Typographie STEPN */
+h1, h2 {
+  font-family: var(--stepn-font-heading-ultrabold);
+  font-weight: 400;
+  letter-spacing: -2.32px;
   margin: 0;
+  color: var(--stepn-accent);
+  text-transform: uppercase;
+}
+
+h3, h4 {
+  font-family: var(--stepn-font-heading-regular);
+  font-weight: 400;
+  letter-spacing: -1px;
+  margin: 0;
+  color: var(--stepn-text);
+}
+
+h5, h6 {
+  font-family: var(--stepn-font-heading-light);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--stepn-text);
+}
+
+p, span, label, a, button, input, textarea, select {
+  font-family: var(--stepn-font-body);
 }
 
 /* Inputs */
@@ -141,12 +181,26 @@ a:hover {
   padding: var(--stepn-spacing-lg);
 }
 
-/* Titres avec lettres espacées (style STEPN) */
-.stepn-title-spaced {
-  font-family: var(--stepn-font-heading);
+/* Classes utilitaires STEPN */
+.stepn-title-ultrabold {
+  font-family: var(--stepn-font-heading-ultrabold);
   font-weight: 400;
   letter-spacing: -2.32px;
   text-transform: uppercase;
   color: var(--stepn-accent);
+}
+
+.stepn-title-regular {
+  font-family: var(--stepn-font-heading-regular);
+  font-weight: 400;
+  letter-spacing: -1px;
+  color: var(--stepn-text);
+}
+
+.stepn-title-light {
+  font-family: var(--stepn-font-heading-light);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  color: var(--stepn-text);
 }
 

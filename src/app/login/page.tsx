@@ -89,6 +89,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               Email
             </label>
@@ -118,6 +119,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               Password
             </label>
@@ -149,6 +151,7 @@ export default function LoginPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}>
               {error}
             </div>
@@ -171,6 +174,7 @@ export default function LoginPage() {
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
             }}
           >
             {loading ? 'Logging in...' : 'Log In'}
@@ -182,10 +186,10 @@ export default function LoginPage() {
           paddingTop: '16px',
           textAlign: 'center',
         }}>
-          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px' }}>
+          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
             Don&apos;t have an account?
           </p>
-          <a href="/signup" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500' }}>
+          <a href="/signup" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
             Sign Up
           </a>
         </div>
