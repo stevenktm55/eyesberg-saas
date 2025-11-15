@@ -22,29 +22,52 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (document.fonts) {
-      // Charger explicitement la font
+      // Charger explicitement la font avec un timeout pour éviter d'attendre indéfiniment
       const font = new FontFace(
         'PP Neue Machina Inktrap Ultrabold Italic',
         'url(/fonts/pp-neue-machina-ultrabold-italic.woff2) format("woff2")'
       );
       
-      font.load().then((loadedFont) => {
-        document.fonts.add(loadedFont);
-        setFontsLoaded(true);
-      }).catch((err) => {
-        console.error('Erreur chargement font:', err);
-        // Fallback vers l'URL externe
-        const fontExternal = new FontFace(
-          'PP Neue Machina Inktrap Ultrabold Italic',
-          'url(https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2) format("woff2")'
-        );
-        fontExternal.load().then((loadedFont) => {
+      const timeout = setTimeout(() => {
+        setFontsLoaded(true); // Timeout après 2 secondes
+      }, 2000);
+      
+      font.load()
+        .then((loadedFont) => {
+          clearTimeout(timeout);
           document.fonts.add(loadedFont);
-          setFontsLoaded(true);
-        }).catch(() => {
-          setFontsLoaded(true); // Afficher quand même avec fallback
+          // Vérifier que la font est vraiment chargée
+          if (document.fonts.check('48px "PP Neue Machina Inktrap Ultrabold Italic"')) {
+            setFontsLoaded(true);
+          } else {
+            // Réessayer avec l'URL externe
+            const fontExternal = new FontFace(
+              'PP Neue Machina Inktrap Ultrabold Italic',
+              'url(https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2) format("woff2")'
+            );
+            fontExternal.load().then((loadedFont) => {
+              document.fonts.add(loadedFont);
+              setFontsLoaded(true);
+            }).catch(() => {
+              setFontsLoaded(true);
+            });
+          }
+        })
+        .catch((err) => {
+          clearTimeout(timeout);
+          console.error('Erreur chargement font locale:', err);
+          // Fallback vers l'URL externe
+          const fontExternal = new FontFace(
+            'PP Neue Machina Inktrap Ultrabold Italic',
+            'url(https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2) format("woff2")'
+          );
+          fontExternal.load().then((loadedFont) => {
+            document.fonts.add(loadedFont);
+            setFontsLoaded(true);
+          }).catch(() => {
+            setFontsLoaded(true); // Afficher quand même avec fallback
+          });
         });
-      });
     } else {
       setFontsLoaded(true);
     }

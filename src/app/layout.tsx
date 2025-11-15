@@ -31,24 +31,24 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
-        <link rel="preconnect" href="https://framerusercontent.com" />
+        {/* Précharger les fonts PP Neue Machina depuis le serveur local */}
         <link
           rel="preload"
-          href="https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2"
+          href="/fonts/pp-neue-machina-ultrabold-italic.woff2"
           as="font"
           type="font/woff2"
           crossOrigin=""
         />
         <link
           rel="preload"
-          href="https://framerusercontent.com/assets/fIeNE54FZibE88XZiMM5dx9x20.woff2"
+          href="/fonts/pp-neue-machina-regular-italic.woff2"
           as="font"
           type="font/woff2"
           crossOrigin=""
         />
         <link
           rel="preload"
-          href="https://framerusercontent.com/assets/QK6K1hfczdtpj0XfotVM82IA.woff2"
+          href="/fonts/pp-neue-machina-light-italic.woff2"
           as="font"
           type="font/woff2"
           crossOrigin=""
