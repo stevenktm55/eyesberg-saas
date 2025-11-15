@@ -30,7 +30,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=block" rel="stylesheet" />
+        {/* Précharger Inter pour un chargement plus rapide */}
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
         {/* Précharger les fonts PP Neue Machina depuis le serveur local */}
         <link
           rel="preload"

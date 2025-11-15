@@ -110,7 +110,8 @@ h5, h6 {
 }
 
 p, span, label, a, button, input, textarea, select {
-  font-family: var(--stepn-font-body);
+  font-family: var(--stepn-font-body) !important;
+  color: var(--stepn-text) !important;
 }
 
 /* Inputs */
