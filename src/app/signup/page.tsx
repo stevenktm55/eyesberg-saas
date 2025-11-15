@@ -52,9 +52,24 @@ export default function SignupPage() {
           // Forcer un re-render pour appliquer les fonts
           setTimeout(() => {
             setFontsLoaded(true);
-            // Forcer le re-render des éléments
+            // Forcer le re-render des éléments et forcer l'utilisation des fonts
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new Event('resize'));
+              // Forcer l'utilisation des fonts après un court délai
+              setTimeout(() => {
+                const h1 = document.querySelector('h1');
+                if (h1) {
+                  h1.style.fontFamily = '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif';
+                }
+                const labels = document.querySelectorAll('label');
+                labels.forEach(label => {
+                  label.style.fontFamily = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                });
+                const inputs = document.querySelectorAll('input');
+                inputs.forEach(input => {
+                  input.style.fontFamily = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                });
+              }, 50);
             }
           }, 100);
         } else {
