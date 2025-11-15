@@ -140,12 +140,14 @@ export default function LoginPage() {
             fontSize: '48px', 
             marginBottom: '32px',
             textAlign: 'center',
-            fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif',
+            fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
             fontWeight: '400',
             letterSpacing: '-2.32px',
             textTransform: 'uppercase',
             color: '#8eff36',
             fontStyle: 'normal',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
           }}
         >
           Log In
@@ -159,7 +161,9 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}>
               Email
             </label>
@@ -177,7 +181,9 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#ffffff';
@@ -195,7 +201,9 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}>
               Password
             </label>
@@ -213,7 +221,9 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#ffffff';
@@ -233,7 +243,9 @@ export default function LoginPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}>
               {error}
             </div>
@@ -256,7 +268,9 @@ export default function LoginPage() {
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}
           >
             {loading ? 'Logging in...' : 'Log In'}
