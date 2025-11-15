@@ -356,7 +356,7 @@ export default function SignupPage() {
               marginTop: '8px',
               fontFamily: 'Inter, sans-serif',
             }}>
-              Your admin will be accessible at: <strong style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
+              Your admin will be accessible at: <strong style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
             </p>
           </div>
 
@@ -405,12 +405,12 @@ export default function SignupPage() {
           textAlign: 'center',
           marginBottom: '16px',
           lineHeight: '1.5',
-          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+          fontFamily: 'Inter, sans-serif',
         }}>
           By clicking &quot;Start free trial&quot; you agree to our{' '}
-          <a href="/terms" style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>Terms</a>
+          <a href="/terms" style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif' }}>Terms</a>
           {' '}and{' '}
-          <a href="/privacy" style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>Privacy policy</a>
+          <a href="/privacy" style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif' }}>Privacy policy</a>
         </p>
 
         <div style={{
@@ -418,10 +418,10 @@ export default function SignupPage() {
           paddingTop: '16px',
           textAlign: 'center',
         }}>
-          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
+          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: 'Inter, sans-serif' }}>
             Already have an account?
           </p>
-          <a href="/login" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>
+          <a href="/login" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500', fontFamily: 'Inter, sans-serif' }}>
             Log In
           </a>
         </div>
