@@ -104,7 +104,8 @@ export default function LoginPage() {
                 buttons.forEach(button => {
                   button.style.fontFamily = 'sans-serif';
                   void button.offsetWidth;
-                  button.style.fontFamily = 'Inter, sans-serif';
+                  button.style.fontFamily = 'Inter';
+                  button.style.fontWeight = '600';
                   void button.offsetWidth;
                 });
                 
@@ -112,7 +113,8 @@ export default function LoginPage() {
                 paragraphs.forEach(p => {
                   p.style.fontFamily = 'sans-serif';
                   void p.offsetWidth;
-                  p.style.fontFamily = 'Inter, sans-serif';
+                  p.style.fontFamily = 'Inter';
+                  p.style.fontWeight = '400';
                   void p.offsetWidth;
                 });
               }, 50);

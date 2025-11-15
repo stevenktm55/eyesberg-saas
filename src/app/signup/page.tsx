@@ -105,7 +105,8 @@ export default function SignupPage() {
                 buttons.forEach(button => {
                   button.style.fontFamily = 'sans-serif';
                   void button.offsetWidth;
-                  button.style.fontFamily = 'Inter, sans-serif';
+                  button.style.fontFamily = 'Inter';
+                  button.style.fontWeight = '600';
                   void button.offsetWidth;
                 });
                 
@@ -113,7 +114,8 @@ export default function SignupPage() {
                 paragraphs.forEach(p => {
                   p.style.fontFamily = 'sans-serif';
                   void p.offsetWidth;
-                  p.style.fontFamily = 'Inter, sans-serif';
+                  p.style.fontFamily = 'Inter';
+                  p.style.fontWeight = '400';
                   void p.offsetWidth;
                 });
               }, 50);
@@ -230,7 +232,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               Email
             </label>
@@ -248,7 +250,7 @@ export default function SignupPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#ffffff';
@@ -266,7 +268,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               Password
             </label>
@@ -285,7 +287,7 @@ export default function SignupPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#ffffff';
@@ -303,7 +305,7 @@ export default function SignupPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               Your customizer url
             </label>
@@ -325,7 +327,7 @@ export default function SignupPage() {
                   borderBottomLeftRadius: '4px',
                   fontSize: '14px',
                   color: '#ffffff',
-                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontFamily: 'Inter, sans-serif',
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#ffffff';
@@ -343,7 +345,7 @@ export default function SignupPage() {
                 backgroundColor: '#1a1a1a',
                 fontSize: '14px',
                 color: '#a0a0a0',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               }}>
                 .{rootDomain}
               </span>
@@ -352,7 +354,7 @@ export default function SignupPage() {
               fontSize: '12px', 
               color: '#a0a0a0', 
               marginTop: '8px',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               Your admin will be accessible at: <strong style={{ color: '#ffffff', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
             </p>
@@ -367,7 +369,7 @@ export default function SignupPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}>
               {error}
             </div>
@@ -390,7 +392,7 @@ export default function SignupPage() {
               cursor: loading || !email || !password || !subdomain ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
             }}
           >
             {loading ? 'Creating account...' : 'Start free trial'}
