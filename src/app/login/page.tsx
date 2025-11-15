@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -16,6 +16,19 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+
+  // Forcer le chargement de la font
+  useEffect(() => {
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        // Forcer le re-render après le chargement des fonts
+        const h1 = document.querySelector('h1');
+        if (h1) {
+          h1.style.fontFamily = 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif';
+        }
+      });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
