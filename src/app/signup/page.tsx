@@ -78,13 +78,13 @@ export default function SignupPage() {
         maxWidth: '400px',
       }}>
         <h1 style={{ 
-          fontSize: '28px', 
-          fontWeight: '900',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
-          letterSpacing: '0.1em',
+          fontSize: '48px', 
+          fontWeight: '400',
+          fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
+          letterSpacing: '-2.32px',
           marginBottom: '32px',
           textAlign: 'center',
-          color: '#ffffff',
+          color: '#8eff36',
           textTransform: 'uppercase',
         }}>
           Create your account
@@ -115,7 +115,7 @@ export default function SignupPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'inherit',
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
               }}
             />
           </div>
@@ -145,7 +145,7 @@ export default function SignupPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: 'inherit',
+                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
               }}
             />
           </div>
