@@ -18,16 +18,36 @@ export default function SignupPage() {
   // ⚠️ IMPORTANT : Configure NEXT_PUBLIC_ROOT_DOMAIN dans .env.local
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ton-domaine.com';
 
-  // Forcer le chargement de la font
+  // Forcer le chargement de la font avant d'afficher
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
   useEffect(() => {
     if (document.fonts) {
-      document.fonts.ready.then(() => {
-        // Forcer le re-render après le chargement des fonts
-        const h1 = document.querySelector('h1');
-        if (h1) {
-          h1.style.fontFamily = 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif';
-        }
+      // Charger explicitement la font
+      const font = new FontFace(
+        'PP Neue Machina Inktrap Ultrabold Italic',
+        'url(/fonts/pp-neue-machina-ultrabold-italic.woff2) format("woff2")'
+      );
+      
+      font.load().then((loadedFont) => {
+        document.fonts.add(loadedFont);
+        setFontsLoaded(true);
+      }).catch((err) => {
+        console.error('Erreur chargement font:', err);
+        // Fallback vers l'URL externe
+        const fontExternal = new FontFace(
+          'PP Neue Machina Inktrap Ultrabold Italic',
+          'url(https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2) format("woff2")'
+        );
+        fontExternal.load().then((loadedFont) => {
+          document.fonts.add(loadedFont);
+          setFontsLoaded(true);
+        }).catch(() => {
+          setFontsLoaded(true); // Afficher quand même avec fallback
+        });
       });
+    } else {
+      setFontsLoaded(true);
     }
   }, []);
 
@@ -72,6 +92,20 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+  if (!fontsLoaded) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+      }}>
+        <div style={{ color: '#8eff36', fontFamily: 'Inter, sans-serif' }}>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
