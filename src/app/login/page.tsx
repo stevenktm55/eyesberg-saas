@@ -71,7 +71,7 @@ export default function LoginPage() {
         <h1 style={{ 
           fontSize: '48px', 
           fontWeight: '400',
-          fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
+          fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, PP Neue Machina Inktrap Ultrabold Italic Placeholder, sans-serif',
           letterSpacing: '-2.32px',
           marginBottom: '32px',
           textAlign: 'center',
@@ -89,7 +89,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}>
               Email
             </label>
@@ -107,7 +107,7 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               }}
             />
           </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}>
               Password
             </label>
@@ -137,7 +137,7 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               }}
             />
           </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}>
               {error}
             </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}
           >
             {loading ? 'Logging in...' : 'Log In'}

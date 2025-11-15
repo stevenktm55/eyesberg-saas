@@ -32,6 +32,27 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
         <link rel="preconnect" href="https://framerusercontent.com" />
+        <link
+          rel="preload"
+          href="https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
+        <link
+          rel="preload"
+          href="https://framerusercontent.com/assets/fIeNE54FZibE88XZiMM5dx9x20.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
+        <link
+          rel="preload"
+          href="https://framerusercontent.com/assets/QK6K1hfczdtpj0XfotVM82IA.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
