@@ -28,21 +28,11 @@ export default function LoginPage() {
         'url(/fonts/pp-neue-machina-ultrabold-italic.woff2) format("woff2")'
       );
       
-      // Charger Inter depuis Google Fonts avec plusieurs variantes
-      const interFont400 = new FontFace(
+      // Charger Inter depuis le serveur local (comme PP Neue Machina)
+      const interFont = new FontFace(
         'Inter',
-        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
+        'url(/fonts/inter-regular.woff2) format("woff2")',
         { weight: '400' }
-      );
-      const interFont500 = new FontFace(
-        'Inter',
-        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
-        { weight: '500' }
-      );
-      const interFont600 = new FontFace(
-        'Inter',
-        'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
-        { weight: '600' }
       );
       
       const timeout = setTimeout(() => {
@@ -51,9 +41,15 @@ export default function LoginPage() {
       
       Promise.all([
         ppFont.load().then(f => document.fonts.add(f)).catch(() => {}),
-        interFont400.load().then(f => document.fonts.add(f)).catch(() => {}),
-        interFont500.load().then(f => document.fonts.add(f)).catch(() => {}),
-        interFont600.load().then(f => document.fonts.add(f)).catch(() => {})
+        interFont.load().then(f => document.fonts.add(f)).catch(() => {
+          // Fallback vers Google Fonts si local échoue
+          const interFontFallback = new FontFace(
+            'Inter',
+            'url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format("woff2")',
+            { weight: '400' }
+          );
+          return interFontFallback.load().then(f => document.fonts.add(f));
+        })
       ]).then(() => {
         clearTimeout(timeout);
         // Vérifier que les fonts sont chargées
