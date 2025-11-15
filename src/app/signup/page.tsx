@@ -118,6 +118,12 @@ export default function SignupPage() {
                 color: '#ffffff',
                 fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ffffff';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#333333';
+              }}
             />
           </div>
 
@@ -148,6 +154,12 @@ export default function SignupPage() {
                 fontSize: '14px',
                 color: '#ffffff',
                 fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ffffff';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#333333';
               }}
             />
           </div>
@@ -182,6 +194,12 @@ export default function SignupPage() {
                   fontSize: '14px',
                   color: '#ffffff',
                   fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ffffff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#333333';
                 }}
               />
               <span style={{

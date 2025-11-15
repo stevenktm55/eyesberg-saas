@@ -112,15 +112,23 @@ p, span, label, a, button, input, textarea, select {
 /* Inputs */
 input[type="text"],
 input[type="email"],
-input[type="password"] {
-  background-color: var(--stepn-input-bg);
+input[type="password"],
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="password"]:active {
+  background-color: var(--stepn-input-bg) !important;
   border: 1px solid var(--stepn-input-border);
-  color: var(--stepn-text);
+  color: var(--stepn-text) !important;
   font-family: var(--stepn-font-body);
   font-size: 14px;
   padding: 12px 16px;
   border-radius: 4px;
   transition: border-color 0.2s;
+  -webkit-text-fill-color: var(--stepn-text) !important;
+  -webkit-opacity: 1 !important;
 }
 
 input[type="text"]:focus,
@@ -134,6 +142,15 @@ input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="password"]::placeholder {
   color: var(--stepn-text-secondary);
+  opacity: 1;
+}
+
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--stepn-input-bg) inset !important;
+  -webkit-text-fill-color: var(--stepn-text) !important;
+  color: var(--stepn-text) !important;
 }
 
 /* Boutons */
