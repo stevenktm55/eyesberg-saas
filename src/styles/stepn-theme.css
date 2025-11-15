@@ -91,6 +91,11 @@ h1, h2 {
   color: var(--stepn-accent) !important;
   text-transform: uppercase !important;
   font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 h3, h4 {
@@ -112,6 +117,11 @@ h5, h6 {
 p, span, label, a, button, input, textarea, select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 /* Inputs */

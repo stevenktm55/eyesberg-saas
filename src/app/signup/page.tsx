@@ -49,7 +49,14 @@ export default function SignupPage() {
         const interLoaded = document.fonts.check('16px Inter');
         
         if (ppLoaded && interLoaded) {
-          setFontsLoaded(true);
+          // Forcer un re-render pour appliquer les fonts
+          setTimeout(() => {
+            setFontsLoaded(true);
+            // Forcer le re-render des éléments
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('resize'));
+            }
+          }, 100);
         } else {
           // Afficher quand même après 1 seconde supplémentaire
           setTimeout(() => setFontsLoaded(true), 1000);
