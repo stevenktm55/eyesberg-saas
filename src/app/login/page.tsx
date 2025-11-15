@@ -225,7 +225,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
             }}>
@@ -245,7 +245,7 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
               }}
@@ -265,7 +265,7 @@ export default function LoginPage() {
               fontSize: '14px',
               fontWeight: '500',
               color: '#ffffff',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
             }}>
@@ -285,7 +285,7 @@ export default function LoginPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 color: '#ffffff',
-                fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
               }}
@@ -307,7 +307,7 @@ export default function LoginPage() {
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
             }}>
@@ -332,7 +332,7 @@ export default function LoginPage() {
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              fontFamily: 'Inter, sans-serif',
               WebkitFontSmoothing: 'antialiased',
               MozOsxFontSmoothing: 'grayscale',
             }}
