@@ -66,24 +66,28 @@ export default function SignupPage() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: '#000000',
       padding: '20px',
     }}>
       <div style={{
-        backgroundColor: 'white',
+        backgroundColor: '#0a0a0a',
+        border: '1px solid #333333',
         padding: '40px',
         borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         width: '100%',
         maxWidth: '400px',
       }}>
         <h1 style={{ 
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          marginBottom: '24px',
+          fontSize: '28px', 
+          fontWeight: '900',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+          letterSpacing: '0.1em',
+          marginBottom: '32px',
           textAlign: 'center',
+          color: '#ffffff',
+          textTransform: 'uppercase',
         }}>
-          Create your Kickflip account
+          Create your account
         </h1>
 
         <form onSubmit={handleSubmit}>
@@ -93,6 +97,7 @@ export default function SignupPage() {
               marginBottom: '8px', 
               fontSize: '14px',
               fontWeight: '500',
+              color: '#ffffff',
             }}>
               Email
             </label>
@@ -104,10 +109,13 @@ export default function SignupPage() {
               required
               style={{
                 width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333333',
                 borderRadius: '4px',
                 fontSize: '14px',
+                color: '#ffffff',
+                fontFamily: 'inherit',
               }}
             />
           </div>
@@ -118,6 +126,7 @@ export default function SignupPage() {
               marginBottom: '8px', 
               fontSize: '14px',
               fontWeight: '500',
+              color: '#ffffff',
             }}>
               Password
             </label>
@@ -130,10 +139,13 @@ export default function SignupPage() {
               minLength={8}
               style={{
                 width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333333',
                 borderRadius: '4px',
                 fontSize: '14px',
+                color: '#ffffff',
+                fontFamily: 'inherit',
               }}
             />
           </div>
@@ -144,6 +156,7 @@ export default function SignupPage() {
               marginBottom: '8px', 
               fontSize: '14px',
               fontWeight: '500',
+              color: '#ffffff',
             }}>
               Your customizer url
             </label>
@@ -157,41 +170,45 @@ export default function SignupPage() {
                 pattern="[a-z0-9-]+"
                 style={{
                   flex: 1,
-                  padding: '12px',
-                  border: '1px solid #ddd',
+                  padding: '12px 16px',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #333333',
                   borderRight: 'none',
                   borderTopLeftRadius: '4px',
                   borderBottomLeftRadius: '4px',
                   fontSize: '14px',
+                  color: '#ffffff',
+                  fontFamily: 'inherit',
                 }}
               />
               <span style={{
-                padding: '12px',
-                border: '1px solid #ddd',
+                padding: '12px 16px',
+                border: '1px solid #333333',
                 borderLeft: 'none',
                 borderTopRightRadius: '4px',
                 borderBottomRightRadius: '4px',
-                backgroundColor: '#f9f9f9',
+                backgroundColor: '#1a1a1a',
                 fontSize: '14px',
-                color: '#666',
+                color: '#a0a0a0',
               }}>
                 .{rootDomain}
               </span>
             </div>
             <p style={{ 
               fontSize: '12px', 
-              color: '#666', 
-              marginTop: '4px',
+              color: '#a0a0a0', 
+              marginTop: '8px',
             }}>
-              Votre admin sera accessible sur : <strong>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
+              Your admin will be accessible at: <strong style={{ color: '#ffffff' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
             </p>
           </div>
 
           {error && (
             <div style={{
               padding: '12px',
-              backgroundColor: '#fee',
-              color: '#c33',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #ff3333',
+              color: '#ff6666',
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
@@ -205,15 +222,18 @@ export default function SignupPage() {
             disabled={loading || !email || !password || !subdomain}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: loading || !email || !password || !subdomain ? '#ccc' : '#0066cc',
-              color: 'white',
+              padding: '14px 24px',
+              backgroundColor: loading || !email || !password || !subdomain ? '#333333' : '#ffffff',
+              color: loading || !email || !password || !subdomain ? '#a0a0a0' : '#000000',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
-              fontWeight: '500',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               cursor: loading || !email || !password || !subdomain ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
+              transition: 'background-color 0.2s',
             }}
           >
             {loading ? 'Creating account...' : 'Start free trial'}
@@ -222,25 +242,26 @@ export default function SignupPage() {
 
         <p style={{ 
           fontSize: '12px', 
-          color: '#666', 
+          color: '#a0a0a0', 
           textAlign: 'center',
           marginBottom: '16px',
+          lineHeight: '1.5',
         }}>
           By clicking &quot;Start free trial&quot; you agree to our{' '}
-          <a href="/terms" style={{ color: '#0066cc' }}>Terms</a>
+          <a href="/terms" style={{ color: '#ffffff' }}>Terms</a>
           {' '}and{' '}
-          <a href="/privacy" style={{ color: '#0066cc' }}>Privacy policy</a>
+          <a href="/privacy" style={{ color: '#ffffff' }}>Privacy policy</a>
         </p>
 
         <div style={{
-          borderTop: '1px solid #eee',
+          borderTop: '1px solid #333333',
           paddingTop: '16px',
           textAlign: 'center',
         }}>
-          <p style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px' }}>
             Already have an account?
           </p>
-          <a href="/login" style={{ color: '#0066cc', textDecoration: 'none' }}>
+          <a href="/login" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500' }}>
             Log In
           </a>
         </div>

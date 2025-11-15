@@ -57,22 +57,26 @@ export default function LoginPage() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: '#000000',
       padding: '20px',
     }}>
       <div style={{
-        backgroundColor: 'white',
+        backgroundColor: '#0a0a0a',
+        border: '1px solid #333333',
         padding: '40px',
         borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         width: '100%',
         maxWidth: '400px',
       }}>
         <h1 style={{ 
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          marginBottom: '24px',
+          fontSize: '28px', 
+          fontWeight: '900',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+          letterSpacing: '0.1em',
+          marginBottom: '32px',
           textAlign: 'center',
+          color: '#ffffff',
+          textTransform: 'uppercase',
         }}>
           Log In
         </h1>
@@ -84,6 +88,7 @@ export default function LoginPage() {
               marginBottom: '8px', 
               fontSize: '14px',
               fontWeight: '500',
+              color: '#ffffff',
             }}>
               Email
             </label>
@@ -95,10 +100,13 @@ export default function LoginPage() {
               required
               style={{
                 width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333333',
                 borderRadius: '4px',
                 fontSize: '14px',
+                color: '#ffffff',
+                fontFamily: 'inherit',
               }}
             />
           </div>
@@ -109,6 +117,7 @@ export default function LoginPage() {
               marginBottom: '8px', 
               fontSize: '14px',
               fontWeight: '500',
+              color: '#ffffff',
             }}>
               Password
             </label>
@@ -120,10 +129,13 @@ export default function LoginPage() {
               required
               style={{
                 width: '100%',
-                padding: '12px',
-                border: '1px solid #ddd',
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333333',
                 borderRadius: '4px',
                 fontSize: '14px',
+                color: '#ffffff',
+                fontFamily: 'inherit',
               }}
             />
           </div>
@@ -131,8 +143,9 @@ export default function LoginPage() {
           {error && (
             <div style={{
               padding: '12px',
-              backgroundColor: '#fee',
-              color: '#c33',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #ff3333',
+              color: '#ff6666',
               borderRadius: '4px',
               marginBottom: '16px',
               fontSize: '14px',
@@ -146,15 +159,18 @@ export default function LoginPage() {
             disabled={loading || !email || !password}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: loading || !email || !password ? '#ccc' : '#0066cc',
-              color: 'white',
+              padding: '14px 24px',
+              backgroundColor: loading || !email || !password ? '#333333' : '#ffffff',
+              color: loading || !email || !password ? '#a0a0a0' : '#000000',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
-              fontWeight: '500',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
+              transition: 'background-color 0.2s',
             }}
           >
             {loading ? 'Logging in...' : 'Log In'}
@@ -162,14 +178,14 @@ export default function LoginPage() {
         </form>
 
         <div style={{
-          borderTop: '1px solid #eee',
+          borderTop: '1px solid #333333',
           paddingTop: '16px',
           textAlign: 'center',
         }}>
-          <p style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+          <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px' }}>
             Don&apos;t have an account?
           </p>
-          <a href="/signup" style={{ color: '#0066cc', textDecoration: 'none' }}>
+          <a href="/signup" style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '500' }}>
             Sign Up
           </a>
         </div>

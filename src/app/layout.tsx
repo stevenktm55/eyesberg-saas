@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../styles/stepn-theme.css";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
