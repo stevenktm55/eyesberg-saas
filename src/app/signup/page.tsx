@@ -415,8 +415,8 @@ export default function SignupPage() {
             style={{
               width: '100%',
               padding: '14px 24px',
-              backgroundColor: loading || !email || !password || !subdomain ? '#333333' : '#ffffff',
-              color: loading || !email || !password || !subdomain ? '#a0a0a0' : '#000000',
+              backgroundColor: loading || !email || !password || !subdomain ? '#333333' : '#8eff36',
+              color: loading || !email || !password || !subdomain ? '#a0a0a0' : 'rgb(10, 10, 10)',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
