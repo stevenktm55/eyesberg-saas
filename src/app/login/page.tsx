@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 /**
  * Page de connexion
@@ -10,23 +10,30 @@ import { useRouter, useSearchParams } from 'next/navigation';
  */
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialEmail = (typeof window !== 'undefined' ? searchParams.get('email') : '') || '';
-  const [email, setEmail] = useState(initialEmail);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(
-    (typeof window !== 'undefined' && searchParams.get('created')) ? 'Votre compte a été créé. Vous pouvez maintenant vous connecter.' : null
-  );
+  const [info, setInfo] = useState<string | null>(null);
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
 
-  // Forcer le chargement des fonts avant d'afficher
+  // Forcer le chargement des fonts avant d'afficher + lire les query params (email, created)
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email');
+      const created = params.get('created');
+      if (emailParam) {
+        setEmail(emailParam);
+      }
+      if (created) {
+        setInfo('Votre compte a été créé. Vous pouvez maintenant vous connecter.');
+      }
+    }
     if (document.fonts) {
       // Charger PP Neue Machina
       const ppFont = new FontFace(
