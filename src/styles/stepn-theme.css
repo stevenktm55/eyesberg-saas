@@ -70,7 +70,8 @@
   --stepn-spacing-xl: 64px;
   
   /* Typographie STEPN */
-  --stepn-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  /* Pour coller au site stepn.com sur les modals, on utilise la light italic comme body */
+  --stepn-font-body: 'PP Neue Machina Inktrap Light Italic', 'PP Neue Machina Inktrap Light Italic Placeholder', sans-serif;
   --stepn-font-heading-ultrabold: 'PP Neue Machina Inktrap Ultrabold Italic', 'PP Neue Machina Inktrap Ultrabold Italic Placeholder', sans-serif;
   --stepn-font-heading-regular: 'PP Neue Machina Inktrap Regular Italic', 'PP Neue Machina Inktrap Regular Italic Placeholder', sans-serif;
   --stepn-font-heading-light: 'PP Neue Machina Inktrap Light Italic', 'PP Neue Machina Inktrap Light Italic Placeholder', sans-serif;
@@ -123,7 +124,7 @@ h5, h6 {
 }
 
 p, span, label, a, button, input, textarea, select {
-  font-family: Inter !important;
+  font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
