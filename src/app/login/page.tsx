@@ -381,16 +381,17 @@ export default function LoginPage() {
           textAlign: 'center',
         }}>
           {info && (
-            <div style={{
-              padding: '12px',
-              backgroundColor: '#1a1a1a',
-              border: '1px solid #4ade80',
-              color: '#8eff36',
-              borderRadius: '4px',
-              marginBottom: '16px',
-              fontSize: '14px',
-              fontFamily: 'Inter, sans-serif',
-            }}>
+            <div
+              style={{
+                padding: '12px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #4ade80',
+                color: '#8eff36',
+                borderRadius: '4px',
+                marginBottom: '16px',
+                fontSize: '14px',
+              }}
+            >
               {info}
             </div>
           )}

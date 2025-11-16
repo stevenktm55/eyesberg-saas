@@ -83,11 +83,15 @@ export async function POST(request: NextRequest) {
     });
 
     const isProd = process.env.NODE_ENV === 'production';
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+    const cookieDomain = `.${rootDomain}`;
+
     response.cookies.set('eyesberg_session', sessionToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
       expires: expiresAt,
     });
 

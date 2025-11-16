@@ -27,12 +27,16 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true });
 
-    // Effacer le cookie côté client
+    // Effacer le cookie côté client (sur le domaine wildcard)
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+    const cookieDomain = `.${rootDomain}`;
+
     response.cookies.set('eyesberg_session', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      domain: cookieDomain,
       expires: new Date(0),
     });
 
