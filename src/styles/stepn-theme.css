@@ -123,7 +123,7 @@ h5, h6 {
   color: var(--stepn-text);
 }
 
-p, span, label, a, button, input, textarea, select {
+p, span, label, a, input, textarea, select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
