@@ -11,6 +11,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [subdomain, setSubdomain] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -272,30 +273,54 @@ export default function SignupPage() {
             }}>
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              required
-              minLength={8}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #333333',
-                borderRadius: '4px',
-                fontSize: '14px',
-                color: '#ffffff',
-                fontFamily: 'Inter, sans-serif',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#ffffff';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#333333';
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                required
+                minLength={8}
+                style={{
+                  width: '100%',
+                  padding: '12px 48px 12px 16px',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #333333',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  color: '#ffffff',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ffffff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#333333';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  letterSpacing: 0,
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           <div style={{ marginBottom: '24px' }}>
