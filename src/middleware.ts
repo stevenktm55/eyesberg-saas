@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * Middleware Next.js pour gérer les sous-domaines personnalisés
@@ -36,6 +37,11 @@ export function middleware(request: NextRequest) {
     const isSubdomainRoute = subdomainRoutes.some(route => url.pathname.startsWith(route));
     
     if (isSubdomainRoute || url.pathname === '/') {
+      // Protection des routes /admin : vérifier la session
+      if (url.pathname.startsWith('/admin')) {
+        return handleAdminAuth(request, requestHeaders, subdomain);
+      }
+
       // Route valide pour sous-domaine, continuer
       return NextResponse.next({
         request: {
@@ -96,6 +102,87 @@ function extractSubdomain(host: string): string | null {
   
   // Pas de sous-domaine (domaine racine)
   return null;
+}
+
+// Vérifie la session et protège les routes /admin
+async function handleAdminAuth(
+  request: NextRequest,
+  headers: Headers,
+  subdomain: string,
+) {
+  try {
+    const sessionToken = request.cookies.get('eyesberg_session')?.value;
+    if (!sessionToken) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      loginUrl.searchParams.set('from', `/admin`);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceKey) {
+      console.error('❌ SUPABASE env manquantes dans le middleware');
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false },
+    });
+
+    const nowIso = new Date().toISOString();
+
+    const { data: session, error } = await supabase
+      .from('sessions')
+      .select('account_id, expires_at, accounts(subdomain)')
+      .eq('session_token', sessionToken)
+      .gt('expires_at', nowIso)
+      .single();
+
+    if (error || !session) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      loginUrl.searchParams.set('from', `/admin`);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const accountSubdomain = session.accounts?.subdomain;
+    if (accountSubdomain !== subdomain) {
+      console.warn(
+        '⚠️ Session subdomain mismatch',
+        accountSubdomain,
+        'vs',
+        subdomain,
+      );
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Sliding expiration : repousser expires_at de 7 jours
+    const newExpires = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    await supabase
+      .from('sessions')
+      .update({ expires_at: newExpires })
+      .eq('session_token', sessionToken);
+
+    // Continuer la requête avec les headers enrichis
+    return NextResponse.next({
+      request: {
+        headers,
+      },
+    });
+  } catch (e) {
+    console.error('❌ Erreur handleAdminAuth:', e);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    return NextResponse.redirect(loginUrl);
+  }
 }
 
 // Configurer les routes sur lesquelles le middleware s'applique

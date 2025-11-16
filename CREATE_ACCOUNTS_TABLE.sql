@@ -80,3 +80,24 @@ END $$;
 COMMENT ON COLUMN shops.account_id IS 'Référence vers le compte propriétaire';
 COMMENT ON COLUMN shops.subdomain IS 'Sous-domaine associé (peut être hérité du compte)';
 
+
+-- =====================================================
+-- Table sessions - Sessions utilisateur avec expiration glissante
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  session_token TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_account_id ON sessions(account_id);
+
+COMMENT ON TABLE sessions IS 'Sessions de connexion pour les comptes eyesberg (cookie HTTP-only).';
+COMMENT ON COLUMN sessions.session_token IS 'Token aléatoire stocké en cookie (eyesberg_session).';
+COMMENT ON COLUMN sessions.expires_at IS 'Date d''expiration de la session (sliding window).';
+
+

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -47,13 +48,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer une session (on utilisera un cookie sécurisé)
-    // Pour l'instant, on retourne juste les infos du compte
-    // TODO: Implémenter un vrai système de session avec JWT ou cookies sécurisés
+    // Créer une session avec expiration glissante (7 jours)
+    const sessionToken = crypto.randomUUID() + crypto.randomBytes(16).toString('hex');
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 jours
 
-    console.log('✅ Connexion réussie:', account.id, account.subdomain);
+    const { error: sessionError } = await supabase
+      .from('sessions')
+      .insert({
+        account_id: account.id,
+        session_token: sessionToken,
+        expires_at: expiresAt.toISOString(),
+      });
 
-    return NextResponse.json({
+    if (sessionError) {
+      console.error('❌ Erreur création session:', sessionError);
+      return NextResponse.json(
+        { error: 'Erreur lors de la création de la session' },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ Connexion réussie, session créée pour:', account.id, account.subdomain);
+
+    const response = NextResponse.json({
       success: true,
       account: {
         id: account.id,
@@ -62,6 +80,17 @@ export async function POST(request: NextRequest) {
         name: account.name,
       },
     });
+
+    const isProd = process.env.NODE_ENV === 'production';
+    response.cookies.set('eyesberg_session', sessionToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      path: '/',
+      expires: expiresAt,
+    });
+
+    return response;
   } catch (error) {
     console.error('❌ Erreur lors de la connexion:', error);
     return NextResponse.json(
