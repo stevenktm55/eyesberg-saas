@@ -354,9 +354,18 @@ export default function SignupPage() {
               fontSize: '12px', 
               color: '#a0a0a0', 
               marginTop: '8px',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: '"PP Neue Machina Inktrap Light Italic", "PP Neue Machina Inktrap Light Italic Placeholder", sans-serif',
             }}>
-              Your admin will be accessible at: <strong style={{ color: '#ffffff', fontFamily: 'Inter, sans-serif' }}>{subdomain || 'brandname'}.{rootDomain}/admin</strong>
+              Your admin will be accessible at:{' '}
+              <strong
+                style={{
+                  color: '#ffffff',
+                  fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
+                  fontWeight: 400,
+                }}
+              >
+                {subdomain || 'brandname'}.{rootDomain}/admin
+              </strong>
             </p>
           </div>
 
