@@ -31,7 +31,9 @@ export default function LoginPage() {
         setEmail(emailParam);
       }
       if (created) {
-        setInfo('Votre compte a été créé. Vous pouvez maintenant vous connecter.');
+        setInfo(
+          "Ton compte est créé 🎉 Nous t'avons envoyé un email de vérification. Clique sur le lien dans cet email pour activer ton compte puis connecte-toi.",
+        );
       }
     }
     if (document.fonts) {
@@ -358,8 +360,9 @@ export default function LoginPage() {
             style={{
               width: '100%',
               padding: '14px 24px',
-              backgroundColor: loading || !email || !password ? '#333333' : '#ffffff',
-              color: loading || !email || !password ? '#a0a0a0' : '#000000',
+              backgroundColor:
+                loading || !email || !password ? '#333333' : '#8eff36',
+              color: loading || !email || !password ? '#a0a0a0' : 'rgb(10, 10, 10)',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',
