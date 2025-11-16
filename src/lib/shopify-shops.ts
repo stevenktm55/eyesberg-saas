@@ -12,6 +12,7 @@ export interface ShopifyShop {
   shopName?: string;
   shopEmail?: string;
   accountId?: string;
+  subdomain?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export async function saveShop(shop: ShopifyShop) {
           shop_email: shop.shopEmail,
           shop_gid: shop.shopGid,
           account_id: shop.accountId,
+          subdomain: shop.subdomain,
           updated_at: new Date().toISOString(),
         })
         .eq('shop_domain', shop.shopDomain)
@@ -64,6 +66,7 @@ export async function saveShop(shop: ShopifyShop) {
           shop_name: shop.shopName,
           shop_email: shop.shopEmail,
           account_id: shop.accountId,
+          subdomain: shop.subdomain,
         })
         .select()
         .single();

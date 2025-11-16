@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { saveShop } from '@/lib/shopify-shops';
 import { createWebhooks } from '@/lib/shopify-webhooks';
+import { supabaseAdmin } from '@/lib/supabase';
 
 /**
  * Callback OAuth Shopify
@@ -73,6 +74,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Extraire le sous-domaine éventuel depuis state (format: subdomain|nonce)
+    let subdomain: string | undefined;
+    if (state && state.includes('|')) {
+      const [maybeSub] = state.split('|');
+      if (maybeSub && maybeSub.length > 0) {
+        subdomain = maybeSub;
+      }
+    }
+
     // Échanger le code contre un access_token
     const clientId = process.env.SHOPIFY_CLIENT_ID;
     if (!clientId) {
@@ -125,6 +135,27 @@ export async function GET(request: NextRequest) {
       console.log('📦 Infos boutique:', shopName, shopEmail);
     }
 
+    // Tenter de lier la boutique à un compte via le sous-domaine
+    let accountId: string | undefined;
+    if (subdomain) {
+      try {
+        const { data: account, error: accountError } = await supabaseAdmin
+          .from('accounts')
+          .select('id')
+          .eq('subdomain', subdomain)
+          .single();
+
+        if (accountError) {
+          console.warn('⚠️ Impossible de récupérer le compte pour ce sous-domaine:', subdomain, accountError.message);
+        } else if (account) {
+          accountId = account.id;
+          console.log('🔗 Boutique liée au compte:', accountId, 'pour le sous-domaine:', subdomain);
+        }
+      } catch (e) {
+        console.warn('⚠️ Erreur inattendue lors de la récupération du compte:', e);
+      }
+    }
+
     // Sauvegarder la boutique en base de données Supabase
     try {
       await saveShop({
@@ -135,7 +166,8 @@ export async function GET(request: NextRequest) {
         installedAt: new Date(),
         shopName,
         shopEmail,
-        // accountId sera défini plus tard (quand on aura le système d'authentification)
+        accountId,
+        subdomain,
       });
       console.log('✅ Boutique sauvegardée en base de données');
     } catch (error) {
