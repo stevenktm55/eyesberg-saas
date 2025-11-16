@@ -88,6 +88,17 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
     }
   };
 
+  const handleConnectToShopify = () => {
+    if (!shop) {
+      alert("Veuillez d'abord renseigner votre domaine Shopify (ex: boutique.myshopify.com).");
+      return;
+    }
+
+    // Redirige vers le flow OAuth Shopify côté backend
+    const url = `/api/shopify/install?shop=${encodeURIComponent(shop)}`;
+    window.location.href = url;
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -151,7 +162,10 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
         ) : (
           <div className="text-center py-4">
             <p className="text-gray-500 mb-4">Boutique non connectée</p>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button
+              onClick={handleConnectToShopify}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Connect to Shopify
             </button>
           </div>
