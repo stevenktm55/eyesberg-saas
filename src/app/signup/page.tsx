@@ -168,14 +168,12 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      // Après création du compte, rediriger vers la page de connexion
-      // avec l'email et le brand pré-remplis.
+      // Après création du compte, rediriger vers la page de vérification d'email
       const search = new URLSearchParams({
         email,
         brand: subdomain,
-        created: '1',
       }).toString();
-      router.push(`/login?${search}`);
+      router.push(`/verify-email-sent?${search}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       setLoading(false);
