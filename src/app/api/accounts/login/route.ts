@@ -25,11 +25,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Chercher le compte par email
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .single();
+    const { data: account, error: accountError } = await
+      supabase
+        .from('accounts')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .single();
 
     if (accountError || !account) {
       return NextResponse.json(
