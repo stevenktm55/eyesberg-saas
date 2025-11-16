@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 /**
  * Page de connexion
@@ -10,11 +10,16 @@ import { useRouter } from 'next/navigation';
  */
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const searchParams = useSearchParams();
+  const initialEmail = (typeof window !== 'undefined' ? searchParams.get('email') : '') || '';
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(
+    (typeof window !== 'undefined' && searchParams.get('created')) ? 'Votre compte a été créé. Vous pouvez maintenant vous connecter.' : null
+  );
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
 
@@ -368,6 +373,20 @@ export default function LoginPage() {
           paddingTop: '16px',
           textAlign: 'center',
         }}>
+          {info && (
+            <div style={{
+              padding: '12px',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #4ade80',
+              color: '#8eff36',
+              borderRadius: '4px',
+              marginBottom: '16px',
+              fontSize: '14px',
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              {info}
+            </div>
+          )}
           <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: 'Inter, sans-serif' }}>
             Don&apos;t have an account?
           </p>

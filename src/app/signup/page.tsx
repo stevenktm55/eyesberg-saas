@@ -168,9 +168,14 @@ export default function SignupPage() {
 
       const data = await response.json();
 
-      // Rediriger vers l'admin du sous-domaine
-      const adminUrl = `https://${subdomain}.${rootDomain}/admin`;
-      router.push(adminUrl);
+      // Après création du compte, rediriger vers la page de connexion
+      // avec l'email et le brand pré-remplis.
+      const search = new URLSearchParams({
+        email,
+        brand: subdomain,
+        created: '1',
+      }).toString();
+      router.push(`/login?${search}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       setLoading(false);
