@@ -95,6 +95,35 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Compte créé:', account.id, account.subdomain);
 
+    // Enregistrer automatiquement le sous-domaine auprès de Vercel
+    try {
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+      const internalUrl =
+        process.env.INTERNAL_BASE_URL || process.env.NEXT_PUBLIC_APP_URL;
+
+      if (!internalUrl) {
+        console.warn('⚠️ INTERNAL_BASE_URL ou NEXT_PUBLIC_APP_URL non défini, skip register-subdomain');
+      } else {
+        const registerUrl = `${internalUrl.replace(/\/$/, '')}/api/internal/register-subdomain`;
+        const res = await fetch(registerUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ subdomain: account.subdomain }),
+        });
+
+        if (!res.ok) {
+          const details = await res.json().catch(() => ({}));
+          console.warn('⚠️ Échec de l’enregistrement du sous-domaine sur Vercel:', details);
+        } else {
+          console.log(`✅ Sous-domaine ${account.subdomain}.${rootDomain} enregistré sur Vercel`);
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Erreur inattendue lors de register-subdomain:', e);
+    }
+
     return NextResponse.json({
       success: true,
       account: {
