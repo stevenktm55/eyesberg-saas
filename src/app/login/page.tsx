@@ -357,9 +357,6 @@ export default function LoginPage() {
               cursor: loading || !email || !password ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: 'Inter, sans-serif',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
             }}
           >
             {loading ? 'Logging in...' : 'Log In'}

@@ -426,7 +426,6 @@ export default function SignupPage() {
               cursor: loading || !email || !password || !subdomain ? 'not-allowed' : 'pointer',
               marginBottom: '16px',
               transition: 'background-color 0.2s',
-              fontFamily: 'Inter, sans-serif',
             }}
           >
             {loading ? 'Creating account...' : 'Start free trial'}
