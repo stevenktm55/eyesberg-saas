@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS accounts (
   email TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   name TEXT, -- Nom du propriétaire
+  email_verified BOOLEAN DEFAULT FALSE,
+  email_verification_token TEXT,
+  email_verified_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -48,6 +51,38 @@ CREATE POLICY "Allow all operations on accounts" ON accounts
 COMMENT ON TABLE accounts IS 'Comptes utilisateurs avec sous-domaines personnalisés (comme Kickflip)';
 COMMENT ON COLUMN accounts.subdomain IS 'Sous-domaine unique (ex: stretchmx pour stretchmx.eyesberg.app)';
 COMMENT ON COLUMN accounts.password_hash IS 'Hash du mot de passe (bcrypt)';
+
+-- Colonnes pour la vérification d'email (ajoutées si manquantes)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'accounts' AND column_name = 'email_verified'
+  ) THEN
+    ALTER TABLE accounts ADD COLUMN email_verified BOOLEAN DEFAULT FALSE;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'accounts' AND column_name = 'email_verification_token'
+  ) THEN
+    ALTER TABLE accounts ADD COLUMN email_verification_token TEXT;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'accounts' AND column_name = 'email_verified_at'
+  ) THEN
+    ALTER TABLE accounts ADD COLUMN email_verified_at TIMESTAMPTZ;
+  END IF;
+END $$;
+
+COMMENT ON COLUMN accounts.email_verified IS 'Indique si l''adresse email a été vérifiée';
+COMMENT ON COLUMN accounts.email_verification_token IS 'Jeton de vérification envoyé par email';
+COMMENT ON COLUMN accounts.email_verified_at IS 'Date de vérification de l''email';
+COMMENT ON COLUMN accounts.email_verified IS 'Indique si l''adresse email a été vérifiée';
+COMMENT ON COLUMN accounts.email_verification_token IS 'Jeton de vérification envoyé pour confirmer l''email';
+COMMENT ON COLUMN accounts.email_verified_at IS 'Date de vérification de l''adresse email';
 
 -- =====================================================
 -- Modifier la table shops pour ajouter account_id et subdomain

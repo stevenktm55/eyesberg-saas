@@ -49,6 +49,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Empêcher la connexion si l'email n'est pas vérifié (pour les nouveaux comptes)
+    if (account.email_verified === false) {
+      return NextResponse.json(
+        {
+          error:
+            'Merci de vérifier votre adresse e-mail avant de vous connecter. Consulte ta boîte mail pour le lien de confirmation.',
+        },
+        { status: 403 },
+      );
+    }
+
     // Créer une session avec expiration glissante (7 jours)
     const sessionToken = crypto.randomUUID() + crypto.randomBytes(16).toString('hex');
     const now = new Date();

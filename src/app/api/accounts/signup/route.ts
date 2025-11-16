@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { sendVerificationEmail } from '@/lib/email';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -74,6 +76,9 @@ export async function POST(request: NextRequest) {
     // Hasher le mot de passe
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Générer un token de vérification email
+    const verificationToken = crypto.randomUUID();
+
     // Créer le compte
     const { data: account, error: createError } = await supabase
       .from('accounts')
@@ -81,6 +86,8 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         password_hash: passwordHash,
         subdomain: subdomain.toLowerCase(),
+        email_verified: false,
+        email_verification_token: verificationToken,
       })
       .select()
       .single();
@@ -94,6 +101,24 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Compte créé:', account.id, account.subdomain);
+
+    // Envoyer l'email de vérification
+    try {
+      const internalUrl =
+        process.env.INTERNAL_BASE_URL || process.env.NEXT_PUBLIC_APP_URL;
+      if (!internalUrl) {
+        console.warn(
+          '⚠️ INTERNAL_BASE_URL ou NEXT_PUBLIC_APP_URL non défini, impossible d’envoyer l’email de vérification',
+        );
+      } else {
+        const verifyBase = internalUrl.replace(/\/$/, '');
+        const verifyUrl = `${verifyBase}/api/accounts/verify-email?token=${verificationToken}`;
+        await sendVerificationEmail(account.email, verifyUrl);
+        console.log('📨 Email de vérification envoyé à', account.email);
+      }
+    } catch (e) {
+      console.warn('⚠️ Erreur lors de l’envoi de l’email de vérification:', e);
+    }
 
     // Enregistrer automatiquement le sous-domaine auprès de Vercel
     try {
