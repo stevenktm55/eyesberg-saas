@@ -68,10 +68,17 @@ export default function OrdersPage() {
 
         const ordersData = await ordersResponse.json();
         setOrders(ordersData.orders || []);
-        setError(null);
+        // Si il y a une erreur dans la réponse mais qu'on a des données, on l'affiche mais on continue
+        if (ordersData.error && ordersData.orders?.length === 0) {
+          setError(ordersData.error);
+        } else {
+          setError(null);
+        }
       } catch (err) {
         console.error('Error loading orders:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
+        // Même en cas d'erreur, on affiche un tableau vide
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -130,25 +137,7 @@ export default function OrdersPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        backgroundColor: '#000000',
-        display: 'flex',
-        fontFamily: 'var(--stepn-font-body), sans-serif'
-      }}>
-        <AdminSidebar />
-        <div style={{
-          flex: 1,
-          marginLeft: '240px',
-          padding: '40px'
-        }}>
-          <p style={{ color: '#ff4444' }}>Error: {error}</p>
-        </div>
-      </div>
-    );
-  }
+  // Ne plus retourner une erreur, afficher le tableau même si vide
 
   return (
     <div style={{ 
@@ -199,6 +188,21 @@ export default function OrdersPage() {
               Export
             </button>
           </div>
+
+          {/* Error message if any */}
+          {error && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #ff4444',
+              borderRadius: '4px',
+              marginBottom: '24px',
+              color: '#ff4444',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              {error}
+            </div>
+          )}
 
           {/* Filters */}
           <div style={{ 

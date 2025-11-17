@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { getShopByDomain } from '@/lib/shopify-shops';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * GET /api/shopify/orders?shop=store.myshopify.com
@@ -7,6 +14,32 @@ import { getShopByDomain } from '@/lib/shopify-shops';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Vérifier l'authentification
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('eyesberg_session')?.value;
+
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Vérifier la session
+    const { data: session, error: sessionError } = await supabaseAdmin
+      .from('sessions')
+      .select('*, accounts(*)')
+      .eq('session_token', sessionToken)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    if (sessionError || !session || !session.accounts) {
+      return NextResponse.json(
+        { error: 'Invalid session' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const shop = searchParams.get('shop');
 
@@ -29,8 +62,17 @@ export async function GET(request: NextRequest) {
     const shopData = await getShopByDomain(shop);
     if (!shopData || !shopData.access_token) {
       return NextResponse.json(
-        { error: 'Shop not found or not connected' },
-        { status: 404 }
+        { error: 'Shop not found or not connected', orders: [] },
+        { status: 200 }
+      );
+    }
+
+    // Vérifier que la boutique appartient au compte de l'utilisateur
+    const userSubdomain = (session.accounts as any).subdomain;
+    if (shopData.subdomain && shopData.subdomain !== userSubdomain) {
+      return NextResponse.json(
+        { error: 'Forbidden: Shop does not belong to your account', orders: [] },
+        { status: 200 }
       );
     }
 
@@ -53,10 +95,14 @@ export async function GET(request: NextRequest) {
     if (!ordersResponse.ok) {
       const errorText = await ordersResponse.text();
       console.error('❌ Erreur API Shopify:', errorText);
-      return NextResponse.json(
-        { error: 'Failed to fetch orders from Shopify' },
-        { status: ordersResponse.status }
-      );
+      // Retourner un tableau vide au lieu d'une erreur pour permettre l'affichage du tableau
+      return NextResponse.json({
+        orders: [],
+        total: 0,
+        page: 1,
+        limit: 25,
+        error: 'Failed to fetch orders from Shopify. Please check your Shopify permissions.'
+      });
     }
 
     const ordersData = await ordersResponse.json();
