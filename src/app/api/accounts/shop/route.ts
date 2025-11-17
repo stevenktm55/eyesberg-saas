@@ -9,6 +9,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 /**
  * API pour récupérer la boutique associée à un sous-domaine
  * GET /api/accounts/shop?subdomain=stretchmx
+ * 
+ * IMPORTANT: Vérifie que l'utilisateur connecté a le droit d'accéder à ce subdomain
  */
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +21,59 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing subdomain parameter' },
         { status: 400 }
+      );
+    }
+
+    // Vérifier que l'utilisateur est connecté et que son subdomain correspond
+    const sessionToken = request.cookies.get('eyesberg_session')?.value;
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized - No session found' },
+        { status: 401 }
+      );
+    }
+
+    // Vérifier la session et récupérer le subdomain de l'utilisateur connecté
+    const nowIso = new Date().toISOString();
+    const { data: session, error: sessionError } = await supabase
+      .from('sessions')
+      .select('account_id, expires_at, accounts(subdomain)')
+      .eq('session_token', sessionToken)
+      .gt('expires_at', nowIso)
+      .single();
+
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid session' },
+        { status: 401 }
+      );
+    }
+
+    // Récupérer le subdomain de l'utilisateur connecté
+    let userSubdomain: string | null = null;
+    if (session.accounts && typeof session.accounts === 'object' && 'subdomain' in session.accounts) {
+      userSubdomain = (session.accounts as any).subdomain;
+    } else {
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('subdomain')
+        .eq('id', session.account_id)
+        .single();
+      if (account) {
+        userSubdomain = account.subdomain;
+      }
+    }
+
+    // Vérifier que le subdomain demandé correspond au subdomain de l'utilisateur connecté
+    if (!userSubdomain || userSubdomain !== subdomain.toLowerCase()) {
+      console.error('❌ API shop: Subdomain mismatch', {
+        userSubdomain,
+        requestedSubdomain: subdomain,
+        accountId: session.account_id,
+      });
+      return NextResponse.json(
+        { error: 'Forbidden - You do not have access to this subdomain' },
+        { status: 403 }
       );
     }
 

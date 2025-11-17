@@ -210,21 +210,35 @@ async function handleAdminAuth(
       accountId: session.account_id,
     });
 
-    if (!accountSubdomain || accountSubdomain !== subdomain) {
-      console.warn(
-        '⚠️ Session subdomain mismatch - redirecting to login',
-        {
-          accountSubdomain,
-          requestedSubdomain: subdomain,
-          accountId: session.account_id,
-        }
-      );
+    // Vérification stricte : le subdomain de la session DOIT correspondre au subdomain de l'URL
+    if (!accountSubdomain) {
+      console.error('❌ Middleware: No account subdomain found for session', {
+        sessionAccountId: session.account_id,
+        requestedSubdomain: subdomain,
+      });
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       return NextResponse.redirect(loginUrl);
     }
+
+    if (accountSubdomain !== subdomain) {
+      console.error(
+        '❌ Middleware: Session subdomain mismatch - BLOCKING ACCESS',
+        {
+          accountSubdomain,
+          requestedSubdomain: subdomain,
+          accountId: session.account_id,
+          url: request.url,
+        }
+      );
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      // Ajouter un paramètre pour indiquer pourquoi on redirige
+      loginUrl.searchParams.set('error', 'subdomain_mismatch');
+      return NextResponse.redirect(loginUrl);
+    }
     
-    console.log('✅ Access granted to /admin');
+    console.log('✅ Access granted to /admin - subdomain match confirmed');
 
     // Sliding expiration : repousser expires_at de 7 jours
     const newExpires = new Date(
