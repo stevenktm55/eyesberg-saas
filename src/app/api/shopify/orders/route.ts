@@ -113,35 +113,70 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('📡 Appel API Shopify Orders:', ordersUrl);
+    console.log('🔑 Token utilisé (premiers 10 caractères):', shopData.access_token?.substring(0, 10) + '...');
 
     const ordersResponse = await fetch(ordersUrl, {
       headers: {
         'X-Shopify-Access-Token': shopData.access_token,
+        'Content-Type': 'application/json',
       },
+    });
+
+    console.log('📥 Réponse API Shopify:', {
+      status: ordersResponse.status,
+      statusText: ordersResponse.statusText,
+      headers: Object.fromEntries(ordersResponse.headers.entries())
     });
 
     if (!ordersResponse.ok) {
       const errorText = await ordersResponse.text();
+      let errorJson: any = null;
+      
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch (e) {
+        // Pas du JSON, garder le texte brut
+      }
+      
       console.error('❌ Erreur API Shopify:', {
         status: ordersResponse.status,
         statusText: ordersResponse.statusText,
-        error: errorText,
+        errorText: errorText,
+        errorJson: errorJson,
         shop: shop,
         scopes: shopData.scopes,
         grantedScopes: grantedScopes,
-        hasReadOrdersScope: hasReadOrdersScope
+        hasReadOrdersScope: hasReadOrdersScope,
+        url: ordersUrl
       });
       
       let errorMessage = 'Failed to fetch orders from Shopify.';
       
       if (ordersResponse.status === 403) {
-        if (!hasReadOrdersScope) {
+        // Vérifier le message d'erreur spécifique de Shopify
+        if (errorJson?.errors) {
+          const shopifyError = Array.isArray(errorJson.errors) 
+            ? errorJson.errors[0] 
+            : typeof errorJson.errors === 'object' 
+              ? Object.values(errorJson.errors)[0] 
+              : errorJson.errors;
+          
+          if (typeof shopifyError === 'string' && shopifyError.includes('permission')) {
+            errorMessage = `Access denied: ${shopifyError}. Please check your Shopify app permissions.`;
+          } else {
+            errorMessage = `Access denied: ${JSON.stringify(shopifyError)}. Please reconnect your Shopify store.`;
+          }
+        } else if (!hasReadOrdersScope) {
           errorMessage = 'Missing "read_orders" permission. Please uninstall and reinstall the app with the correct permissions.';
         } else {
-          errorMessage = 'Access denied. The token may have been revoked or the permissions changed. Please reconnect your Shopify store.';
+          errorMessage = 'Access denied (403). The token may have been revoked or the permissions changed. Please reconnect your Shopify store.';
         }
       } else if (ordersResponse.status === 401) {
-        errorMessage = 'Invalid access token. Please reconnect your Shopify store.';
+        errorMessage = 'Invalid access token (401). Please reconnect your Shopify store.';
+      } else if (ordersResponse.status === 404) {
+        errorMessage = 'Orders endpoint not found. Please check the Shopify API version.';
+      } else {
+        errorMessage = `Shopify API error (${ordersResponse.status}): ${errorText.substring(0, 200)}`;
       }
       
       // Retourner un tableau vide au lieu d'une erreur pour permettre l'affichage du tableau
