@@ -1,8 +1,6 @@
 {
-  "functions": {
-    "src/app/api/designs/route.ts": {
-      "maxDuration": 30
-    }
-  },
-  "regions": ["iad1"]
+  "buildCommand": "yarn install && yarn build",
+  "installCommand": "yarn install",
+  "framework": "nextjs",
+  "nodeVersion": "24.x"
 }
