@@ -71,7 +71,7 @@ export default function SettingsPage() {
       {/* Settings Sidebar */}
       <aside style={{
         width: '240px',
-        backgroundColor: '#0a0a0a',
+        backgroundColor: 'rgb(30, 30, 30)',
         borderRight: '1px solid #1a1a1a',
         padding: '24px 0',
         display: 'flex',
