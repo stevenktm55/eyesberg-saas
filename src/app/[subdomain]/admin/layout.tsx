@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { AppProvider } from '@shopify/polaris';
-import '@shopify/polaris/build/esm/styles.css';
 
 /**
  * Layout pour les pages admin des sous-domaines
