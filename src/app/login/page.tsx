@@ -38,23 +38,7 @@ export default function LoginPage() {
         );
       }
       if (verified === '1') {
-        setInfo('Email verified successfully! Redirecting to admin...');
-        // Extract subdomain from current host
-        const host = window.location.host;
-        const hostWithoutPort = host.split(':')[0];
-        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
-        let subdomain: string | null = null;
-        
-        if (hostWithoutPort.endsWith(`.${rootDomain}`)) {
-          subdomain = hostWithoutPort.replace(`.${rootDomain}`, '');
-        }
-        
-        if (subdomain) {
-          // Redirect to admin after 2 seconds
-          setTimeout(() => {
-            window.location.href = `https://${subdomain}.${rootDomain}/admin`;
-          }, 2000);
-        }
+        setInfo('Email verified successfully! You can now sign in with your password.');
       }
     }
     if (document.fonts) {

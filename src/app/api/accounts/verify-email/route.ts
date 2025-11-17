@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -55,39 +54,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${base}/login?error=verify_failed`);
     }
 
-    // Créer une session (même logique que /api/accounts/login)
-    const sessionToken = crypto.randomUUID() + crypto.randomBytes(16).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    const { error: sessionError } = await supabase.from('sessions').insert({
-      account_id: account.id,
-      session_token: sessionToken,
-      expires_at: expiresAt.toISOString(),
-    });
-
-    if (sessionError) {
-      console.error('❌ Erreur création session (verify-email):', sessionError);
-      const base =
-        process.env.INTERNAL_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || '/';
-      return NextResponse.redirect(`${base}/login?error=session_failed`);
-    }
-
+    // Rediriger vers la page de login du sous-domaine avec un message de succès
+    // L'utilisateur devra entrer son mot de passe pour se connecter (plus sécurisé)
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
-    const cookieDomain = `.${rootDomain}`;
-    const loginUrl = `https://${account.subdomain}.${rootDomain}/login?verified=1`;
+    const loginUrl = `https://${account.subdomain}.${rootDomain}/login?verified=1&email=${encodeURIComponent(account.email)}`;
 
-    const response = NextResponse.redirect(loginUrl);
-
-    response.cookies.set('eyesberg_session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      domain: cookieDomain,
-      expires: expiresAt,
-    });
-
-    return response;
+    return NextResponse.redirect(loginUrl);
   } catch (error) {
     console.error('❌ Erreur verify-email:', error);
     const base =
