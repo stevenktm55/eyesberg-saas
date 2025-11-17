@@ -3,6 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Style pour forcer la couleur exacte du bouton
+const buttonStyle = `
+  .connect-shopify-btn {
+    background-color: rgb(0, 255, 136) !important;
+    color: #000000 !important;
+    border: none !important;
+    opacity: 1 !important;
+  }
+  .connect-shopify-btn:hover {
+    background-color: rgb(0, 255, 136) !important;
+    opacity: 1 !important;
+  }
+`;
+
 interface ShopData {
   id: string;
   shop_domain: string;
@@ -127,65 +141,8 @@ export default function SubdomainAdminPage() {
     window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
   };
 
-  if (error || !shopData) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        backgroundColor: '#000000', 
-        padding: '40px 20px',
-        fontFamily: 'var(--stepn-font-body), sans-serif'
-      }}>
-        <div style={{ 
-          maxWidth: '600px', 
-          margin: '0 auto',
-          backgroundColor: '#0a0a0a',
-          padding: '32px',
-          borderRadius: '8px',
-          border: '1px solid #1a1a1a'
-        }}>
-          <h1 className="stepn-title-ultrabold" style={{ 
-            color: 'rgb(0, 255, 136)', 
-            fontSize: '32px', 
-            marginBottom: '16px',
-            fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
-          }}>
-            {error ? 'Erreur' : 'Boutique non connectée'}
-          </h1>
-          <p style={{ 
-            color: '#ffffff', 
-            marginBottom: '24px',
-            fontFamily: 'var(--stepn-font-body)',
-            lineHeight: '1.6'
-          }}>
-            {error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}
-          </p>
-          {subdomain && !error && (
-            <button
-              onClick={handleConnectShopify}
-              style={{
-                backgroundColor: 'rgb(0, 255, 136)',
-                color: '#000000',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '4px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
-                transition: 'opacity 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
-              onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              Connecter ma boutique Shopify
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   const handleSyncProducts = async () => {
+    if (!shopData) return;
     try {
       const response = await fetch(`/api/shopify/products/sync?shop=${shopData.shop_domain}`, {
         method: 'POST',
@@ -201,13 +158,84 @@ export default function SubdomainAdminPage() {
     }
   };
 
+  if (error || !shopData) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: buttonStyle }} />
+        <div style={{ 
+          minHeight: '100vh', 
+          backgroundColor: '#000000', 
+          padding: '40px 20px',
+          fontFamily: 'var(--stepn-font-body), sans-serif'
+        }}>
+          <div style={{ 
+            maxWidth: '600px', 
+            margin: '0 auto',
+            backgroundColor: '#0a0a0a',
+            padding: '32px',
+            borderRadius: '8px',
+            border: '1px solid #1a1a1a'
+          }}>
+            <h1 className="stepn-title-ultrabold" style={{ 
+              color: 'rgb(0, 255, 136)', 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
+            }}>
+              {error ? 'Erreur' : 'Boutique non connectée'}
+            </h1>
+            <p style={{ 
+              color: '#ffffff', 
+              marginBottom: '24px',
+              fontFamily: 'var(--stepn-font-body)',
+              lineHeight: '1.6'
+            }}>
+              {error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}
+            </p>
+            {subdomain && !error && (
+              <button
+                onClick={handleConnectShopify}
+                className="connect-shopify-btn"
+                style={{
+                  backgroundColor: 'rgb(0, 255, 136)',
+                  color: '#000000',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '4px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'background-color 0.2s',
+                  opacity: 1
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
+                  e.currentTarget.style.opacity = '1';
+                }}
+              >
+                Connecter ma boutique Shopify
+              </button>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#000000', 
-      padding: '40px 20px',
-      fontFamily: 'var(--stepn-font-body), sans-serif'
-    }}>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: buttonStyle }} />
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: '#000000', 
+        padding: '40px 20px',
+        fontFamily: 'var(--stepn-font-body), sans-serif'
+      }}>
       <div style={{ 
         maxWidth: '1200px', 
         margin: '0 auto'
@@ -321,6 +349,7 @@ export default function SubdomainAdminPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
