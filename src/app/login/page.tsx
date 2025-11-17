@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [subdomain, setSubdomain] = useState('');
+  const [isRootDomain, setIsRootDomain] = useState(false);
 
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
 
@@ -24,28 +26,46 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const emailParam = params.get('email');
-      const created = params.get('created');
-      const verified = params.get('verified');
-      const passwordReset = params.get('password_reset');
+      // Détecter si on est sur le domaine racine ou un sous-domaine
+      const host = window.location.host;
+      const hostWithoutPort = host.split(':')[0];
       
-      if (emailParam) {
-        setEmail(emailParam);
-      }
-      if (created) {
-        setInfo(
-          'Your account is ready 🎉 Check your inbox for a verification email, confirm it, then sign in.',
-        );
-      }
-      if (verified === '1') {
-        setInfo('Email verified successfully! You can now sign in with your password.');
-      }
-      if (passwordReset === '1') {
-        setInfo('Your password has been reset successfully! You can now sign in with your new password.');
+      // Vérifier si c'est le domaine racine (www.eyesberg.app, eyesberg.app, ou localhost sans sous-domaine)
+      const isRoot = 
+        hostWithoutPort === rootDomain ||
+        hostWithoutPort === `www.${rootDomain}` ||
+        hostWithoutPort === 'localhost' ||
+        hostWithoutPort === '127.0.0.1' ||
+        (!hostWithoutPort.includes('.') && hostWithoutPort !== rootDomain.split('.')[0]);
+      
+      setIsRootDomain(isRoot);
+      
+      // Si on est sur un sous-domaine, charger les query params
+      if (!isRoot) {
+        const params = new URLSearchParams(window.location.search);
+        const emailParam = params.get('email');
+        const created = params.get('created');
+        const verified = params.get('verified');
+        const passwordReset = params.get('password_reset');
+        
+        if (emailParam) {
+          setEmail(emailParam);
+        }
+        if (created) {
+          setInfo(
+            'Your account is ready 🎉 Check your inbox for a verification email, confirm it, then sign in.',
+          );
+        }
+        if (verified === '1') {
+          setInfo('Email verified successfully! You can now sign in with your password.');
+        }
+        if (passwordReset === '1') {
+          setInfo('Your password has been reset successfully! You can now sign in with your new password.');
+        }
       }
     }
-    if (document.fonts) {
+    
+    if (typeof window !== 'undefined' && document.fonts) {
       // Charger PP Neue Machina
       const ppFont = new FontFace(
         'PP Neue Machina Inktrap Ultrabold Italic',
@@ -157,6 +177,23 @@ export default function LoginPage() {
     }
   }, []);
 
+  const handleSubdomainSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subdomain || subdomain.trim() === '') {
+      setError('Please enter your brandname');
+      return;
+    }
+    
+    // Valider le format du subdomain
+    if (!subdomain.match(/^[a-z0-9-]+$/)) {
+      setError('Brandname can only contain lowercase letters, numbers, and hyphens.');
+      return;
+    }
+    
+    // Rediriger vers le login du sous-domaine
+    window.location.href = `https://${subdomain.toLowerCase()}.${rootDomain}/login`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -205,6 +242,155 @@ export default function LoginPage() {
     );
   }
 
+  // Si on est sur le domaine racine, afficher le formulaire de sélection de subdomain
+  if (isRootDomain) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+        padding: '20px',
+      }}>
+        <div style={{
+          backgroundColor: '#0a0a0a',
+          border: '1px solid #333333',
+          padding: '40px',
+          borderRadius: '8px',
+          width: '100%',
+          maxWidth: '500px',
+        }}>
+          <h1 
+            className="stepn-title-ultrabold"
+            style={{ 
+              fontSize: '48px', 
+              marginBottom: '32px',
+              textAlign: 'center',
+              fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
+              fontWeight: '400',
+              letterSpacing: '-2.32px',
+              textTransform: 'uppercase',
+              color: '#8eff36',
+              fontStyle: 'normal',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          >
+            Log in
+          </h1>
+
+          <form onSubmit={handleSubdomainSubmit}>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ 
+                display: 'block', 
+                marginBottom: '8px', 
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale',
+              }}>
+                Your customizer url
+              </label>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333333',
+                borderRadius: '4px',
+                padding: '0',
+                overflow: 'hidden',
+              }}>
+                <input
+                  type="text"
+                  value={subdomain}
+                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="brandname"
+                  required
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    fontSize: '14px',
+                    color: '#ffffff',
+                    fontFamily: 'Inter, sans-serif',
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale',
+                    outline: 'none',
+                  }}
+                />
+                <span style={{
+                  padding: '12px 16px',
+                  fontSize: '14px',
+                  color: '#a0a0a0',
+                  fontFamily: 'Inter, sans-serif',
+                  borderLeft: '1px solid #333333',
+                }}>
+                  .{rootDomain}
+                </span>
+              </div>
+            </div>
+
+            {error && (
+              <div style={{
+                padding: '12px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #ff3333',
+                color: '#ff6666',
+                borderRadius: '4px',
+                marginBottom: '16px',
+                fontSize: '14px',
+                fontFamily: 'Inter, sans-serif',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale',
+              }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={!subdomain || subdomain.trim() === ''}
+              style={{
+                width: '100%',
+                padding: '14px 24px',
+                backgroundColor: !subdomain || subdomain.trim() === '' ? '#333333' : '#8eff36',
+                color: !subdomain || subdomain.trim() === '' ? '#a0a0a0' : 'rgb(10, 10, 10)',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: !subdomain || subdomain.trim() === '' ? 'not-allowed' : 'pointer',
+                marginBottom: '16px',
+                transition: 'background-color 0.2s',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Next
+            </button>
+          </form>
+
+          <div style={{
+            borderTop: '1px solid #333333',
+            paddingTop: '16px',
+            textAlign: 'center',
+          }}>
+            <p style={{ fontSize: '14px', color: '#a0a0a0', marginBottom: '8px', fontFamily: 'Inter, sans-serif' }}>
+              Don&apos;t have an Eyesberg account?{' '}
+              <a href="/signup" style={{ color: '#8eff36', textDecoration: 'none', fontWeight: '500', fontFamily: 'Inter, sans-serif' }}>
+                Get started
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si on est sur un sous-domaine, afficher le formulaire de login normal
   return (
     <div style={{ 
       minHeight: '100vh', 
