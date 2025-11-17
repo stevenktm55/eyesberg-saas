@@ -46,6 +46,15 @@ export function middleware(request: NextRequest) {
       
       // Protection des routes /admin : vérifier la session
       if (url.pathname.startsWith('/admin')) {
+        // Bloquer l'accès aux routes /admin/* (sauf /admin lui-même) depuis les sous-domaines
+        // Ces routes sont pour le domaine racine uniquement
+        if (url.pathname !== '/admin' && url.pathname.startsWith('/admin/')) {
+          // Rediriger vers la page admin principale du sous-domaine
+          const adminUrl = request.nextUrl.clone();
+          adminUrl.pathname = '/admin';
+          return NextResponse.redirect(adminUrl);
+        }
+        
         return handleAdminAuth(request, requestHeaders, subdomain);
       }
 

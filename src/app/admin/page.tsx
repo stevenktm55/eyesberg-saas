@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ModelsAdminPage from "./models/page";
 import DesignsAdminPage from "./designs/page";
@@ -7,7 +8,35 @@ import ColorsAdminPage from "./colors/page";
 import FontsAdminPage from "./fonts/page";
 
 export default function AdminUnifiedPage() {
+  const router = useRouter();
   const [section, setSection] = useState<"models" | "designs" | "colors" | "fonts">("models");
+  
+  // Détecter si on est sur un sous-domaine et rediriger si nécessaire
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      const hostWithoutPort = host.split(':')[0];
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+      
+      // Vérifier si c'est un sous-domaine (pas le domaine racine)
+      const isSubdomain = hostWithoutPort.includes('.') && 
+                         hostWithoutPort !== rootDomain && 
+                         hostWithoutPort !== `www.${rootDomain}` &&
+                         !hostWithoutPort.startsWith('localhost') &&
+                         !hostWithoutPort.startsWith('127.0.0.1');
+      
+      if (isSubdomain) {
+        // Extraire le subdomain
+        const subdomainMatch = hostWithoutPort.match(/^([^.]+)\./);
+        const subdomain = subdomainMatch ? subdomainMatch[1] : null;
+        
+        if (subdomain) {
+          // Rediriger vers la page admin du sous-domaine
+          window.location.href = `https://${subdomain}.${rootDomain}/admin`;
+        }
+      }
+    }
+  }, []);
   return (
     <div className="grid grid-cols-[220px_1fr] h-[calc(100vh-64px)]">
       <aside className="border-r p-4 space-y-2 bg-gray-50">
