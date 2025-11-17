@@ -28,6 +28,7 @@ export default function LoginPage() {
       const emailParam = params.get('email');
       const created = params.get('created');
       const verified = params.get('verified');
+      const passwordReset = params.get('password_reset');
       
       if (emailParam) {
         setEmail(emailParam);
@@ -39,6 +40,9 @@ export default function LoginPage() {
       }
       if (verified === '1') {
         setInfo('Email verified successfully! You can now sign in with your password.');
+      }
+      if (passwordReset === '1') {
+        setInfo('Your password has been reset successfully! You can now sign in with your new password.');
       }
     }
     if (document.fonts) {
@@ -340,6 +344,20 @@ export default function LoginPage() {
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
+          </div>
+
+          <div style={{ marginBottom: '16px', textAlign: 'right' }}>
+            <a 
+              href="/forgot-password"
+              style={{
+                fontSize: '14px',
+                color: '#8eff36',
+                textDecoration: 'none',
+                fontFamily: 'var(--stepn-font-body)',
+              }}
+            >
+              Forgot password?
+            </a>
           </div>
 
           {error && (
