@@ -198,9 +198,35 @@ export default function OrdersPage() {
               borderRadius: '4px',
               marginBottom: '24px',
               color: '#ff4444',
-              fontFamily: 'var(--stepn-font-body)'
+              fontFamily: 'var(--stepn-font-body)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}>
-              {error}
+              <span>{error}</span>
+              {error.includes('permission') || error.includes('reconnect') ? (
+                <button
+                  onClick={() => {
+                    if (shopDomain) {
+                      window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#8eff36',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginLeft: '16px'
+                  }}
+                >
+                  Reinstall App
+                </button>
+              ) : null}
             </div>
           )}
 

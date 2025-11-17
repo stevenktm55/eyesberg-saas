@@ -94,14 +94,35 @@ export async function GET(request: NextRequest) {
 
     if (!ordersResponse.ok) {
       const errorText = await ordersResponse.text();
-      console.error('❌ Erreur API Shopify:', errorText);
+      console.error('❌ Erreur API Shopify:', {
+        status: ordersResponse.status,
+        statusText: ordersResponse.statusText,
+        error: errorText,
+        shop: shop,
+        scopes: shopData.scopes
+      });
+      
+      // Vérifier si le problème vient des scopes manquants
+      const hasReadOrdersScope = shopData.scopes?.includes('read_orders');
+      let errorMessage = 'Failed to fetch orders from Shopify.';
+      
+      if (ordersResponse.status === 403) {
+        if (!hasReadOrdersScope) {
+          errorMessage = 'Missing "read_orders" permission. Please reinstall the app with the correct permissions.';
+        } else {
+          errorMessage = 'Access denied. Please check your Shopify app permissions.';
+        }
+      } else if (ordersResponse.status === 401) {
+        errorMessage = 'Invalid access token. Please reconnect your Shopify store.';
+      }
+      
       // Retourner un tableau vide au lieu d'une erreur pour permettre l'affichage du tableau
       return NextResponse.json({
         orders: [],
         total: 0,
         page: 1,
         limit: 25,
-        error: 'Failed to fetch orders from Shopify. Please check your Shopify permissions.'
+        error: errorMessage
       });
     }
 
