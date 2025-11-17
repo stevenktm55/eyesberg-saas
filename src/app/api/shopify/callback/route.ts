@@ -22,11 +22,28 @@ export async function GET(request: NextRequest) {
     const hmac = searchParams.get('hmac');
 
     // Validate required parameters
+    // Si pas de code, c'est peut-être une redirection directe (app déjà installée)
+    // Dans ce cas, rediriger vers settings avec un message
     if (!code || !shop || !hmac) {
-      return NextResponse.json(
-        { error: 'Missing OAuth parameters (code, shop, hmac required)' },
-        { status: 400 }
-      );
+      console.log('⚠️ Callback appelé sans code/hmac - peut-être une redirection directe');
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+      const referer = request.headers.get('referer');
+      let redirectUrl = '/admin/settings?error=oauth_cancelled';
+      
+      if (referer) {
+        try {
+          const refererUrl = new URL(referer);
+          const host = refererUrl.host;
+          if (host.endsWith(`.${rootDomain}`)) {
+            const subdomain = host.replace(`.${rootDomain}`, '');
+            redirectUrl = `https://${subdomain}.${rootDomain}/admin/settings?error=oauth_cancelled`;
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+      
+      return NextResponse.redirect(redirectUrl, { status: 302 });
     }
 
     // Valider le format du shop
