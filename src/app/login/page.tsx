@@ -182,8 +182,9 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // Rediriger vers l'admin (URL relative pour éviter les problèmes de cookie)
-      router.push('/admin');
+      // Rediriger vers l'admin avec rechargement complet pour que le cookie soit disponible
+      // Utiliser window.location au lieu de router.push pour forcer un rechargement
+      window.location.href = '/admin';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       setLoading(false);

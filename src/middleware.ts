@@ -119,7 +119,17 @@ async function handleAdminAuth(
 ) {
   try {
     const sessionToken = request.cookies.get('eyesberg_session')?.value;
+    
+    console.log('🔍 Middleware handleAdminAuth:', {
+      subdomain,
+      hasSessionToken: !!sessionToken,
+      sessionTokenPreview: sessionToken?.substring(0, 20) + '...',
+      url: request.url,
+      cookies: request.cookies.getAll().map(c => c.name),
+    });
+    
     if (!sessionToken) {
+      console.warn('⚠️ No session token found, redirecting to login');
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.set('from', `/admin`);
@@ -179,9 +189,16 @@ async function handleAdminAuth(
       }
     }
 
+    console.log('✅ Session validated:', {
+      accountSubdomain,
+      requestedSubdomain: subdomain,
+      match: accountSubdomain === subdomain,
+      accountId: session.account_id,
+    });
+
     if (!accountSubdomain || accountSubdomain !== subdomain) {
       console.warn(
-        '⚠️ Session subdomain mismatch',
+        '⚠️ Session subdomain mismatch - redirecting to login',
         {
           accountSubdomain,
           requestedSubdomain: subdomain,
@@ -192,6 +209,8 @@ async function handleAdminAuth(
       loginUrl.pathname = '/login';
       return NextResponse.redirect(loginUrl);
     }
+    
+    console.log('✅ Access granted to /admin');
 
     // Sliding expiration : repousser expires_at de 7 jours
     const newExpires = new Date(
