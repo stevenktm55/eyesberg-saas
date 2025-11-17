@@ -6,17 +6,14 @@ import { useRouter } from 'next/navigation';
 // Style pour forcer la couleur exacte du bouton et des titres
 const buttonStyle = `
   .connect-shopify-btn {
-    background-color: rgb(0, 255, 136) !important;
+    background-color: #8eff36 !important;
     color: #000000 !important;
     border: none !important;
     opacity: 1 !important;
   }
   .connect-shopify-btn:hover {
-    background-color: rgb(0, 255, 136) !important;
+    background-color: #8eff36 !important;
     opacity: 1 !important;
-  }
-  .stepn-title-ultrabold {
-    color: rgb(0, 255, 136) !important;
   }
 `;
 
@@ -106,7 +103,7 @@ export default function SubdomainAdminPage() {
           <div style={{ 
             width: '40px', 
             height: '40px', 
-            border: '3px solid rgb(0, 255, 136)', 
+            border: '3px solid #8eff36', 
             borderTop: '3px solid transparent',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
@@ -180,7 +177,7 @@ export default function SubdomainAdminPage() {
             border: '1px solid #1a1a1a'
           }}>
             <h1 className="stepn-title-ultrabold" style={{ 
-              color: 'rgb(0, 255, 136)', 
+              color: '#8eff36', 
               fontSize: '32px', 
               marginBottom: '16px',
               fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
@@ -200,7 +197,7 @@ export default function SubdomainAdminPage() {
                 onClick={handleConnectShopify}
                 className="connect-shopify-btn"
                 style={{
-                  backgroundColor: 'rgb(0, 255, 136)',
+                  backgroundColor: '#8eff36',
                   color: '#000000',
                   border: 'none',
                   padding: '12px 24px',
@@ -213,11 +210,11 @@ export default function SubdomainAdminPage() {
                   opacity: 1
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
+                  e.currentTarget.style.backgroundColor = '#8eff36';
                   e.currentTarget.style.opacity = '1';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
+                  e.currentTarget.style.backgroundColor = '#8eff36';
                   e.currentTarget.style.opacity = '1';
                 }}
               >
@@ -250,7 +247,7 @@ export default function SubdomainAdminPage() {
           marginBottom: '32px'
         }}>
           <h1 className="stepn-title-ultrabold" style={{ 
-            color: 'rgb(0, 255, 136)', 
+            color: '#8eff36', 
             fontSize: '48px',
             fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
             margin: 0
@@ -261,7 +258,7 @@ export default function SubdomainAdminPage() {
             <button
               onClick={() => router.push(`/products?shop=${shopData.shop_domain}`)}
               style={{
-                backgroundColor: 'rgb(0, 255, 136)',
+                backgroundColor: '#8eff36',
                 color: '#000000',
                 border: 'none',
                 padding: '12px 24px',
@@ -281,8 +278,8 @@ export default function SubdomainAdminPage() {
               onClick={handleSyncProducts}
               style={{
                 backgroundColor: 'transparent',
-                color: 'rgb(0, 255, 136)',
-                border: '1px solid rgb(0, 255, 136)',
+                color: '#8eff36',
+                border: '1px solid #8eff36',
                 padding: '12px 24px',
                 borderRadius: '4px',
                 fontSize: '16px',
@@ -292,12 +289,12 @@ export default function SubdomainAdminPage() {
                 transition: 'all 0.2s'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
+                e.currentTarget.style.backgroundColor = '#8eff36';
                 e.currentTarget.style.color = '#000000';
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'rgb(0, 255, 136)';
+                e.currentTarget.style.color = '#8eff36';
               }}
             >
               Synchroniser les produits
