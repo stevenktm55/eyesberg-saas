@@ -74,12 +74,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Extraire le sous-domaine éventuel depuis state (format: subdomain|nonce)
+    // Extraire le sous-domaine depuis state (format: subdomain|nonce)
     let subdomain: string | undefined;
     if (state && state.includes('|')) {
       const [maybeSub] = state.split('|');
-      if (maybeSub && maybeSub.length > 0) {
+      if (maybeSub && maybeSub.length > 0 && maybeSub !== 'undefined') {
         subdomain = maybeSub;
+      }
+    }
+    
+    // Si pas de subdomain dans state, essayer de l'extraire depuis le referer ou l'URL de redirection
+    if (!subdomain) {
+      const referer = request.headers.get('referer');
+      if (referer) {
+        const refererUrl = new URL(referer);
+        const host = refererUrl.host;
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+        if (host.endsWith(`.${rootDomain}`)) {
+          const parts = host.split('.');
+          if (parts.length >= 3) {
+            const candidate = parts[0];
+            if (candidate && candidate !== 'www' && candidate !== 'api') {
+              subdomain = candidate;
+            }
+          }
+        }
       }
     }
 
@@ -194,8 +213,18 @@ export async function GET(request: NextRequest) {
       // (on peut les créer manuellement plus tard si nécessaire)
     }
 
-    // Rediriger vers la page de succès, qui proposera d'aller au dashboard
-    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/shopify/success?shop=${shop}`;
+    // Rediriger vers la page de succès sur le bon sous-domaine
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+    let redirectUrl: string;
+    
+    if (subdomain && accountId) {
+      // Rediriger vers le sous-domaine du compte
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${rootDomain}`;
+      redirectUrl = `https://${subdomain}.${rootDomain}/admin/shopify/success?shop=${encodeURIComponent(shop)}`;
+    } else {
+      // Fallback vers le domaine racine
+      redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/shopify/success?shop=${encodeURIComponent(shop)}`;
+    }
     
     return NextResponse.redirect(redirectUrl);
   } catch (error) {

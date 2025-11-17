@@ -85,17 +85,47 @@ export default function SubdomainAdminPage() {
     );
   }
 
+  const handleConnectShopify = () => {
+    if (!subdomain) {
+      alert('Sous-domaine non détecté. Veuillez accéder à l\'admin via votre sous-domaine.');
+      return;
+    }
+    
+    // Demander le domaine Shopify à l'utilisateur
+    const shopDomain = prompt('Entrez votre domaine Shopify (ex: votreboutique.myshopify.com):');
+    if (!shopDomain) return;
+    
+    // Valider le format
+    if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
+      alert('Format invalide. Utilisez: votreboutique.myshopify.com');
+      return;
+    }
+    
+    // Rediriger vers le flow OAuth
+    window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
+  };
+
   if (error || !shopData) {
     return (
       <Page title="Dashboard">
         <Layout>
           <Layout.Section>
-            <Banner status="critical" title="Erreur">
-              <p>{error || 'Impossible de charger les données'}</p>
+            <Banner 
+              status={error ? "critical" : "info"} 
+              title={error ? "Erreur" : "Boutique non connectée"}
+            >
+              <p>{error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}</p>
               {!subdomain && (
                 <p style={{ marginTop: '8px' }}>
                   Assurez-vous d&apos;accéder à l&apos;admin via votre sous-domaine : <strong>votresousdomaine.{process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'ton-domaine.com'}/admin</strong>
                 </p>
+              )}
+              {subdomain && !error && (
+                <div style={{ marginTop: '16px' }}>
+                  <Button primary onClick={handleConnectShopify}>
+                    Connecter ma boutique Shopify
+                  </Button>
+                </div>
               )}
             </Banner>
           </Layout.Section>
