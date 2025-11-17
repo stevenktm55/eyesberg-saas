@@ -213,19 +213,19 @@ export async function GET(request: NextRequest) {
       // (on peut les créer manuellement plus tard si nécessaire)
     }
 
-    // Rediriger vers la page de succès sur le bon sous-domaine
+    // Rediriger vers la page Settings après installation réussie
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
     let redirectUrl: string;
     
     if (subdomain && accountId) {
-      // Rediriger vers le sous-domaine du compte
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `https://${rootDomain}`;
-      redirectUrl = `https://${subdomain}.${rootDomain}/admin/shopify/success?shop=${encodeURIComponent(shop)}`;
+      // Rediriger vers le sous-domaine du compte - page Settings
+      redirectUrl = `https://${subdomain}.${rootDomain}/admin/settings?installed=1&shop=${encodeURIComponent(shop)}`;
     } else {
       // Fallback vers le domaine racine
-      redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/shopify/success?shop=${encodeURIComponent(shop)}`;
+      redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/settings?installed=1&shop=${encodeURIComponent(shop)}`;
     }
     
+    console.log('✅ Installation réussie, redirection vers:', redirectUrl);
     return NextResponse.redirect(redirectUrl);
   } catch (error) {
     console.error('❌ Erreur lors du callback OAuth Shopify:', error);
