@@ -219,6 +219,10 @@ export default function LoginPage() {
 
       const data = await response.json();
 
+      // Attendre un court délai pour que le cookie soit disponible avant de rediriger
+      // Le cookie est créé dans la réponse HTTP, mais il faut un peu de temps pour qu'il soit disponible
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Rediriger vers l'admin avec rechargement complet pour que le cookie soit disponible
       // Utiliser window.location au lieu de router.push pour forcer un rechargement
       window.location.href = '/admin';

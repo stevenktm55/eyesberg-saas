@@ -159,11 +159,25 @@ async function handleAdminAuth(
       .gt('expires_at', nowIso)
       .single();
 
-    if (error || !session) {
-      console.error('❌ Middleware: Session error or not found', {
-        error: error?.message,
-        hasSession: !!session,
-        sessionToken: sessionToken?.substring(0, 10) + '...',
+    if (error) {
+      console.error('❌ Middleware: Supabase query error', {
+        error: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        sessionToken: sessionToken?.substring(0, 20) + '...',
+        nowIso,
+      });
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      loginUrl.searchParams.set('from', `/admin`);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (!session) {
+      console.error('❌ Middleware: Session not found in database', {
+        sessionToken: sessionToken?.substring(0, 20) + '...',
+        nowIso,
+        subdomain,
       });
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';

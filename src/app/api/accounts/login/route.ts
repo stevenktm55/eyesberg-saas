@@ -91,6 +91,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Connexion réussie, session créée pour:', account.id, account.subdomain);
+    console.log('🍪 Cookie config:', {
+      sessionToken: sessionToken.substring(0, 20) + '...',
+      expiresAt: expiresAt.toISOString(),
+      domain: `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app'}`,
+      isProd: process.env.NODE_ENV === 'production',
+    });
 
     const response = NextResponse.json({
       success: true,
@@ -114,6 +120,8 @@ export async function POST(request: NextRequest) {
       domain: cookieDomain,
       expires: expiresAt,
     });
+
+    console.log('🍪 Cookie set in response headers');
 
     return response;
   } catch (error) {
