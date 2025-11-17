@@ -93,11 +93,18 @@ export async function GET(request: NextRequest) {
       clientId: clientId?.substring(0, 10) + '...',
       scopes,
       redirectUri,
-      state
+      state,
+      fullAuthUrl: authUrl.toString()
     });
 
-    // Rediriger vers Shopify OAuth
-    return NextResponse.redirect(authUrl.toString(), { status: 302 });
+    // Créer une réponse de redirection avec les headers appropriés
+    const response = NextResponse.redirect(authUrl.toString(), { status: 302 });
+    
+    // S'assurer que les headers de redirection sont corrects
+    response.headers.set('Location', authUrl.toString());
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
+    return response;
   } catch (error) {
     console.error('❌ Erreur lors de l\'installation Shopify:', error);
     return NextResponse.json(
