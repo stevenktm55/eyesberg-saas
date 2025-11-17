@@ -182,9 +182,8 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // Rediriger vers l'admin du sous-domaine
-      const adminUrl = `https://${data.account.subdomain}.${rootDomain}/admin`;
-      router.push(adminUrl);
+      // Rediriger vers l'admin (URL relative pour éviter les problèmes de cookie)
+      router.push('/admin');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       setLoading(false);

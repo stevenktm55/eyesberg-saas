@@ -150,19 +150,43 @@ async function handleAdminAuth(
       .single();
 
     if (error || !session) {
+      console.error('❌ Middleware: Session error or not found', {
+        error: error?.message,
+        hasSession: !!session,
+        sessionToken: sessionToken?.substring(0, 10) + '...',
+      });
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       loginUrl.searchParams.set('from', `/admin`);
       return NextResponse.redirect(loginUrl);
     }
 
-    const accountSubdomain = session.accounts?.subdomain;
-    if (accountSubdomain !== subdomain) {
+    // Récupérer le subdomain depuis la relation accounts ou faire une requête séparée
+    let accountSubdomain: string | null = null;
+    
+    if (session.accounts && typeof session.accounts === 'object' && 'subdomain' in session.accounts) {
+      accountSubdomain = (session.accounts as any).subdomain;
+    } else {
+      // Si la jointure ne fonctionne pas, faire une requête séparée
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('subdomain')
+        .eq('id', session.account_id)
+        .single();
+      
+      if (account) {
+        accountSubdomain = account.subdomain;
+      }
+    }
+
+    if (!accountSubdomain || accountSubdomain !== subdomain) {
       console.warn(
         '⚠️ Session subdomain mismatch',
-        accountSubdomain,
-        'vs',
-        subdomain,
+        {
+          accountSubdomain,
+          requestedSubdomain: subdomain,
+          accountId: session.account_id,
+        }
       );
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
