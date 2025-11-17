@@ -55,9 +55,23 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(adminUrl);
         }
         
-        // Pour /admin sur un sous-domaine, vérifier l'authentification et continuer
-        // Next.js devrait servir [subdomain]/admin/page.tsx naturellement
-        return handleAdminAuth(request, requestHeaders, subdomain);
+        // Pour /admin sur un sous-domaine, vérifier l'authentification puis réécrire la route
+        const authResponse = await handleAdminAuth(request, requestHeaders, subdomain);
+        
+        // Si l'authentification a échoué (redirection), retourner la réponse
+        if (authResponse.status === 307 || authResponse.status === 302) {
+          return authResponse;
+        }
+        
+        // Si l'authentification a réussi, réécrire la route vers [subdomain]/admin
+        // pour forcer Next.js à servir la bonne page
+        const rewriteUrl = request.nextUrl.clone();
+        rewriteUrl.pathname = `/${subdomain}/admin`;
+        return NextResponse.rewrite(rewriteUrl, {
+          request: {
+            headers: requestHeaders,
+          },
+        });
       }
 
       // Route valide pour sous-domaine, continuer
