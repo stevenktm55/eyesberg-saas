@@ -337,7 +337,7 @@ export default function SubdomainAdminPage() {
                   View demos
                 </button>
                 <button
-                  onClick={() => shopData && router.push(`/products?shop=${shopData.shop_domain}`)}
+                  onClick={() => shopData && router.push(`/admin/products?shop=${shopData.shop_domain}`)}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: '#8eff36',

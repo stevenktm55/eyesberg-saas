@@ -52,12 +52,14 @@ export async function middleware(request: NextRequest) {
           '/admin/settings',
           '/admin/orders',
           '/admin/designs',
-          '/admin/theme-editor'
+          '/admin/theme-editor',
+          '/admin/products'
         ];
         
-        // Vérifier si c'est une route admin autorisée ou une sous-route de settings
+        // Vérifier si c'est une route admin autorisée ou une sous-route de settings/products
         const isAllowedRoute = allowedAdminRoutes.includes(url.pathname) || 
-                               url.pathname.startsWith('/admin/settings/');
+                               url.pathname.startsWith('/admin/settings/') ||
+                               url.pathname.startsWith('/admin/products');
         
         if (!isAllowedRoute && url.pathname.startsWith('/admin/')) {
           // Bloquer l'accès aux routes /admin/* non autorisées depuis les sous-domaines
