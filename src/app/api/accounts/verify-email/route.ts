@@ -74,9 +74,9 @@ export async function GET(request: NextRequest) {
 
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
     const cookieDomain = `.${rootDomain}`;
-    const adminUrl = `https://${account.subdomain}.${rootDomain}/admin`;
+    const loginUrl = `https://${account.subdomain}.${rootDomain}/login?verified=1`;
 
-    const response = NextResponse.redirect(adminUrl);
+    const response = NextResponse.redirect(loginUrl);
 
     response.cookies.set('eyesberg_session', sessionToken, {
       httpOnly: true,
