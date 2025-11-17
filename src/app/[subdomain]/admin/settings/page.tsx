@@ -20,7 +20,7 @@ export default function SettingsPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
-    // Vérifier si on vient d'une installation réussie
+    // Vérifier si on vient d'une installation réussie ou d'une erreur
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('installed') === '1') {
       setShowSuccessMessage(true);
@@ -28,6 +28,15 @@ export default function SettingsPage() {
       window.history.replaceState({}, '', window.location.pathname);
       // Masquer le message après 5 secondes
       setTimeout(() => setShowSuccessMessage(false), 5000);
+    }
+    
+    // Vérifier les erreurs
+    const error = urlParams.get('error');
+    if (error === 'missing_scopes') {
+      const missing = urlParams.get('missing') || 'read_orders';
+      const errorMessage = `Missing required permissions: ${missing}.\n\nTo fix this:\n1. Go to your Shopify Admin\n2. Navigate to Settings > Apps and sales channels\n3. Find "Eyesberg" app and click "Uninstall"\n4. Come back here and click "+ Online store" to reinstall with the correct permissions.`;
+      alert(errorMessage);
+      window.history.replaceState({}, '', window.location.pathname);
     }
 
     async function loadShopData() {

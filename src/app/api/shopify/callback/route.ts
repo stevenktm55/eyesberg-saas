@@ -152,6 +152,32 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenResponse.json();
     const { access_token, scope } = tokenData;
 
+    // Vérifier que les scopes requis sont présents
+    const requiredScopes = ['read_orders'];
+    // Les scopes peuvent être séparés par des virgules ou des espaces
+    const grantedScopes = scope ? scope.split(/[,\s]+/).map(s => s.trim()).filter(s => s) : [];
+    const missingScopes = requiredScopes.filter(req => !grantedScopes.includes(req));
+    
+    console.log('📋 Scopes accordés par Shopify:', grantedScopes);
+    console.log('📋 Scopes requis:', requiredScopes);
+    
+    if (missingScopes.length > 0) {
+      console.warn('⚠️ Scopes manquants:', missingScopes);
+      console.warn('⚠️ L\'app doit être désinstallée depuis Shopify Admin avant de pouvoir être réinstallée avec les bonnes permissions.');
+      
+      // Rediriger vers settings avec un message d'erreur spécifique
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+      let redirectUrl = '/admin/settings?error=missing_scopes&missing=' + encodeURIComponent(missingScopes.join(','));
+      
+      if (subdomain) {
+        redirectUrl = `https://${subdomain}.${rootDomain}/admin/settings?error=missing_scopes&missing=${encodeURIComponent(missingScopes.join(','))}`;
+      }
+      
+      return NextResponse.redirect(redirectUrl, { status: 302 });
+    }
+
+    console.log('✅ Tous les scopes requis sont présents:', grantedScopes);
+
     // Récupérer les infos de la boutique via l'API Shopify
     let shopName: string | undefined;
     let shopEmail: string | undefined;
