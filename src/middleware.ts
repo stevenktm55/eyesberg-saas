@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
           '/admin',
           '/admin/settings',
           '/admin/orders',
+          '/admin/designs',
           '/admin/theme-editor'
         ];
         

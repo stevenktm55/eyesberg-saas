@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -8,7 +9,11 @@ export default function AdminSidebar() {
   const isProductsPage = pathname === `/admin` || pathname?.endsWith('/admin');
   const isThemeEditorPage = pathname?.includes('/theme-editor');
   const isOrdersPage = pathname?.includes('/orders');
+  const isDesignsPage = pathname?.includes('/designs');
   const isSettingsPage = pathname?.includes('/settings');
+  
+  // État pour le sous-menu Orders & Designs
+  const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
 
   return (
     <aside style={{
@@ -101,33 +106,105 @@ export default function AdminSidebar() {
           Theme editor
         </Link>
 
-        <Link 
-          href="/admin/orders"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '12px 24px',
-            color: isOrdersPage ? '#8eff36' : '#ffffff',
-            textDecoration: 'none',
-            fontFamily: 'var(--stepn-font-body)',
-            fontSize: '16px',
-            backgroundColor: isOrdersPage ? '#1a1a1a' : 'transparent',
-            borderLeft: isOrdersPage ? '3px solid #8eff36' : '3px solid transparent',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            if (!isOrdersPage) {
-              e.currentTarget.style.backgroundColor = '#1a1a1a';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isOrdersPage) {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }
-          }}
-        >
-          Orders & Designs
-        </Link>
+        {/* Orders & Designs avec sous-menu */}
+        <div>
+          <div
+            onClick={() => setIsOrdersMenuOpen(!isOrdersMenuOpen)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 24px',
+              color: (isOrdersPage || isDesignsPage) ? '#8eff36' : '#ffffff',
+              cursor: 'pointer',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              backgroundColor: (isOrdersPage || isDesignsPage) ? '#1a1a1a' : 'transparent',
+              borderLeft: (isOrdersPage || isDesignsPage) ? '3px solid #8eff36' : '3px solid transparent',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (!isOrdersPage && !isDesignsPage) {
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isOrdersPage && !isDesignsPage) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+          >
+            <span>Orders & Designs</span>
+            <span style={{ 
+              transform: isOrdersMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s',
+              fontSize: '12px'
+            }}>
+              ▼
+            </span>
+          </div>
+          
+          {isOrdersMenuOpen && (
+            <div style={{ paddingLeft: '24px' }}>
+              <Link 
+                href="/admin/orders"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 24px',
+                  color: isOrdersPage ? '#8eff36' : '#a0a0a0',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontSize: '14px',
+                  backgroundColor: isOrdersPage ? '#1a1a1a' : 'transparent',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isOrdersPage) {
+                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                    e.currentTarget.style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isOrdersPage) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#a0a0a0';
+                  }
+                }}
+              >
+                Orders
+              </Link>
+              <Link 
+                href="/admin/designs"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 24px',
+                  color: isDesignsPage ? '#8eff36' : '#a0a0a0',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontSize: '14px',
+                  backgroundColor: isDesignsPage ? '#1a1a1a' : 'transparent',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isDesignsPage) {
+                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                    e.currentTarget.style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDesignsPage) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#a0a0a0';
+                  }
+                }}
+              >
+                Designs
+              </Link>
+            </div>
+          )}
+        </div>
 
         <Link 
           href="/admin/settings"
@@ -192,4 +269,3 @@ export default function AdminSidebar() {
     </aside>
   );
 }
-
