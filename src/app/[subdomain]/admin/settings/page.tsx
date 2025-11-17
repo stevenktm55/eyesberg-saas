@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import AdminSidebar from '@/components/AdminSidebar';
 
 interface ShopData {
   id: string;
@@ -66,9 +65,7 @@ export default function SettingsPage() {
       display: 'flex',
       fontFamily: 'var(--stepn-font-body), sans-serif'
     }}>
-      <AdminSidebar />
-      
-      {/* Settings Sidebar */}
+      {/* Settings Sidebar - Remplace la sidebar principale */}
       <aside style={{
         width: '240px',
         backgroundColor: 'rgb(30, 30, 30)',
@@ -76,12 +73,11 @@ export default function SettingsPage() {
         padding: '24px 0',
         display: 'flex',
         flexDirection: 'column',
-        marginLeft: '240px',
         position: 'fixed',
         height: '100vh',
-        left: '240px',
+        left: 0,
         top: 0,
-        zIndex: 99
+        zIndex: 100
       }}>
         {/* Back to Admin */}
         <div style={{ padding: '0 24px 32px', borderBottom: '1px solid #1a1a1a' }}>
@@ -327,7 +323,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <main style={{
         flex: 1,
-        marginLeft: '480px',
+        marginLeft: '240px',
         padding: '40px',
         overflow: 'auto'
       }}>
