@@ -18,6 +18,25 @@ export default function AdminLayout({
   }, []);
 
   const checkAuth = async () => {
+    // Détecter si on est sur un sous-domaine (ex: stretchmx.eyesberg.app)
+    const host = typeof window !== 'undefined' ? window.location.host : '';
+    const hostWithoutPort = host.split(':')[0];
+    const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+    
+    // Si on est sur un sous-domaine, ne pas vérifier l'authentification (le middleware le fait)
+    const isSubdomain = hostWithoutPort.includes('.') && 
+                       hostWithoutPort !== rootDomain && 
+                       hostWithoutPort !== `www.${rootDomain}` &&
+                       !hostWithoutPort.startsWith('localhost') &&
+                       !hostWithoutPort.startsWith('127.0.0.1');
+    
+    if (isSubdomain) {
+      // Sur un sous-domaine, le middleware gère l'authentification
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
     // Ne pas vérifier l'authentification sur la page de login
     if (pathname === '/admin/login') {
       setIsLoading(false);
