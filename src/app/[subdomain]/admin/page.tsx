@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Style pour forcer la couleur exacte du bouton
+// Style pour forcer la couleur exacte du bouton et des titres
 const buttonStyle = `
   .connect-shopify-btn {
     background-color: rgb(0, 255, 136) !important;
@@ -14,6 +14,9 @@ const buttonStyle = `
   .connect-shopify-btn:hover {
     background-color: rgb(0, 255, 136) !important;
     opacity: 1 !important;
+  }
+  .stepn-title-ultrabold {
+    color: rgb(0, 255, 136) !important;
   }
 `;
 
