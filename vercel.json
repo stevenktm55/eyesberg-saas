@@ -1,5 +1,5 @@
 {
-  "buildCommand": "yarn install --production=false && yarn build",
-  "installCommand": "yarn install --production=false",
+  "buildCommand": "yarn install --production=false && yarn add sharp --platform=linux --cpu=x64 && yarn build",
+  "installCommand": "yarn install --production=false && yarn add sharp --platform=linux --cpu=x64",
   "framework": "nextjs"
 }
