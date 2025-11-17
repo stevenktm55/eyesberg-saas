@@ -46,16 +46,27 @@ export async function middleware(request: NextRequest) {
       
       // Protection des routes /admin : vérifier la session
       if (url.pathname.startsWith('/admin')) {
-        // Bloquer l'accès aux routes /admin/* (sauf /admin lui-même) depuis les sous-domaines
-        // Ces routes sont pour le domaine racine uniquement
-        if (url.pathname !== '/admin' && url.pathname.startsWith('/admin/')) {
+        // Routes admin autorisées pour les sous-domaines
+        const allowedAdminRoutes = [
+          '/admin',
+          '/admin/settings',
+          '/admin/orders',
+          '/admin/theme-editor'
+        ];
+        
+        // Vérifier si c'est une route admin autorisée ou une sous-route de settings
+        const isAllowedRoute = allowedAdminRoutes.includes(url.pathname) || 
+                               url.pathname.startsWith('/admin/settings/');
+        
+        if (!isAllowedRoute && url.pathname.startsWith('/admin/')) {
+          // Bloquer l'accès aux routes /admin/* non autorisées depuis les sous-domaines
           // Rediriger vers la page admin principale du sous-domaine
           const adminUrl = request.nextUrl.clone();
           adminUrl.pathname = '/admin';
           return NextResponse.redirect(adminUrl);
         }
         
-        // Pour /admin sur un sous-domaine, vérifier l'authentification puis réécrire la route
+        // Pour toutes les routes /admin, vérifier l'authentification puis réécrire la route
         const authResponse = await handleAdminAuth(request, requestHeaders, subdomain);
         
         // Si l'authentification a échoué (redirection), retourner la réponse
@@ -63,10 +74,15 @@ export async function middleware(request: NextRequest) {
           return authResponse;
         }
         
-        // Si l'authentification a réussi, réécrire la route vers [subdomain]/admin
+        // Si l'authentification a réussi, réécrire la route vers [subdomain]/admin ou [subdomain]/admin/...
         // pour forcer Next.js à servir la bonne page
         const rewriteUrl = request.nextUrl.clone();
-        rewriteUrl.pathname = `/${subdomain}/admin`;
+        if (url.pathname === '/admin') {
+          rewriteUrl.pathname = `/${subdomain}/admin`;
+        } else {
+          // Pour /admin/settings, /admin/orders, etc., réécrire vers [subdomain]/admin/settings
+          rewriteUrl.pathname = `/${subdomain}${url.pathname}`;
+        }
         return NextResponse.rewrite(rewriteUrl, {
           request: {
             headers: requestHeaders,
