@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 // Style pour forcer la couleur exacte du bouton et des titres
 const buttonStyle = `
@@ -27,11 +28,11 @@ interface ShopData {
 }
 
 /**
- * Page admin accessible via sous-domaine
- * Exemple : stretchmx.gokickflip.com/admin
+ * Page admin accessible via sous-domaine avec sidebar
  */
 export default function SubdomainAdminPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +90,26 @@ export default function SubdomainAdminPage() {
     loadShopData();
   }, []);
 
+  const handleConnectShopify = () => {
+    if (!subdomain) {
+      alert('Sous-domaine non détecté. Veuillez accéder à l\'admin via votre sous-domaine.');
+      return;
+    }
+    
+    // Demander le domaine Shopify à l'utilisateur
+    const shopDomain = prompt('Entrez votre domaine Shopify (ex: votreboutique.myshopify.com):');
+    if (!shopDomain) return;
+    
+    // Valider le format
+    if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
+      alert('Format invalide. Utilisez: votreboutique.myshopify.com');
+      return;
+    }
+    
+    // Rediriger vers le flow OAuth
+    window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
+  };
+
   if (loading) {
     return (
       <div style={{ 
@@ -121,43 +142,7 @@ export default function SubdomainAdminPage() {
     );
   }
 
-  const handleConnectShopify = () => {
-    if (!subdomain) {
-      alert('Sous-domaine non détecté. Veuillez accéder à l\'admin via votre sous-domaine.');
-      return;
-    }
-    
-    // Demander le domaine Shopify à l'utilisateur
-    const shopDomain = prompt('Entrez votre domaine Shopify (ex: votreboutique.myshopify.com):');
-    if (!shopDomain) return;
-    
-    // Valider le format
-    if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
-      alert('Format invalide. Utilisez: votreboutique.myshopify.com');
-      return;
-    }
-    
-    // Rediriger vers le flow OAuth
-    window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
-  };
-
-  const handleSyncProducts = async () => {
-    if (!shopData) return;
-    try {
-      const response = await fetch(`/api/shopify/products/sync?shop=${shopData.shop_domain}`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        alert(`Synchronisation terminée: ${data.result.synced} nouveaux, ${data.result.updated} mis à jour`);
-      } else {
-        throw new Error('Erreur lors de la synchronisation');
-      }
-    } catch (error) {
-      alert('Erreur lors de la synchronisation: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
-    }
-  };
-
+  // Si pas de boutique connectée, afficher le message de connexion
   if (error || !shopData) {
     return (
       <>
@@ -232,124 +217,205 @@ export default function SubdomainAdminPage() {
       <style dangerouslySetInnerHTML={{ __html: buttonStyle }} />
       <div style={{ 
         minHeight: '100vh', 
-        backgroundColor: '#000000', 
-        padding: '40px 20px',
+        backgroundColor: '#000000',
+        display: 'flex',
         fontFamily: 'var(--stepn-font-body), sans-serif'
       }}>
-      <div style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto'
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '32px'
-        }}>
-          <h1 className="stepn-title-ultrabold" style={{ 
-            color: '#8eff36', 
-            fontSize: '48px',
-            fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
-            margin: 0
-          }}>
-            Dashboard
-          </h1>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => router.push(`/products?shop=${shopData.shop_domain}`)}
-              style={{
-                backgroundColor: '#8eff36',
-                color: '#000000',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '4px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
-                transition: 'opacity 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
-              onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              Voir les produits
-            </button>
-            <button
-              onClick={handleSyncProducts}
-              style={{
-                backgroundColor: 'transparent',
-                color: '#8eff36',
-                border: '1px solid #8eff36',
-                padding: '12px 24px',
-                borderRadius: '4px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#8eff36';
-                e.currentTarget.style.color = '#000000';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#8eff36';
-              }}
-            >
-              Synchroniser les produits
-            </button>
-          </div>
-        </div>
+        <AdminSidebar />
 
-        <div style={{ 
-          backgroundColor: '#0a0a0a',
-          padding: '32px',
-          borderRadius: '8px',
-          border: '1px solid #1a1a1a'
+        {/* Main Content */}
+        <main style={{
+          flex: 1,
+          marginLeft: '240px',
+          padding: '40px',
+          overflow: 'auto'
         }}>
-          <h2 style={{ 
-            color: '#ffffff', 
-            fontSize: '24px', 
-            marginBottom: '24px',
-            fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
-          }}>
-            Bienvenue sur votre dashboard
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <span style={{ color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>Boutique : </span>
-              <span style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>
-                {shopData.shop_name || shopData.shop_domain}
-              </span>
+          <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            <h1 className="stepn-title-ultrabold" style={{ 
+              color: '#8eff36', 
+              fontSize: '48px',
+              fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
+              marginBottom: '32px'
+            }}>
+              My Products
+            </h1>
+
+            {/* Tabs */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '24px', 
+              marginBottom: '32px',
+              borderBottom: '1px solid #1a1a1a'
+            }}>
+              <button
+                style={{
+                  padding: '12px 0',
+                  backgroundColor: 'transparent',
+                  color: '#8eff36',
+                  border: 'none',
+                  borderBottom: '2px solid #8eff36',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontWeight: '600'
+                }}
+              >
+                Active
+              </button>
+              <button
+                style={{
+                  padding: '12px 0',
+                  backgroundColor: 'transparent',
+                  color: '#a0a0a0',
+                  border: 'none',
+                  borderBottom: '2px solid transparent',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontWeight: '600'
+                }}
+              >
+                Archived
+              </button>
             </div>
-            <div>
-              <span style={{ color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>Domaine : </span>
-              <span style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>
-                {shopData.shop_domain}
-              </span>
+
+            {/* Search and Actions */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '32px'
+            }}>
+              <div style={{ display: 'flex', gap: '12px', flex: 1, maxWidth: '400px' }}>
+                <input
+                  type="text"
+                  placeholder="Q Product"
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #1a1a1a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#8eff36'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = '#1a1a1a'}
+                />
+                <select
+                  style={{
+                    padding: '12px 16px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #1a1a1a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Sort</option>
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="name">Name</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: 'transparent',
+                    color: '#ffffff',
+                    border: '1px solid #1a1a1a',
+                    borderRadius: '4px',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                    e.currentTarget.style.color = '#8eff36';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#1a1a1a';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                >
+                  View demos
+                </button>
+                <button
+                  onClick={() => router.push(`/products?shop=${shopData.shop_domain}`)}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#8eff36',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  + Product
+                </button>
+              </div>
             </div>
-            {shopData.shop_email && (
-              <div>
-                <span style={{ color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>Email : </span>
-                <span style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>
-                  {shopData.shop_email}
-                </span>
+
+            {/* Products Grid - Placeholder */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gap: '24px'
+            }}>
+              <div style={{
+                backgroundColor: '#0a0a0a',
+                borderRadius: '8px',
+                padding: '16px',
+                border: '1px solid #1a1a1a',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  width: '100%',
+                  aspectRatio: '1',
+                  backgroundColor: '#1a1a1a',
+                  borderRadius: '4px',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#a0a0a0',
+                  fontSize: '48px'
+                }}>
+                  🎨
+                </div>
+                <p style={{
+                  color: '#ffffff',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontSize: '14px',
+                  marginBottom: '8px'
+                }}>
+                  No products yet
+                </p>
+                <p style={{
+                  color: '#a0a0a0',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontSize: '12px'
+                }}>
+                  Create your first product
+                </p>
               </div>
-            )}
-            {subdomain && (
-              <div>
-                <span style={{ color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>Sous-domaine : </span>
-                <span style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>
-                  {subdomain}.{process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app'}
-                </span>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        </main>
       </div>
-    </div>
     </>
   );
 }
-
