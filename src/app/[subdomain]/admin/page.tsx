@@ -89,7 +89,7 @@ export default function SubdomainAdminPage() {
           <div style={{ 
             width: '40px', 
             height: '40px', 
-            border: '3px solid #00ff88', 
+            border: '3px solid rgb(0, 255, 136)', 
             borderTop: '3px solid transparent',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
@@ -144,7 +144,7 @@ export default function SubdomainAdminPage() {
           border: '1px solid #1a1a1a'
         }}>
           <h1 className="stepn-title-ultrabold" style={{ 
-            color: '#00ff88', 
+            color: 'rgb(0, 255, 136)', 
             fontSize: '32px', 
             marginBottom: '16px',
             fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
@@ -163,7 +163,7 @@ export default function SubdomainAdminPage() {
             <button
               onClick={handleConnectShopify}
               style={{
-                backgroundColor: '#00ff88',
+                backgroundColor: 'rgb(0, 255, 136)',
                 color: '#000000',
                 border: 'none',
                 padding: '12px 24px',
@@ -219,7 +219,7 @@ export default function SubdomainAdminPage() {
           marginBottom: '32px'
         }}>
           <h1 className="stepn-title-ultrabold" style={{ 
-            color: '#00ff88', 
+            color: 'rgb(0, 255, 136)', 
             fontSize: '48px',
             fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
             margin: 0
@@ -230,7 +230,7 @@ export default function SubdomainAdminPage() {
             <button
               onClick={() => router.push(`/products?shop=${shopData.shop_domain}`)}
               style={{
-                backgroundColor: '#00ff88',
+                backgroundColor: 'rgb(0, 255, 136)',
                 color: '#000000',
                 border: 'none',
                 padding: '12px 24px',
@@ -250,8 +250,8 @@ export default function SubdomainAdminPage() {
               onClick={handleSyncProducts}
               style={{
                 backgroundColor: 'transparent',
-                color: '#00ff88',
-                border: '1px solid #00ff88',
+                color: 'rgb(0, 255, 136)',
+                border: '1px solid rgb(0, 255, 136)',
                 padding: '12px 24px',
                 borderRadius: '4px',
                 fontSize: '16px',
@@ -261,12 +261,12 @@ export default function SubdomainAdminPage() {
                 transition: 'all 0.2s'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#00ff88';
+                e.currentTarget.style.backgroundColor = 'rgb(0, 255, 136)';
                 e.currentTarget.style.color = '#000000';
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#00ff88';
+                e.currentTarget.style.color = 'rgb(0, 255, 136)';
               }}
             >
               Synchroniser les produits
