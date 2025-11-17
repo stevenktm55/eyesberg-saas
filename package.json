@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24.4.0"
+    "node": "22.x"
+  },
+  "resolutions": {
+    "camera-controls": "^2.7.2"
   },
   "scripts": {
     "dev": "next dev --turbopack",
