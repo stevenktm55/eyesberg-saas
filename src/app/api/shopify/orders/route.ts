@@ -76,6 +76,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Logs de debug pour vérifier les scopes
+    console.log('🔍 Debug Orders API:', {
+      shop: shop,
+      hasAccessToken: !!shopData.access_token,
+      accessTokenLength: shopData.access_token?.length || 0,
+      scopes: shopData.scopes,
+      scopesType: typeof shopData.scopes,
+      scopesIncludes: shopData.scopes?.includes('read_orders'),
+      scopesSplit: shopData.scopes ? shopData.scopes.split(/[,\s]+/).map(s => s.trim()) : []
+    });
+
+    // Vérifier les scopes avant d'appeler l'API
+    const grantedScopes = shopData.scopes ? shopData.scopes.split(/[,\s]+/).map(s => s.trim()).filter(s => s) : [];
+    const hasReadOrdersScope = grantedScopes.includes('read_orders');
+    
+    if (!hasReadOrdersScope) {
+      console.warn('⚠️ Scope read_orders manquant. Scopes accordés:', grantedScopes);
+      return NextResponse.json({
+        orders: [],
+        total: 0,
+        page: 1,
+        limit: 25,
+        error: 'Missing "read_orders" permission. The app was installed without the required permissions. Please uninstall and reinstall the app.'
+      });
+    }
+
     // Récupérer les commandes depuis l'API Shopify
     const limit = parseInt(searchParams.get('limit') || '25');
     const page = parseInt(searchParams.get('page') || '1');
@@ -85,6 +111,8 @@ export async function GET(request: NextRequest) {
     if (status !== 'any') {
       ordersUrl += `&status=${status}`;
     }
+
+    console.log('📡 Appel API Shopify Orders:', ordersUrl);
 
     const ordersResponse = await fetch(ordersUrl, {
       headers: {
@@ -99,18 +127,18 @@ export async function GET(request: NextRequest) {
         statusText: ordersResponse.statusText,
         error: errorText,
         shop: shop,
-        scopes: shopData.scopes
+        scopes: shopData.scopes,
+        grantedScopes: grantedScopes,
+        hasReadOrdersScope: hasReadOrdersScope
       });
       
-      // Vérifier si le problème vient des scopes manquants
-      const hasReadOrdersScope = shopData.scopes?.includes('read_orders');
       let errorMessage = 'Failed to fetch orders from Shopify.';
       
       if (ordersResponse.status === 403) {
         if (!hasReadOrdersScope) {
-          errorMessage = 'Missing "read_orders" permission. Please reinstall the app with the correct permissions.';
+          errorMessage = 'Missing "read_orders" permission. Please uninstall and reinstall the app with the correct permissions.';
         } else {
-          errorMessage = 'Access denied. Please check your Shopify app permissions.';
+          errorMessage = 'Access denied. The token may have been revoked or the permissions changed. Please reconnect your Shopify store.';
         }
       } else if (ordersResponse.status === 401) {
         errorMessage = 'Invalid access token. Please reconnect your Shopify store.';

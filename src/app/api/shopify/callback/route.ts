@@ -220,18 +220,28 @@ export async function GET(request: NextRequest) {
 
     // Sauvegarder la boutique en base de données Supabase
     try {
+      console.log('💾 Sauvegarde de la boutique avec scopes:', scope);
       await saveShop({
         shopDomain: shop,
         shopGid,
         accessToken: access_token,
-        scopes: scope,
+        scopes: scope, // Sauvegarder les scopes exacts retournés par Shopify
         installedAt: new Date(),
         shopName,
         shopEmail,
         accountId,
         subdomain,
       });
-      console.log('✅ Boutique sauvegardée en base de données');
+      console.log('✅ Boutique sauvegardée en base de données avec scopes:', scope);
+      
+      // Vérifier que les scopes ont bien été sauvegardés
+      const { data: savedShop } = await supabaseAdmin
+        .from('shops')
+        .select('scopes')
+        .eq('shop_domain', shop)
+        .single();
+      
+      console.log('🔍 Scopes sauvegardés en DB:', savedShop?.scopes);
     } catch (error) {
       console.error('❌ Erreur lors de la sauvegarde de la boutique:', error);
       // On continue quand même, l'installation est réussie même si la sauvegarde échoue
