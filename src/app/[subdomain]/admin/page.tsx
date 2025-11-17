@@ -41,6 +41,15 @@ export default function SubdomainAdminPage() {
     async function loadShopData() {
       try {
         const response = await fetch(`/api/accounts/shop?subdomain=${detectedSubdomain}`);
+        
+        // Si 404, c'est normal - il n'y a juste pas de boutique connectée
+        if (response.status === 404) {
+          setShopData(null);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+        
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
@@ -50,8 +59,10 @@ export default function SubdomainAdminPage() {
         if (!data.shop) {
           // Pas de boutique connectée, ce n'est pas une erreur
           setShopData(null);
+          setError(null);
         } else {
           setShopData(data.shop);
+          setError(null);
         }
       } catch (err) {
         console.error('❌ Erreur loadShopData:', err);
