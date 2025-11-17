@@ -37,6 +37,13 @@ export function middleware(request: NextRequest) {
     const isSubdomainRoute = subdomainRoutes.some(route => url.pathname.startsWith(route));
     
     if (isSubdomainRoute || url.pathname === '/') {
+      // Bloquer l'accès à /admin/login sur les sous-domaines (utiliser /login à la place)
+      if (url.pathname === '/admin/login') {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = '/login';
+        return NextResponse.redirect(loginUrl);
+      }
+      
       // Protection des routes /admin : vérifier la session
       if (url.pathname.startsWith('/admin')) {
         return handleAdminAuth(request, requestHeaders, subdomain);
