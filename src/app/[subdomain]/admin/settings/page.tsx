@@ -542,9 +542,14 @@ export default function SettingsPage() {
                         fontSize: '14px',
                         fontFamily: 'var(--stepn-font-body)',
                         fontWeight: '600'
-                      }}>
+                      }} className="installed-badge">
                         installed
                       </span>
+                      <style jsx>{`
+                        .installed-badge {
+                          color: #000000 !important;
+                        }
+                      `}</style>
                     </td>
                   </tr>
                 ) : (
