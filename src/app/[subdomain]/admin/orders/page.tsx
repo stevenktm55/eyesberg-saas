@@ -208,7 +208,7 @@ export default function OrdersPage() {
               <span>{error}</span>
               {error.includes('permission') || error.includes('reconnect') ? (
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!shopDomain) {
                       alert('Shop domain not found. Please refresh the page.');
                       return;
@@ -217,6 +217,24 @@ export default function OrdersPage() {
                     console.log('🔄 Reinstalling app for shop:', shopDomain);
                     const installUrl = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
                     console.log('📍 Install URL:', installUrl);
+                    
+                    // Vérifier d'abord si l'URL est accessible
+                    try {
+                      const testResponse = await fetch(installUrl, { method: 'HEAD', redirect: 'manual' });
+                      console.log('🔍 Test response status:', testResponse.status);
+                      
+                      if (testResponse.status === 302 || testResponse.status === 307) {
+                        // C'est une redirection, suivre l'URL de redirection
+                        const redirectUrl = testResponse.headers.get('location');
+                        console.log('🔗 Redirect URL:', redirectUrl);
+                        if (redirectUrl) {
+                          window.location.href = redirectUrl;
+                          return;
+                        }
+                      }
+                    } catch (err) {
+                      console.error('❌ Error testing install URL:', err);
+                    }
                     
                     // Rediriger directement vers l'URL d'installation
                     window.location.href = installUrl;

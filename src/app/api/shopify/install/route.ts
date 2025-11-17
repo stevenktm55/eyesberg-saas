@@ -45,16 +45,20 @@ export async function GET(request: NextRequest) {
     if (!clientId) {
       console.error('❌ SHOPIFY_CLIENT_ID manquant dans .env.local');
       console.error('🔍 Variables disponibles:', Object.keys(process.env).filter(k => k.includes('SHOPIFY') || k.includes('NEXT_PUBLIC')));
-      return NextResponse.json(
-        {
-          error: 'Missing Shopify configuration',
-          debug: {
-            hasClientId: false,
-            availableVars: Object.keys(process.env).filter(k => k.startsWith('SHOPIFY_')),
-          },
-        },
-        { status: 500 }
-      );
+      // Rediriger vers settings avec un message d'erreur au lieu de retourner JSON
+      const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
+      const host = request.headers.get('host') || '';
+      const hostWithoutPort = host.split(':')[0];
+      let redirectUrl = '/admin/settings?error=missing_shopify_config';
+      
+      if (hostWithoutPort.endsWith(rootDomain)) {
+        const candidate = hostWithoutPort.replace(`.${rootDomain}`, '');
+        if (candidate && candidate !== rootDomain) {
+          redirectUrl = `https://${candidate}.${rootDomain}/admin/settings?error=missing_shopify_config`;
+        }
+      }
+      
+      return NextResponse.redirect(redirectUrl, { status: 302 });
     }
 
     // Générer un nonce pour la sécurité (à stocker en session/DB plus tard)
