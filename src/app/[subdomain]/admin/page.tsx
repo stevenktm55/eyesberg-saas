@@ -48,7 +48,7 @@ export default function SubdomainAdminPage() {
     setSubdomain(detectedSubdomain);
 
     if (!detectedSubdomain) {
-      setError('Sous-domaine non détecté');
+      setError('Subdomain not detected');
       setLoading(false);
       return;
     }
