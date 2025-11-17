@@ -43,7 +43,7 @@ export default function SettingsPage() {
           setShopData(data.shop || null);
         }
       } catch (err) {
-        console.error('❌ Erreur loadShopData:', err);
+        console.error('Error loadShopData:', err);
       } finally {
         setLoading(false);
       }
@@ -96,7 +96,6 @@ export default function SettingsPage() {
               fontSize: '16px'
             }}
           >
-            <span style={{ marginRight: '8px' }}>←</span>
             Leave Settings
           </Link>
         </div>
@@ -478,7 +477,7 @@ export default function SettingsPage() {
                 {loading ? (
                   <tr>
                     <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>
-                      Chargement...
+                      Loading...
                     </td>
                   </tr>
                 ) : shopData ? (

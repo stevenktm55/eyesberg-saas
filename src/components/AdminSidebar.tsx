@@ -70,7 +70,6 @@ export default function AdminSidebar() {
             }
           }}
         >
-          <span style={{ marginRight: '12px' }}>✓</span>
           My products
         </Link>
 
@@ -99,7 +98,6 @@ export default function AdminSidebar() {
             }
           }}
         >
-          <span style={{ marginRight: '12px' }}>🎨</span>
           Theme editor
         </Link>
 
@@ -128,7 +126,6 @@ export default function AdminSidebar() {
             }
           }}
         >
-          <span style={{ marginRight: '12px' }}>📦</span>
           Orders & Designs
         </Link>
 
@@ -157,7 +154,6 @@ export default function AdminSidebar() {
             }
           }}
         >
-          <span style={{ marginRight: '12px' }}>⚙️</span>
           Settings
         </Link>
       </nav>

@@ -68,7 +68,7 @@ export default function SubdomainAdminPage() {
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+          throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -81,8 +81,8 @@ export default function SubdomainAdminPage() {
           setError(null);
         }
       } catch (err) {
-        console.error('❌ Erreur loadShopData:', err);
-        setError(err instanceof Error ? err.message : 'Erreur inconnue');
+        console.error('Error loadShopData:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -93,17 +93,17 @@ export default function SubdomainAdminPage() {
 
   const handleConnectShopify = () => {
     if (!subdomain) {
-      alert('Sous-domaine non détecté. Veuillez accéder à l\'admin via votre sous-domaine.');
+      alert('Subdomain not detected. Please access the admin via your subdomain.');
       return;
     }
     
-    // Demander le domaine Shopify à l'utilisateur
-    const shopDomain = prompt('Entrez votre domaine Shopify (ex: votreboutique.myshopify.com):');
+    // Ask user for Shopify domain
+    const shopDomain = prompt('Enter your Shopify domain (e.g., yourstore.myshopify.com):');
     if (!shopDomain) return;
     
-    // Valider le format
+    // Validate format
     if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
-      alert('Format invalide. Utilisez: votreboutique.myshopify.com');
+      alert('Invalid format. Use: yourstore.myshopify.com');
       return;
     }
     
@@ -131,7 +131,7 @@ export default function SubdomainAdminPage() {
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }}></div>
-          <p style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>Chargement...</p>
+          <p style={{ color: '#ffffff', fontFamily: 'var(--stepn-font-body)' }}>Loading...</p>
         </div>
         <style jsx>{`
           @keyframes spin {
@@ -178,7 +178,7 @@ export default function SubdomainAdminPage() {
                   marginBottom: '16px',
                   fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
                 }}>
-                  {error ? 'Erreur' : 'Boutique non connectée'}
+                  {error ? 'Error' : 'No store connected'}
                 </h1>
                 <p style={{ 
                   color: '#ffffff', 
@@ -186,7 +186,7 @@ export default function SubdomainAdminPage() {
                   fontFamily: 'var(--stepn-font-body)',
                   lineHeight: '1.6'
                 }}>
-                  {error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}
+                  {error || 'No Shopify store is connected to this account.'}
                 </p>
                 {subdomain && !error && (
                   <button
@@ -214,7 +214,7 @@ export default function SubdomainAdminPage() {
                       e.currentTarget.style.opacity = '1';
                     }}
                   >
-                    Connecter ma boutique Shopify
+                    Connect my Shopify store
                   </button>
                 )}
               </div>
@@ -383,7 +383,7 @@ export default function SubdomainAdminPage() {
                   color: '#a0a0a0',
                   fontSize: '48px'
                 }}>
-                  🎨
+                  +
                 </div>
                 <p style={{
                   color: '#ffffff',
