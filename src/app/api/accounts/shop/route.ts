@@ -122,6 +122,7 @@ export async function GET(request: NextRequest) {
         shop_email: shop.shop_email,
         installed_at: shop.installed_at,
         scopes: shop.scopes,
+        access_token: shop.access_token, // Inclure access_token pour vérifier si installée
       },
       account: {
         id: account.id,

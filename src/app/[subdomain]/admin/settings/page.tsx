@@ -59,7 +59,13 @@ export default function SettingsPage() {
         
         if (response.ok) {
           const data = await response.json();
-          setShopData(data.shop || null);
+          // Vérifier si la boutique a un access_token (est vraiment installée)
+          if (data.shop && data.shop.access_token) {
+            setShopData(data.shop);
+          } else {
+            // Boutique existe mais n'est pas installée (access_token supprimé)
+            setShopData(null);
+          }
         }
       } catch (err) {
         console.error('Error loadShopData:', err);
@@ -584,18 +590,60 @@ export default function SettingsPage() {
                       EUR
                     </td>
                     <td style={{ padding: '16px 24px' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '4px 12px',
-                        backgroundColor: '#8eff36',
-                        color: '#000000',
-                        borderRadius: '12px',
-                        fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        fontWeight: '600'
-                      }} className="installed-badge">
-                        installed
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '4px 12px',
+                          backgroundColor: '#8eff36',
+                          color: '#000000',
+                          borderRadius: '12px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          fontWeight: '600'
+                        }} className="installed-badge">
+                          installed
+                        </span>
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Are you sure you want to uninstall this store? This will remove the access token and you will need to reinstall the app.')) {
+                              return;
+                            }
+                            
+                            try {
+                              const response = await fetch(`/api/shopify/uninstall?shop=${encodeURIComponent(shopData.shop_domain)}`, {
+                                method: 'POST'
+                              });
+                              
+                              if (response.ok) {
+                                // Recharger les données
+                                window.location.reload();
+                              } else {
+                                const error = await response.json();
+                                alert(`Error: ${error.error || 'Failed to uninstall'}`);
+                              }
+                            } catch (err) {
+                              console.error('Error uninstalling:', err);
+                              alert('Error uninstalling store. Please try again.');
+                            }
+                          }}
+                          style={{
+                            padding: '4px 12px',
+                            backgroundColor: 'transparent',
+                            color: '#ff4444',
+                            border: '1px solid #ff4444',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                          onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        >
+                          Uninstall
+                        </button>
+                      </div>
                       <style jsx>{`
                         .installed-badge {
                           color: #000000 !important;
