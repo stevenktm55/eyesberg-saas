@@ -33,3 +33,4 @@ CREATE INDEX IF NOT EXISTS idx_accounts_password_reset_token ON accounts(passwor
 COMMENT ON COLUMN accounts.password_reset_token IS 'Token for password reset (valid for 1 hour)';
 COMMENT ON COLUMN accounts.password_reset_expires_at IS 'Expiration date of the password reset token';
 
+

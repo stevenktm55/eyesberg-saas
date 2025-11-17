@@ -87,3 +87,4 @@ console.log('Toutes les fonts:', Array.from(document.fonts).map(f => ({
 - **Cause** : Les styles CSS sont écrasés
 - **Solution** : Vérifie dans l'onglet Styles quels styles sont appliqués et lesquels sont barrés (écrasés)
 
+

@@ -50,3 +50,4 @@ SHOPIFY_WEBHOOK_SECRET=ton_webhook_secret
 
 Tu peux copier les valeurs depuis ton autre projet Vercel (`stretchmx-configurator`) si elles sont identiques.
 
+

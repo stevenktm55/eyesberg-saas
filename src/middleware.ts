@@ -55,6 +55,26 @@ export function middleware(request: NextRequest) {
           return NextResponse.redirect(adminUrl);
         }
         
+        // Pour /admin sur un sous-domaine, réécrire la route vers [subdomain]/admin
+        // pour forcer Next.js à servir la bonne page
+        if (url.pathname === '/admin') {
+          // D'abord vérifier l'authentification
+          const authResponse = await handleAdminAuth(request, requestHeaders, subdomain);
+          
+          // Si l'authentification a échoué (redirection), retourner la réponse
+          if (authResponse.status === 307 || authResponse.status === 302) {
+            return authResponse;
+          }
+          
+          // Si l'authentification a réussi, réécrire la route
+          url.pathname = `/${subdomain}/admin`;
+          return NextResponse.rewrite(url, {
+            request: {
+              headers: requestHeaders,
+            },
+          });
+        }
+        
         return handleAdminAuth(request, requestHeaders, subdomain);
       }
 

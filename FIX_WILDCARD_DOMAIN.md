@@ -53,3 +53,4 @@ Le fait que `eyesberg.app` redirige vers `www.eyesberg.app` (307) est normal si 
 
 **Une fois le wildcard validé, tu pourras tester les sous-domaines !** 🚀
 
+

@@ -42,3 +42,4 @@ Quand une boutique Shopify s'installe, il faut :
 
 **On commence par créer la table `accounts` dans Supabase ?** 🚀
 
+
