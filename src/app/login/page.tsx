@@ -32,7 +32,7 @@ export default function LoginPage() {
       }
       if (created) {
         setInfo(
-          "Ton compte est créé 🎉 Nous t'avons envoyé un email de vérification. Clique sur le lien dans cet email pour activer ton compte puis connecte-toi.",
+          'Your account is ready 🎉 Check your inbox for a verification email, confirm it, then sign in.',
         );
       }
     }

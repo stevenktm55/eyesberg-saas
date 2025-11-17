@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 /**
- * Page affichée après l'inscription pour demander à l'utilisateur de vérifier son email
+ * Page displayed after signup to remind the user to verify their email.
  */
 export default function VerifyEmailSentPage() {
   const router = useRouter();
@@ -138,13 +138,14 @@ export default function VerifyEmailSentPage() {
         maxWidth: '500px',
         textAlign: 'center',
       }}>
-        <h1 
+        <h1
           className="stepn-title-ultrabold"
-          style={{ 
-            fontSize: '48px', 
+          style={{
+            fontSize: '48px',
             marginBottom: '24px',
             textAlign: 'center',
-            fontFamily: '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
+            fontFamily:
+              '"PP Neue Machina Inktrap Ultrabold Italic", "PP Neue Machina Inktrap Ultrabold Italic Placeholder", sans-serif',
             fontWeight: '400',
             letterSpacing: '-2.32px',
             textTransform: 'uppercase',
@@ -154,22 +155,24 @@ export default function VerifyEmailSentPage() {
             MozOsxFontSmoothing: 'grayscale',
           }}
         >
-          Vérifie ton email
+          Check your email
         </h1>
 
         <div style={{
           marginBottom: '32px',
         }}>
-          <p style={{
-            fontSize: '16px',
-            color: '#ffffff',
-            fontFamily: 'var(--stepn-font-body)',
-            marginBottom: '16px',
-            lineHeight: '1.6',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-          }}>
-            Nous avons envoyé un email de vérification à
+          <p
+            style={{
+              fontSize: '16px',
+              color: '#ffffff',
+              fontFamily: 'var(--stepn-font-body)',
+              marginBottom: '16px',
+              lineHeight: '1.6',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          >
+            We just sent a verification email to
           </p>
           <p style={{
             fontSize: '18px',
@@ -183,35 +186,39 @@ export default function VerifyEmailSentPage() {
           }}>
             {email || 'ton adresse email'}
           </p>
-          <p style={{
-            fontSize: '14px',
-            color: '#a0a0a0',
-            fontFamily: 'var(--stepn-font-body)',
-            lineHeight: '1.6',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-          }}>
-            Clique sur le lien dans l&apos;email pour activer ton compte et accéder à{' '}
+          <p
+            style={{
+              fontSize: '14px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)',
+              lineHeight: '1.6',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          >
+            Click the link in that email to activate your account and access{' '}
             <strong style={{ color: '#ffffff' }}>
-              {subdomain || 'ton'}.{rootDomain}/admin
+              {subdomain || 'your brand'}.{rootDomain}/admin
             </strong>
           </p>
         </div>
 
         {resendSuccess && (
-          <div style={{
-            padding: '12px',
-            backgroundColor: '#1a1a1a',
-            border: '1px solid #8eff36',
-            color: '#8eff36',
-            borderRadius: '4px',
-            marginBottom: '16px',
-            fontSize: '14px',
-            fontFamily: 'var(--stepn-font-body)',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-          }}>
-            Email renvoyé avec succès ! Vérifie ta boîte mail.
+          <div
+            style={{
+              padding: '12px',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #8eff36',
+              color: '#8eff36',
+              borderRadius: '4px',
+              marginBottom: '16px',
+              fontSize: '14px',
+              fontFamily: 'var(--stepn-font-body)',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          >
+            Email sent again! Check your inbox (and spam folder).
           </div>
         )}
 
@@ -239,7 +246,7 @@ export default function VerifyEmailSentPage() {
               fontFamily: 'var(--stepn-font-body)',
             }}
           >
-            {resending ? 'Envoi en cours...' : 'Renvoyer l\'email'}
+            {resending ? 'Sending...' : 'Resend email'}
           </button>
 
           <button
@@ -266,24 +273,28 @@ export default function VerifyEmailSentPage() {
               e.currentTarget.style.borderColor = '#333333';
             }}
           >
-            Aller à la connexion
+            Go to login
           </button>
         </div>
 
-        <div style={{
-          marginTop: '32px',
-          paddingTop: '24px',
-          borderTop: '1px solid #333333',
-        }}>
-          <p style={{
-            fontSize: '12px',
-            color: '#a0a0a0',
-            fontFamily: 'var(--stepn-font-body)',
-            lineHeight: '1.5',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-          }}>
-            Tu n&apos;as pas reçu l&apos;email ? Vérifie tes spams ou{' '}
+        <div
+          style={{
+            marginTop: '32px',
+            paddingTop: '24px',
+            borderTop: '1px solid #333333',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '12px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)',
+              lineHeight: '1.5',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
+          >
+            Didn’t get it? Check your spam folder or{' '}
             <button
               onClick={handleResendEmail}
               disabled={resending}
@@ -298,7 +309,7 @@ export default function VerifyEmailSentPage() {
                 padding: 0,
               }}
             >
-              renvoie-le
+              send it again
             </button>
             .
           </p>
@@ -307,4 +318,5 @@ export default function VerifyEmailSentPage() {
     </div>
   );
 }
+
 

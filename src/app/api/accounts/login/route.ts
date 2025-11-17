@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email et password requis' },
+        { error: 'Email and password are required' },
         { status: 400 }
       );
     }
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (accountError || !account) {
       return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -44,17 +44,17 @@ export async function POST(request: NextRequest) {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    // Empêcher la connexion si l'email n'est pas vérifié (pour les nouveaux comptes)
+    // Block login if the email has not been verified yet
     if (account.email_verified === false) {
       return NextResponse.json(
         {
           error:
-            'Merci de vérifier votre adresse e-mail avant de vous connecter. Consulte ta boîte mail pour le lien de confirmation.',
+            'Please verify your email before signing in. Check your inbox for the confirmation link.',
         },
         { status: 403 },
       );
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (sessionError) {
       console.error('❌ Erreur création session:', sessionError);
       return NextResponse.json(
-        { error: 'Erreur lors de la création de la session' },
+        { error: 'Error while creating the session' },
         { status: 500 }
       );
     }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erreur lors de la connexion:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

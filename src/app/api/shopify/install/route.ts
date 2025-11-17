@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     if (!shop) {
       return NextResponse.json(
-        { error: 'Paramètre "shop" manquant (ex: boutique.myshopify.com)' },
+        { error: 'Missing "shop" query parameter (ex: store.myshopify.com)' },
         { status: 400 }
       );
     }
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Valider le format du shop
     if (!shop.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
       return NextResponse.json(
-        { error: 'Format de boutique invalide. Doit être : boutique.myshopify.com' },
+        { error: 'Invalid shop format. Expected store.myshopify.com' },
         { status: 400 }
       );
     }
@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       console.error('❌ SHOPIFY_CLIENT_ID manquant dans .env.local');
       console.error('🔍 Variables disponibles:', Object.keys(process.env).filter(k => k.includes('SHOPIFY') || k.includes('NEXT_PUBLIC')));
       return NextResponse.json(
-        { 
-          error: 'Configuration Shopify manquante',
+        {
+          error: 'Missing Shopify configuration',
           debug: {
             hasClientId: false,
             availableVars: Object.keys(process.env).filter(k => k.startsWith('SHOPIFY_')),
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erreur lors de l\'installation Shopify:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de l\'initialisation de l\'installation' },
+      { error: 'Error while initializing the installation' },
       { status: 500 }
     );
   }

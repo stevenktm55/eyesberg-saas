@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!subdomain) {
       return NextResponse.json(
-        { error: 'Paramètre subdomain manquant' },
+        { error: 'Missing subdomain parameter' },
         { status: 400 }
       );
     }
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     if (accountError || !account) {
       return NextResponse.json(
-        { error: 'Compte non trouvé pour ce sous-domaine' },
+        { error: 'Account not found for this subdomain' },
         { status: 404 }
       );
     }
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
 
     if (shopError || !shop) {
       return NextResponse.json(
-        { 
-          error: 'Aucune boutique Shopify associée à ce compte',
+        {
+          error: 'No Shopify shop linked to this account',
           account: {
             id: account.id,
             subdomain: subdomain,
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erreur lors de la récupération de la boutique:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

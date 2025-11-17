@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const hmac = searchParams.get('hmac');
 
-    // Validation des paramètres
+    // Validate required parameters
     if (!code || !shop || !hmac) {
       return NextResponse.json(
-        { error: 'Paramètres OAuth manquants (code, shop, hmac requis)' },
+        { error: 'Missing OAuth parameters (code, shop, hmac required)' },
         { status: 400 }
       );
     }
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Valider le format du shop
     if (!shop.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
       return NextResponse.json(
-        { error: 'Format de boutique invalide' },
+        { error: 'Invalid shop format' },
         { status: 400 }
       );
     }
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     if (!clientSecret) {
       console.error('❌ SHOPIFY_CLIENT_SECRET manquant dans .env.local');
       return NextResponse.json(
-        { error: 'Configuration Shopify manquante' },
+        { error: 'Missing Shopify configuration' },
         { status: 500 }
       );
     }
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (calculatedHmac !== hmac) {
       console.error('❌ HMAC invalide - possible tentative de fraude');
       return NextResponse.json(
-        { error: 'Requête invalide (HMAC)' },
+        { error: 'Invalid request (HMAC mismatch)' },
         { status: 403 }
       );
     }
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     const clientId = process.env.SHOPIFY_CLIENT_ID;
     if (!clientId) {
       return NextResponse.json(
-        { error: 'Configuration Shopify manquante' },
+        { error: 'Missing Shopify configuration' },
         { status: 500 }
       );
     }
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       const errorText = await tokenResponse.text();
       console.error('❌ Erreur lors de l\'échange du token:', errorText);
       return NextResponse.json(
-        { error: 'Échec de l\'échange du token OAuth' },
+        { error: 'Failed to exchange the OAuth token' },
         { status: 500 }
       );
     }

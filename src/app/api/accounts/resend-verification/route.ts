@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!email) {
       return NextResponse.json(
-        { error: 'Email requis' },
+        { error: 'Email is required' },
         { status: 400 }
       );
     }
@@ -31,16 +31,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (accountError || !account) {
-      // Ne pas révéler si l'email existe ou non (sécurité)
-      return NextResponse.json(
-        { success: true, message: 'Si cet email existe, un email de vérification a été renvoyé.' }
-      );
+      // Do not reveal whether the email exists (security)
+      return NextResponse.json({
+        success: true,
+        message: 'If this email exists, a verification email has been sent.',
+      });
     }
 
     // Si l'email est déjà vérifié, pas besoin de renvoyer
     if (account.email_verified === true) {
       return NextResponse.json(
-        { error: 'Cet email est déjà vérifié' },
+        { error: 'This email is already verified' },
         { status: 400 }
       );
     }
@@ -66,10 +67,10 @@ export async function POST(request: NextRequest) {
         process.env.INTERNAL_BASE_URL || process.env.NEXT_PUBLIC_APP_URL;
       if (!internalUrl) {
         console.warn(
-          '⚠️ INTERNAL_BASE_URL ou NEXT_PUBLIC_APP_URL non défini, impossible d\'envoyer l\'email de vérification',
+          '⚠️ INTERNAL_BASE_URL or NEXT_PUBLIC_APP_URL missing, cannot send verification email',
         );
         return NextResponse.json(
-          { error: 'Configuration serveur manquante' },
+          { error: 'Server configuration missing' },
           { status: 500 }
         );
       }
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
       const verifyUrl = `${verifyBase}/api/accounts/verify-email?token=${verificationToken}`;
       
       await sendVerificationEmail(account.email, verifyUrl);
-      console.log('📨 Email de vérification renvoyé à', account.email);
+      console.log('📨 Verification email resent to', account.email);
 
       // Mettre à jour la date d'envoi
       await supabase
@@ -90,19 +91,19 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Email de vérification renvoyé avec succès',
+        message: 'Verification email sent successfully',
       });
     } catch (e) {
-      console.error('❌ Erreur lors de l\'envoi de l\'email de vérification:', e);
+      console.error('❌ Error while sending the verification email:', e);
       return NextResponse.json(
-        { error: 'Erreur lors de l\'envoi de l\'email' },
+        { error: 'Error while sending the email' },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('❌ Erreur lors du renvoi de l\'email de vérification:', error);
+    console.error('❌ Error while resending the verification email:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

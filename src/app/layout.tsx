@@ -68,7 +68,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#000000" />
-        <meta name="description" content="Configurateur de vêtements StretchMX - Personnalisez vos designs" />
+        <meta name="description" content="StretchMX configurator - customize your designs" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

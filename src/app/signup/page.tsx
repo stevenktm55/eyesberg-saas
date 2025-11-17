@@ -141,9 +141,9 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Valider le sous-domaine
+      // Validate subdomain format
       if (!subdomain.match(/^[a-z0-9-]+$/)) {
-        setError('Le sous-domaine ne peut contenir que des lettres minuscules, chiffres et tirets');
+        setError('The subdomain can only contain lowercase letters, numbers, and hyphens.');
         setLoading(false);
         return;
       }
@@ -163,7 +163,7 @@ export default function SignupPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Erreur lors de la création du compte');
+        throw new Error(data.error || 'Error while creating the account');
       }
 
       const data = await response.json();
@@ -175,7 +175,7 @@ export default function SignupPage() {
       }).toString();
       router.push(`/verify-email-sent?${search}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setError(err instanceof Error ? err.message : 'Unknown error');
       setLoading(false);
     }
   };

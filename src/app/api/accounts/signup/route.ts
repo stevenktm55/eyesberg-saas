@@ -20,15 +20,15 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password || !subdomain) {
       return NextResponse.json(
-        { error: 'Email, password et subdomain requis' },
+        { error: 'Email, password, and subdomain are required' },
         { status: 400 }
       );
     }
 
-    // Valider le format du sous-domaine
+    // Validate subdomain format
     if (!subdomain.match(/^[a-z0-9-]+$/)) {
       return NextResponse.json(
-        { error: 'Le sous-domaine ne peut contenir que des lettres minuscules, chiffres et tirets' },
+        { error: 'The subdomain can only contain lowercase letters, numbers, and hyphens.' },
         { status: 400 }
       );
     }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     ];
     if (reservedSubdomains.includes(subdomain.toLowerCase())) {
       return NextResponse.json(
-        { error: 'Ce sous-domaine est réservé' },
+        { error: 'This subdomain is reserved' },
         { status: 400 }
       );
     }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (existingAccount) {
       return NextResponse.json(
-        { error: 'Ce sous-domaine est déjà utilisé' },
+        { error: 'This subdomain is already taken' },
         { status: 400 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (existingEmail) {
       return NextResponse.json(
-        { error: 'Cet email est déjà utilisé' },
+        { error: 'This email is already in use' },
         { status: 400 }
       );
     }
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     if (createError) {
       console.error('❌ Erreur lors de la création du compte:', createError);
       return NextResponse.json(
-        { error: 'Erreur lors de la création du compte' },
+        { error: 'Error while creating the account' },
         { status: 500 }
       );
     }
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erreur lors de l\'inscription:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }
