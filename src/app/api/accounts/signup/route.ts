@@ -25,10 +25,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password length (min 8, max 128 characters)
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters long' },
+        { status: 400 }
+      );
+    }
+    if (password.length > 128) {
+      return NextResponse.json(
+        { error: 'Password must be less than 128 characters' },
+        { status: 400 }
+      );
+    }
+
     // Validate subdomain format
     if (!subdomain.match(/^[a-z0-9-]+$/)) {
       return NextResponse.json(
         { error: 'The subdomain can only contain lowercase letters, numbers, and hyphens.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate subdomain length (min 3, max 63 characters - DNS limit)
+    if (subdomain.length < 3) {
+      return NextResponse.json(
+        { error: 'Subdomain must be at least 3 characters long' },
+        { status: 400 }
+      );
+    }
+    if (subdomain.length > 63) {
+      return NextResponse.json(
+        { error: 'Subdomain must be less than 63 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validate subdomain doesn't start or end with hyphen
+    if (subdomain.startsWith('-') || subdomain.endsWith('-')) {
+      return NextResponse.json(
+        { error: 'Subdomain cannot start or end with a hyphen' },
         { status: 400 }
       );
     }
