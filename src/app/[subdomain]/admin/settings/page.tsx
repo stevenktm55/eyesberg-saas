@@ -17,8 +17,19 @@ export default function SettingsPage() {
   const pathname = usePathname();
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
+    // Vérifier si on vient d'une installation réussie
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('installed') === '1') {
+      setShowSuccessMessage(true);
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', window.location.pathname);
+      // Masquer le message après 5 secondes
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+    }
+
     async function loadShopData() {
       try {
         const host = window.location.host;
@@ -328,6 +339,37 @@ export default function SettingsPage() {
         overflow: 'auto'
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          {/* Success message */}
+          {showSuccessMessage && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #8eff36',
+              borderRadius: '4px',
+              marginBottom: '24px',
+              color: '#8eff36',
+              fontFamily: 'var(--stepn-font-body)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>✅ Shopify store successfully installed!</span>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#8eff36',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  padding: '0 8px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Header */}
           <div style={{ 
             display: 'flex', 

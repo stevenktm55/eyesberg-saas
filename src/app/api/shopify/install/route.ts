@@ -81,11 +81,16 @@ export async function GET(request: NextRequest) {
     const state = subdomain ? `${subdomain}|${nonce}` : nonce;
     
     // Construire l'URL d'autorisation Shopify
+    // Utiliser /admin/oauth/authorize pour forcer une nouvelle installation même si l'app est déjà installée
     const authUrl = new URL(`https://${shop}/admin/oauth/authorize`);
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('scope', scopes);
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
+    
+    // Forcer une nouvelle installation en ajoutant un paramètre timestamp
+    // Cela évite que Shopify redirige directement vers le callback si l'app est déjà installée
+    authUrl.searchParams.set('timestamp', Date.now().toString());
 
     console.log('🔗 Redirecting to Shopify OAuth:', authUrl.toString());
     console.log('📋 OAuth params:', {
