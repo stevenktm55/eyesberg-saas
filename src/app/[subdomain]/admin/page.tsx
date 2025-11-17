@@ -142,76 +142,6 @@ export default function SubdomainAdminPage() {
     );
   }
 
-  // Si pas de boutique connectée, afficher le message de connexion
-  if (error || !shopData) {
-    return (
-      <>
-        <style dangerouslySetInnerHTML={{ __html: buttonStyle }} />
-        <div style={{ 
-          minHeight: '100vh', 
-          backgroundColor: '#000000', 
-          padding: '40px 20px',
-          fontFamily: 'var(--stepn-font-body), sans-serif'
-        }}>
-          <div style={{ 
-            maxWidth: '600px', 
-            margin: '0 auto',
-            backgroundColor: '#0a0a0a',
-            padding: '32px',
-            borderRadius: '8px',
-            border: '1px solid #1a1a1a'
-          }}>
-            <h1 className="stepn-title-ultrabold" style={{ 
-              color: '#8eff36', 
-              fontSize: '32px', 
-              marginBottom: '16px',
-              fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
-            }}>
-              {error ? 'Erreur' : 'Boutique non connectée'}
-            </h1>
-            <p style={{ 
-              color: '#ffffff', 
-              marginBottom: '24px',
-              fontFamily: 'var(--stepn-font-body)',
-              lineHeight: '1.6'
-            }}>
-              {error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}
-            </p>
-            {subdomain && !error && (
-              <button
-                onClick={handleConnectShopify}
-                className="connect-shopify-btn"
-                style={{
-                  backgroundColor: '#8eff36',
-                  color: '#000000',
-                  border: 'none',
-                  padding: '12px 24px',
-                  borderRadius: '4px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--stepn-font-body)',
-                  transition: 'background-color 0.2s',
-                  opacity: 1
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = '#8eff36';
-                  e.currentTarget.style.opacity = '1';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = '#8eff36';
-                  e.currentTarget.style.opacity = '1';
-                }}
-              >
-                Connecter ma boutique Shopify
-              </button>
-            )}
-          </div>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: buttonStyle }} />
@@ -231,14 +161,72 @@ export default function SubdomainAdminPage() {
           overflow: 'auto'
         }}>
           <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-            <h1 className="stepn-title-ultrabold" style={{ 
-              color: '#8eff36', 
-              fontSize: '48px',
-              fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
-              marginBottom: '32px'
-            }}>
-              My Products
-            </h1>
+            {/* Si pas de boutique connectée, afficher le message de connexion */}
+            {error || !shopData ? (
+              <div style={{ 
+                maxWidth: '600px', 
+                margin: '0 auto',
+                backgroundColor: '#0a0a0a',
+                padding: '32px',
+                borderRadius: '8px',
+                border: '1px solid #1a1a1a'
+              }}>
+                <h1 className="stepn-title-ultrabold" style={{ 
+                  color: '#8eff36', 
+                  fontSize: '32px', 
+                  marginBottom: '16px',
+                  fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
+                }}>
+                  {error ? 'Erreur' : 'Boutique non connectée'}
+                </h1>
+                <p style={{ 
+                  color: '#ffffff', 
+                  marginBottom: '24px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  lineHeight: '1.6'
+                }}>
+                  {error || 'Aucune boutique Shopify n\'est connectée à ce compte.'}
+                </p>
+                {subdomain && !error && (
+                  <button
+                    onClick={handleConnectShopify}
+                    className="connect-shopify-btn"
+                    style={{
+                      backgroundColor: '#8eff36',
+                      color: '#000000',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '4px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--stepn-font-body)',
+                      transition: 'background-color 0.2s',
+                      opacity: 1
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = '#8eff36';
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = '#8eff36';
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                  >
+                    Connecter ma boutique Shopify
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <h1 className="stepn-title-ultrabold" style={{ 
+                  color: '#8eff36', 
+                  fontSize: '48px',
+                  fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif',
+                  marginBottom: '32px'
+                }}>
+                  My Products
+                </h1>
 
             {/* Tabs */}
             <div style={{ 
@@ -348,7 +336,7 @@ export default function SubdomainAdminPage() {
                   View demos
                 </button>
                 <button
-                  onClick={() => router.push(`/products?shop=${shopData.shop_domain}`)}
+                  onClick={() => shopData && router.push(`/products?shop=${shopData.shop_domain}`)}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: '#8eff36',
@@ -413,6 +401,8 @@ export default function SubdomainAdminPage() {
                 </p>
               </div>
             </div>
+              </>
+            )}
           </div>
         </main>
       </div>
