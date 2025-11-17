@@ -55,7 +55,9 @@ export default function OrdersPage() {
           return;
         }
 
-        setShopDomain(shopData.shop.shop_domain);
+        const domain = shopData.shop.shop_domain;
+        setShopDomain(domain);
+        console.log('✅ Shop domain loaded:', domain);
 
         // Récupérer les commandes
         const ordersResponse = await fetch(
@@ -207,9 +209,17 @@ export default function OrdersPage() {
               {error.includes('permission') || error.includes('reconnect') ? (
                 <button
                   onClick={() => {
-                    if (shopDomain) {
-                      window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
+                    if (!shopDomain) {
+                      alert('Shop domain not found. Please refresh the page.');
+                      return;
                     }
+                    
+                    console.log('🔄 Reinstalling app for shop:', shopDomain);
+                    const installUrl = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
+                    console.log('📍 Install URL:', installUrl);
+                    
+                    // Rediriger directement vers l'URL d'installation
+                    window.location.href = installUrl;
                   }}
                   style={{
                     padding: '8px 16px',
