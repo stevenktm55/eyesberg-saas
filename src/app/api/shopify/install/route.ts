@@ -83,8 +83,17 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('state', state);
 
+    console.log('🔗 Redirecting to Shopify OAuth:', authUrl.toString());
+    console.log('📋 OAuth params:', {
+      shop,
+      clientId: clientId?.substring(0, 10) + '...',
+      scopes,
+      redirectUri,
+      state
+    });
+
     // Rediriger vers Shopify OAuth
-    return NextResponse.redirect(authUrl.toString());
+    return NextResponse.redirect(authUrl.toString(), { status: 302 });
   } catch (error) {
     console.error('❌ Erreur lors de l\'installation Shopify:', error);
     return NextResponse.json(
