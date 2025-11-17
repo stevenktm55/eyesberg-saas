@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { AppProvider } from '@shopify/polaris';
+import '@shopify/polaris/build/esm/styles.css';
 
 /**
  * Layout pour les pages admin des sous-domaines
@@ -59,6 +61,45 @@ export default function SubdomainAdminLayout({
   }, []);
 
   // Pas de vérification d'authentification ici - le middleware s'en charge
-  return <>{children}</>;
+  return (
+    <AppProvider
+      i18n={{
+        Polaris: {
+          Avatar: {
+            label: 'Avatar',
+            labelWithName: 'Avatar de {{name}}',
+          },
+          ContextualSaveBar: {
+            save: 'Enregistrer',
+            discard: 'Annuler',
+          },
+          TextField: {
+            characterCount: '{{count}} caractères',
+          },
+          TopBar: {
+            toggleMenuLabel: 'Menu',
+            SearchField: {
+              clearButtonLabel: 'Effacer',
+              search: 'Rechercher',
+            },
+          },
+          Modal: {
+            i18n: {
+              close: 'Fermer',
+            },
+          },
+          Frame: {
+            skipToContent: 'Aller au contenu',
+            navigationLabel: 'Navigation',
+            Navigation: {
+              closeMobileNavigationLabel: 'Fermer la navigation',
+            },
+          },
+        },
+      }}
+    >
+      {children}
+    </AppProvider>
+  );
 }
 
