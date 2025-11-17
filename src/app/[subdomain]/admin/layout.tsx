@@ -5,6 +5,8 @@ import { useEffect } from "react";
 /**
  * Layout pour les pages admin des sous-domaines
  * L'authentification est gérée par le middleware, donc pas besoin de vérifier ici
+ * 
+ * Note: Ce layout n'utilise plus AppProvider de Polaris - tout est en thème STEPN natif
  */
 export default function SubdomainAdminLayout({
   children,
@@ -59,45 +61,6 @@ export default function SubdomainAdminLayout({
   }, []);
 
   // Pas de vérification d'authentification ici - le middleware s'en charge
-  return (
-    <AppProvider
-      i18n={{
-        Polaris: {
-          Avatar: {
-            label: 'Avatar',
-            labelWithName: 'Avatar de {{name}}',
-          },
-          ContextualSaveBar: {
-            save: 'Enregistrer',
-            discard: 'Annuler',
-          },
-          TextField: {
-            characterCount: '{{count}} caractères',
-          },
-          TopBar: {
-            toggleMenuLabel: 'Menu',
-            SearchField: {
-              clearButtonLabel: 'Effacer',
-              search: 'Rechercher',
-            },
-          },
-          Modal: {
-            i18n: {
-              close: 'Fermer',
-            },
-          },
-          Frame: {
-            skipToContent: 'Aller au contenu',
-            navigationLabel: 'Navigation',
-            Navigation: {
-              closeMobileNavigationLabel: 'Fermer la navigation',
-            },
-          },
-        },
-      }}
-    >
-      {children}
-    </AppProvider>
-  );
+  return <>{children}</>;
 }
 
