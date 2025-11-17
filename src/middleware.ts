@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js';
  * 
  * Le sous-domaine est extrait depuis le header "host" et passé aux pages via headers.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') || '';
   const url = request.nextUrl.clone();
 
