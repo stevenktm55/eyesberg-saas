@@ -11,6 +11,7 @@ export default function AdminSidebar() {
   const isOrdersPage = pathname?.includes('/orders');
   const isDesignsPage = pathname?.includes('/designs');
   const isSettingsPage = pathname?.includes('/settings');
+  const isConfigurationsPage = pathname?.includes('/configurations');
   
   // État pour le sous-menu Orders & Designs
   const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
@@ -205,6 +206,34 @@ export default function AdminSidebar() {
             </div>
           )}
         </div>
+
+        <Link 
+          href="/admin/configurations"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '12px 24px',
+            color: isConfigurationsPage ? '#8eff36' : '#ffffff',
+            textDecoration: 'none',
+            fontFamily: 'var(--stepn-font-body)',
+            fontSize: '16px',
+            backgroundColor: isConfigurationsPage ? '#1a1a1a' : 'transparent',
+            borderLeft: isConfigurationsPage ? '3px solid #8eff36' : '3px solid transparent',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (!isConfigurationsPage) {
+              e.currentTarget.style.backgroundColor = '#1a1a1a';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isConfigurationsPage) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          My Configurations 2D/3D
+        </Link>
 
         <Link 
           href="/admin/settings"
