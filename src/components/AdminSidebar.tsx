@@ -55,7 +55,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: '24px 0' }}>
+      <nav style={{ flex: 1, padding: '24px 0', overflowY: 'auto' }}>
         <Link 
           href="/admin"
           style={{
