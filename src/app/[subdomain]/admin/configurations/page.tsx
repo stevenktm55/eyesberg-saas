@@ -9,7 +9,7 @@ import PatternsConfigPage from "./2d-patterns/page";
 type Tab = "3d-models" | "2d-designs" | "2d-patterns";
 
 export default function ConfigurationsAdminPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("3d-models");
+  const [activeTab, setActiveTab] = useState<Tab>("2d-patterns");
 
   return (
     <div style={{ 
