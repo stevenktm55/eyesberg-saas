@@ -63,9 +63,18 @@ export async function middleware(request: NextRequest) {
                                url.pathname.startsWith('/admin/products') ||
                                url.pathname.startsWith('/admin/configurations');
         
+        // Debug log
+        console.log('🔍 Middleware route check:', {
+          pathname: url.pathname,
+          isAllowedRoute,
+          allowedRoutes: allowedAdminRoutes,
+          startsWithConfigurations: url.pathname.startsWith('/admin/configurations')
+        });
+        
         if (!isAllowedRoute && url.pathname.startsWith('/admin/')) {
           // Bloquer l'accès aux routes /admin/* non autorisées depuis les sous-domaines
           // Rediriger vers la page admin principale du sous-domaine
+          console.log('❌ Route not allowed, redirecting to /admin');
           const adminUrl = request.nextUrl.clone();
           adminUrl.pathname = '/admin';
           return NextResponse.redirect(adminUrl);
