@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AdminSidebar from "@/components/AdminSidebar";
 import ModelsConfigPage from "./3d-models/page";
 import DesignsConfigPage from "./2d-designs/page";
 import PatternsConfigPage from "./2d-patterns/page";
@@ -13,11 +14,18 @@ export default function ConfigurationsAdminPage() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      backgroundColor: '#1a1a1a',
-      color: '#ffffff',
-      marginLeft: '240px',
-      padding: '32px'
+      backgroundColor: '#000000',
+      display: 'flex',
+      fontFamily: 'var(--stepn-font-body), sans-serif'
     }}>
+      <AdminSidebar />
+      
+      <div style={{ 
+        flex: 1,
+        marginLeft: '240px',
+        padding: '32px',
+        color: '#ffffff'
+      }}>
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ 
           fontSize: '32px', 
@@ -131,6 +139,7 @@ export default function ConfigurationsAdminPage() {
         {activeTab === "3d-models" && <ModelsConfigPage />}
         {activeTab === "2d-designs" && <DesignsConfigPage />}
         {activeTab === "2d-patterns" && <PatternsConfigPage />}
+      </div>
       </div>
     </div>
   );
