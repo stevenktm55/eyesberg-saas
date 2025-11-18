@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -16,6 +16,11 @@ export default function AdminSidebar() {
   const isDesignsPage = effectivePathname?.includes('/designs');
   const isSettingsPage = effectivePathname?.includes('/settings');
   const isConfigurationsPage = effectivePathname?.includes('/configurations');
+  
+  // Debug: log pathname to verify routing
+  useEffect(() => {
+    console.log('AdminSidebar - pathname:', pathname, 'currentPath:', currentPath, 'effectivePathname:', effectivePathname, 'isConfigurationsPage:', isConfigurationsPage);
+  }, [pathname, currentPath, effectivePathname, isConfigurationsPage]);
   
   // État pour le sous-menu Orders & Designs
   const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
@@ -211,8 +216,7 @@ export default function AdminSidebar() {
           )}
         </div>
 
-        {/* DEBUG: Configurations link */}
-        {console.log('Rendering Configurations link')}
+        {/* Configurations link */}
         <Link 
           href="/admin/configurations"
           id="configurations-link"
