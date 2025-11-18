@@ -212,8 +212,11 @@ export default function AdminSidebar() {
           )}
         </div>
 
+        {/* DEBUG: Configurations link */}
+        {console.log('Rendering Configurations link')}
         <Link 
           href="/admin/configurations"
+          id="configurations-link"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -224,7 +227,9 @@ export default function AdminSidebar() {
             fontSize: '16px',
             backgroundColor: isConfigurationsPage ? '#1a1a1a' : 'transparent',
             borderLeft: isConfigurationsPage ? '3px solid #8eff36' : '3px solid transparent',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
+            visibility: 'visible',
+            opacity: 1
           }}
           onMouseEnter={(e) => {
             if (!isConfigurationsPage) {
