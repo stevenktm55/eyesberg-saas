@@ -6,21 +6,20 @@ import Link from 'next/link';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  // Fallback to window.location.pathname for more reliable path detection
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : pathname || '';
-  const effectivePathname = currentPath || pathname || '';
+  // Use pathname directly - it reflects the actual route after middleware rewrite
+  // window.location.pathname shows the original URL, not the rewritten one
   
-  const isProductsPage = effectivePathname === `/admin` || effectivePathname?.endsWith('/admin');
-  const isThemeEditorPage = effectivePathname?.includes('/theme-editor');
-  const isOrdersPage = effectivePathname?.includes('/orders');
-  const isDesignsPage = effectivePathname?.includes('/designs');
-  const isSettingsPage = effectivePathname?.includes('/settings');
-  const isConfigurationsPage = effectivePathname?.includes('/configurations');
+  const isProductsPage = pathname === `/admin` || pathname === `/[subdomain]/admin` || pathname?.endsWith('/admin');
+  const isThemeEditorPage = pathname?.includes('/theme-editor');
+  const isOrdersPage = pathname?.includes('/orders');
+  const isDesignsPage = pathname?.includes('/designs');
+  const isSettingsPage = pathname?.includes('/settings');
+  const isConfigurationsPage = pathname?.includes('/configurations');
   
   // Debug: log pathname to verify routing
   useEffect(() => {
-    console.log('AdminSidebar - pathname:', pathname, 'currentPath:', currentPath, 'effectivePathname:', effectivePathname, 'isConfigurationsPage:', isConfigurationsPage);
-  }, [pathname, currentPath, effectivePathname, isConfigurationsPage]);
+    console.log('AdminSidebar - pathname:', pathname, 'isConfigurationsPage:', isConfigurationsPage);
+  }, [pathname, isConfigurationsPage]);
   
   // État pour le sous-menu Orders & Designs
   const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
