@@ -13,6 +13,11 @@ export default function AdminSidebar() {
   const isSettingsPage = pathname?.includes('/settings');
   const isConfigurationsPage = pathname?.includes('/configurations');
   
+  // Debug: log pathname to verify routing
+  if (typeof window !== 'undefined') {
+    console.log('AdminSidebar pathname:', pathname, 'isConfigurationsPage:', isConfigurationsPage);
+  }
+  
   // État pour le sous-menu Orders & Designs
   const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
 
