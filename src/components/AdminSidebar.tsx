@@ -6,17 +6,16 @@ import Link from 'next/link';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const isProductsPage = pathname === `/admin` || pathname?.endsWith('/admin');
-  const isThemeEditorPage = pathname?.includes('/theme-editor');
-  const isOrdersPage = pathname?.includes('/orders');
-  const isDesignsPage = pathname?.includes('/designs');
-  const isSettingsPage = pathname?.includes('/settings');
-  const isConfigurationsPage = pathname?.includes('/configurations');
+  // Fallback to window.location.pathname for more reliable path detection
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : pathname || '';
+  const effectivePathname = currentPath || pathname || '';
   
-  // Debug: log pathname to verify routing
-  if (typeof window !== 'undefined') {
-    console.log('AdminSidebar pathname:', pathname, 'isConfigurationsPage:', isConfigurationsPage);
-  }
+  const isProductsPage = effectivePathname === `/admin` || effectivePathname?.endsWith('/admin');
+  const isThemeEditorPage = effectivePathname?.includes('/theme-editor');
+  const isOrdersPage = effectivePathname?.includes('/orders');
+  const isDesignsPage = effectivePathname?.includes('/designs');
+  const isSettingsPage = effectivePathname?.includes('/settings');
+  const isConfigurationsPage = effectivePathname?.includes('/configurations');
   
   // État pour le sous-menu Orders & Designs
   const [isOrdersMenuOpen, setIsOrdersMenuOpen] = useState(isOrdersPage || isDesignsPage);
