@@ -162,7 +162,7 @@ export default function PatternsConfigPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff', marginBottom: '8px' }}>
-            📐 2D Patterns
+            2D Patterns
           </h2>
           <p style={{ fontSize: '14px', color: '#a0a0a0' }}>
             Gérez les patrons multi-tailles pour la génération d'UV maps
@@ -196,7 +196,7 @@ export default function PatternsConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          ➕ Nouveau Pattern
+          Nouveau Pattern
         </button>
       </div>
 
@@ -338,7 +338,7 @@ export default function PatternsConfigPage() {
                   opacity: loading ? 0.5 : 1
                 }}
               >
-                {loading ? "⏳ Création..." : "✅ Créer"}
+                {loading ? "Création..." : "Créer"}
               </button>
               <button
                 onClick={() => setEditingPattern(null)}
@@ -381,7 +381,6 @@ export default function PatternsConfigPage() {
 
         {patterns.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: '#a0a0a0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📐</div>
             <p style={{ fontSize: '16px', marginBottom: '8px' }}>Aucun pattern pour le moment</p>
             <p style={{ fontSize: '14px' }}>
               Créez un nouveau pattern pour commencer
@@ -491,7 +490,7 @@ export default function PatternsConfigPage() {
                                       e.currentTarget.style.textDecoration = 'none';
                                     }}
                                   >
-                                    📄 Voir SVG
+                                    Voir SVG
                                   </a>
                                   {file.metadata?.pieces && (
                                     <div style={{ fontSize: '11px', color: '#a0a0a0' }}>
@@ -511,7 +510,7 @@ export default function PatternsConfigPage() {
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.color = '#a0a0a0';
                                     }}>
-                                      🔄 Remplacer
+                                      Remplacer
                                     </span>
                                     <input
                                       type="file"
@@ -549,11 +548,11 @@ export default function PatternsConfigPage() {
                                   }}>
                                     {isUploading ? (
                                       <div style={{ fontSize: '11px', color: '#a0a0a0' }}>
-                                        ⏳ Upload...
+                                        Upload...
                                       </div>
                                     ) : (
                                       <div style={{ fontSize: '11px', color: '#a0a0a0' }}>
-                                        📤 Upload SVG
+                                        Upload SVG
                                       </div>
                                     )}
                                   </div>

@@ -76,7 +76,7 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          🎨 3D Models
+          3D Models
         </button>
         <button
           onClick={() => setActiveTab("2d-designs")}
@@ -103,7 +103,7 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          🎨 2D Designs
+          2D Designs
         </button>
         <button
           onClick={() => setActiveTab("2d-patterns")}
@@ -130,7 +130,7 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          📐 2D Patterns
+          2D Patterns
         </button>
       </div>
 
