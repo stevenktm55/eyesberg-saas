@@ -284,14 +284,8 @@ async function handleAdminAuth(
     
     console.log('✅ Access granted to /admin - subdomain match confirmed');
 
-    // Sliding expiration : repousser expires_at de 7 jours
-    const newExpires = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-    await supabase
-      .from('sessions')
-      .update({ expires_at: newExpires })
-      .eq('session_token', sessionToken);
+    // Pas de sliding expiration : la session expire à la fermeture du navigateur
+    // Le cookie est un session cookie (pas de expires), donc il sera supprimé automatiquement
 
     // Continuer la requête avec les headers enrichis
     return NextResponse.next({

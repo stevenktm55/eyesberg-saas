@@ -69,10 +69,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer une session avec expiration glissante (7 jours)
+    // Créer une session avec expiration courte (1 heure)
+    // Cela force une reconnexion régulière pour plus de sécurité
     const sessionToken = crypto.randomUUID() + crypto.randomBytes(16).toString('hex');
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 jours
+    // Expiration dans la DB : 1h (sécurité)
+    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // +1 heure
 
     const { error: sessionError } = await supabase
       .from('sessions')
@@ -112,13 +114,15 @@ export async function POST(request: NextRequest) {
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
     const cookieDomain = `.${rootDomain}`;
 
+    // Cookie avec expiration courte (1 heure) pour forcer une reconnexion régulière
+    // Cela garantit que même si le navigateur restaure les onglets, la session expirera
     response.cookies.set('eyesberg_session', sessionToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
       path: '/',
       domain: cookieDomain,
-      expires: expiresAt,
+      maxAge: 60 * 60, // 1 heure en secondes
     });
 
     console.log('🍪 Cookie set in response headers');
