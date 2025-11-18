@@ -26,8 +26,8 @@ export default function ConfigurationsAdminPage() {
         padding: '32px',
         color: '#ffffff'
       }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ 
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ 
           fontSize: '32px', 
           fontWeight: 'bold',
           marginBottom: '8px',
@@ -41,10 +41,10 @@ export default function ConfigurationsAdminPage() {
           fontFamily: 'var(--stepn-font-body)'
         }}>
           Gérez vos modèles 3D, designs 2D et patrons multi-tailles
-        </p>
-      </div>
-      
-      {/* Tabs */}
+          </p>
+        </div>
+        
+        {/* Tabs */}
       <div style={{ 
         display: 'flex', 
         gap: '8px',
@@ -134,12 +134,12 @@ export default function ConfigurationsAdminPage() {
         </button>
       </div>
 
-      {/* Content */}
-      <div>
-        {activeTab === "3d-models" && <ModelsConfigPage />}
-        {activeTab === "2d-designs" && <DesignsConfigPage />}
-        {activeTab === "2d-patterns" && <PatternsConfigPage />}
-      </div>
+        {/* Content */}
+        <div>
+          {activeTab === "3d-models" && <ModelsConfigPage />}
+          {activeTab === "2d-designs" && <DesignsConfigPage />}
+          {activeTab === "2d-patterns" && <PatternsConfigPage />}
+        </div>
       </div>
     </div>
   );
