@@ -225,7 +225,6 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
     });
 
     Promise.all(texturePromises).then(() => {
-      console.log(`Model3DPreview: Loaded ${texturePromises.length} textures, processed ${materialsProcessed} materials`);
       setTexturesLoaded(true);
     }).catch((error) => {
       console.error('Model3DPreview: Error loading textures:', error);
