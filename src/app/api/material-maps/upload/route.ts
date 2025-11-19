@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, uploadFile } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
 // POST - Uploader un fichier de texture pour un Material Map
@@ -43,8 +43,44 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload du fichier
-    const fileName = `${materialMapId}-${mapType}-${Date.now()}.${file.name.split('.').pop()}`;
-    const fileUrl = await uploadFile('material-maps', fileName, file);
+    const fileName = `${materialMapId}-${mapType}-${Date.now()}.${file.name.split('.').pop()}`.replace(/[^a-zA-Z0-9.-]/g, '_');
+    
+    // Convertir File en ArrayBuffer puis en Buffer pour Supabase
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Déterminer le MIME type correct
+    let contentType = file.type;
+    if (!contentType || contentType === 'application/octet-stream') {
+      if (file.name.toLowerCase().endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (file.name.toLowerCase().endsWith('.jpg') || file.name.toLowerCase().endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else {
+        contentType = 'image/png'; // Default
+      }
+    }
+    
+    // Upload avec supabaseAdmin pour avoir les permissions
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from('material-maps')
+      .upload(fileName, buffer, {
+        contentType: contentType,
+        cacheControl: '3600',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      throw new Error(`Failed to upload file: ${uploadError.message}`);
+    }
+
+    // Obtenir l'URL publique
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from('material-maps')
+      .getPublicUrl(uploadData.path);
+
+    const fileUrl = publicUrl;
 
     // Créer ou mettre à jour l'entrée dans material_map_files
     const { data: existingFile } = await supabaseAdmin
