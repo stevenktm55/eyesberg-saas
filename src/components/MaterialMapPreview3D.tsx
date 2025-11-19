@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import * as THREE from "three";
-import { TextureLoader } from "three";
 
 interface MaterialMapPreview3DProps {
   diffuseUrl?: string | null;
@@ -44,109 +43,96 @@ function Sphere({
   aoScale = 1.0,
 }: Omit<MaterialMapPreview3DProps, 'className' | 'style'>) {
   const meshRef = useFrame(() => {});
-  
-  // Créer un tableau de toutes les URLs à charger (useLoader nécessite un tableau fixe)
-  const textureUrls = useMemo(() => {
-    const urls: string[] = [];
-    if (diffuseUrl) urls.push(diffuseUrl);
-    if (normalUrl) urls.push(normalUrl);
-    if (roughnessUrl) urls.push(roughnessUrl);
-    if (metallicUrl) urls.push(metallicUrl);
-    if (aoUrl) urls.push(aoUrl);
-    // Si aucune texture, charger une texture placeholder
-    if (urls.length === 0) {
-      urls.push('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
-    }
-    return urls;
-  }, [diffuseUrl, normalUrl, roughnessUrl, metallicUrl, aoUrl]);
-  
-  // Charger toutes les textures
-  const textures = useLoader(TextureLoader, textureUrls);
-  
-  // Extraire les textures individuelles
-  let textureIndex = 0;
-  const diffuseMap = diffuseUrl ? textures[textureIndex++] : null;
-  const normalMap = normalUrl ? textures[textureIndex++] : null;
-  const roughnessMap = roughnessUrl ? textures[textureIndex++] : null;
-  const metallicMap = metallicUrl ? textures[textureIndex++] : null;
-  const aoMap = aoUrl ? textures[textureIndex++] : null;
-  
-  // Configurer les textures
+  const [textures, setTextures] = useState<{
+    diffuse?: THREE.Texture;
+    normal?: THREE.Texture;
+    roughness?: THREE.Texture;
+    metallic?: THREE.Texture;
+    ao?: THREE.Texture;
+  }>({});
+
+  // Charger les textures de manière asynchrone
   useEffect(() => {
-    if (diffuseMap && diffuseUrl) {
-      diffuseMap.wrapS = THREE.RepeatWrapping;
-      diffuseMap.wrapT = THREE.RepeatWrapping;
-      diffuseMap.repeat.set(diffuseScale, diffuseScale);
-      diffuseMap.colorSpace = THREE.SRGBColorSpace;
-    }
-    
-    if (normalMap && normalUrl) {
-      normalMap.wrapS = THREE.RepeatWrapping;
-      normalMap.wrapT = THREE.RepeatWrapping;
-      normalMap.repeat.set(normalScale, normalScale);
-    }
-    
-    if (roughnessMap && roughnessUrl) {
-      roughnessMap.wrapS = THREE.RepeatWrapping;
-      roughnessMap.wrapT = THREE.RepeatWrapping;
-      roughnessMap.repeat.set(roughnessScale, roughnessScale);
-    }
-    
-    if (metallicMap && metallicUrl) {
-      metallicMap.wrapS = THREE.RepeatWrapping;
-      metallicMap.wrapT = THREE.RepeatWrapping;
-      metallicMap.repeat.set(metallicScale, metallicScale);
-    }
-    
-    if (aoMap && aoUrl) {
-      aoMap.wrapS = THREE.RepeatWrapping;
-      aoMap.wrapT = THREE.RepeatWrapping;
-      aoMap.repeat.set(aoScale, aoScale);
-    }
-  }, [diffuseMap, normalMap, roughnessMap, metallicMap, aoMap, diffuseUrl, normalUrl, roughnessUrl, metallicUrl, aoUrl, diffuseScale, normalScale, roughnessScale, metallicScale, aoScale]);
+    const loader = new THREE.TextureLoader();
+    const loadedTextures: typeof textures = {};
+
+    const loadTexture = (url: string, key: keyof typeof textures, scale: number) => {
+      loader.load(
+        url,
+        (texture) => {
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(scale, scale);
+          if (key === 'diffuse') {
+            texture.colorSpace = THREE.SRGBColorSpace;
+          }
+          loadedTextures[key] = texture;
+          setTextures({ ...loadedTextures });
+        },
+        undefined,
+        (error) => {
+          console.error(`Error loading ${key} texture:`, error);
+        }
+      );
+    };
+
+    if (diffuseUrl) loadTexture(diffuseUrl, 'diffuse', diffuseScale);
+    if (normalUrl) loadTexture(normalUrl, 'normal', normalScale);
+    if (roughnessUrl) loadTexture(roughnessUrl, 'roughness', roughnessScale);
+    if (metallicUrl) loadTexture(metallicUrl, 'metallic', metallicScale);
+    if (aoUrl) loadTexture(aoUrl, 'ao', aoScale);
+
+    return () => {
+      // Nettoyer les textures
+      Object.values(loadedTextures).forEach(texture => texture?.dispose());
+    };
+  }, [diffuseUrl, normalUrl, roughnessUrl, metallicUrl, aoUrl, diffuseScale, normalScale, roughnessScale, metallicScale, aoScale]);
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      color: diffuseMap ? '#ffffff' : '#888888',
+      color: textures.diffuse ? '#ffffff' : '#888888',
     });
 
     // Diffuse map
-    if (diffuseMap) {
-      mat.map = diffuseMap;
+    if (textures.diffuse) {
+      mat.map = textures.diffuse;
     }
 
     // Normal map
-    if (normalMap) {
-      mat.normalMap = normalMap;
+    if (textures.normal) {
+      mat.normalMap = textures.normal;
       mat.normalScale = new THREE.Vector2(normalIntensity / 100, normalIntensity / 100);
     }
 
     // Roughness map
-    if (roughnessMap) {
-      mat.roughnessMap = roughnessMap;
+    if (textures.roughness) {
+      mat.roughnessMap = textures.roughness;
       mat.roughness = roughnessIntensity / 100;
     } else {
       mat.roughness = 0.5;
     }
 
     // Metallic map
-    if (metallicMap) {
-      mat.metalnessMap = metallicMap;
+    if (textures.metallic) {
+      mat.metalnessMap = textures.metallic;
       mat.metalness = metallicIntensity / 100;
     } else {
       mat.metalness = 0.0;
     }
 
     // AO map
-    if (aoMap) {
-      mat.aoMap = aoMap;
+    if (textures.ao) {
+      mat.aoMap = textures.ao;
       mat.aoMapIntensity = aoIntensity / 100;
     }
 
     return mat;
   }, [
-    diffuseMap, normalMap, roughnessMap, metallicMap, aoMap,
-    normalIntensity, roughnessIntensity, metallicIntensity, aoIntensity
+    textures,
+    normalIntensity,
+    roughnessIntensity,
+    metallicIntensity,
+    aoIntensity
   ]);
 
   return (
@@ -227,4 +213,3 @@ export function MaterialMapPreview3D({
     </div>
   );
 }
-
