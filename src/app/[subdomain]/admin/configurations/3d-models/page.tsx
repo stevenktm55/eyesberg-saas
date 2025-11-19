@@ -819,18 +819,54 @@ export default function ModelsConfigPage() {
                           gap: '12px',
                           flex: 1
                         }}>
-                          <div style={{
-                            width: '40px',
-                            height: '24px',
-                            backgroundColor: '#4a4a4a',
-                            borderRadius: '4px',
-                            border: '1px solid #2a2a2a'
-                          }} />
+                          {(() => {
+                            // Trouver le material map assigné pour afficher sa miniature
+                            const assignedMaterialMap = part.materialId 
+                              ? materialMaps.find(m => m.id === part.materialId)
+                              : null;
+                            const diffuseFile = assignedMaterialMap?.material_map_files?.find(
+                              (f: any) => f.map_type === 'diffuse'
+                            );
+                            
+                            return (
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: '#4a4a4a',
+                                borderRadius: '4px',
+                                border: '1px solid #2a2a2a',
+                                overflow: 'hidden',
+                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                {diffuseFile?.file_url ? (
+                                  <img
+                                    src={diffuseFile.file_url}
+                                    alt={assignedMaterialMap?.name || 'Material map'}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover'
+                                    }}
+                                  />
+                                ) : (
+                                  <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: '#4a4a4a'
+                                  }} />
+                                )}
+                              </div>
+                            );
+                          })()}
                           <span style={{
                             fontSize: '14px',
                             color: '#ffffff',
                             fontFamily: 'var(--stepn-font-body)',
-                            fontWeight: '500'
+                            fontWeight: '500',
+                            fontStyle: 'italic'
                           }}>
                             {part.name}
                           </span>
@@ -838,7 +874,8 @@ export default function ModelsConfigPage() {
                             <span style={{
                               fontSize: '14px',
                               color: '#a0a0a0',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: 'var(--stepn-font-body)',
+                              fontStyle: 'italic'
                             }}>
                               {part.materialName}
                             </span>

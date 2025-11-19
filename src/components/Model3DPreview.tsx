@@ -102,17 +102,34 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
           const objectName = (object as any).name || '';
           const nodeName = (object.parent as any)?.name || '';
           
+          // Normaliser les noms pour la correspondance (enlever les numéros, underscores, etc.)
+          const normalizeName = (name: string) => {
+            return name.toLowerCase()
+              .replace(/_\d+\.\d+/g, '') // Enlever les numéros comme "_2917.001"
+              .replace(/[_\s-]/g, '') // Enlever underscores, espaces, tirets
+              .trim();
+          };
+          
           // Chercher une correspondance exacte d'abord, puis partielle
           let part = modelParts.find(p => {
-            const partNameLower = p.name.toLowerCase();
+            const partNameLower = normalizeName(p.name);
+            const materialNameNorm = normalizeName(materialName);
+            const objectNameNorm = normalizeName(objectName);
+            const nodeNameNorm = normalizeName(nodeName);
+            
             return (
-              partNameLower === materialName.toLowerCase() ||
-              partNameLower === objectName.toLowerCase() ||
-              partNameLower === nodeName.toLowerCase() ||
-              materialName.toLowerCase().includes(partNameLower) ||
-              partNameLower.includes(materialName.toLowerCase()) ||
-              objectName.toLowerCase().includes(partNameLower) ||
-              partNameLower.includes(objectName.toLowerCase())
+              partNameLower === materialNameNorm ||
+              partNameLower === objectNameNorm ||
+              partNameLower === nodeNameNorm ||
+              materialNameNorm.includes(partNameLower) ||
+              partNameLower.includes(materialNameNorm) ||
+              objectNameNorm.includes(partNameLower) ||
+              partNameLower.includes(objectNameNorm) ||
+              // Correspondance par mots-clés communs (FRONT, BACK, etc.)
+              (partNameLower.includes('front') && (materialNameNorm.includes('front') || objectNameNorm.includes('front'))) ||
+              (partNameLower.includes('back') && (materialNameNorm.includes('back') || objectNameNorm.includes('back'))) ||
+              (partNameLower.includes('sleeve') && (materialNameNorm.includes('sleeve') || objectNameNorm.includes('sleeve'))) ||
+              (partNameLower.includes('collar') && (materialNameNorm.includes('collar') || objectNameNorm.includes('collar')))
             );
           });
           
@@ -123,6 +140,11 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
             if (materialIndex < modelParts.length) {
               part = modelParts[materialIndex];
             }
+          }
+          
+          // Debug log pour voir les correspondances
+          if (part) {
+            console.log(`Matched part "${part.name}" with material "${materialName}" or object "${objectName}"`);
           }
 
           if (part && part.materialId) {
