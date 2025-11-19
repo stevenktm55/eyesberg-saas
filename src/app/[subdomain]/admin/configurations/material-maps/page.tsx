@@ -169,8 +169,22 @@ export default function MaterialMapsConfigPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to upload file");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to upload file");
+      }
 
+      // Recharger les material maps pour avoir les nouveaux fichiers
+      await fetchMaterialMaps();
+      
+      // Recharger le material map sélectionné avec les nouveaux fichiers
+      const updatedMaps = await fetch("/api/material-maps").then(r => r.json());
+      const updatedMap = updatedMaps.find((m: any) => m.id === selectedMap.id);
+      if (updatedMap) {
+        setSelectedMap(updatedMap);
+      }
+
+      // Mettre à jour les settings pour indiquer que le fichier est chargé
       setMapSettings((prev) => ({
         ...prev,
         [mapType]: {
@@ -178,11 +192,9 @@ export default function MaterialMapsConfigPage() {
           loaded: true,
         },
       }));
-
-      await fetchMaterialMaps();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading file:", error);
-      alert("Erreur lors de l'upload du fichier");
+      alert(error.message || "Erreur lors de l'upload du fichier");
     } finally {
       setLoading(false);
     }
