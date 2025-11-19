@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Model3DPreview } from "@/components/Model3DPreview";
+import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
 
 type Model3D = {
   id: string;
@@ -461,7 +462,7 @@ export default function ModelsConfigPage() {
             }}
             onClick={() => openModal(model)}
           >
-              {/* Preview 3D */}
+              {/* Preview 3D Static */}
               <div style={{
                 width: '100%',
                 aspectRatio: '1',
@@ -470,7 +471,7 @@ export default function ModelsConfigPage() {
                 position: 'relative',
                 overflow: 'hidden'
               }}>
-                <Model3DPreview 
+                <Model3DPreviewStatic 
                   url={(model as any).glb_url || (model as any).glbUrl} 
                   style={{ width: '100%', height: '100%' }}
                 />
