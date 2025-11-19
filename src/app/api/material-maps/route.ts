@@ -104,6 +104,25 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Vérifier d'abord que le Material Map existe et appartient au sous-domaine
+    const { data: existingMap, error: checkMapError } = await supabaseAdmin
+      .from('material_maps')
+      .select('id')
+      .eq('id', id)
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (checkMapError) {
+      throw new Error(`Error checking material map: ${checkMapError.message}`);
+    }
+
+    if (!existingMap) {
+      return NextResponse.json(
+        { error: 'Material Map not found or access denied' },
+        { status: 404 }
+      );
+    }
+
     const updateData: any = {};
     if (name) updateData.name = name;
     if (description !== null) updateData.description = description;
@@ -115,11 +134,14 @@ export async function PUT(request: NextRequest) {
         .from('material_maps')
         .update(updateData)
         .eq('id', id)
-        .eq('subdomain', subdomain) // Vérifier que le Material Map appartient au sous-domaine
+        .eq('subdomain', subdomain)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) throw updateError;
+      if (!data) {
+        throw new Error('Failed to update material map');
+      }
       materialMap = data;
     } else {
       // Si pas de données à mettre à jour, juste récupérer le material map
@@ -128,9 +150,12 @@ export async function PUT(request: NextRequest) {
         .select()
         .eq('id', id)
         .eq('subdomain', subdomain)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
+      if (!data) {
+        throw new Error('Material Map not found');
+      }
       materialMap = data;
     }
 
