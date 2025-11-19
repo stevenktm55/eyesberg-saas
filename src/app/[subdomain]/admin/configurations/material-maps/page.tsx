@@ -1152,10 +1152,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
+                        color: uploadingMapType === 'roughness' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
+                        {uploadingMapType === 'roughness' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -1305,10 +1305,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
+                        color: uploadingMapType === 'metallic' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
+                        {uploadingMapType === 'metallic' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -1458,10 +1458,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
+                        color: uploadingMapType === 'ao' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
+                        {uploadingMapType === 'ao' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
