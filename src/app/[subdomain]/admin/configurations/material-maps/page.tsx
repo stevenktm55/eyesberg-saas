@@ -32,24 +32,51 @@ export default function MaterialMapsConfigPage() {
   });
 
   useEffect(() => {
-    // TODO: Fetch material maps from API
-    // For now, using mock data
-    setMaterialMaps([
-      { id: '1', name: 'Cotton White', diffuseMap: 'yes', normalMap: 'yes', roughnessMap: 'yes' },
-      { id: '2', name: 'Cotton Black', diffuseMap: 'yes', normalMap: 'yes', roughnessMap: 'yes' },
-      { id: '3', name: 'Polyester', diffuseMap: 'yes', normalMap: 'yes', roughnessMap: 'yes' },
-    ]);
+    fetchMaterialMaps();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function fetchMaterialMaps() {
+    try {
+      const res = await fetch("/api/material-maps");
+      if (!res.ok) throw new Error("Failed to fetch material maps");
+      const data = await res.json();
+      setMaterialMaps(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching material maps:", error);
+    }
+  }
+
   useEffect(() => {
     if (selectedMap) {
-      // Load settings based on selected map
+      // Load settings from material_map_files
+      const files = (selectedMap as any).material_map_files || [];
+      const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+      const normalFile = files.find((f: any) => f.map_type === 'normal');
+      const roughnessFile = files.find((f: any) => f.map_type === 'roughness');
+      const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+
       setMapSettings({
-        diffuse: { intensity: 100, scale: 1.0, loaded: !!selectedMap.diffuseMap },
-        normal: { intensity: 100, scale: 1.0, loaded: !!selectedMap.normalMap },
-        roughness: { intensity: 100, scale: 1.0, loaded: !!selectedMap.roughnessMap },
-        metallic: { intensity: 100, scale: 1.0, loaded: !!selectedMap.metalnessMap },
+        diffuse: {
+          intensity: diffuseFile?.intensity || 100,
+          scale: diffuseFile?.scale || 1.0,
+          loaded: !!diffuseFile,
+        },
+        normal: {
+          intensity: normalFile?.intensity || 100,
+          scale: normalFile?.scale || 1.0,
+          loaded: !!normalFile,
+        },
+        roughness: {
+          intensity: roughnessFile?.intensity || 100,
+          scale: roughnessFile?.scale || 1.0,
+          loaded: !!roughnessFile,
+        },
+        metallic: {
+          intensity: metallicFile?.intensity || 100,
+          scale: metallicFile?.scale || 1.0,
+          loaded: !!metallicFile,
+        },
       });
     }
   }, [selectedMap]);
@@ -76,32 +103,93 @@ export default function MaterialMapsConfigPage() {
     }));
   }
 
-  function handleFileUpload(mapType: keyof MapSettings, file: File) {
-    // TODO: Upload file to API
-    console.log(`Upload ${mapType} map:`, file.name);
-    setMapSettings((prev) => ({
-      ...prev,
-      [mapType]: {
-        ...prev[mapType],
-        loaded: true,
-      },
-    }));
+  async function handleFileUpload(mapType: keyof MapSettings, file: File) {
+    if (!selectedMap) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('materialMapId', selectedMap.id);
+      formData.append('mapType', mapType);
+      formData.append('file', file);
+      formData.append('intensity', mapSettings[mapType].intensity.toString());
+      formData.append('scale', mapSettings[mapType].scale.toString());
+
+      const res = await fetch("/api/material-maps/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Failed to upload file");
+
+      setMapSettings((prev) => ({
+        ...prev,
+        [mapType]: {
+          ...prev[mapType],
+          loaded: true,
+        },
+      }));
+
+      await fetchMaterialMaps();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Erreur lors de l'upload du fichier");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function saveMap() {
     if (!selectedMap) return;
-    // TODO: Save material map settings
-    alert('Enregistrement...');
-    closeModal();
+    
+    setLoading(true);
+    try {
+      const settings = [
+        { mapType: 'diffuse', intensity: mapSettings.diffuse.intensity, scale: mapSettings.diffuse.scale },
+        { mapType: 'normal', intensity: mapSettings.normal.intensity, scale: mapSettings.normal.scale },
+        { mapType: 'roughness', intensity: mapSettings.roughness.intensity, scale: mapSettings.roughness.scale },
+        { mapType: 'metallic', intensity: mapSettings.metallic.intensity, scale: mapSettings.metallic.scale },
+      ];
+
+      const res = await fetch("/api/material-maps", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedMap.id,
+          settings,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save material map");
+      
+      await fetchMaterialMaps();
+      closeModal();
+    } catch (error) {
+      console.error("Error saving material map:", error);
+      alert("Erreur lors de l'enregistrement");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function deleteMap() {
     if (!selectedMap) return;
     if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedMap.name}" ?`)) return;
     
-    // TODO: Delete from API
-    setMaterialMaps((prev) => prev.filter((m) => m.id !== selectedMap.id));
-    closeModal();
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/material-maps?id=${encodeURIComponent(selectedMap.id)}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      await fetchMaterialMaps();
+      closeModal();
+    } catch (error) {
+      console.error("Error deleting material map:", error);
+      alert("Erreur lors de la suppression");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const filteredMaps = materialMaps.filter((map) =>
@@ -151,9 +239,26 @@ export default function MaterialMapsConfigPage() {
           </span>
         </div>
         <button
-          onClick={() => {
-            // TODO: Open create material map modal
-            alert('Créer un nouveau material map');
+          onClick={async () => {
+            const name = prompt("Nom du nouveau Material Map:");
+            if (!name) return;
+
+            setLoading(true);
+            try {
+              const res = await fetch("/api/material-maps", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+              });
+
+              if (!res.ok) throw new Error("Failed to create material map");
+              await fetchMaterialMaps();
+            } catch (error) {
+              console.error("Error creating material map:", error);
+              alert("Erreur lors de la création");
+            } finally {
+              setLoading(false);
+            }
           }}
           style={{
             padding: '12px 24px',
@@ -292,8 +397,26 @@ export default function MaterialMapsConfigPage() {
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = '#2a2a2a';
           }}
-          onClick={() => {
-            alert('Ajouter un material');
+          onClick={async () => {
+            const name = prompt("Nom du nouveau Material Map:");
+            if (!name) return;
+
+            setLoading(true);
+            try {
+              const res = await fetch("/api/material-maps", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+              });
+
+              if (!res.ok) throw new Error("Failed to create material map");
+              await fetchMaterialMaps();
+            } catch (error) {
+              console.error("Error creating material map:", error);
+              alert("Erreur lors de la création");
+            } finally {
+              setLoading(false);
+            }
           }}
         >
           <div style={{

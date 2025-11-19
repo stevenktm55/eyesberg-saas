@@ -11,6 +11,7 @@ type Model3D = {
 };
 
 type ModelPart = {
+  id: string;
   name: string;
   materialId: string | null;
   materialName: string;
@@ -32,12 +33,17 @@ export default function ModelsConfigPage() {
 
   useEffect(() => {
     if (selectedModel) {
-      // Extract model parts from materialsSchema or use defaults
-      const parts: ModelPart[] = [
-        { name: "Front", materialId: null, materialName: "Cotton White" },
-        { name: "Back", materialId: null, materialName: "Cotton White" },
-        { name: "Sleeves", materialId: null, materialName: "Cotton White" },
-        { name: "Collar", materialId: null, materialName: "Cotton White" },
+      // Extract model parts from the model data
+      const parts: ModelPart[] = (selectedModel as any).model_parts?.map((part: any) => ({
+        id: part.id,
+        name: part.name,
+        materialId: part.material_map_id,
+        materialName: part.material_maps?.name || "Aucun material",
+      })) || [
+        { id: '', name: "Front", materialId: null, materialName: "Aucun material" },
+        { id: '', name: "Back", materialId: null, materialName: "Aucun material" },
+        { id: '', name: "Sleeves", materialId: null, materialName: "Aucun material" },
+        { id: '', name: "Collar", materialId: null, materialName: "Aucun material" },
       ];
       setModelParts(parts);
     }
@@ -45,7 +51,8 @@ export default function ModelsConfigPage() {
 
   async function fetchModels() {
     try {
-      const res = await fetch("/api/models");
+      const res = await fetch("/api/models-3d");
+      if (!res.ok) throw new Error("Failed to fetch models");
       const data = await res.json();
       setModels(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -55,12 +62,10 @@ export default function ModelsConfigPage() {
 
   async function fetchMaterialMaps() {
     try {
-      // TODO: Fetch from API when available
-      setMaterialMaps([
-        { id: '1', name: 'Cotton White' },
-        { id: '2', name: 'Cotton Black' },
-        { id: '3', name: 'Polyester' },
-      ]);
+      const res = await fetch("/api/material-maps");
+      if (!res.ok) throw new Error("Failed to fetch material maps");
+      const data = await res.json();
+      setMaterialMaps(Array.isArray(data) ? data.map((m: any) => ({ id: m.id, name: m.name })) : []);
     } catch (error) {
       console.error("Error fetching material maps:", error);
     }
@@ -76,23 +81,65 @@ export default function ModelsConfigPage() {
   }
 
   function changeMaterial(partName: string) {
-    // TODO: Open material selection modal
-    alert(`Changer le material pour ${partName}`);
+    const part = modelParts.find(p => p.name === partName);
+    if (!part) return;
+
+    // Ouvrir un modal de sélection de material (simplifié pour l'instant)
+    const materialName = prompt(
+      `Choisir un material pour ${partName}:\n\n${materialMaps.map(m => `- ${m.name}`).join('\n')}\n\nEntrez le nom du material:`
+    );
+
+    if (materialName) {
+      const selectedMaterial = materialMaps.find(m => m.name === materialName);
+      if (selectedMaterial) {
+        setModelParts(prev => prev.map(p => 
+          p.name === partName 
+            ? { ...p, materialId: selectedMaterial.id, materialName: selectedMaterial.name }
+            : p
+        ));
+      }
+    }
   }
 
   async function saveModel() {
     if (!selectedModel) return;
-    // TODO: Save material assignments
-    alert('Enregistrement...');
-    closeModal();
+    
+    setLoading(true);
+    try {
+      // Sauvegarder les assignments de material maps
+      const parts = modelParts.map(p => ({
+        id: p.id,
+        materialMapId: p.materialId,
+      }));
+
+      const res = await fetch("/api/models-3d/parts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelId: selectedModel.id,
+          parts,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save model parts");
+      
+      await fetchModels();
+      closeModal();
+    } catch (error) {
+      console.error("Error saving model:", error);
+      alert("Erreur lors de l'enregistrement");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function deleteModel() {
     if (!selectedModel) return;
     if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedModel.name}" ?`)) return;
     
+    setLoading(true);
     try {
-      const res = await fetch(`/api/models?id=${encodeURIComponent(selectedModel.id)}`, {
+      const res = await fetch(`/api/models-3d?id=${encodeURIComponent(selectedModel.id)}`, {
         method: "DELETE"
       });
       if (!res.ok) throw new Error("Failed to delete");
@@ -101,6 +148,8 @@ export default function ModelsConfigPage() {
     } catch (error) {
       console.error("Error deleting model:", error);
       alert("Erreur lors de la suppression");
+    } finally {
+      setLoading(false);
     }
   }
 

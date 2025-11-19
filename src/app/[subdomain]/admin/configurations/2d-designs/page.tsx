@@ -21,9 +21,16 @@ export default function DesignsConfigPage() {
 
   async function fetchDesigns() {
     try {
-      const res = await fetch("/api/designs");
+      const res = await fetch("/api/designs-2d");
+      if (!res.ok) throw new Error("Failed to fetch designs");
       const data = await res.json();
-      setDesigns(Array.isArray(data) ? data : []);
+      setDesigns(Array.isArray(data) ? data.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        svgUrl: d.svg_url,
+        thumbUrl: d.thumbnail_url,
+        createdAt: d.created_at,
+      })) : []);
     } catch (error) {
       console.error("Error fetching designs:", error);
     }
