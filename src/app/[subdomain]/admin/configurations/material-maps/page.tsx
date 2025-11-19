@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MaterialMapPreview3D } from "@/components/MaterialMapPreview3D";
+import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
 
 type MaterialMap = {
   id: string;
@@ -370,24 +371,34 @@ export default function MaterialMapsConfigPage() {
             }}
             onClick={() => openModal(map)}
           >
-            {/* Preview Placeholder */}
+            {/* Preview 3D Static */}
             <div style={{
               width: '100%',
               aspectRatio: '1',
               backgroundColor: '#0a0a0a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderBottom: '1px solid #2a2a2a'
+              borderBottom: '1px solid #2a2a2a',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                color: '#4a4a4a',
-                fontSize: '32px'
-              }}>
-                ■
-              </div>
+              {(() => {
+                const files = (map as any).material_map_files || [];
+                const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+                const normalFile = files.find((f: any) => f.map_type === 'normal');
+                const roughnessFile = files.find((f: any) => f.map_type === 'roughness');
+                const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+                const aoFile = files.find((f: any) => f.map_type === 'ao');
+
+                return (
+                  <MaterialMapPreview3DStatic
+                    diffuseUrl={diffuseFile?.file_url || null}
+                    normalUrl={normalFile?.file_url || null}
+                    roughnessUrl={roughnessFile?.file_url || null}
+                    metallicUrl={metallicFile?.file_url || null}
+                    aoUrl={aoFile?.file_url || null}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                );
+              })()}
             </div>
             
             {/* Info */}
