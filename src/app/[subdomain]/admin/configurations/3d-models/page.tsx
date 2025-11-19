@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { Model3DPreview } from "@/components/Model3DPreview";
 
 type Model3D = {
   id: string;
@@ -458,30 +459,20 @@ export default function ModelsConfigPage() {
             }}
             onClick={() => openModal(model)}
           >
-            {/* Preview Placeholder */}
-            <div style={{
-              width: '100%',
-              aspectRatio: '1',
-              backgroundColor: '#0a0a0a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderBottom: '1px solid #2a2a2a'
-            }}>
+              {/* Preview 3D */}
               <div style={{
-                width: '60px',
-                height: '60px',
-                border: '2px solid #2a2a2a',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#4a4a4a',
-                fontSize: '24px'
+                width: '100%',
+                aspectRatio: '1',
+                backgroundColor: '#0a0a0a',
+                borderBottom: '1px solid #2a2a2a',
+                position: 'relative',
+                overflow: 'hidden'
               }}>
-                □
+                <Model3DPreview 
+                  url={(model as any).glb_url || model.glbUrl} 
+                  style={{ width: '100%', height: '100%' }}
+                />
               </div>
-            </div>
             
             {/* Info */}
             <div style={{ padding: '16px' }}>
@@ -709,24 +700,14 @@ export default function ModelsConfigPage() {
                       backgroundColor: '#0a0a0a',
                       borderRadius: '8px',
                       border: '1px solid #2a2a2a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: '400px'
+                      minHeight: '400px',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}>
-                      <div style={{
-                        width: '120px',
-                        height: '120px',
-                        border: '2px solid #8eff36',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#8eff36',
-                        fontSize: '48px'
-                      }}>
-                        □
-                      </div>
+                      <Model3DPreview 
+                        url={(selectedModel as any).glb_url || selectedModel.glbUrl} 
+                        style={{ width: '100%', height: '100%' }}
+                      />
                     </div>
                     <button
                       style={{
