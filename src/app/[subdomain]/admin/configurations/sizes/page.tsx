@@ -494,6 +494,14 @@ export default function SizesConfigPage() {
             const isExpanded = expandedPatterns.has(pattern.id);
             const model = models.find((m) => m.id === pattern.model3dId);
             const fileCount = pattern.files.length;
+            
+            // Utiliser editingPattern.sizes si on est en mode édition pour ce pattern
+            const displayPattern = editingPattern && editingPattern.id === pattern.id 
+              ? editingPattern 
+              : pattern;
+            const displaySizes = editingPattern && editingPattern.id === pattern.id
+              ? editingPattern.sizes
+              : pattern.sizes;
 
             return (
               <div
@@ -554,7 +562,7 @@ export default function SizesConfigPage() {
                         color: '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {pattern.sizes.length} taille{pattern.sizes.length > 1 ? 's' : ''} • {model?.name || 'Modèle inconnu'}
+                        {displaySizes.length} taille{displaySizes.length > 1 ? 's' : ''} • {model?.name || 'Modèle inconnu'}
                       </p>
                     </div>
                   </div>
@@ -713,7 +721,7 @@ export default function SizesConfigPage() {
                                       onChange={(e) => {
                                         const selectedFile = e.target.files?.[0];
                                         if (selectedFile) {
-                                          uploadFile(pattern.id, size, "UV0", selectedFile);
+                                          uploadFile(displayPattern.id, size, "UV0", selectedFile);
                                         }
                                       }}
                                     />
@@ -783,7 +791,7 @@ export default function SizesConfigPage() {
                                       onChange={(e) => {
                                         const selectedFile = e.target.files?.[0];
                                         if (selectedFile) {
-                                          uploadFile(pattern.id, size, "UV2", selectedFile);
+                                          uploadFile(displayPattern.id, size, "UV2", selectedFile);
                                         }
                                       }}
                                     />
@@ -823,7 +831,7 @@ export default function SizesConfigPage() {
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     {fileUV0 && (
                                       <button
-                                        onClick={() => deleteFile(pattern.id, fileUV0.id)}
+                                        onClick={() => deleteFile(displayPattern.id, fileUV0.id)}
                                         style={{
                                           padding: '6px',
                                           backgroundColor: 'transparent',
@@ -846,7 +854,7 @@ export default function SizesConfigPage() {
                                     )}
                                     {fileUV2 && (
                                       <button
-                                        onClick={() => deleteFile(pattern.id, fileUV2.id)}
+                                        onClick={() => deleteFile(displayPattern.id, fileUV2.id)}
                                         style={{
                                           padding: '6px',
                                           backgroundColor: 'transparent',
