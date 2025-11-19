@@ -140,6 +140,28 @@ export default function ModelsConfigPage() {
     }
   }
 
+  function renameMaterial(partName: string) {
+    const part = modelParts.find(p => p.name === partName);
+    if (!part) return;
+
+    const newName = prompt(`Renommer "${part.name}" :`, part.name);
+    if (newName && newName.trim() && newName !== part.name) {
+      setModelParts(prev => prev.map(p => 
+        p.name === partName 
+          ? { ...p, name: newName.trim() }
+          : p
+      ));
+      // Mettre à jour aussi detectedMaterials pour garder la cohérence
+      setDetectedMaterials(prev => prev.map((m, idx) => {
+        const partIndex = modelParts.findIndex(p => p.name === partName);
+        if (partIndex === idx) {
+          return { ...m, name: newName.trim() };
+        }
+        return m;
+      }));
+    }
+  }
+
   function changeMaterial(partName: string) {
     const part = modelParts.find(p => p.name === partName);
     if (!part) return;
@@ -796,7 +818,8 @@ export default function ModelsConfigPage() {
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '12px'
+                          gap: '12px',
+                          flex: 1
                         }}>
                           <div style={{
                             width: '40px',
@@ -808,41 +831,74 @@ export default function ModelsConfigPage() {
                           <span style={{
                             fontSize: '14px',
                             color: '#ffffff',
-                            fontFamily: 'var(--stepn-font-body)'
+                            fontFamily: 'var(--stepn-font-body)',
+                            fontWeight: '500'
                           }}>
                             {part.name}
                           </span>
-                          <span style={{
-                            fontSize: '14px',
-                            color: '#a0a0a0',
-                            fontFamily: 'var(--stepn-font-body)'
-                          }}>
-                            {part.materialName}
-                          </span>
+                          {!isCreating && (
+                            <span style={{
+                              fontSize: '14px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              {part.materialName}
+                            </span>
+                          )}
                         </div>
-                        <button
-                          onClick={() => changeMaterial(part.name)}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#2a2a2a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '6px',
-                            color: '#ffffff',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            fontFamily: 'var(--stepn-font-body)',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#3a3a3a';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#2a2a2a';
-                          }}
-                        >
-                          Changer
-                        </button>
+                        <div style={{
+                          display: 'flex',
+                          gap: '8px'
+                        }}>
+                          {isCreating && (
+                            <button
+                              onClick={() => renameMaterial(part.name)}
+                              style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#2a2a2a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '6px',
+                                color: '#ffffff',
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                fontFamily: 'var(--stepn-font-body)',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#3a3a3a';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#2a2a2a';
+                              }}
+                            >
+                              Renommer
+                            </button>
+                          )}
+                          <button
+                            onClick={() => changeMaterial(part.name)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#2a2a2a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '6px',
+                              color: '#ffffff',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              fontFamily: 'var(--stepn-font-body)',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#3a3a3a';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#2a2a2a';
+                            }}
+                          >
+                            {isCreating ? 'Assigner' : 'Changer'}
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}

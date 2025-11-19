@@ -33,38 +33,98 @@ async function parseGLB(buffer: ArrayBuffer): Promise<Array<{ name: string; inde
   const jsonText = new TextDecoder().decode(jsonBytes);
   const gltf = JSON.parse(jsonText);
   
-  // Extraire les matériaux
+  // Extraire les matériaux avec leurs noms depuis différentes sources
   const materials: Array<{ name: string; index: number }> = [];
+  const materialToMeshMap: Map<number, string> = new Map();
+  const materialToNodeMap: Map<number, string> = new Map();
   
-  if (gltf.materials && Array.isArray(gltf.materials)) {
-    gltf.materials.forEach((material: any, index: number) => {
-      // Utiliser le nom du matériau s'il existe, sinon générer un nom
-      const materialName = material.name || `Material_${index + 1}`;
-      materials.push({
-        name: materialName,
-        index: index,
-      });
-    });
-  }
-  
-  // Si aucun matériau trouvé, essayer d'extraire depuis les meshes
-  if (materials.length === 0 && gltf.meshes && Array.isArray(gltf.meshes)) {
+  // 1. D'abord, mapper les meshes aux matériaux
+  if (gltf.meshes && Array.isArray(gltf.meshes)) {
     gltf.meshes.forEach((mesh: any, meshIndex: number) => {
       if (mesh.primitives && Array.isArray(mesh.primitives)) {
         mesh.primitives.forEach((primitive: any) => {
           if (primitive.material !== undefined) {
             const materialIndex = primitive.material;
-            const materialName = mesh.name || `Mesh_${meshIndex + 1}`;
-            // Éviter les doublons
-            if (!materials.find(m => m.index === materialIndex)) {
-              materials.push({
-                name: materialName,
-                index: materialIndex,
-              });
+            // Utiliser le nom du mesh s'il existe
+            if (mesh.name && !materialToMeshMap.has(materialIndex)) {
+              materialToMeshMap.set(materialIndex, mesh.name);
             }
           }
         });
       }
+    });
+  }
+  
+  // 2. Mapper les nodes aux matériaux (via les meshes)
+  if (gltf.nodes && Array.isArray(gltf.nodes)) {
+    gltf.nodes.forEach((node: any) => {
+      if (node.mesh !== undefined && node.name) {
+        const mesh = gltf.meshes?.[node.mesh];
+        if (mesh && mesh.primitives) {
+          mesh.primitives.forEach((primitive: any) => {
+            if (primitive.material !== undefined) {
+              const materialIndex = primitive.material;
+              // Le nom du node est souvent plus descriptif que le mesh
+              if (node.name && !materialToNodeMap.has(materialIndex)) {
+                materialToNodeMap.set(materialIndex, node.name);
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+  
+  // 3. Extraire les matériaux avec priorité : material.name > node.name > mesh.name > Material_X
+  if (gltf.materials && Array.isArray(gltf.materials)) {
+    gltf.materials.forEach((material: any, index: number) => {
+      let materialName = material.name;
+      
+      // Si pas de nom, essayer depuis le node
+      if (!materialName) {
+        materialName = materialToNodeMap.get(index);
+      }
+      
+      // Si toujours pas de nom, essayer depuis le mesh
+      if (!materialName) {
+        materialName = materialToMeshMap.get(index);
+      }
+      
+      // Si toujours pas de nom, utiliser un nom générique mais descriptif
+      if (!materialName) {
+        // Essayer d'extraire depuis les extensions (comme KHR_materials_common)
+        if (material.extensions) {
+          const extNames = Object.keys(material.extensions);
+          if (extNames.length > 0) {
+            materialName = extNames[0].replace('KHR_', '').replace('_', ' ');
+          }
+        }
+        
+        // Dernier recours
+        if (!materialName) {
+          materialName = `Material_${index + 1}`;
+        }
+      }
+      
+      materials.push({
+        name: materialName,
+        index: index,
+      });
+    });
+  } else {
+    // Si pas de materials array, créer depuis les meshes/nodes trouvés
+    const allMaterialIndices = new Set<number>();
+    materialToMeshMap.forEach((_, index) => allMaterialIndices.add(index));
+    materialToNodeMap.forEach((_, index) => allMaterialIndices.add(index));
+    
+    allMaterialIndices.forEach((index) => {
+      const name = materialToNodeMap.get(index) || 
+                   materialToMeshMap.get(index) || 
+                   `Material_${index + 1}`;
+      materials.push({
+        name: name,
+        index: index,
+      });
     });
   }
   
@@ -78,35 +138,90 @@ async function parseGLTF(buffer: ArrayBuffer): Promise<Array<{ name: string; ind
   const text = new TextDecoder().decode(buffer);
   const gltf = JSON.parse(text);
   
+  // Même logique que pour GLB
   const materials: Array<{ name: string; index: number }> = [];
+  const materialToMeshMap: Map<number, string> = new Map();
+  const materialToNodeMap: Map<number, string> = new Map();
   
-  if (gltf.materials && Array.isArray(gltf.materials)) {
-    gltf.materials.forEach((material: any, index: number) => {
-      const materialName = material.name || `Material_${index + 1}`;
-      materials.push({
-        name: materialName,
-        index: index,
-      });
-    });
-  }
-  
-  // Si aucun matériau trouvé, essayer d'extraire depuis les meshes
-  if (materials.length === 0 && gltf.meshes && Array.isArray(gltf.meshes)) {
+  // 1. Mapper les meshes aux matériaux
+  if (gltf.meshes && Array.isArray(gltf.meshes)) {
     gltf.meshes.forEach((mesh: any, meshIndex: number) => {
       if (mesh.primitives && Array.isArray(mesh.primitives)) {
         mesh.primitives.forEach((primitive: any) => {
           if (primitive.material !== undefined) {
             const materialIndex = primitive.material;
-            const materialName = mesh.name || `Mesh_${meshIndex + 1}`;
-            if (!materials.find(m => m.index === materialIndex)) {
-              materials.push({
-                name: materialName,
-                index: materialIndex,
-              });
+            if (mesh.name && !materialToMeshMap.has(materialIndex)) {
+              materialToMeshMap.set(materialIndex, mesh.name);
             }
           }
         });
       }
+    });
+  }
+  
+  // 2. Mapper les nodes aux matériaux
+  if (gltf.nodes && Array.isArray(gltf.nodes)) {
+    gltf.nodes.forEach((node: any) => {
+      if (node.mesh !== undefined && node.name) {
+        const mesh = gltf.meshes?.[node.mesh];
+        if (mesh && mesh.primitives) {
+          mesh.primitives.forEach((primitive: any) => {
+            if (primitive.material !== undefined) {
+              const materialIndex = primitive.material;
+              if (node.name && !materialToNodeMap.has(materialIndex)) {
+                materialToNodeMap.set(materialIndex, node.name);
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+  
+  // 3. Extraire les matériaux avec priorité
+  if (gltf.materials && Array.isArray(gltf.materials)) {
+    gltf.materials.forEach((material: any, index: number) => {
+      let materialName = material.name;
+      
+      if (!materialName) {
+        materialName = materialToNodeMap.get(index);
+      }
+      
+      if (!materialName) {
+        materialName = materialToMeshMap.get(index);
+      }
+      
+      if (!materialName) {
+        if (material.extensions) {
+          const extNames = Object.keys(material.extensions);
+          if (extNames.length > 0) {
+            materialName = extNames[0].replace('KHR_', '').replace('_', ' ');
+          }
+        }
+        
+        if (!materialName) {
+          materialName = `Material_${index + 1}`;
+        }
+      }
+      
+      materials.push({
+        name: materialName,
+        index: index,
+      });
+    });
+  } else {
+    const allMaterialIndices = new Set<number>();
+    materialToMeshMap.forEach((_, index) => allMaterialIndices.add(index));
+    materialToNodeMap.forEach((_, index) => allMaterialIndices.add(index));
+    
+    allMaterialIndices.forEach((index) => {
+      const name = materialToNodeMap.get(index) || 
+                   materialToMeshMap.get(index) || 
+                   `Material_${index + 1}`;
+      materials.push({
+        name: name,
+        index: index,
+      });
     });
   }
   
