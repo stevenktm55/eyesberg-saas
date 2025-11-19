@@ -883,7 +883,7 @@ export default function SizesConfigPage() {
                 </button>
                 <button
                   onClick={editingPattern ? updatePattern : createPattern}
-                  disabled={loading || (!editingPattern && (!newPattern.name || !newPattern.model3dId)) || (editingPattern && (!editingPattern.name || !editingPattern.model3dId))}
+                  disabled={!!(loading || (!editingPattern && (!newPattern.name || !newPattern.model3dId)) || (editingPattern && (!editingPattern.name || !editingPattern.model3dId)))}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: loading || (!editingPattern && (!newPattern.name || !newPattern.model3dId)) || (editingPattern && (!editingPattern.name || !editingPattern.model3dId)) ? '#4a4a4a' : '#8eff36',
