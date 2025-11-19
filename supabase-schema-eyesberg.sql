@@ -264,39 +264,51 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_models_3d_updated_at ON models_3d;
 CREATE TRIGGER update_models_3d_updated_at BEFORE UPDATE ON models_3d
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_model_parts_updated_at ON model_parts;
 CREATE TRIGGER update_model_parts_updated_at BEFORE UPDATE ON model_parts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_material_maps_updated_at ON material_maps;
 CREATE TRIGGER update_material_maps_updated_at BEFORE UPDATE ON material_maps
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_material_map_files_updated_at ON material_map_files;
 CREATE TRIGGER update_material_map_files_updated_at BEFORE UPDATE ON material_map_files
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_size_patterns_updated_at ON size_patterns;
 CREATE TRIGGER update_size_patterns_updated_at BEFORE UPDATE ON size_patterns
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_size_pattern_files_updated_at ON size_pattern_files;
 CREATE TRIGGER update_size_pattern_files_updated_at BEFORE UPDATE ON size_pattern_files
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_designs_2d_updated_at ON designs_2d;
 CREATE TRIGGER update_designs_2d_updated_at BEFORE UPDATE ON designs_2d
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_accounts_updated_at ON accounts;
 CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_shops_updated_at ON shops;
 CREATE TRIGGER update_shops_updated_at BEFORE UPDATE ON shops
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_shopify_products_updated_at ON shopify_products;
 CREATE TRIGGER update_shopify_products_updated_at BEFORE UPDATE ON shopify_products
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_shopify_product_configs_updated_at ON shopify_product_configs;
 CREATE TRIGGER update_shopify_product_configs_updated_at BEFORE UPDATE ON shopify_product_configs
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_configurations_updated_at ON configurations;
 CREATE TRIGGER update_configurations_updated_at BEFORE UPDATE ON configurations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
