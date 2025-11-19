@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     const name = formData.get('name') as string;
     const file = formData.get('file') as File | null;
     const description = formData.get('description') as string | null;
+    const partsJson = formData.get('parts') as string | null; // JSON array des parties détectées
 
     if (!name) {
       return NextResponse.json(
@@ -65,12 +66,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let glbUrl = '';
+    if (!file) {
+      return NextResponse.json(
+        { error: 'File is required' },
+        { status: 400 }
+      );
+    }
 
-    // Upload du fichier GLB si fourni
-    if (file) {
-      const fileName = `${Date.now()}-${file.name}`;
-      glbUrl = await uploadFile('models-3d', fileName, file);
+    // Upload du fichier GLB
+    let glbUrl = '';
+    try {
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      
+      // Convertir File en ArrayBuffer puis en Buffer pour Supabase
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      // Upload avec supabaseAdmin pour avoir les permissions
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('models-3d')
+        .upload(fileName, buffer, {
+          contentType: file.type || 'model/gltf-binary',
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
+      }
+
+      // Obtenir l'URL publique
+      const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('models-3d')
+        .getPublicUrl(uploadData.path);
+
+      glbUrl = publicUrl;
+    } catch (uploadErr: any) {
+      console.error('Error in file upload:', uploadErr);
+      return NextResponse.json(
+        { error: uploadErr.message || 'Failed to upload file' },
+        { status: 500 }
+      );
     }
 
     // Créer le modèle 3D
@@ -85,22 +122,49 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (modelError) throw modelError;
+    if (modelError) {
+      console.error('Error creating model:', modelError);
+      throw modelError;
+    }
 
-    // Créer les parties par défaut
-    const defaultParts = ['Front', 'Back', 'Sleeves', 'Collar'];
-    const partsData = defaultParts.map((partName) => ({
-      model_3d_id: model.id,
-      name: partName,
-    }));
+    // Créer les parties depuis les matériaux détectés
+    if (partsJson) {
+      try {
+        const parts = JSON.parse(partsJson);
+        if (Array.isArray(parts) && parts.length > 0) {
+          const partsData = parts.map((part: { name: string }) => ({
+            model_3d_id: model.id,
+            name: part.name,
+          }));
 
-    const { error: partsError } = await supabaseAdmin
-      .from('model_parts')
-      .insert(partsData);
+          const { error: partsError } = await supabaseAdmin
+            .from('model_parts')
+            .insert(partsData);
 
-    if (partsError) {
-      console.error('Error creating default parts:', partsError);
-      // Ne pas échouer si les parties ne peuvent pas être créées
+          if (partsError) {
+            console.error('Error creating parts:', partsError);
+            // Ne pas échouer si les parties ne peuvent pas être créées, mais logger l'erreur
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing parts JSON:', parseError);
+        // Continuer même si le parsing échoue
+      }
+    } else {
+      // Si pas de parties fournies, créer des parties par défaut
+      const defaultParts = ['Front', 'Back', 'Sleeves', 'Collar'];
+      const partsData = defaultParts.map((partName) => ({
+        model_3d_id: model.id,
+        name: partName,
+      }));
+
+      const { error: partsError } = await supabaseAdmin
+        .from('model_parts')
+        .insert(partsData);
+
+      if (partsError) {
+        console.error('Error creating default parts:', partsError);
+      }
     }
 
     return NextResponse.json(model);

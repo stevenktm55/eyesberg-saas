@@ -195,20 +195,25 @@ export default function ModelsConfigPage() {
       const formData = new FormData();
       formData.append('name', newModelName);
       formData.append('file', newModelFile);
+      
+      // Envoyer les parties détectées pour qu'elles soient créées avec les bons noms
+      if (modelParts.length > 0) {
+        formData.append('parts', JSON.stringify(modelParts.map(p => ({ name: p.name }))));
+      }
 
       const res = await fetch("/api/models-3d", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to create model");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || "Failed to create model");
+      }
       const newModel = await res.json();
 
-      // Rafraîchir la liste pour obtenir le modèle avec ses parties créées par défaut
-      await fetchModels();
-      
       // Attendre un peu pour que les parties soient créées
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Récupérer le modèle créé avec ses parties
       const modelsRes = await fetch("/api/models-3d");
@@ -220,7 +225,7 @@ export default function ModelsConfigPage() {
         if (createdModel && modelParts.length > 0 && createdModel.model_parts) {
           const partsToUpdate = modelParts
             .filter(p => p.materialId !== null) // Seulement les parties avec un material assigné
-            .map((p, index) => {
+            .map((p) => {
               // Trouver la partie correspondante par nom
               const matchingPart = createdModel.model_parts.find((mp: any) => mp.name === p.name);
               return {
@@ -249,9 +254,9 @@ export default function ModelsConfigPage() {
 
       await fetchModels();
       closeModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating model:", error);
-      alert("Erreur lors de la création");
+      alert(`Erreur lors de la création: ${error.message || 'Erreur inconnue'}`);
     } finally {
       setLoading(false);
     }
