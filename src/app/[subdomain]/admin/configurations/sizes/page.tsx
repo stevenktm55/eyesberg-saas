@@ -1223,6 +1223,288 @@ export default function SizesConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Add Size Modal */}
+      {showAddSizeModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001,
+            padding: '20px'
+          }}
+          onClick={() => {
+            setShowAddSizeModal(false);
+            setNewSizeData({
+              name: "",
+              fileUV0: null,
+              fileUV2: null,
+            });
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '500px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)',
+                margin: 0
+              }}>
+                Ajouter une taille
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddSizeModal(false);
+                  setNewSizeData({
+                    name: "",
+                    fileUV0: null,
+                    fileUV2: null,
+                  });
+                }}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  transition: 'all 0.2s',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#a0a0a0';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{
+              padding: '24px',
+              overflowY: 'auto',
+              flex: 1
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    color: '#ffffff',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Nom de la taille
+                  </label>
+                  <input
+                    type="text"
+                    value={newSizeData.name}
+                    onChange={(e) => {
+                      setNewSizeData({ ...newSizeData, name: e.target.value });
+                    }}
+                    placeholder="Ex: XS, S, M, L, XL, XXL, ou un nom personnalisé"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    color: '#ffffff',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Fichier SVG UV0 (Designs) {newSizeData.fileUV0 && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
+                  </label>
+                  <input
+                    type="file"
+                    accept=".svg"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setNewSizeData({ ...newSizeData, fileUV0: file });
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}
+                  />
+                  {newSizeData.fileUV0 && (
+                    <p style={{ color: '#8eff36', fontSize: '12px', marginTop: '4px' }}>
+                      Fichier sélectionné: {newSizeData.fileUV0.name}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    color: '#ffffff',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Fichier SVG UV2 (Logos) {newSizeData.fileUV2 && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
+                  </label>
+                  <input
+                    type="file"
+                    accept=".svg"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setNewSizeData({ ...newSizeData, fileUV2: file });
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}
+                  />
+                  {newSizeData.fileUV2 && (
+                    <p style={{ color: '#8eff36', fontSize: '12px', marginTop: '4px' }}>
+                      Fichier sélectionné: {newSizeData.fileUV2.name}
+                    </p>
+                  )}
+                </div>
+
+                <p style={{ color: '#a0a0a0', fontSize: '12px', fontStyle: 'italic' }}>
+                  Note: Les fichiers SVG sont optionnels. Vous pourrez les uploader plus tard depuis le tableau.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              padding: '24px',
+              borderTop: '1px solid #2a2a2a'
+            }}>
+              <button
+                onClick={() => {
+                  setShowAddSizeModal(false);
+                  setNewSizeData({
+                    name: "",
+                    fileUV0: null,
+                    fileUV2: null,
+                  });
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#2a2a2a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleAddSize}
+                disabled={!newSizeData.name.trim()}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: !newSizeData.name.trim() ? '#4a4a4a' : '#8eff36',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: !newSizeData.name.trim() ? '#a0a0a0' : '#000000',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: !newSizeData.name.trim() ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (newSizeData.name.trim()) {
+                    e.currentTarget.style.opacity = '0.9';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (newSizeData.name.trim()) {
+                    e.currentTarget.style.opacity = '1';
+                  }
+                }}
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
