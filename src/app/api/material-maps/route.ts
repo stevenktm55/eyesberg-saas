@@ -97,6 +97,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, name, description, settings } = body;
 
+    console.log('PUT /api/material-maps - Request body:', { id, name, description, settingsCount: settings?.length });
+    console.log('PUT /api/material-maps - Subdomain:', subdomain);
+
     if (!id) {
       return NextResponse.json(
         { error: 'ID is required' },
@@ -107,19 +110,33 @@ export async function PUT(request: NextRequest) {
     // Vérifier d'abord que le Material Map existe et appartient au sous-domaine
     const { data: existingMap, error: checkMapError } = await supabaseAdmin
       .from('material_maps')
-      .select('id')
+      .select('id, subdomain, name')
       .eq('id', id)
-      .eq('subdomain', subdomain)
       .maybeSingle();
 
+    console.log('PUT /api/material-maps - Existing map check:', { existingMap, checkMapError });
+
     if (checkMapError) {
+      console.error('Error checking material map:', checkMapError);
       throw new Error(`Error checking material map: ${checkMapError.message}`);
     }
 
     if (!existingMap) {
+      console.error('Material map not found with id:', id);
       return NextResponse.json(
-        { error: 'Material Map not found or access denied' },
+        { error: 'Material Map not found' },
         { status: 404 }
+      );
+    }
+
+    if (existingMap.subdomain !== subdomain) {
+      console.error('Material map subdomain mismatch:', { 
+        mapSubdomain: existingMap.subdomain, 
+        requestSubdomain: subdomain 
+      });
+      return NextResponse.json(
+        { error: 'Material Map access denied - subdomain mismatch' },
+        { status: 403 }
       );
     }
 
