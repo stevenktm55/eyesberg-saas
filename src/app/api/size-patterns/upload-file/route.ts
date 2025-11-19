@@ -57,17 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Convertir le File en Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
     // Upload vers Supabase Storage
     const fileName = `${patternId}-${size}-${Date.now()}.svg`;
     const svgUrl = await uploadFile('size-patterns', fileName, file);
-    
-    // Parser le SVG pour extraire les pièces (côté serveur)
-    // Note: parseSVGPieces est conçu pour le client, on va le faire différemment
-    // Pour l'instant, on laisse metadata null, il sera généré côté client lors de l'utilisation
     
     // Sauvegarder ou mettre à jour le fichier dans la base de données
     const { data: existingFile } = await supabaseAdmin
