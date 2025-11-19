@@ -17,6 +17,7 @@ type MapSettings = {
   normal: { intensity: number; scale: number; loaded: boolean };
   roughness: { intensity: number; scale: number; loaded: boolean };
   metallic: { intensity: number; scale: number; loaded: boolean };
+  ao: { intensity: number; scale: number; loaded: boolean };
 };
 
 export default function MaterialMapsConfigPage() {
@@ -31,6 +32,7 @@ export default function MaterialMapsConfigPage() {
     normal: { intensity: 100, scale: 1.0, loaded: true },
     roughness: { intensity: 100, scale: 1.0, loaded: false },
     metallic: { intensity: 100, scale: 1.0, loaded: false },
+    ao: { intensity: 100, scale: 1.0, loaded: false },
   });
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export default function MaterialMapsConfigPage() {
       const normalFile = files.find((f: any) => f.map_type === 'normal');
       const roughnessFile = files.find((f: any) => f.map_type === 'roughness');
       const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+      const aoFile = files.find((f: any) => f.map_type === 'ao');
 
       setMapSettings({
         diffuse: {
@@ -78,6 +81,11 @@ export default function MaterialMapsConfigPage() {
           intensity: metallicFile?.intensity || 100,
           scale: metallicFile?.scale || 1.0,
           loaded: !!metallicFile,
+        },
+        ao: {
+          intensity: aoFile?.intensity || 100,
+          scale: aoFile?.scale || 1.0,
+          loaded: !!aoFile,
         },
       });
     }
@@ -190,6 +198,7 @@ export default function MaterialMapsConfigPage() {
         { mapType: 'normal', intensity: mapSettings.normal.intensity, scale: mapSettings.normal.scale },
         { mapType: 'roughness', intensity: mapSettings.roughness.intensity, scale: mapSettings.roughness.scale },
         { mapType: 'metallic', intensity: mapSettings.metallic.intensity, scale: mapSettings.metallic.scale },
+        { mapType: 'ao', intensity: mapSettings.ao.intensity, scale: mapSettings.ao.scale },
       ];
 
       const res = await fetch("/api/material-maps", {
@@ -759,119 +768,6 @@ export default function MaterialMapsConfigPage() {
                   </div>
                 </div>
 
-                <div>
-                  <h3 style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#ffffff',
-                    marginBottom: '16px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Maps chargées
-                  </h3>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '6px',
-                      border: '1px solid #2a2a2a'
-                    }}>
-                      <span style={{
-                        fontSize: '14px',
-                        color: '#ffffff',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Diffuse Map
-                      </span>
-                      <span style={{
-                        fontSize: '14px',
-                        color: mapSettings.diffuse.loaded ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {mapSettings.diffuse.loaded ? '✓ Chargé' : '- Non chargé'}
-                      </span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '6px',
-                      border: '1px solid #2a2a2a'
-                    }}>
-                      <span style={{
-                        fontSize: '14px',
-                        color: '#ffffff',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Normal Map
-                      </span>
-                      <span style={{
-                        fontSize: '14px',
-                        color: mapSettings.normal.loaded ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {mapSettings.normal.loaded ? '✓ Chargé' : '- Non chargé'}
-                      </span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '6px',
-                      border: '1px solid #2a2a2a'
-                    }}>
-                      <span style={{
-                        fontSize: '14px',
-                        color: '#ffffff',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Roughness Map
-                      </span>
-                      <span style={{
-                        fontSize: '14px',
-                        color: mapSettings.roughness.loaded ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {mapSettings.roughness.loaded ? '✓ Chargé' : '- Non chargé'}
-                      </span>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '6px',
-                      border: '1px solid #2a2a2a'
-                    }}>
-                      <span style={{
-                        fontSize: '14px',
-                        color: '#ffffff',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Metallic Map
-                      </span>
-                      <span style={{
-                        fontSize: '14px',
-                        color: mapSettings.metallic.loaded ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {mapSettings.metallic.loaded ? '✓ Chargé' : '- Non chargé'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Right: Map Settings */}
@@ -1485,6 +1381,159 @@ export default function MaterialMapsConfigPage() {
                       step="0.1"
                       value={mapSettings.metallic.scale}
                       onChange={(e) => updateMapSetting('metallic', 'scale', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* AO Map */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #2a2a2a'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '4px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    AO Map
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Occlusion ambiante pour les ombres
+                  </p>
+                  
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '16px',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{
+                      border: '2px dashed #2a2a2a',
+                      borderRadius: '8px',
+                      padding: '32px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                    }}>
+                      <div style={{
+                        fontSize: '24px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px'
+                      }}>↑</div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Cliquez pour uploader
+                      </div>
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#666666',
+                        marginTop: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        PNG, JPG (max 4096x4096)
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('ao', file);
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Intensité
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.ao.intensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={mapSettings.ao.intensity}
+                      onChange={(e) => updateMapSetting('ao', 'intensity', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Échelle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.ao.scale.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={mapSettings.ao.scale}
+                      onChange={(e) => updateMapSetting('ao', 'scale', Number(e.target.value))}
                       style={{
                         width: '100%',
                         height: '6px',
