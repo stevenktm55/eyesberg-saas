@@ -1212,7 +1212,7 @@ export default function MaterialMapsConfigPage() {
                     <input
                       type="range"
                       min="0.1"
-                      max="2"
+                      max="50"
                       step="0.1"
                       value={mapSettings.normal.scale}
                       onChange={(e) => updateMapSetting('normal', 'scale', Number(e.target.value))}
@@ -1408,7 +1408,7 @@ export default function MaterialMapsConfigPage() {
                     <input
                       type="range"
                       min="0.1"
-                      max="2"
+                      max="50"
                       step="0.1"
                       value={mapSettings.roughness.scale}
                       onChange={(e) => updateMapSetting('roughness', 'scale', Number(e.target.value))}
@@ -1604,7 +1604,7 @@ export default function MaterialMapsConfigPage() {
                     <input
                       type="range"
                       min="0.1"
-                      max="2"
+                      max="50"
                       step="0.1"
                       value={mapSettings.metallic.scale}
                       onChange={(e) => updateMapSetting('metallic', 'scale', Number(e.target.value))}
@@ -1800,7 +1800,7 @@ export default function MaterialMapsConfigPage() {
                     <input
                       type="range"
                       min="0.1"
-                      max="2"
+                      max="50"
                       step="0.1"
                       value={mapSettings.ao.scale}
                       onChange={(e) => updateMapSetting('ao', 'scale', Number(e.target.value))}
