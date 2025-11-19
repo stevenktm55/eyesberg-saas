@@ -154,8 +154,13 @@ export default function MaterialMapsConfigPage() {
   }
 
   async function handleFileUpload(mapType: keyof MapSettings, file: File) {
-    if (!selectedMap) return;
+    console.log('handleFileUpload called:', mapType, file.name);
+    if (!selectedMap) {
+      console.error('No selected map');
+      return;
+    }
 
+    console.log('Setting uploadingMapType to:', mapType);
     setUploadingMapType(mapType);
     setLoading(true);
     try {
@@ -819,11 +824,15 @@ export default function MaterialMapsConfigPage() {
                     Couleur de base du material
                   </p>
                   
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '16px',
-                    cursor: 'pointer'
-                  }}>
+                  <label 
+                    htmlFor={`diffuse-upload-${selectedMap?.id || 'new'}`}
+                    style={{
+                      display: 'block',
+                      marginBottom: '16px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => console.log('Label clicked for diffuse')}
+                  >
                     <div style={{
                       border: '2px dashed #2a2a2a',
                       borderRadius: '8px',
@@ -859,12 +868,19 @@ export default function MaterialMapsConfigPage() {
                       </div>
                     </div>
                     <input
+                      id={`diffuse-upload-${selectedMap?.id || 'new'}`}
                       type="file"
                       accept=".png,.jpg,.jpeg"
                       style={{ display: 'none' }}
                       onChange={(e) => {
+                        console.log('File input changed:', e.target.files);
                         const file = e.target.files?.[0];
-                        if (file) handleFileUpload('diffuse', file);
+                        if (file) {
+                          console.log('Calling handleFileUpload with file:', file.name);
+                          handleFileUpload('diffuse', file);
+                        } else {
+                          console.log('No file selected');
+                        }
                       }}
                     />
                   </label>
