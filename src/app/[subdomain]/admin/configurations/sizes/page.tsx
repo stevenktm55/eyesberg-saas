@@ -835,7 +835,8 @@ export default function SizesConfigPage() {
                                 </td>
                               </tr>
                             );
-                        })}
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
