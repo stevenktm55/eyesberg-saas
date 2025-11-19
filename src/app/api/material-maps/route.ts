@@ -130,10 +130,9 @@ export async function PUT(request: NextRequest) {
             .select('id')
             .eq('material_map_id', id)
             .eq('map_type', mapType)
-            .single();
+            .maybeSingle();
           
-          if (checkError && checkError.code !== 'PGRST116') {
-            // PGRST116 = not found, ce qui est OK si le fichier n'existe pas encore
+          if (checkError) {
             console.error(`Error checking ${mapType} file:`, checkError);
             continue;
           }
