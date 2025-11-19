@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useMemo, useRef, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -13,20 +13,30 @@ interface Model3DPreviewProps {
 
 function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url);
+  const groupRef = useRef<THREE.Group>(null);
   
-  // Auto-fit le modèle dans la scène
-  const box = new THREE.Box3().setFromObject(scene);
-  const center = new THREE.Vector3();
-  const size = new THREE.Vector3();
-  box.getCenter(center);
-  box.getSize(size);
-  
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const scale = 1 / maxDim;
-  scene.scale.multiplyScalar(scale);
-  scene.position.sub(center.multiplyScalar(scale));
+  // Clone la scène pour éviter les mutations
+  const clonedScene = useMemo(() => {
+    const cloned = scene.clone();
+    
+    // Auto-fit le modèle dans la scène
+    const box = new THREE.Box3().setFromObject(cloned);
+    const center = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    box.getCenter(center);
+    box.getSize(size);
+    
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 0) {
+      const scale = 1.5 / maxDim; // Légèrement plus petit pour avoir de la marge
+      cloned.scale.multiplyScalar(scale);
+      cloned.position.sub(center.multiplyScalar(scale));
+    }
+    
+    return cloned;
+  }, [scene]);
 
-  return <primitive object={scene} />;
+  return <primitive ref={groupRef} object={clonedScene} />;
 }
 
 export function Model3DPreview({ url, className, style }: Model3DPreviewProps) {

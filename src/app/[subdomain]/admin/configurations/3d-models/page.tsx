@@ -6,8 +6,10 @@ import { Model3DPreview } from "@/components/Model3DPreview";
 type Model3D = {
   id: string;
   name: string;
-  glbUrl: string;
-  createdAt: string;
+  glb_url?: string;
+  glbUrl?: string; // Fallback pour compatibilité
+  createdAt?: string;
+  created_at?: string;
   materialsSchema?: any;
 };
 
@@ -469,7 +471,7 @@ export default function ModelsConfigPage() {
                 overflow: 'hidden'
               }}>
                 <Model3DPreview 
-                  url={(model as any).glb_url || model.glbUrl} 
+                  url={(model as any).glb_url || (model as any).glbUrl} 
                   style={{ width: '100%', height: '100%' }}
                 />
               </div>
@@ -705,7 +707,7 @@ export default function ModelsConfigPage() {
                       overflow: 'hidden'
                     }}>
                       <Model3DPreview 
-                        url={(selectedModel as any).glb_url || selectedModel.glbUrl} 
+                        url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
                         style={{ width: '100%', height: '100%' }}
                       />
                     </div>
