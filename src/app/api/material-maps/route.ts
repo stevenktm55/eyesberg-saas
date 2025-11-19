@@ -108,16 +108,31 @@ export async function PUT(request: NextRequest) {
     if (name) updateData.name = name;
     if (description !== null) updateData.description = description;
 
-    // Mettre à jour le Material Map
-    const { data: materialMap, error: updateError } = await supabaseAdmin
-      .from('material_maps')
-      .update(updateData)
-      .eq('id', id)
-      .eq('subdomain', subdomain) // Vérifier que le Material Map appartient au sous-domaine
-      .select()
-      .single();
+    // Mettre à jour le Material Map seulement si on a des données à mettre à jour
+    let materialMap;
+    if (Object.keys(updateData).length > 0) {
+      const { data, error: updateError } = await supabaseAdmin
+        .from('material_maps')
+        .update(updateData)
+        .eq('id', id)
+        .eq('subdomain', subdomain) // Vérifier que le Material Map appartient au sous-domaine
+        .select()
+        .single();
 
-    if (updateError) throw updateError;
+      if (updateError) throw updateError;
+      materialMap = data;
+    } else {
+      // Si pas de données à mettre à jour, juste récupérer le material map
+      const { data, error: fetchError } = await supabaseAdmin
+        .from('material_maps')
+        .select()
+        .eq('id', id)
+        .eq('subdomain', subdomain)
+        .single();
+
+      if (fetchError) throw fetchError;
+      materialMap = data;
+    }
 
     // Mettre à jour les settings des fichiers (intensity, scale)
     if (settings && Array.isArray(settings)) {
