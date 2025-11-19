@@ -667,18 +667,18 @@ export default function SizesConfigPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {pattern.sizes.length === 0 ? (
+                        {displaySizes.length === 0 ? (
                           <tr>
                             <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#a0a0a0' }}>
                               Aucune taille. Ajoutez des tailles dans le modal d'édition.
                             </td>
                           </tr>
                         ) : (
-                          pattern.sizes.map((size) => {
-                            const fileUV0 = pattern.files.find((f) => f.size === size && f.uvType === "UV0");
-                            const fileUV2 = pattern.files.find((f) => f.size === size && f.uvType === "UV2");
-                            const fileKeyUV0 = `${pattern.id}-${size}-UV0`;
-                            const fileKeyUV2 = `${pattern.id}-${size}-UV2`;
+                          displaySizes.map((size) => {
+                            const fileUV0 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV0");
+                            const fileUV2 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV2");
+                            const fileKeyUV0 = `${displayPattern.id}-${size}-UV0`;
+                            const fileKeyUV2 = `${displayPattern.id}-${size}-UV2`;
                             const isUploadingUV0 = uploadingSize === `${size}-UV0`;
                             const isUploadingUV2 = uploadingSize === `${size}-UV2`;
 
