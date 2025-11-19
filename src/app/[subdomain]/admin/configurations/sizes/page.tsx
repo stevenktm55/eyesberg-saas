@@ -1357,7 +1357,7 @@ export default function SizesConfigPage() {
                     marginBottom: '8px',
                     fontFamily: 'var(--stepn-font-body)'
                   }}>
-                    Fichier SVG UV0 (Designs) {newSizeData.fileUV0 && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
+                    Fichier SVG {newSizeData.file && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
                   </label>
                   <input
                     type="file"
@@ -1365,7 +1365,7 @@ export default function SizesConfigPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        setNewSizeData({ ...newSizeData, fileUV0: file });
+                        setNewSizeData({ ...newSizeData, file: file });
                       }
                     }}
                     style={{
@@ -1379,52 +1379,18 @@ export default function SizesConfigPage() {
                       fontFamily: 'var(--stepn-font-body)'
                     }}
                   />
-                  {newSizeData.fileUV0 && (
+                  {newSizeData.file && (
                     <p style={{ color: '#8eff36', fontSize: '12px', marginTop: '4px' }}>
-                      Fichier sélectionné: {newSizeData.fileUV0.name}
+                      Fichier sélectionné: {newSizeData.file.name}
                     </p>
                   )}
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    color: '#ffffff',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Fichier SVG UV2 (Logos) {newSizeData.fileUV2 && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
-                  </label>
-                  <input
-                    type="file"
-                    accept=".svg"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setNewSizeData({ ...newSizeData, fileUV2: file });
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      backgroundColor: '#0a0a0a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)'
-                    }}
-                  />
-                  {newSizeData.fileUV2 && (
-                    <p style={{ color: '#8eff36', fontSize: '12px', marginTop: '4px' }}>
-                      Fichier sélectionné: {newSizeData.fileUV2.name}
-                    </p>
-                  )}
+                  <p style={{ color: '#a0a0a0', fontSize: '12px', marginTop: '4px', fontStyle: 'italic' }}>
+                    Ce fichier sera utilisé pour UV0 (Designs) et UV2 (Logos)
+                  </p>
                 </div>
 
                 <p style={{ color: '#a0a0a0', fontSize: '12px', fontStyle: 'italic' }}>
-                  Note: Les fichiers SVG sont optionnels. Vous pourrez les uploader plus tard depuis le tableau.
+                  Note: Le fichier SVG est optionnel. Vous pourrez l'uploader plus tard depuis le tableau.
                 </p>
               </div>
             </div>
