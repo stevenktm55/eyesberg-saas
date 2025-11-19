@@ -58,7 +58,9 @@ Le schéma inclut **toutes les tables nécessaires** pour le SaaS :
 - **Name**: `models-3d`
 - **Public**: ✅ Oui
 - **File size limit**: 50 MB
-- **Allowed MIME types**: `model/gltf-binary, model/gltf+json`
+- **Allowed MIME types**: `model/gltf-binary, model/gltf+json, application/octet-stream`
+  
+  ⚠️ **IMPORTANT** : Si vous ne pouvez pas ajouter `application/octet-stream`, laissez le champ "Allowed MIME types" **VIDE** pour accepter tous les types de fichiers.
 
 ### Bucket: `material-maps`
 - **Name**: `material-maps`

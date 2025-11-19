@@ -82,11 +82,23 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       
+      // Déterminer le MIME type correct selon l'extension
+      let contentType = file.type;
+      if (!contentType || contentType === 'application/octet-stream') {
+        if (file.name.toLowerCase().endsWith('.glb')) {
+          contentType = 'model/gltf-binary';
+        } else if (file.name.toLowerCase().endsWith('.gltf')) {
+          contentType = 'model/gltf+json';
+        } else {
+          contentType = 'application/octet-stream';
+        }
+      }
+      
       // Upload avec supabaseAdmin pour avoir les permissions
       const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from('models-3d')
         .upload(fileName, buffer, {
-          contentType: file.type || 'model/gltf-binary',
+          contentType: contentType,
           cacheControl: '3600',
           upsert: true,
         });
