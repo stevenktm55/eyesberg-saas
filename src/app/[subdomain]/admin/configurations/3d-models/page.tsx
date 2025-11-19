@@ -35,7 +35,7 @@ export default function ModelsConfigPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [modelParts, setModelParts] = useState<ModelPart[]>([]);
   const [detectedMaterials, setDetectedMaterials] = useState<DetectedMaterial[]>([]);
-  const [materialMaps, setMaterialMaps] = useState<Array<{id: string; name: string}>>([]);
+  const [materialMaps, setMaterialMaps] = useState<Array<{id: string; name: string; material_map_files?: any[]}>>([]);
   const [newModelName, setNewModelName] = useState("");
   const [newModelFile, setNewModelFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
