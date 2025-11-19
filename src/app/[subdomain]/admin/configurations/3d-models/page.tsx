@@ -54,9 +54,10 @@ export default function ModelsConfigPage() {
       const parts: ModelPart[] = (selectedModel as any).model_parts?.map((part: any) => ({
         id: part.id,
         name: part.name,
-        materialId: part.material_map_id,
+        materialId: part.material_map_id || null,
         materialName: part.material_maps?.name || "Aucun material",
       })) || [];
+      console.log('Loading model parts from selectedModel:', parts);
       setModelParts(parts);
     } else if (isCreating) {
       // Reset for new model
@@ -83,7 +84,13 @@ export default function ModelsConfigPage() {
       const res = await fetch("/api/material-maps");
       if (!res.ok) throw new Error("Failed to fetch material maps");
       const data = await res.json();
-      setMaterialMaps(Array.isArray(data) ? data : []);
+      const maps = Array.isArray(data) ? data : [];
+      console.log('Fetched material maps:', maps.map((m: any) => ({ 
+        id: m.id, 
+        name: m.name, 
+        filesCount: m.material_map_files?.length || 0 
+      })));
+      setMaterialMaps(maps);
     } catch (error) {
       console.error("Error fetching material maps:", error);
     }
@@ -180,11 +187,17 @@ export default function ModelsConfigPage() {
   function selectMaterialMap(materialMapId: string, materialMapName: string) {
     if (!selectedPartForMaterial) return;
     
-    setModelParts(prev => prev.map(p => 
-      p.name === selectedPartForMaterial 
-        ? { ...p, materialId: materialMapId, materialName: materialMapName }
-        : p
-    ));
+    console.log('selectMaterialMap:', { selectedPartForMaterial, materialMapId, materialMapName });
+    
+    setModelParts(prev => {
+      const updated = prev.map(p => 
+        p.name === selectedPartForMaterial 
+          ? { ...p, materialId: materialMapId || null, materialName: materialMapName }
+          : p
+      );
+      console.log('Updated modelParts:', updated);
+      return updated;
+    });
     
     setShowMaterialMapSelector(false);
     setSelectedPartForMaterial(null);
