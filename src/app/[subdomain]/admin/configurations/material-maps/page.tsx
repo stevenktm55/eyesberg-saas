@@ -1016,7 +1016,7 @@ export default function MaterialMapsConfigPage() {
                     <input
                       type="range"
                       min="0.1"
-                      max="2"
+                      max="50"
                       step="0.1"
                       value={mapSettings.diffuse.scale}
                       onChange={(e) => updateMapSetting('diffuse', 'scale', Number(e.target.value))}
