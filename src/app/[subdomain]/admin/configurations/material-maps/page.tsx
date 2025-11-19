@@ -1017,10 +1017,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
+                        color: uploadingMapType === 'normal' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
+                        {uploadingMapType === 'normal' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
