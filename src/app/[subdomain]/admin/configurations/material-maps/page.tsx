@@ -24,6 +24,8 @@ export default function MaterialMapsConfigPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedMap, setSelectedMap] = useState<MaterialMap | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newMapName, setNewMapName] = useState("");
   const [mapSettings, setMapSettings] = useState<MapSettings>({
     diffuse: { intensity: 100, scale: 1.0, loaded: true },
     normal: { intensity: 100, scale: 1.0, loaded: true },
@@ -87,6 +89,45 @@ export default function MaterialMapsConfigPage() {
 
   function closeModal() {
     setSelectedMap(null);
+  }
+
+  function openCreateModal() {
+    setIsCreating(true);
+    setNewMapName("");
+  }
+
+  function closeCreateModal() {
+    setIsCreating(false);
+    setNewMapName("");
+  }
+
+  async function createMaterialMap() {
+    if (!newMapName.trim()) {
+      alert("Veuillez entrer un nom pour le material map");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/material-maps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newMapName.trim() }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to create material map");
+      }
+
+      await fetchMaterialMaps();
+      closeCreateModal();
+    } catch (error: any) {
+      console.error("Error creating material map:", error);
+      alert(error.message || "Erreur lors de la création");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function updateMapSetting(
@@ -239,27 +280,7 @@ export default function MaterialMapsConfigPage() {
           </span>
         </div>
         <button
-          onClick={async () => {
-            const name = prompt("Nom du nouveau Material Map:");
-            if (!name) return;
-
-            setLoading(true);
-            try {
-              const res = await fetch("/api/material-maps", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name }),
-              });
-
-              if (!res.ok) throw new Error("Failed to create material map");
-              await fetchMaterialMaps();
-            } catch (error) {
-              console.error("Error creating material map:", error);
-              alert("Erreur lors de la création");
-            } finally {
-              setLoading(false);
-            }
-          }}
+          onClick={openCreateModal}
           style={{
             padding: '12px 24px',
             backgroundColor: '#8eff36',
@@ -397,27 +418,7 @@ export default function MaterialMapsConfigPage() {
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = '#2a2a2a';
           }}
-          onClick={async () => {
-            const name = prompt("Nom du nouveau Material Map:");
-            if (!name) return;
-
-            setLoading(true);
-            try {
-              const res = await fetch("/api/material-maps", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name }),
-              });
-
-              if (!res.ok) throw new Error("Failed to create material map");
-              await fetchMaterialMaps();
-            } catch (error) {
-              console.error("Error creating material map:", error);
-              alert("Erreur lors de la création");
-            } finally {
-              setLoading(false);
-            }
-          }}
+          onClick={openCreateModal}
         >
           <div style={{
             fontSize: '48px',
@@ -435,6 +436,201 @@ export default function MaterialMapsConfigPage() {
           </p>
         </div>
       </div>
+
+      {/* Create Material Map Modal */}
+      {isCreating && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '32px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeCreateModal();
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '12px',
+              border: '1px solid #2a2a2a',
+              width: '100%',
+              maxWidth: '500px',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)'
+              }}>
+                Nouveau Material Map
+              </h2>
+              <button
+                onClick={closeCreateModal}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  transition: 'all 0.2s',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#a0a0a0';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px'
+            }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Nom du Material Map
+                </label>
+                <input
+                  type="text"
+                  value={newMapName}
+                  onChange={(e) => setNewMapName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      createMaterialMap();
+                    }
+                  }}
+                  placeholder="Ex: Tissu coton, Cuir noir..."
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#2a2a2a';
+                  }}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              padding: '24px',
+              borderTop: '1px solid #2a2a2a'
+            }}>
+              <button
+                onClick={closeCreateModal}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#2a2a2a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={createMaterialMap}
+                disabled={loading || !newMapName.trim()}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: loading || !newMapName.trim() ? '#2a2a2a' : '#8eff36',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: loading || !newMapName.trim() ? '#666666' : '#000000',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: loading || !newMapName.trim() ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && newMapName.trim()) {
+                    e.currentTarget.style.opacity = '0.9';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading && newMapName.trim()) {
+                    e.currentTarget.style.opacity = '1';
+                  }
+                }}
+              >
+                {loading ? 'Création...' : 'Créer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Material Map Modal */}
       {selectedMap && (
