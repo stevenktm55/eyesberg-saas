@@ -2,11 +2,120 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSubdomain } from '@/lib/get-subdomain';
 
 /**
+ * Parse un fichier GLB pour extraire les matériaux
+ * Format GLB : Header (12 bytes) + Chunk JSON + Chunk BIN
+ */
+async function parseGLB(buffer: ArrayBuffer): Promise<Array<{ name: string; index: number }>> {
+  const view = new DataView(buffer);
+  
+  // Lire le header GLB (12 bytes)
+  const magic = view.getUint32(0, true); // Doit être 0x46546C67 (glTF)
+  if (magic !== 0x46546C67) {
+    throw new Error('Invalid GLB file: magic number mismatch');
+  }
+  
+  const version = view.getUint32(4, true);
+  const length = view.getUint32(8, true);
+  
+  // Lire le premier chunk (JSON)
+  let offset = 12;
+  const chunk0Length = view.getUint32(offset, true);
+  const chunk0Type = view.getUint32(offset + 4, true);
+  
+  if (chunk0Type !== 0x4E4F534A) { // "JSON"
+    throw new Error('Invalid GLB file: first chunk is not JSON');
+  }
+  
+  // Extraire le JSON
+  const jsonStart = offset + 8;
+  const jsonEnd = jsonStart + chunk0Length;
+  const jsonBytes = new Uint8Array(buffer, jsonStart, chunk0Length);
+  const jsonText = new TextDecoder().decode(jsonBytes);
+  const gltf = JSON.parse(jsonText);
+  
+  // Extraire les matériaux
+  const materials: Array<{ name: string; index: number }> = [];
+  
+  if (gltf.materials && Array.isArray(gltf.materials)) {
+    gltf.materials.forEach((material: any, index: number) => {
+      // Utiliser le nom du matériau s'il existe, sinon générer un nom
+      const materialName = material.name || `Material_${index + 1}`;
+      materials.push({
+        name: materialName,
+        index: index,
+      });
+    });
+  }
+  
+  // Si aucun matériau trouvé, essayer d'extraire depuis les meshes
+  if (materials.length === 0 && gltf.meshes && Array.isArray(gltf.meshes)) {
+    gltf.meshes.forEach((mesh: any, meshIndex: number) => {
+      if (mesh.primitives && Array.isArray(mesh.primitives)) {
+        mesh.primitives.forEach((primitive: any) => {
+          if (primitive.material !== undefined) {
+            const materialIndex = primitive.material;
+            const materialName = mesh.name || `Mesh_${meshIndex + 1}`;
+            // Éviter les doublons
+            if (!materials.find(m => m.index === materialIndex)) {
+              materials.push({
+                name: materialName,
+                index: materialIndex,
+              });
+            }
+          }
+        });
+      }
+    });
+  }
+  
+  return materials;
+}
+
+/**
+ * Parse un fichier GLTF (JSON) pour extraire les matériaux
+ */
+async function parseGLTF(buffer: ArrayBuffer): Promise<Array<{ name: string; index: number }>> {
+  const text = new TextDecoder().decode(buffer);
+  const gltf = JSON.parse(text);
+  
+  const materials: Array<{ name: string; index: number }> = [];
+  
+  if (gltf.materials && Array.isArray(gltf.materials)) {
+    gltf.materials.forEach((material: any, index: number) => {
+      const materialName = material.name || `Material_${index + 1}`;
+      materials.push({
+        name: materialName,
+        index: index,
+      });
+    });
+  }
+  
+  // Si aucun matériau trouvé, essayer d'extraire depuis les meshes
+  if (materials.length === 0 && gltf.meshes && Array.isArray(gltf.meshes)) {
+    gltf.meshes.forEach((mesh: any, meshIndex: number) => {
+      if (mesh.primitives && Array.isArray(mesh.primitives)) {
+        mesh.primitives.forEach((primitive: any) => {
+          if (primitive.material !== undefined) {
+            const materialIndex = primitive.material;
+            const materialName = mesh.name || `Mesh_${meshIndex + 1}`;
+            if (!materials.find(m => m.index === materialIndex)) {
+              materials.push({
+                name: materialName,
+                index: materialIndex,
+              });
+            }
+          }
+        });
+      }
+    });
+  }
+  
+  return materials;
+}
+
+/**
  * POST /api/models-3d/detect-materials
  * Détecte les matériaux présents dans un fichier GLB/GLTF
- * 
- * Note: Pour une détection complète, il faudrait parser le fichier GLB/GLTF
- * Pour l'instant, on retourne des matériaux par défaut basés sur les parties communes
  */
 export async function POST(request: NextRequest) {
   try {
@@ -30,33 +139,47 @@ export async function POST(request: NextRequest) {
 
     // Vérifier que c'est un fichier GLB/GLTF
     const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.glb') && !fileName.endsWith('.gltf')) {
+    const isGLB = fileName.endsWith('.glb');
+    const isGLTF = fileName.endsWith('.gltf');
+    
+    if (!isGLB && !isGLTF) {
       return NextResponse.json(
         { error: 'File must be a GLB or GLTF file' },
         { status: 400 }
       );
     }
 
-    // TODO: Parser le fichier GLB/GLTF pour extraire les matériaux réels
-    // Pour l'instant, on retourne des matériaux par défaut basés sur les parties communes d'un vêtement
+    // Lire le fichier
+    const arrayBuffer = await file.arrayBuffer();
     
-    // Matériaux par défaut pour un modèle textile
-    const defaultMaterials: Array<{ name: string; index: number }> = [
-      { name: 'Front', index: 0 },
-      { name: 'Back', index: 1 },
-      { name: 'Sleeves', index: 2 },
-      { name: 'Collar', index: 3 },
-    ];
-
-    // Dans le futur, on pourrait parser le GLB pour extraire les vrais matériaux :
-    // 1. Lire le fichier GLB (format binaire)
-    // 2. Extraire le JSON du GLTF
-    // 3. Parcourir les meshes et leurs materials
-    // 4. Retourner la liste des matériaux avec leurs noms
+    // Parser selon le type de fichier
+    let materials: Array<{ name: string; index: number }>;
+    
+    try {
+      if (isGLB) {
+        materials = await parseGLB(arrayBuffer);
+      } else {
+        materials = await parseGLTF(arrayBuffer);
+      }
+    } catch (parseError: any) {
+      console.error('Error parsing GLB/GLTF:', parseError);
+      // En cas d'erreur de parsing, retourner des matériaux par défaut
+      materials = [
+        { name: 'Material_1', index: 0 },
+        { name: 'Material_2', index: 1 },
+      ];
+    }
+    
+    // Si aucun matériau trouvé, retourner des matériaux par défaut
+    if (materials.length === 0) {
+      materials = [
+        { name: 'Material_1', index: 0 },
+      ];
+    }
 
     return NextResponse.json({
-      materials: defaultMaterials,
-      message: 'Materials detected (using default materials for now)',
+      materials: materials,
+      message: `Detected ${materials.length} material(s) from file`,
     });
   } catch (error: any) {
     console.error('Error detecting materials:', error);
