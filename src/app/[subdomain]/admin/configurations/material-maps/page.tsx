@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MaterialMapPreview3D } from "@/components/MaterialMapPreview3D";
 
 type MaterialMap = {
   id: string;
@@ -775,18 +776,39 @@ export default function MaterialMapsConfigPage() {
                     backgroundColor: '#0a0a0a',
                     borderRadius: '8px',
                     border: '1px solid #2a2a2a',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '300px'
+                    minHeight: '300px',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
-                    <div style={{
-                      width: '150px',
-                      height: '150px',
-                      borderRadius: '50%',
-                      backgroundColor: '#2a2a2a',
-                      border: '2px solid #4a4a4a'
-                    }} />
+                    {(() => {
+                      const files = (selectedMap as any)?.material_map_files || [];
+                      const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+                      const normalFile = files.find((f: any) => f.map_type === 'normal');
+                      const roughnessFile = files.find((f: any) => f.map_type === 'roughness');
+                      const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+                      const aoFile = files.find((f: any) => f.map_type === 'ao');
+
+                      return (
+                        <MaterialMapPreview3D
+                          diffuseUrl={diffuseFile?.file_url || null}
+                          normalUrl={normalFile?.file_url || null}
+                          roughnessUrl={roughnessFile?.file_url || null}
+                          metallicUrl={metallicFile?.file_url || null}
+                          aoUrl={aoFile?.file_url || null}
+                          diffuseIntensity={mapSettings.diffuse.intensity}
+                          normalIntensity={mapSettings.normal.intensity}
+                          roughnessIntensity={mapSettings.roughness.intensity}
+                          metallicIntensity={mapSettings.metallic.intensity}
+                          aoIntensity={mapSettings.ao.intensity}
+                          diffuseScale={mapSettings.diffuse.scale}
+                          normalScale={mapSettings.normal.scale}
+                          roughnessScale={mapSettings.roughness.scale}
+                          metallicScale={mapSettings.metallic.scale}
+                          aoScale={mapSettings.ao.scale}
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
 
