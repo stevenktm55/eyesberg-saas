@@ -1633,7 +1633,13 @@ export default function MaterialMapsConfigPage() {
                       borderRadius: '8px',
                       padding: '32px',
                       textAlign: 'center',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      minHeight: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8eff36';
@@ -1641,26 +1647,63 @@ export default function MaterialMapsConfigPage() {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#2a2a2a';
                     }}>
-                      <div style={{
-                        fontSize: '24px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px'
-                      }}>↑</div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: uploadingMapType === 'ao' ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {uploadingMapType === 'ao' ? 'Upload en cours...' : 'Cliquez pour uploader'}
-                      </div>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#666666',
-                        marginTop: '4px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        PNG, JPG (max 4096x4096)
-                      </div>
+                      {(() => {
+                        const files = (selectedMap as any)?.material_map_files || [];
+                        const aoFile = files.find((f: any) => f.map_type === 'ao');
+                        const fileUrl = aoFile?.file_url;
+                        
+                        if (uploadingMapType === 'ao') {
+                          return (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#8eff36',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Upload en cours...
+                            </div>
+                          );
+                        }
+                        
+                        if (fileUrl) {
+                          return (
+                            <img 
+                              src={fileUrl} 
+                              alt="AO map"
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                borderRadius: '4px',
+                                objectFit: 'contain'
+                              }}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <div style={{
+                              fontSize: '24px',
+                              color: '#a0a0a0',
+                              marginBottom: '8px'
+                            }}>↑</div>
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Cliquez pour uploader
+                            </div>
+                            <div style={{
+                              fontSize: '10px',
+                              color: '#666666',
+                              marginTop: '4px',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              PNG, JPG (max 4096x4096)
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <input
                       type="file"
