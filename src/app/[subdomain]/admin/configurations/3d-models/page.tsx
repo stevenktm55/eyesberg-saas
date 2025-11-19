@@ -187,15 +187,18 @@ export default function ModelsConfigPage() {
   function selectMaterialMap(materialMapId: string, materialMapName: string) {
     if (!selectedPartForMaterial) return;
     
-    console.log('selectMaterialMap:', { selectedPartForMaterial, materialMapId, materialMapName });
+    // Si materialMapId est vide, on le traite comme null
+    const finalMaterialId = materialMapId && materialMapId.trim() !== '' ? materialMapId : null;
+    
+    console.log('selectMaterialMap:', { selectedPartForMaterial, materialMapId, finalMaterialId, materialMapName });
     
     setModelParts(prev => {
       const updated = prev.map(p => 
         p.name === selectedPartForMaterial 
-          ? { ...p, materialId: materialMapId || null, materialName: materialMapName }
+          ? { ...p, materialId: finalMaterialId, materialName: materialMapName }
           : p
       );
-      console.log('Updated modelParts:', updated);
+      console.log('Updated modelParts:', updated.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })));
       return updated;
     });
     
@@ -732,6 +735,7 @@ export default function ModelsConfigPage() {
                         modelParts={modelParts}
                         materialMaps={materialMaps}
                         style={{ width: '100%', height: '100%' }}
+                        key={`preview-${modelParts.map(p => `${p.name}-${p.materialId || 'none'}`).join('-')}`}
                       />
                     </div>
                     <button
