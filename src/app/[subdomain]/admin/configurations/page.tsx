@@ -3,13 +3,14 @@
 import { useState } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import ModelsConfigPage from "./3d-models/page";
+import MaterialMapsConfigPage from "./material-maps/page";
+import SizesConfigPage from "./sizes/page";
 import DesignsConfigPage from "./2d-designs/page";
-import PatternsConfigPage from "./2d-patterns/page";
 
-type Tab = "3d-models" | "2d-designs" | "2d-patterns";
+type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs";
 
 export default function ConfigurationsAdminPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("2d-patterns");
+  const [activeTab, setActiveTab] = useState<Tab>("3d-models");
 
   return (
     <div style={{ 
@@ -40,7 +41,7 @@ export default function ConfigurationsAdminPage() {
           color: '#a0a0a0',
           fontFamily: 'var(--stepn-font-body)'
         }}>
-          Gérez vos modèles 3D, designs 2D et patrons multi-tailles
+          Gérez votre bibliothèque de ressources : modèles 3D, textures, tailles et designs. Ces éléments seront réutilisables lors de la création de produits.
           </p>
         </div>
         
@@ -60,10 +61,10 @@ export default function ConfigurationsAdminPage() {
             fontFamily: 'var(--stepn-font-body)',
             color: activeTab === "3d-models" ? '#8eff36' : '#a0a0a0',
             borderBottom: activeTab === "3d-models" ? '2px solid #8eff36' : '2px solid transparent',
-            backgroundColor: 'transparent',
+            backgroundColor: activeTab === "3d-models" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
             border: 'none',
             cursor: 'pointer',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
           }}
           onMouseEnter={(e) => {
             if (activeTab !== "3d-models") {
@@ -76,7 +77,61 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          3D Models
+          Modèles 3D
+        </button>
+        <button
+          onClick={() => setActiveTab("material-maps")}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            fontFamily: 'var(--stepn-font-body)',
+            color: activeTab === "material-maps" ? '#8eff36' : '#a0a0a0',
+            borderBottom: activeTab === "material-maps" ? '2px solid #8eff36' : '2px solid transparent',
+            backgroundColor: activeTab === "material-maps" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "material-maps") {
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "material-maps") {
+              e.currentTarget.style.color = '#a0a0a0';
+            }
+          }}
+        >
+          Material Maps
+        </button>
+        <button
+          onClick={() => setActiveTab("sizes")}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            fontFamily: 'var(--stepn-font-body)',
+            color: activeTab === "sizes" ? '#8eff36' : '#a0a0a0',
+            borderBottom: activeTab === "sizes" ? '2px solid #8eff36' : '2px solid transparent',
+            backgroundColor: activeTab === "sizes" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "sizes") {
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "sizes") {
+              e.currentTarget.style.color = '#a0a0a0';
+            }
+          }}
+        >
+          Tailles
         </button>
         <button
           onClick={() => setActiveTab("2d-designs")}
@@ -87,7 +142,7 @@ export default function ConfigurationsAdminPage() {
             fontFamily: 'var(--stepn-font-body)',
             color: activeTab === "2d-designs" ? '#8eff36' : '#a0a0a0',
             borderBottom: activeTab === "2d-designs" ? '2px solid #8eff36' : '2px solid transparent',
-            backgroundColor: 'transparent',
+            backgroundColor: activeTab === "2d-designs" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
             border: 'none',
             cursor: 'pointer',
             transition: 'all 0.2s'
@@ -103,42 +158,16 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          2D Designs
-        </button>
-        <button
-          onClick={() => setActiveTab("2d-patterns")}
-          style={{
-            padding: '12px 24px',
-            fontSize: '14px',
-            fontWeight: '500',
-            fontFamily: 'var(--stepn-font-body)',
-            color: activeTab === "2d-patterns" ? '#8eff36' : '#a0a0a0',
-            borderBottom: activeTab === "2d-patterns" ? '2px solid #8eff36' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            if (activeTab !== "2d-patterns") {
-              e.currentTarget.style.color = '#ffffff';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (activeTab !== "2d-patterns") {
-              e.currentTarget.style.color = '#a0a0a0';
-            }
-          }}
-        >
-          2D Patterns
+          Designs 2D
         </button>
       </div>
 
         {/* Content */}
         <div>
           {activeTab === "3d-models" && <ModelsConfigPage />}
+          {activeTab === "material-maps" && <MaterialMapsConfigPage />}
+          {activeTab === "sizes" && <SizesConfigPage />}
           {activeTab === "2d-designs" && <DesignsConfigPage />}
-          {activeTab === "2d-patterns" && <PatternsConfigPage />}
         </div>
       </div>
     </div>
