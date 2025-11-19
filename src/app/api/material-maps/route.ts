@@ -135,14 +135,18 @@ export async function PUT(request: NextRequest) {
         .update(updateData)
         .eq('id', id)
         .eq('subdomain', subdomain)
-        .select()
-        .maybeSingle();
+        .select();
 
-      if (updateError) throw updateError;
-      if (!data) {
-        throw new Error('Failed to update material map');
+      if (updateError) {
+        console.error('Error updating material map:', updateError);
+        throw new Error(`Failed to update material map: ${updateError.message}`);
       }
-      materialMap = data;
+      
+      if (!data || data.length === 0) {
+        throw new Error('Material map not found or no rows updated');
+      }
+      
+      materialMap = data[0];
     } else {
       // Si pas de données à mettre à jour, juste récupérer le material map
       const { data, error: fetchError } = await supabaseAdmin
@@ -152,10 +156,15 @@ export async function PUT(request: NextRequest) {
         .eq('subdomain', subdomain)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error fetching material map:', fetchError);
+        throw new Error(`Failed to fetch material map: ${fetchError.message}`);
+      }
+      
       if (!data) {
         throw new Error('Material Map not found');
       }
+      
       materialMap = data;
     }
 
