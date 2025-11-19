@@ -45,46 +45,65 @@ function Sphere({
 }: Omit<MaterialMapPreview3DProps, 'className' | 'style'>) {
   const meshRef = useFrame(() => {});
   
-  // Charger les textures individuellement avec TextureLoader
-  const diffuseMap = diffuseUrl ? useLoader(TextureLoader, diffuseUrl) : null;
-  const normalMap = normalUrl ? useLoader(TextureLoader, normalUrl) : null;
-  const roughnessMap = roughnessUrl ? useLoader(TextureLoader, roughnessUrl) : null;
-  const metallicMap = metallicUrl ? useLoader(TextureLoader, metallicUrl) : null;
-  const aoMap = aoUrl ? useLoader(TextureLoader, aoUrl) : null;
+  // Créer un tableau de toutes les URLs à charger (useLoader nécessite un tableau fixe)
+  const textureUrls = useMemo(() => {
+    const urls: string[] = [];
+    if (diffuseUrl) urls.push(diffuseUrl);
+    if (normalUrl) urls.push(normalUrl);
+    if (roughnessUrl) urls.push(roughnessUrl);
+    if (metallicUrl) urls.push(metallicUrl);
+    if (aoUrl) urls.push(aoUrl);
+    // Si aucune texture, charger une texture placeholder
+    if (urls.length === 0) {
+      urls.push('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+    }
+    return urls;
+  }, [diffuseUrl, normalUrl, roughnessUrl, metallicUrl, aoUrl]);
+  
+  // Charger toutes les textures
+  const textures = useLoader(TextureLoader, textureUrls);
+  
+  // Extraire les textures individuelles
+  let textureIndex = 0;
+  const diffuseMap = diffuseUrl ? textures[textureIndex++] : null;
+  const normalMap = normalUrl ? textures[textureIndex++] : null;
+  const roughnessMap = roughnessUrl ? textures[textureIndex++] : null;
+  const metallicMap = metallicUrl ? textures[textureIndex++] : null;
+  const aoMap = aoUrl ? textures[textureIndex++] : null;
   
   // Configurer les textures
   useEffect(() => {
-    if (diffuseMap) {
+    if (diffuseMap && diffuseUrl) {
       diffuseMap.wrapS = THREE.RepeatWrapping;
       diffuseMap.wrapT = THREE.RepeatWrapping;
       diffuseMap.repeat.set(diffuseScale, diffuseScale);
       diffuseMap.colorSpace = THREE.SRGBColorSpace;
     }
     
-    if (normalMap) {
+    if (normalMap && normalUrl) {
       normalMap.wrapS = THREE.RepeatWrapping;
       normalMap.wrapT = THREE.RepeatWrapping;
       normalMap.repeat.set(normalScale, normalScale);
     }
     
-    if (roughnessMap) {
+    if (roughnessMap && roughnessUrl) {
       roughnessMap.wrapS = THREE.RepeatWrapping;
       roughnessMap.wrapT = THREE.RepeatWrapping;
       roughnessMap.repeat.set(roughnessScale, roughnessScale);
     }
     
-    if (metallicMap) {
+    if (metallicMap && metallicUrl) {
       metallicMap.wrapS = THREE.RepeatWrapping;
       metallicMap.wrapT = THREE.RepeatWrapping;
       metallicMap.repeat.set(metallicScale, metallicScale);
     }
     
-    if (aoMap) {
+    if (aoMap && aoUrl) {
       aoMap.wrapS = THREE.RepeatWrapping;
       aoMap.wrapT = THREE.RepeatWrapping;
       aoMap.repeat.set(aoScale, aoScale);
     }
-  }, [diffuseMap, normalMap, roughnessMap, metallicMap, aoMap, diffuseScale, normalScale, roughnessScale, metallicScale, aoScale]);
+  }, [diffuseMap, normalMap, roughnessMap, metallicMap, aoMap, diffuseUrl, normalUrl, roughnessUrl, metallicUrl, aoUrl, diffuseScale, normalScale, roughnessScale, metallicScale, aoScale]);
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
