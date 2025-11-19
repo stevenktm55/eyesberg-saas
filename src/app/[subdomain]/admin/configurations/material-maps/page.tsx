@@ -24,6 +24,7 @@ export default function MaterialMapsConfigPage() {
   const [materialMaps, setMaterialMaps] = useState<MaterialMap[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingMapType, setUploadingMapType] = useState<string | null>(null);
   const [selectedMap, setSelectedMap] = useState<MaterialMap | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [newMapName, setNewMapName] = useState("");
@@ -155,6 +156,7 @@ export default function MaterialMapsConfigPage() {
   async function handleFileUpload(mapType: keyof MapSettings, file: File) {
     if (!selectedMap) return;
 
+    setUploadingMapType(mapType);
     setLoading(true);
     try {
       const formData = new FormData();
@@ -197,6 +199,7 @@ export default function MaterialMapsConfigPage() {
       alert(error.message || "Erreur lors de l'upload du fichier");
     } finally {
       setLoading(false);
+      setUploadingMapType(null);
     }
   }
 
@@ -841,10 +844,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#a0a0a0',
+                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Cliquez pour uploader
+                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -996,10 +999,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#a0a0a0',
+                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Cliquez pour uploader
+                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -1149,10 +1152,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#a0a0a0',
+                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Cliquez pour uploader
+                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -1302,10 +1305,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#a0a0a0',
+                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Cliquez pour uploader
+                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
@@ -1455,10 +1458,10 @@ export default function MaterialMapsConfigPage() {
                       }}>↑</div>
                       <div style={{
                         fontSize: '12px',
-                        color: '#a0a0a0',
+                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Cliquez pour uploader
+                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
                       </div>
                       <div style={{
                         fontSize: '10px',
