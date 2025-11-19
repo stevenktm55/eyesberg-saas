@@ -127,28 +127,51 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
               .trim();
           };
           
-          // Chercher une correspondance exacte d'abord, puis partielle
-          let part = modelParts.find(p => {
-            const partNameLower = normalizeName(p.name);
+          // Chercher une correspondance exacte d'abord (sans normalisation)
+          let part = modelParts.find(p => 
+            p.name === materialName || 
+            p.name === objectName ||
+            p.name === nodeName
+          );
+          
+          // Si pas de correspondance exacte, essayer avec normalisation
+          if (!part) {
             const materialNameNorm = normalizeName(materialName);
             const objectNameNorm = normalizeName(objectName);
             const nodeNameNorm = normalizeName(nodeName);
             
-            return (
-              partNameLower === materialNameNorm ||
-              partNameLower === objectNameNorm ||
-              partNameLower === nodeNameNorm ||
-              materialNameNorm.includes(partNameLower) ||
-              partNameLower.includes(materialNameNorm) ||
-              objectNameNorm.includes(partNameLower) ||
-              partNameLower.includes(objectNameNorm) ||
-              // Correspondance par mots-clés communs (FRONT, BACK, etc.)
-              (partNameLower.includes('front') && (materialNameNorm.includes('front') || objectNameNorm.includes('front'))) ||
-              (partNameLower.includes('back') && (materialNameNorm.includes('back') || objectNameNorm.includes('back'))) ||
-              (partNameLower.includes('sleeve') && (materialNameNorm.includes('sleeve') || objectNameNorm.includes('sleeve'))) ||
-              (partNameLower.includes('collar') && (materialNameNorm.includes('collar') || objectNameNorm.includes('collar')))
-            );
-          });
+            // Chercher une correspondance exacte normalisée
+            part = modelParts.find(p => {
+              const partNameNorm = normalizeName(p.name);
+              return (
+                partNameNorm === materialNameNorm ||
+                partNameNorm === objectNameNorm ||
+                partNameNorm === nodeNameNorm
+              );
+            });
+          }
+          
+          // Si toujours pas de correspondance, essayer une correspondance partielle mais plus stricte
+          if (!part) {
+            const materialNameLower = materialName.toLowerCase();
+            const objectNameLower = objectName.toLowerCase();
+            
+            // Chercher une correspondance où le nom du matériau contient le nom de la partie (ou vice versa)
+            // mais seulement si c'est une correspondance significative (pas juste "FRONT" ou "BACK")
+            part = modelParts.find(p => {
+              const partNameLower = p.name.toLowerCase();
+              // Correspondance si le nom du matériau contient le nom de la partie (sans les numéros)
+              const partNameWithoutNumbers = partNameLower.replace(/_\d+\.\d+/g, '');
+              const materialNameWithoutNumbers = materialNameLower.replace(/_\d+\.\d+/g, '');
+              
+              return (
+                materialNameWithoutNumbers.includes(partNameWithoutNumbers) ||
+                partNameWithoutNumbers.includes(materialNameWithoutNumbers) ||
+                objectNameLower.includes(partNameWithoutNumbers) ||
+                partNameWithoutNumbers.includes(objectNameLower)
+              );
+            });
+          }
           
           // Si pas de correspondance, essayer par index (si on a le même nombre de matériaux)
           if (!part && modelParts.length > 0) {
