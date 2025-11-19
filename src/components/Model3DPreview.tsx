@@ -58,11 +58,21 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
 
   // Appliquer les material maps aux matériaux du modèle
   useEffect(() => {
-    if (!modelParts || !materialMaps || !clonedScene) return;
+    if (!modelParts || !materialMaps || !clonedScene) {
+      console.log('Model3DPreview: Missing dependencies', { modelParts, materialMaps, clonedScene });
+      return;
+    }
+
+    console.log('Model3DPreview: Applying material maps', { 
+      partsCount: modelParts.length, 
+      mapsCount: materialMaps.length,
+      parts: modelParts.map(p => ({ name: p.name, materialId: p.materialId }))
+    });
 
     const loader = new THREE.TextureLoader();
     const texturePromises: Promise<void>[] = [];
     const loadedTextures: THREE.Texture[] = [];
+    let materialsProcessed = 0;
 
     // Parcourir tous les objets de la scène
     clonedScene.traverse((object) => {
@@ -144,7 +154,9 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
           
           // Debug log pour voir les correspondances
           if (part) {
-            console.log(`Matched part "${part.name}" with material "${materialName}" or object "${objectName}"`);
+            console.log(`Model3DPreview: Matched part "${part.name}" (materialId: ${part.materialId}) with material "${materialName}" or object "${objectName}"`);
+          } else {
+            console.log(`Model3DPreview: No match found for material "${materialName}" or object "${objectName}"`);
           }
 
           if (part && part.materialId) {
@@ -152,6 +164,7 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
             
             if (materialMap && materialMap.material_map_files) {
               const files = materialMap.material_map_files;
+              console.log(`Model3DPreview: Applying material map "${materialMap.name}" to part "${part.name}" with ${files.length} files`);
               
               // Charger les textures
               files.forEach((file) => {
@@ -168,23 +181,29 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
                         texture.colorSpace = THREE.SRGBColorSpace;
                         material.map = texture;
                         material.needsUpdate = true;
+                        console.log(`Model3DPreview: Applied diffuse map to material "${materialName}"`);
                       } else if (file.map_type === 'normal') {
                         material.normalMap = texture;
                         material.normalScale = new THREE.Vector2(file.intensity / 100, file.intensity / 100);
                         material.needsUpdate = true;
+                        console.log(`Model3DPreview: Applied normal map to material "${materialName}"`);
                       } else if (file.map_type === 'roughness') {
                         material.roughnessMap = texture;
                         material.roughness = file.intensity / 100;
                         material.needsUpdate = true;
+                        console.log(`Model3DPreview: Applied roughness map to material "${materialName}"`);
                       } else if (file.map_type === 'metallic') {
                         material.metalnessMap = texture;
                         material.metalness = file.intensity / 100;
                         material.needsUpdate = true;
+                        console.log(`Model3DPreview: Applied metallic map to material "${materialName}"`);
                       } else if (file.map_type === 'ao') {
                         material.aoMap = texture;
                         material.aoMapIntensity = file.intensity / 100;
                         material.needsUpdate = true;
+                        console.log(`Model3DPreview: Applied AO map to material "${materialName}"`);
                       }
+                      materialsProcessed++;
                       resolve();
                     },
                     undefined,
@@ -203,7 +222,10 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
     });
 
     Promise.all(texturePromises).then(() => {
+      console.log(`Model3DPreview: Loaded ${texturePromises.length} textures, processed ${materialsProcessed} materials`);
       setTexturesLoaded(true);
+    }).catch((error) => {
+      console.error('Model3DPreview: Error loading textures:', error);
     });
 
     // Cleanup function
