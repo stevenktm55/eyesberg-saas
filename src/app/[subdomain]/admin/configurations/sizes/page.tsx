@@ -30,6 +30,7 @@ export default function SizesConfigPage() {
   const [expandedPatterns, setExpandedPatterns] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [editingPattern, setEditingPattern] = useState<SizePattern | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [newPattern, setNewPattern] = useState<{
     model3dId: string;
     name: string;
@@ -100,6 +101,7 @@ export default function SizesConfigPage() {
         uvType: "UV0",
       });
       setEditingPattern(null);
+      setIsCreating(false);
     } catch (error) {
       console.error("Error creating pattern:", error);
       alert("Erreur lors de la création du groupe de tailles");
@@ -131,6 +133,7 @@ export default function SizesConfigPage() {
       
       await fetchPatterns();
       setEditingPattern(null);
+      setIsCreating(false);
     } catch (error) {
       console.error("Error updating pattern:", error);
       alert("Erreur lors de la mise à jour du groupe de tailles");
@@ -213,7 +216,6 @@ export default function SizesConfigPage() {
     pattern.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isCreating = editingPattern === null && (newPattern.name || newPattern.model3dId);
   const showModal = editingPattern !== null || isCreating;
 
   return (
@@ -267,6 +269,7 @@ export default function SizesConfigPage() {
               uvType: "UV0",
             });
             setEditingPattern(null);
+            setIsCreating(true);
           }}
           style={{
             padding: '12px 24px',
@@ -380,16 +383,11 @@ export default function SizesConfigPage() {
                     </div>
                   </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingPattern(pattern);
-                      setNewPattern({
-                        model3dId: "",
-                        name: "",
-                        description: "",
-                        uvType: "UV0",
-                      });
-                    }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingPattern(pattern);
+                    setIsCreating(false);
+                  }}
                     style={{
                       padding: '8px',
                       backgroundColor: 'transparent',
@@ -583,6 +581,7 @@ export default function SizesConfigPage() {
           }}
           onClick={() => {
             setEditingPattern(null);
+            setIsCreating(false);
             setNewPattern({
               model3dId: "",
               name: "",
