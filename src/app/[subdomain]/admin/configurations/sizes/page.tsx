@@ -46,12 +46,10 @@ export default function SizesConfigPage() {
   const [showAddSizeModal, setShowAddSizeModal] = useState(false);
   const [newSizeData, setNewSizeData] = useState<{
     name: string;
-    fileUV0: File | null;
-    fileUV2: File | null;
+    file: File | null;
   }>({
     name: "",
-    fileUV0: null,
-    fileUV2: null,
+    file: null,
   });
 
   useEffect(() => {
@@ -299,8 +297,7 @@ export default function SizesConfigPage() {
   function openAddSizeModal() {
     setNewSizeData({
       name: "",
-      fileUV0: null,
-      fileUV2: null,
+      file: null,
     });
     setShowAddSizeModal(true);
   }
@@ -1244,8 +1241,7 @@ export default function SizesConfigPage() {
             setShowAddSizeModal(false);
             setNewSizeData({
               name: "",
-              fileUV0: null,
-              fileUV2: null,
+              file: null,
             });
           }}
         >
