@@ -172,7 +172,6 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
             
             if (materialMap && materialMap.material_map_files) {
               const files = materialMap.material_map_files;
-              console.log(`Model3DPreview: Applying material map "${materialMap.name}" to part "${part.name}" with ${files.length} files`);
               
               // Charger les textures
               files.forEach((file) => {

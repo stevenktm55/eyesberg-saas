@@ -207,19 +207,11 @@ export default function ModelsConfigPage() {
     // Si materialMapId est vide, on le traite comme null
     const finalMaterialId = materialMapId && materialMapId.trim() !== '' ? materialMapId : null;
     
-    console.log('selectMaterialMap:', { selectedPartForMaterial, materialMapId, finalMaterialId, materialMapName });
-    
-    setModelParts(prev => {
-      const updated = prev.map(p => 
-        p.name === selectedPartForMaterial 
-          ? { ...p, materialId: finalMaterialId, materialName: materialMapName }
-          : p
-      );
-      const logParts = updated.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
-      console.log('Updated modelParts:', logParts);
-      console.log('Updated modelParts (full):', JSON.stringify(logParts, null, 2));
-      return updated;
-    });
+    setModelParts(prev => prev.map(p => 
+      p.name === selectedPartForMaterial 
+        ? { ...p, materialId: finalMaterialId, materialName: materialMapName }
+        : p
+    ));
     
     setShowMaterialMapSelector(false);
     setSelectedPartForMaterial(null);
