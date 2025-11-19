@@ -840,7 +840,13 @@ export default function MaterialMapsConfigPage() {
                       borderRadius: '8px',
                       padding: '32px',
                       textAlign: 'center',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      minHeight: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8eff36';
@@ -848,26 +854,63 @@ export default function MaterialMapsConfigPage() {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#2a2a2a';
                     }}>
-                      <div style={{
-                        fontSize: '24px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px'
-                      }}>↑</div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: uploadingMapType === 'diffuse' ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {uploadingMapType === 'diffuse' ? 'Upload en cours...' : 'Cliquez pour uploader'}
-                      </div>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#666666',
-                        marginTop: '4px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        PNG, JPG (max 4096x4096)
-                      </div>
+                      {(() => {
+                        const files = (selectedMap as any)?.material_map_files || [];
+                        const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+                        const fileUrl = diffuseFile?.file_url;
+                        
+                        if (uploadingMapType === 'diffuse') {
+                          return (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#8eff36',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Upload en cours...
+                            </div>
+                          );
+                        }
+                        
+                        if (fileUrl) {
+                          return (
+                            <img 
+                              src={fileUrl} 
+                              alt="Diffuse map"
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                borderRadius: '4px',
+                                objectFit: 'contain'
+                              }}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <div style={{
+                              fontSize: '24px',
+                              color: '#a0a0a0',
+                              marginBottom: '8px'
+                            }}>↑</div>
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Cliquez pour uploader
+                            </div>
+                            <div style={{
+                              fontSize: '10px',
+                              color: '#666666',
+                              marginTop: '4px',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              PNG, JPG (max 4096x4096)
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <input
                       id={`diffuse-upload-${selectedMap?.id || 'new'}`}
@@ -1002,7 +1045,13 @@ export default function MaterialMapsConfigPage() {
                       borderRadius: '8px',
                       padding: '32px',
                       textAlign: 'center',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      minHeight: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8eff36';
@@ -1010,26 +1059,63 @@ export default function MaterialMapsConfigPage() {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#2a2a2a';
                     }}>
-                      <div style={{
-                        fontSize: '24px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px'
-                      }}>↑</div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: uploadingMapType === 'normal' ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {uploadingMapType === 'normal' ? 'Upload en cours...' : 'Cliquez pour uploader'}
-                      </div>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#666666',
-                        marginTop: '4px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        PNG, JPG (max 4096x4096)
-                      </div>
+                      {(() => {
+                        const files = (selectedMap as any)?.material_map_files || [];
+                        const normalFile = files.find((f: any) => f.map_type === 'normal');
+                        const fileUrl = normalFile?.file_url;
+                        
+                        if (uploadingMapType === 'normal') {
+                          return (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#8eff36',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Upload en cours...
+                            </div>
+                          );
+                        }
+                        
+                        if (fileUrl) {
+                          return (
+                            <img 
+                              src={fileUrl} 
+                              alt="Normal map"
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                borderRadius: '4px',
+                                objectFit: 'contain'
+                              }}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <div style={{
+                              fontSize: '24px',
+                              color: '#a0a0a0',
+                              marginBottom: '8px'
+                            }}>↑</div>
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Cliquez pour uploader
+                            </div>
+                            <div style={{
+                              fontSize: '10px',
+                              color: '#666666',
+                              marginTop: '4px',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              PNG, JPG (max 4096x4096)
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <input
                       type="file"
@@ -1308,7 +1394,13 @@ export default function MaterialMapsConfigPage() {
                       borderRadius: '8px',
                       padding: '32px',
                       textAlign: 'center',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      minHeight: '120px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8eff36';
@@ -1316,26 +1408,63 @@ export default function MaterialMapsConfigPage() {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#2a2a2a';
                     }}>
-                      <div style={{
-                        fontSize: '24px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px'
-                      }}>↑</div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: uploadingMapType === 'metallic' ? '#8eff36' : '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {uploadingMapType === 'metallic' ? 'Upload en cours...' : 'Cliquez pour uploader'}
-                      </div>
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#666666',
-                        marginTop: '4px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        PNG, JPG (max 4096x4096)
-                      </div>
+                      {(() => {
+                        const files = (selectedMap as any)?.material_map_files || [];
+                        const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+                        const fileUrl = metallicFile?.file_url;
+                        
+                        if (uploadingMapType === 'metallic') {
+                          return (
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#8eff36',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Upload en cours...
+                            </div>
+                          );
+                        }
+                        
+                        if (fileUrl) {
+                          return (
+                            <img 
+                              src={fileUrl} 
+                              alt="Metallic map"
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                borderRadius: '4px',
+                                objectFit: 'contain'
+                              }}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            <div style={{
+                              fontSize: '24px',
+                              color: '#a0a0a0',
+                              marginBottom: '8px'
+                            }}>↑</div>
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Cliquez pour uploader
+                            </div>
+                            <div style={{
+                              fontSize: '10px',
+                              color: '#666666',
+                              marginTop: '4px',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              PNG, JPG (max 4096x4096)
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <input
                       type="file"
