@@ -58,7 +58,6 @@ export default function ModelsConfigPage() {
         materialId: part.material_map_id || null,
         materialName: part.material_maps?.name || "Aucun material",
       })) || [];
-      console.log('Loading model parts from selectedModel:', parts);
       
       // Ne mettre à jour que si les parties sont différentes (éviter d'écraser les changements locaux)
       setModelParts(prev => {
@@ -108,11 +107,6 @@ export default function ModelsConfigPage() {
       if (!res.ok) throw new Error("Failed to fetch material maps");
       const data = await res.json();
       const maps = Array.isArray(data) ? data : [];
-      console.log('Fetched material maps:', maps.map((m: any) => ({ 
-        id: m.id, 
-        name: m.name, 
-        filesCount: m.material_map_files?.length || 0 
-      })));
       setMaterialMaps(maps);
     } catch (error) {
       console.error("Error fetching material maps:", error);
@@ -755,24 +749,13 @@ export default function ModelsConfigPage() {
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
-                      {(() => {
-                        const partsLog = modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
-                        console.log('Rendering Model3DPreview with:', {
-                          url: (selectedModel as any).glb_url || (selectedModel as any).glbUrl,
-                          modelParts: partsLog,
-                          materialMapsCount: materialMaps.length
-                        });
-                        console.log('Rendering Model3DPreview - Full modelParts:', JSON.stringify(partsLog, null, 2));
-                        return (
-                          <Model3DPreview 
-                            url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
-                            modelParts={modelParts}
-                            materialMaps={materialMaps}
-                            style={{ width: '100%', height: '100%' }}
-                            key={`preview-${modelParts.map(p => `${p.name}-${p.materialId || 'none'}`).join('-')}`}
-                          />
-                        );
-                      })()}
+                      <Model3DPreview 
+                        url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
+                        modelParts={modelParts}
+                        materialMaps={materialMaps}
+                        style={{ width: '100%', height: '100%' }}
+                        key={`preview-${modelParts.map(p => `${p.name}-${p.materialId || 'none'}`).join('-')}`}
+                      />
                     </div>
                     <button
                       style={{

@@ -58,23 +58,7 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
 
   // Appliquer les material maps aux matériaux du modèle
   useEffect(() => {
-    if (!modelParts || !materialMaps || !clonedScene) {
-      console.log('Model3DPreview: Missing dependencies', { 
-        hasModelParts: !!modelParts, 
-        hasMaterialMaps: !!materialMaps, 
-        hasClonedScene: !!clonedScene 
-      });
-      return;
-    }
-
-    const partsLog = modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
-    console.log('Model3DPreview: Applying material maps', { 
-      partsCount: modelParts.length, 
-      mapsCount: materialMaps.length,
-      parts: partsLog,
-      materialMaps: materialMaps.map(m => ({ id: m.id, name: m.name, filesCount: m.material_map_files?.length || 0 }))
-    });
-    console.log('Model3DPreview: Full parts array:', JSON.stringify(partsLog, null, 2));
+    if (!modelParts || !materialMaps || !clonedScene) return;
 
     const loader = new THREE.TextureLoader();
     const texturePromises: Promise<void>[] = [];
@@ -182,12 +166,6 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
             }
           }
           
-          // Debug log pour voir les correspondances
-          if (part) {
-            console.log(`Model3DPreview: Matched part "${part.name}" (materialId: ${part.materialId}, materialName: ${part.materialName}) with material "${materialName}" or object "${objectName}"`);
-          } else {
-            console.log(`Model3DPreview: No match found for material "${materialName}" or object "${objectName}"`);
-          }
 
           if (part && part.materialId) {
             const materialMap = materialMaps.find(m => m.id === part.materialId);
@@ -211,27 +189,22 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
                         texture.colorSpace = THREE.SRGBColorSpace;
                         material.map = texture;
                         material.needsUpdate = true;
-                        console.log(`Model3DPreview: Applied diffuse map to material "${materialName}"`);
                       } else if (file.map_type === 'normal') {
                         material.normalMap = texture;
                         material.normalScale = new THREE.Vector2(file.intensity / 100, file.intensity / 100);
                         material.needsUpdate = true;
-                        console.log(`Model3DPreview: Applied normal map to material "${materialName}"`);
                       } else if (file.map_type === 'roughness') {
                         material.roughnessMap = texture;
                         material.roughness = file.intensity / 100;
                         material.needsUpdate = true;
-                        console.log(`Model3DPreview: Applied roughness map to material "${materialName}"`);
                       } else if (file.map_type === 'metallic') {
                         material.metalnessMap = texture;
                         material.metalness = file.intensity / 100;
                         material.needsUpdate = true;
-                        console.log(`Model3DPreview: Applied metallic map to material "${materialName}"`);
                       } else if (file.map_type === 'ao') {
                         material.aoMap = texture;
                         material.aoMapIntensity = file.intensity / 100;
                         material.needsUpdate = true;
-                        console.log(`Model3DPreview: Applied AO map to material "${materialName}"`);
                       }
                       materialsProcessed++;
                       resolve();
