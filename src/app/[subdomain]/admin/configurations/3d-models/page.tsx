@@ -730,13 +730,22 @@ export default function ModelsConfigPage() {
                       position: 'relative',
                       overflow: 'hidden'
                     }}>
-                      <Model3DPreview 
-                        url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
-                        modelParts={modelParts}
-                        materialMaps={materialMaps}
-                        style={{ width: '100%', height: '100%' }}
-                        key={`preview-${modelParts.map(p => `${p.name}-${p.materialId || 'none'}`).join('-')}`}
-                      />
+                      {(() => {
+                        console.log('Rendering Model3DPreview with:', {
+                          url: (selectedModel as any).glb_url || (selectedModel as any).glbUrl,
+                          modelParts: modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })),
+                          materialMapsCount: materialMaps.length
+                        });
+                        return (
+                          <Model3DPreview 
+                            url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
+                            modelParts={modelParts}
+                            materialMaps={materialMaps}
+                            style={{ width: '100%', height: '100%' }}
+                            key={`preview-${modelParts.map(p => `${p.name}-${p.materialId || 'none'}`).join('-')}`}
+                          />
+                        );
+                      })()}
                     </div>
                     <button
                       style={{

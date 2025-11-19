@@ -59,14 +59,19 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
   // Appliquer les material maps aux matériaux du modèle
   useEffect(() => {
     if (!modelParts || !materialMaps || !clonedScene) {
-      console.log('Model3DPreview: Missing dependencies', { modelParts, materialMaps, clonedScene });
+      console.log('Model3DPreview: Missing dependencies', { 
+        hasModelParts: !!modelParts, 
+        hasMaterialMaps: !!materialMaps, 
+        hasClonedScene: !!clonedScene 
+      });
       return;
     }
 
     console.log('Model3DPreview: Applying material maps', { 
       partsCount: modelParts.length, 
       mapsCount: materialMaps.length,
-      parts: modelParts.map(p => ({ name: p.name, materialId: p.materialId }))
+      parts: modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })),
+      materialMaps: materialMaps.map(m => ({ id: m.id, name: m.name, filesCount: m.material_map_files?.length || 0 }))
     });
 
     const loader = new THREE.TextureLoader();
