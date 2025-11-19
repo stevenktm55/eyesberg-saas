@@ -154,15 +154,17 @@ export default function MaterialMapsConfigPage() {
   }
 
   async function handleFileUpload(mapType: keyof MapSettings, file: File) {
-    console.log('handleFileUpload called:', mapType, file.name);
+    console.log('handleFileUpload called:', mapType, file.name, 'selectedMap:', selectedMap?.id);
     if (!selectedMap) {
       console.error('No selected map');
+      alert('Aucun material map sélectionné');
       return;
     }
 
     console.log('Setting uploadingMapType to:', mapType);
     setUploadingMapType(mapType);
     setLoading(true);
+    console.log('State updated, uploadingMapType should be:', mapType);
     try {
       const formData = new FormData();
       formData.append('materialMapId', selectedMap.id);
