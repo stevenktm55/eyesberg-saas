@@ -51,6 +51,7 @@ export default function ModelsConfigPage() {
   useEffect(() => {
     if (selectedModel && !isCreating) {
       // Extract model parts from the model data
+      // Ne charger que si modelParts est vide ou si le modèle a changé
       const parts: ModelPart[] = (selectedModel as any).model_parts?.map((part: any) => ({
         id: part.id,
         name: part.name,
@@ -58,7 +59,29 @@ export default function ModelsConfigPage() {
         materialName: part.material_maps?.name || "Aucun material",
       })) || [];
       console.log('Loading model parts from selectedModel:', parts);
-      setModelParts(parts);
+      
+      // Ne mettre à jour que si les parties sont différentes (éviter d'écraser les changements locaux)
+      setModelParts(prev => {
+        // Si prev est vide ou si le nombre de parties a changé, on met à jour
+        if (prev.length === 0 || prev.length !== parts.length) {
+          return parts;
+        }
+        // Sinon, on garde les parties existantes avec leurs materialId locaux
+        // mais on met à jour les IDs et noms si nécessaire
+        return prev.map(p => {
+          const dbPart = parts.find(db => db.name === p.name);
+          if (dbPart) {
+            // Garder le materialId local s'il existe, sinon utiliser celui de la DB
+            return {
+              ...p,
+              id: dbPart.id,
+              materialId: p.materialId !== null ? p.materialId : dbPart.materialId,
+              materialName: p.materialId !== null ? p.materialName : dbPart.materialName,
+            };
+          }
+          return p;
+        });
+      });
     } else if (isCreating) {
       // Reset for new model
       setModelParts([]);
