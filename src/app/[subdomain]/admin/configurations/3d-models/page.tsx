@@ -221,7 +221,9 @@ export default function ModelsConfigPage() {
           ? { ...p, materialId: finalMaterialId, materialName: materialMapName }
           : p
       );
-      console.log('Updated modelParts:', updated.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })));
+      const logParts = updated.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
+      console.log('Updated modelParts:', logParts);
+      console.log('Updated modelParts (full):', JSON.stringify(logParts, null, 2));
       return updated;
     });
     
@@ -754,11 +756,13 @@ export default function ModelsConfigPage() {
                       overflow: 'hidden'
                     }}>
                       {(() => {
+                        const partsLog = modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
                         console.log('Rendering Model3DPreview with:', {
                           url: (selectedModel as any).glb_url || (selectedModel as any).glbUrl,
-                          modelParts: modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })),
+                          modelParts: partsLog,
                           materialMapsCount: materialMaps.length
                         });
+                        console.log('Rendering Model3DPreview - Full modelParts:', JSON.stringify(partsLog, null, 2));
                         return (
                           <Model3DPreview 
                             url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 

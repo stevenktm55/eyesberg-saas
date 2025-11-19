@@ -67,12 +67,14 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
       return;
     }
 
+    const partsLog = modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName }));
     console.log('Model3DPreview: Applying material maps', { 
       partsCount: modelParts.length, 
       mapsCount: materialMaps.length,
-      parts: modelParts.map(p => ({ name: p.name, materialId: p.materialId, materialName: p.materialName })),
+      parts: partsLog,
       materialMaps: materialMaps.map(m => ({ id: m.id, name: m.name, filesCount: m.material_map_files?.length || 0 }))
     });
+    console.log('Model3DPreview: Full parts array:', JSON.stringify(partsLog, null, 2));
 
     const loader = new THREE.TextureLoader();
     const texturePromises: Promise<void>[] = [];
@@ -159,7 +161,7 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
           
           // Debug log pour voir les correspondances
           if (part) {
-            console.log(`Model3DPreview: Matched part "${part.name}" (materialId: ${part.materialId}) with material "${materialName}" or object "${objectName}"`);
+            console.log(`Model3DPreview: Matched part "${part.name}" (materialId: ${part.materialId}, materialName: ${part.materialName}) with material "${materialName}" or object "${objectName}"`);
           } else {
             console.log(`Model3DPreview: No match found for material "${materialName}" or object "${objectName}"`);
           }
