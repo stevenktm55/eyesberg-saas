@@ -1,14 +1,119 @@
 -- =====================================================
--- EYESBERG SAAS - SUPABASE SCHEMA
+-- EYESBERG SAAS - SUPABASE SCHEMA COMPLET
 -- =====================================================
 -- Nouveau projet Supabase dédié pour eyesberg-saas
+-- Inclut toutes les tables nécessaires : auth, shops, products, models, etc.
 -- =====================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- =====================================================
--- 1. MATERIAL_MAPS - Material Maps (créé en premier car référencé)
+-- 1. ACCOUNTS - Comptes avec sous-domaines personnalisés
+-- =====================================================
+CREATE TABLE IF NOT EXISTS accounts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subdomain TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT,
+  email_verified BOOLEAN DEFAULT FALSE,
+  email_verification_token TEXT,
+  email_verified_at TIMESTAMPTZ,
+  password_reset_token TEXT,
+  password_reset_expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_accounts_subdomain ON accounts(subdomain);
+CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email);
+
+-- =====================================================
+-- 2. SESSIONS - Sessions utilisateur
+-- =====================================================
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  session_token TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_account_id ON sessions(account_id);
+
+-- =====================================================
+-- 3. SHOPS - Boutiques Shopify connectées
+-- =====================================================
+CREATE TABLE IF NOT EXISTS shops (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  subdomain TEXT,
+  shop_domain TEXT UNIQUE NOT NULL,
+  shop_gid TEXT UNIQUE,
+  access_token TEXT,
+  scopes TEXT,
+  installed_at TIMESTAMPTZ,
+  shop_name TEXT,
+  shop_email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_shops_domain ON shops(shop_domain);
+CREATE INDEX IF NOT EXISTS idx_shops_account_id ON shops(account_id);
+CREATE INDEX IF NOT EXISTS idx_shops_subdomain ON shops(subdomain);
+
+-- =====================================================
+-- 4. SHOPIFY_PRODUCTS - Produits Shopify synchronisés
+-- =====================================================
+CREATE TABLE IF NOT EXISTS shopify_products (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  shop_id UUID REFERENCES shops(id) ON DELETE CASCADE,
+  shopify_product_id TEXT NOT NULL,
+  shopify_product_title TEXT NOT NULL,
+  shopify_product_handle TEXT,
+  shopify_product_image_url TEXT,
+  shopify_product_status TEXT DEFAULT 'active',
+  shopify_variants JSONB,
+  model_id TEXT,
+  design_ids TEXT[],
+  enabled_for_configurator BOOLEAN DEFAULT false,
+  synced_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT shopify_products_shop_product_unique UNIQUE(shop_id, shopify_product_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shopify_products_shop_id ON shopify_products(shop_id);
+CREATE INDEX IF NOT EXISTS idx_shopify_products_product_id ON shopify_products(shopify_product_id);
+CREATE INDEX IF NOT EXISTS idx_shopify_products_status ON shopify_products(shopify_product_status);
+
+-- =====================================================
+-- 5. SHOPIFY_PRODUCT_CONFIGS - Configurations des produits
+-- =====================================================
+CREATE TABLE IF NOT EXISTS shopify_product_configs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  shopify_product_id UUID NOT NULL REFERENCES shopify_products(id) ON DELETE CASCADE,
+  product_name TEXT,
+  model_url TEXT,
+  questions JSONB DEFAULT '[]'::jsonb,
+  layers JSONB DEFAULT '[]'::jsonb,
+  base_price DECIMAL(10,2),
+  pricing_config JSONB DEFAULT '{}'::jsonb,
+  is_published BOOLEAN DEFAULT false,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT shopify_product_configs_product_unique UNIQUE(shopify_product_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shopify_product_configs_product_id ON shopify_product_configs(shopify_product_id);
+CREATE INDEX IF NOT EXISTS idx_shopify_product_configs_published ON shopify_product_configs(is_published);
+
+-- =====================================================
+-- 6. MATERIAL_MAPS - Material Maps (créé avant models_3d car référencé)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS material_maps (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -21,7 +126,7 @@ CREATE TABLE IF NOT EXISTS material_maps (
 );
 
 -- =====================================================
--- 2. MODELS_3D - Modèles 3D
+-- 7. MODELS_3D - Modèles 3D
 -- =====================================================
 CREATE TABLE IF NOT EXISTS models_3d (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -36,7 +141,7 @@ CREATE TABLE IF NOT EXISTS models_3d (
 );
 
 -- =====================================================
--- 3. MODEL_PARTS - Parties des modèles 3D
+-- 8. MODEL_PARTS - Parties des modèles 3D
 -- =====================================================
 CREATE TABLE IF NOT EXISTS model_parts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -49,7 +154,7 @@ CREATE TABLE IF NOT EXISTS model_parts (
 );
 
 -- =====================================================
--- 4. MATERIAL_MAP_FILES - Fichiers des Material Maps
+-- 9. MATERIAL_MAP_FILES - Fichiers des Material Maps
 -- =====================================================
 CREATE TABLE IF NOT EXISTS material_map_files (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -64,7 +169,7 @@ CREATE TABLE IF NOT EXISTS material_map_files (
 );
 
 -- =====================================================
--- 5. SIZE_PATTERNS - Patrons multi-tailles
+-- 10. SIZE_PATTERNS - Patrons multi-tailles
 -- =====================================================
 CREATE TABLE IF NOT EXISTS size_patterns (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -79,7 +184,7 @@ CREATE TABLE IF NOT EXISTS size_patterns (
 );
 
 -- =====================================================
--- 6. SIZE_PATTERN_FILES - Fichiers SVG par taille
+-- 11. SIZE_PATTERN_FILES - Fichiers SVG par taille
 -- =====================================================
 CREATE TABLE IF NOT EXISTS size_pattern_files (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -93,7 +198,7 @@ CREATE TABLE IF NOT EXISTS size_pattern_files (
 );
 
 -- =====================================================
--- 7. DESIGNS_2D - Designs 2D
+-- 12. DESIGNS_2D - Designs 2D
 -- =====================================================
 CREATE TABLE IF NOT EXISTS designs_2d (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -120,6 +225,33 @@ CREATE INDEX IF NOT EXISTS idx_material_maps_subdomain ON material_maps(subdomai
 CREATE INDEX IF NOT EXISTS idx_models_3d_subdomain ON models_3d(subdomain);
 CREATE INDEX IF NOT EXISTS idx_size_patterns_subdomain ON size_patterns(subdomain);
 CREATE INDEX IF NOT EXISTS idx_designs_2d_subdomain ON designs_2d(subdomain);
+
+-- =====================================================
+-- 13. CONFIGURATIONS - Configurations clients sauvegardées
+-- =====================================================
+CREATE TABLE IF NOT EXISTS configurations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+  subdomain TEXT,
+  product_id UUID,
+  model_id UUID,
+  customer_email TEXT,
+  customer_name TEXT,
+  config_data JSONB NOT NULL,
+  preview_image_url TEXT,
+  shopify_cart_token TEXT,
+  shopify_order_id TEXT,
+  status TEXT DEFAULT 'draft',
+  share_token TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_configurations_account_id ON configurations(account_id);
+CREATE INDEX IF NOT EXISTS idx_configurations_subdomain ON configurations(subdomain);
+CREATE INDEX IF NOT EXISTS idx_configurations_customer_email ON configurations(customer_email);
+CREATE INDEX IF NOT EXISTS idx_configurations_status ON configurations(status);
+CREATE INDEX IF NOT EXISTS idx_configurations_share_token ON configurations(share_token);
 
 -- =====================================================
 -- TRIGGERS - Updated_at
@@ -151,6 +283,21 @@ CREATE TRIGGER update_size_pattern_files_updated_at BEFORE UPDATE ON size_patter
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_designs_2d_updated_at BEFORE UPDATE ON designs_2d
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_shops_updated_at BEFORE UPDATE ON shops
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_shopify_products_updated_at BEFORE UPDATE ON shopify_products
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_shopify_product_configs_updated_at BEFORE UPDATE ON shopify_product_configs
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_configurations_updated_at BEFORE UPDATE ON configurations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =====================================================

@@ -20,6 +20,35 @@ Ce guide vous explique comment créer un nouveau projet Supabase dédié pour ey
 3. Copiez-collez le contenu du fichier `supabase-schema-eyesberg.sql`
 4. Cliquez sur **"Run"** pour exécuter le script
 
+### 📊 Tables créées
+
+Le schéma inclut **toutes les tables nécessaires** pour le SaaS :
+
+**Authentification & Multi-tenancy :**
+- `accounts` - Comptes avec sous-domaines personnalisés
+- `sessions` - Sessions utilisateur (cookies HTTP-only)
+- `shops` - Boutiques Shopify connectées
+
+**Shopify Integration :**
+- `shopify_products` - Produits Shopify synchronisés
+- `shopify_product_configs` - Configurations des produits
+
+**3D & Materials :**
+- `material_maps` - Material Maps
+- `material_map_files` - Fichiers de textures
+- `models_3d` - Modèles 3D
+- `model_parts` - Parties des modèles 3D
+
+**Patterns & Designs :**
+- `size_patterns` - Patrons multi-tailles
+- `size_pattern_files` - Fichiers SVG par taille
+- `designs_2d` - Designs 2D
+
+**Configurations :**
+- `configurations` - Configurations clients sauvegardées
+
+**Toutes les tables sont isolées par sous-domaine** pour la sécurité multi-tenant.
+
 ## 📋 Étape 3 : Créer les Storage Buckets
 
 1. Allez dans **Storage** (menu de gauche)
