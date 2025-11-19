@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const patternId = formData.get('patternId') as string;
     const size = formData.get('size') as string;
+    const uvType = (formData.get('uvType') as string) || 'UV0';
     
     if (!file || !patternId || !size) {
       return NextResponse.json(
@@ -34,10 +35,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier que le pattern appartient au sous-domaine
+    // Vérifier que le pattern appartient au sous-domaine et récupérer ses infos
     const { data: pattern, error: patternError } = await supabaseAdmin
       .from('size_patterns')
-      .select('id')
+      .select('id, name, model_3d_id, uv_type')
       .eq('id', patternId)
       .eq('subdomain', subdomain)
       .single();
@@ -49,6 +50,44 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Si le pattern n'est pas du bon type UV, trouver ou créer le pattern correspondant
+    let targetPatternId = patternId;
+    if (pattern.uv_type !== uvType) {
+      // Chercher le pattern de l'autre type UV avec le même nom et modèle
+      const { data: matchingPattern } = await supabaseAdmin
+        .from('size_patterns')
+        .select('id')
+        .eq('name', pattern.name)
+        .eq('model_3d_id', pattern.model_3d_id)
+        .eq('uv_type', uvType)
+        .eq('subdomain', subdomain)
+        .single();
+      
+      if (matchingPattern) {
+        targetPatternId = matchingPattern.id;
+      } else {
+        // Créer le pattern pour l'autre type UV
+        const { data: newPattern, error: createError } = await supabaseAdmin
+          .from('size_patterns')
+          .insert({
+            subdomain,
+            model_3d_id: pattern.model_3d_id,
+            name: pattern.name,
+            uv_type: uvType,
+          })
+          .select('id')
+          .single();
+        
+        if (createError || !newPattern) {
+          return NextResponse.json(
+            { error: 'Failed to create pattern for UV type' },
+            { status: 500 }
+          );
+        }
+        targetPatternId = newPattern.id;
+      }
+    }
+    
     // Vérifier que c'est un fichier SVG
     if (!file.name.endsWith('.svg') && file.type !== 'image/svg+xml') {
       return NextResponse.json(
@@ -58,14 +97,14 @@ export async function POST(request: NextRequest) {
     }
     
     // Upload vers Supabase Storage
-    const fileName = `${patternId}-${size}-${Date.now()}.svg`;
+    const fileName = `${targetPatternId}-${size}-${uvType}-${Date.now()}.svg`;
     const svgUrl = await uploadFile('size-patterns', fileName, file);
     
     // Sauvegarder ou mettre à jour le fichier dans la base de données
     const { data: existingFile } = await supabaseAdmin
       .from('size_pattern_files')
       .select('id')
-      .eq('pattern_id', patternId)
+      .eq('pattern_id', targetPatternId)
       .eq('size_name', size)
       .single();
     
@@ -87,7 +126,7 @@ export async function POST(request: NextRequest) {
       const { error: insertError } = await supabaseAdmin
         .from('size_pattern_files')
         .insert({
-          pattern_id: patternId,
+          pattern_id: targetPatternId,
           size_name: size,
           svg_url: svgUrl,
         });

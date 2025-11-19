@@ -6,11 +6,12 @@ type SizePattern = {
   id: string;
   name: string;
   model3dId: string;
-  uvType: "UV0" | "UV2";
   description?: string;
+  sizes: string[]; // Liste des tailles personnalisées
   files: Array<{
     id: string;
     size: string;
+    uvType: "UV0" | "UV2";
     svgUrl: string;
     metadata?: any;
   }>;
@@ -20,8 +21,6 @@ type Model3D = {
   id: string;
   name: string;
 };
-
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export default function SizesConfigPage() {
   const [patterns, setPatterns] = useState<SizePattern[]>([]);
@@ -35,12 +34,12 @@ export default function SizesConfigPage() {
     model3dId: string;
     name: string;
     description: string;
-    uvType: "UV0" | "UV2";
+    sizes: string[];
   }>({
     model3dId: "",
     name: "",
     description: "",
-    uvType: "UV0",
+    sizes: [],
   });
   const [uploadingSize, setUploadingSize] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -66,7 +65,49 @@ export default function SizesConfigPage() {
       const res = await fetch("/api/size-patterns");
       if (!res.ok) throw new Error("Failed to fetch patterns");
       const data = await res.json();
-      setPatterns(Array.isArray(data) ? data : []);
+      // Regrouper les patterns UV0 et UV2 par nom et modèle
+      const patternsMap = new Map<string, SizePattern>();
+      
+      (Array.isArray(data) ? data : []).forEach((pattern: any) => {
+        const key = `${pattern.name}-${pattern.model3dId}`;
+        if (!patternsMap.has(key)) {
+          // Créer un nouveau pattern groupé
+          const sizesSet = new Set<string>();
+          pattern.files?.forEach((f: any) => {
+            sizesSet.add(f.size_name || f.size);
+          });
+          patternsMap.set(key, {
+            id: pattern.id, // Utiliser l'ID du pattern UV0 comme ID principal
+            name: pattern.name,
+            model3dId: pattern.model3dId,
+            description: pattern.description,
+            sizes: Array.from(sizesSet).sort(),
+            files: pattern.files?.map((f: any) => ({
+              id: f.id,
+              size: f.size_name || f.size,
+              uvType: pattern.uv_type || pattern.uvType || "UV0",
+              svgUrl: f.svg_url || f.svgUrl,
+              metadata: f.metadata,
+            })) || [],
+          });
+        } else {
+          // Fusionner avec le pattern existant
+          const existing = patternsMap.get(key)!;
+          pattern.files?.forEach((f: any) => {
+            existing.sizes.push(f.size_name || f.size);
+            existing.files.push({
+              id: f.id,
+              size: f.size_name || f.size,
+              uvType: pattern.uv_type || pattern.uvType || "UV0",
+              svgUrl: f.svg_url || f.svgUrl,
+              metadata: f.metadata,
+            });
+          });
+          existing.sizes = Array.from(new Set(existing.sizes)).sort();
+        }
+      });
+      
+      setPatterns(Array.from(patternsMap.values()));
     } catch (error) {
       console.error("Error fetching patterns:", error);
     }
@@ -78,8 +119,14 @@ export default function SizesConfigPage() {
       return;
     }
 
+    if (newPattern.sizes.length === 0) {
+      alert("Veuillez ajouter au moins une taille");
+      return;
+    }
+
     setLoading(true);
     try {
+      // Créer le pattern pour UV0 (les deux types UV partagent le même pattern)
       const res = await fetch("/api/size-patterns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -87,18 +134,31 @@ export default function SizesConfigPage() {
           model3dId: newPattern.model3dId,
           name: newPattern.name,
           description: newPattern.description,
-          uvType: newPattern.uvType,
+          uvType: "UV0", // Par défaut, on crée pour UV0
         }),
       });
 
       if (!res.ok) throw new Error("Failed to create pattern");
+      const patternData = await res.json();
+      
+      // Créer aussi le pattern pour UV2 avec le même nom et description
+      await fetch("/api/size-patterns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model3dId: newPattern.model3dId,
+          name: newPattern.name,
+          description: newPattern.description,
+          uvType: "UV2",
+        }),
+      });
       
       await fetchPatterns();
       setNewPattern({
         model3dId: "",
         name: "",
         description: "",
-        uvType: "UV0",
+        sizes: [],
       });
       setEditingPattern(null);
       setIsCreating(false);
@@ -118,18 +178,30 @@ export default function SizesConfigPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/size-patterns", {
+      // Mettre à jour les deux patterns (UV0 et UV2)
+      const res0 = await fetch("/api/size-patterns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model3dId: editingPattern.model3dId,
           name: editingPattern.name,
           description: editingPattern.description || "",
-          uvType: editingPattern.uvType,
+          uvType: "UV0",
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to update pattern");
+      const res2 = await fetch("/api/size-patterns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model3dId: editingPattern.model3dId,
+          name: editingPattern.name,
+          description: editingPattern.description || "",
+          uvType: "UV2",
+        }),
+      });
+
+      if (!res0.ok || !res2.ok) throw new Error("Failed to update pattern");
       
       await fetchPatterns();
       setEditingPattern(null);
@@ -147,11 +219,22 @@ export default function SizesConfigPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/size-patterns?id=${encodeURIComponent(patternId)}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Failed to delete pattern");
+      // Supprimer les deux patterns (UV0 et UV2)
+      // On récupère d'abord le pattern pour trouver l'autre
+      const pattern = patterns.find(p => p.id === patternId);
+      if (pattern) {
+        // Récupérer tous les patterns avec le même nom et modèle pour supprimer UV0 et UV2
+        const patternsToDelete = patterns.filter(p => 
+          p.name === pattern.name && p.model3dId === pattern.model3dId
+        );
+        
+        for (const p of patternsToDelete) {
+          const res = await fetch(`/api/size-patterns?id=${encodeURIComponent(p.id)}`, {
+            method: "DELETE",
+          });
+          if (!res.ok) throw new Error("Failed to delete pattern");
+        }
+      }
       
       await fetchPatterns();
     } catch (error) {
@@ -162,13 +245,14 @@ export default function SizesConfigPage() {
     }
   }
 
-  async function uploadFile(patternId: string, size: string, file: File) {
-    setUploadingSize(size);
+  async function uploadFile(patternId: string, size: string, uvType: "UV0" | "UV2", file: File) {
+    setUploadingSize(`${size}-${uvType}`);
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("patternId", patternId);
       formData.append("size", size);
+      formData.append("uvType", uvType);
 
       const res = await fetch("/api/size-patterns/upload-file", {
         method: "POST",
@@ -199,6 +283,41 @@ export default function SizesConfigPage() {
       alert("Erreur lors de la suppression");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function addSize() {
+    const sizeName = prompt("Nom de la taille (ex: XS, S, M, L, XL, XXL, ou un nom personnalisé):");
+    if (sizeName && sizeName.trim()) {
+      if (editingPattern) {
+        if (!editingPattern.sizes.includes(sizeName.trim())) {
+          setEditingPattern({
+            ...editingPattern,
+            sizes: [...editingPattern.sizes, sizeName.trim()].sort(),
+          });
+        }
+      } else {
+        if (!newPattern.sizes.includes(sizeName.trim())) {
+          setNewPattern({
+            ...newPattern,
+            sizes: [...newPattern.sizes, sizeName.trim()].sort(),
+          });
+        }
+      }
+    }
+  }
+
+  function removeSize(size: string) {
+    if (editingPattern) {
+      setEditingPattern({
+        ...editingPattern,
+        sizes: editingPattern.sizes.filter(s => s !== size),
+      });
+    } else {
+      setNewPattern({
+        ...newPattern,
+        sizes: newPattern.sizes.filter(s => s !== size),
+      });
     }
   }
 
@@ -266,7 +385,7 @@ export default function SizesConfigPage() {
               model3dId: "",
               name: "",
               description: "",
-              uvType: "UV0",
+              sizes: [],
             });
             setEditingPattern(null);
             setIsCreating(true);
@@ -378,7 +497,7 @@ export default function SizesConfigPage() {
                         color: '#a0a0a0',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        {fileCount} taille{fileCount > 1 ? 's' : ''} • {model?.name || 'Modèle inconnu'} • {pattern.uvType}
+                        {pattern.sizes.length} taille{pattern.sizes.length > 1 ? 's' : ''} • {model?.name || 'Modèle inconnu'}
                       </p>
                     </div>
                   </div>
@@ -415,6 +534,35 @@ export default function SizesConfigPage() {
                     padding: '16px',
                     backgroundColor: '#0a0a0a'
                   }}>
+                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={addSize}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#2a2a2a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--stepn-font-body)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#3a3a3a';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#2a2a2a';
+                        }}
+                      >
+                        <span>+</span>
+                        Ajouter une taille
+                      </button>
+                    </div>
                     <table style={{
                       width: '100%',
                       borderCollapse: 'collapse',
@@ -436,7 +584,14 @@ export default function SizesConfigPage() {
                             color: '#a0a0a0',
                             fontWeight: '500',
                             fontSize: '12px'
-                          }}>Fichier SVG</th>
+                          }}>UV0 (Designs)</th>
+                          <th style={{
+                            textAlign: 'left',
+                            padding: '12px',
+                            color: '#a0a0a0',
+                            fontWeight: '500',
+                            fontSize: '12px'
+                          }}>UV2 (Logos)</th>
                           <th style={{
                             textAlign: 'left',
                             padding: '12px',
@@ -447,88 +602,216 @@ export default function SizesConfigPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {SIZES.map((size) => {
-                          const file = pattern.files.find((f) => f.size === size);
-                          const fileKey = `${pattern.id}-${size}`;
-                          const isUploading = uploadingSize === size;
+                        {pattern.sizes.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#a0a0a0' }}>
+                              Aucune taille. Ajoutez des tailles dans le modal d'édition.
+                            </td>
+                          </tr>
+                        ) : (
+                          pattern.sizes.map((size) => {
+                            const fileUV0 = pattern.files.find((f) => f.size === size && f.uvType === "UV0");
+                            const fileUV2 = pattern.files.find((f) => f.size === size && f.uvType === "UV2");
+                            const fileKeyUV0 = `${pattern.id}-${size}-UV0`;
+                            const fileKeyUV2 = `${pattern.id}-${size}-UV2`;
+                            const isUploadingUV0 = uploadingSize === `${size}-UV0`;
+                            const isUploadingUV2 = uploadingSize === `${size}-UV2`;
 
-                          return (
-                            <tr key={size} style={{ borderBottom: '1px solid #1a1a1a' }}>
-                              <td style={{ padding: '12px', color: '#ffffff', fontWeight: '500' }}>{size}</td>
-                              <td style={{ padding: '12px' }}>
-                                {file ? (
-                                  <a
-                                    href={file.svgUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                      color: '#8eff36',
-                                      textDecoration: 'none',
-                                      fontSize: '12px'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.textDecoration = 'underline';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.textDecoration = 'none';
-                                    }}
-                                  >
-                                    Voir fichier SVG
-                                  </a>
-                                ) : (
-                                  <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
-                                )}
-                              </td>
-                              <td style={{ padding: '12px' }}>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <input
-                                    ref={(el) => {
-                                      fileInputRefs.current[fileKey] = el;
-                                    }}
-                                    type="file"
-                                    accept=".svg"
-                                    style={{ display: 'none' }}
-                                    onChange={(e) => {
-                                      const selectedFile = e.target.files?.[0];
-                                      if (selectedFile) {
-                                        uploadFile(pattern.id, size, selectedFile);
-                                      }
-                                    }}
-                                  />
-                                  <button
-                                    onClick={() => {
-                                      fileInputRefs.current[fileKey]?.click();
-                                    }}
-                                    disabled={isUploading}
-                                    style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: isUploading ? '#3a3a3a' : '#2a2a2a',
-                                      border: '1px solid #2a2a2a',
-                                      borderRadius: '4px',
-                                      color: isUploading ? '#8eff36' : '#ffffff',
-                                      fontSize: '12px',
-                                      cursor: isUploading ? 'not-allowed' : 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '6px',
-                                      transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!isUploading) {
-                                        e.currentTarget.style.backgroundColor = '#3a3a3a';
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!isUploading) {
-                                        e.currentTarget.style.backgroundColor = '#2a2a2a';
-                                      }
-                                    }}
-                                  >
-                                    {isUploading ? 'Upload...' : file ? 'Remplacer' : 'Upload'}
-                                  </button>
-                                  {file && (
+                            return (
+                              <tr key={size} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                                <td style={{ padding: '12px', color: '#ffffff', fontWeight: '500' }}>{size}</td>
+                                
+                                {/* UV0 Column */}
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexDirection: 'column' }}>
+                                    {fileUV0 ? (
+                                      <a
+                                        href={fileUV0.svgUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          color: '#8eff36',
+                                          textDecoration: 'none',
+                                          fontSize: '12px'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.textDecoration = 'underline';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.textDecoration = 'none';
+                                        }}
+                                      >
+                                        Voir SVG
+                                      </a>
+                                    ) : (
+                                      <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
+                                    )}
+                                    <input
+                                      ref={(el) => {
+                                        fileInputRefs.current[fileKeyUV0] = el;
+                                      }}
+                                      type="file"
+                                      accept=".svg"
+                                      style={{ display: 'none' }}
+                                      onChange={(e) => {
+                                        const selectedFile = e.target.files?.[0];
+                                        if (selectedFile) {
+                                          uploadFile(pattern.id, size, "UV0", selectedFile);
+                                        }
+                                      }}
+                                    />
                                     <button
-                                      onClick={() => deleteFile(pattern.id, file.id)}
+                                      onClick={() => {
+                                        fileInputRefs.current[fileKeyUV0]?.click();
+                                      }}
+                                      disabled={isUploadingUV0}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: isUploadingUV0 ? '#3a3a3a' : '#2a2a2a',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        color: isUploadingUV0 ? '#8eff36' : '#ffffff',
+                                        fontSize: '12px',
+                                        cursor: isUploadingUV0 ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isUploadingUV0) {
+                                          e.currentTarget.style.backgroundColor = '#3a3a3a';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (!isUploadingUV0) {
+                                          e.currentTarget.style.backgroundColor = '#2a2a2a';
+                                        }
+                                      }}
+                                    >
+                                      {isUploadingUV0 ? 'Upload...' : fileUV0 ? 'Remplacer' : 'Upload'}
+                                    </button>
+                                  </div>
+                                </td>
+                                
+                                {/* UV2 Column */}
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexDirection: 'column' }}>
+                                    {fileUV2 ? (
+                                      <a
+                                        href={fileUV2.svgUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          color: '#8eff36',
+                                          textDecoration: 'none',
+                                          fontSize: '12px'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.textDecoration = 'underline';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.textDecoration = 'none';
+                                        }}
+                                      >
+                                        Voir SVG
+                                      </a>
+                                    ) : (
+                                      <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
+                                    )}
+                                    <input
+                                      ref={(el) => {
+                                        fileInputRefs.current[fileKeyUV2] = el;
+                                      }}
+                                      type="file"
+                                      accept=".svg"
+                                      style={{ display: 'none' }}
+                                      onChange={(e) => {
+                                        const selectedFile = e.target.files?.[0];
+                                        if (selectedFile) {
+                                          uploadFile(pattern.id, size, "UV2", selectedFile);
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        fileInputRefs.current[fileKeyUV2]?.click();
+                                      }}
+                                      disabled={isUploadingUV2}
+                                      style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: isUploadingUV2 ? '#3a3a3a' : '#2a2a2a',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        color: isUploadingUV2 ? '#8eff36' : '#ffffff',
+                                        fontSize: '12px',
+                                        cursor: isUploadingUV2 ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (!isUploadingUV2) {
+                                          e.currentTarget.style.backgroundColor = '#3a3a3a';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        if (!isUploadingUV2) {
+                                          e.currentTarget.style.backgroundColor = '#2a2a2a';
+                                        }
+                                      }}
+                                    >
+                                      {isUploadingUV2 ? 'Upload...' : fileUV2 ? 'Remplacer' : 'Upload'}
+                                    </button>
+                                  </div>
+                                </td>
+                                
+                                {/* Actions Column */}
+                                <td style={{ padding: '12px' }}>
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    {fileUV0 && (
+                                      <button
+                                        onClick={() => deleteFile(pattern.id, fileUV0.id)}
+                                        style={{
+                                          padding: '6px',
+                                          backgroundColor: 'transparent',
+                                          border: 'none',
+                                          color: '#a0a0a0',
+                                          cursor: 'pointer',
+                                          fontSize: '14px',
+                                          transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.color = '#ff4444';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.color = '#a0a0a0';
+                                        }}
+                                        title="Supprimer UV0"
+                                      >
+                                        ×
+                                      </button>
+                                    )}
+                                    {fileUV2 && (
+                                      <button
+                                        onClick={() => deleteFile(pattern.id, fileUV2.id)}
+                                        style={{
+                                          padding: '6px',
+                                          backgroundColor: 'transparent',
+                                          border: 'none',
+                                          color: '#a0a0a0',
+                                          cursor: 'pointer',
+                                          fontSize: '14px',
+                                          transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.color = '#ff4444';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.color = '#a0a0a0';
+                                        }}
+                                        title="Supprimer UV2"
+                                      >
+                                        ×
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => removeSize(size)}
                                       style={{
                                         padding: '6px',
                                         backgroundColor: 'transparent',
@@ -544,14 +827,14 @@ export default function SizesConfigPage() {
                                       onMouseLeave={(e) => {
                                         e.currentTarget.style.color = '#a0a0a0';
                                       }}
+                                      title="Supprimer la taille"
                                     >
-                                      ×
+                                      🗑
                                     </button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
+                                  </div>
+                                </td>
+                              </tr>
+                            );
                         })}
                       </tbody>
                     </table>
@@ -586,7 +869,7 @@ export default function SizesConfigPage() {
               model3dId: "",
               name: "",
               description: "",
-              uvType: "UV0",
+              sizes: [],
             });
           }}
         >
@@ -628,7 +911,7 @@ export default function SizesConfigPage() {
                     model3dId: "",
                     name: "",
                     description: "",
-                    uvType: "UV0",
+                    sizes: [],
                   });
                 }}
                 style={{
@@ -747,41 +1030,6 @@ export default function SizesConfigPage() {
                     marginBottom: '8px',
                     fontFamily: 'var(--stepn-font-body)'
                   }}>
-                    Type UV
-                  </label>
-                  <select
-                    value={editingPattern ? editingPattern.uvType : newPattern.uvType}
-                    onChange={(e) => {
-                      if (editingPattern) {
-                        setEditingPattern({ ...editingPattern, uvType: e.target.value as "UV0" | "UV2" });
-                      } else {
-                        setNewPattern({ ...newPattern, uvType: e.target.value as "UV0" | "UV2" });
-                      }
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      backgroundColor: '#0a0a0a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)'
-                    }}
-                  >
-                    <option value="UV0">UV0 (Designs)</option>
-                    <option value="UV2">UV2 (Logos)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    color: '#ffffff',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
                     Description (optionnel)
                   </label>
                   <textarea
@@ -857,7 +1105,7 @@ export default function SizesConfigPage() {
                       model3dId: "",
                       name: "",
                       description: "",
-                      uvType: "UV0",
+                      sizes: [],
                     });
                   }}
                   style={{
