@@ -123,43 +123,25 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Mettre à jour les settings des fichiers (intensity, scale) d'abord
+    // Mettre à jour les settings des fichiers (intensity, scale)
     if (settings && Array.isArray(settings)) {
       for (const setting of settings) {
         const { mapType, intensity, scale } = setting;
         if (mapType) {
           try {
-            // Vérifier d'abord si le fichier existe
-            const { data: existingFile, error: checkError } = await supabaseAdmin
+            // Mettre à jour directement avec upsert - si le fichier n'existe pas, ça ne fera rien
+            const { error: updateFileError } = await supabaseAdmin
               .from('material_map_files')
-              .select('id')
+              .update({
+                intensity: intensity !== undefined ? intensity : 100,
+                scale: scale !== undefined ? scale : 1.0,
+              })
               .eq('material_map_id', id)
-              .eq('map_type', mapType)
-              .maybeSingle();
+              .eq('map_type', mapType);
             
-            if (checkError) {
-              console.error(`Error checking ${mapType} file:`, checkError);
-              continue;
-            }
-            
-            if (existingFile) {
-              // Le fichier existe, mettre à jour
-              const { error: updateFileError } = await supabaseAdmin
-                .from('material_map_files')
-                .update({
-                  intensity: intensity !== undefined ? intensity : 100,
-                  scale: scale !== undefined ? scale : 1.0,
-                })
-                .eq('id', existingFile.id);
-              
-              if (updateFileError) {
-                console.error(`Error updating ${mapType} file settings:`, updateFileError);
-                // Ne pas throw ici, continuer avec les autres settings
-              }
-            } else {
-              // Le fichier n'existe pas encore, on ne peut pas mettre à jour ses settings
-              // C'est normal si le fichier n'a pas été uploadé
-              console.log(`File ${mapType} does not exist yet, skipping settings update`);
+            if (updateFileError) {
+              console.error(`Error updating ${mapType} file settings:`, updateFileError);
+              // Ne pas throw ici, continuer avec les autres settings
             }
           } catch (err) {
             console.error(`Error processing ${mapType} settings:`, err);
@@ -174,54 +156,43 @@ export async function PUT(request: NextRequest) {
     if (name) updateData.name = name;
     if (description !== null) updateData.description = description;
 
-    let materialMap;
     if (Object.keys(updateData).length > 0) {
-      const { data, error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from('material_maps')
         .update(updateData)
         .eq('id', id)
-        .eq('subdomain', subdomain)
-        .select();
+        .eq('subdomain', subdomain);
 
       if (updateError) {
         console.error('Error updating material map:', updateError);
         throw new Error(`Failed to update material map: ${updateError.message}`);
       }
-      
-      if (!data || data.length === 0) {
-        // Si l'update ne retourne rien, récupérer le material map
-        const { data: fetchedData, error: fetchError } = await supabaseAdmin
-          .from('material_maps')
-          .select()
-          .eq('id', id)
-          .eq('subdomain', subdomain)
-          .maybeSingle();
-        
-        if (fetchError) throw fetchError;
-        if (!fetchedData) throw new Error('Material map not found');
-        materialMap = fetchedData;
-      } else {
-        materialMap = data[0];
-      }
-    } else {
-      // Si pas de données à mettre à jour, juste récupérer le material map
-      const { data, error: fetchError } = await supabaseAdmin
-        .from('material_maps')
-        .select()
-        .eq('id', id)
-        .eq('subdomain', subdomain)
-        .maybeSingle();
+    }
 
-      if (fetchError) {
-        console.error('Error fetching material map:', fetchError);
-        throw new Error(`Failed to fetch material map: ${fetchError.message}`);
-      }
-      
-      if (!data) {
-        throw new Error('Material Map not found');
-      }
-      
-      materialMap = data;
+    // Toujours récupérer le material map à la fin avec tous ses fichiers
+    const { data: materialMap, error: fetchError } = await supabaseAdmin
+      .from('material_maps')
+      .select(`
+        *,
+        material_map_files (
+          id,
+          map_type,
+          file_url,
+          intensity,
+          scale
+        )
+      `)
+      .eq('id', id)
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching material map:', fetchError);
+      throw new Error(`Failed to fetch material map: ${fetchError.message}`);
+    }
+    
+    if (!materialMap) {
+      throw new Error('Material Map not found');
     }
 
     return NextResponse.json(materialMap);
