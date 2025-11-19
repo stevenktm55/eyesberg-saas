@@ -12,10 +12,24 @@ type MaterialMap = {
   aoMap?: string;
 };
 
+type MapSettings = {
+  diffuse: { intensity: number; scale: number; loaded: boolean };
+  normal: { intensity: number; scale: number; loaded: boolean };
+  roughness: { intensity: number; scale: number; loaded: boolean };
+  metallic: { intensity: number; scale: number; loaded: boolean };
+};
+
 export default function MaterialMapsConfigPage() {
   const [materialMaps, setMaterialMaps] = useState<MaterialMap[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedMap, setSelectedMap] = useState<MaterialMap | null>(null);
+  const [mapSettings, setMapSettings] = useState<MapSettings>({
+    diffuse: { intensity: 100, scale: 1.0, loaded: true },
+    normal: { intensity: 100, scale: 1.0, loaded: true },
+    roughness: { intensity: 100, scale: 1.0, loaded: false },
+    metallic: { intensity: 100, scale: 1.0, loaded: false },
+  });
 
   useEffect(() => {
     // TODO: Fetch material maps from API
@@ -25,7 +39,70 @@ export default function MaterialMapsConfigPage() {
       { id: '2', name: 'Cotton Black', diffuseMap: 'yes', normalMap: 'yes', roughnessMap: 'yes' },
       { id: '3', name: 'Polyester', diffuseMap: 'yes', normalMap: 'yes', roughnessMap: 'yes' },
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedMap) {
+      // Load settings based on selected map
+      setMapSettings({
+        diffuse: { intensity: 100, scale: 1.0, loaded: !!selectedMap.diffuseMap },
+        normal: { intensity: 100, scale: 1.0, loaded: !!selectedMap.normalMap },
+        roughness: { intensity: 100, scale: 1.0, loaded: !!selectedMap.roughnessMap },
+        metallic: { intensity: 100, scale: 1.0, loaded: !!selectedMap.metalnessMap },
+      });
+    }
+  }, [selectedMap]);
+
+  function openModal(map: MaterialMap) {
+    setSelectedMap(map);
+  }
+
+  function closeModal() {
+    setSelectedMap(null);
+  }
+
+  function updateMapSetting(
+    mapType: keyof MapSettings,
+    setting: 'intensity' | 'scale',
+    value: number
+  ) {
+    setMapSettings((prev) => ({
+      ...prev,
+      [mapType]: {
+        ...prev[mapType],
+        [setting]: value,
+      },
+    }));
+  }
+
+  function handleFileUpload(mapType: keyof MapSettings, file: File) {
+    // TODO: Upload file to API
+    console.log(`Upload ${mapType} map:`, file.name);
+    setMapSettings((prev) => ({
+      ...prev,
+      [mapType]: {
+        ...prev[mapType],
+        loaded: true,
+      },
+    }));
+  }
+
+  async function saveMap() {
+    if (!selectedMap) return;
+    // TODO: Save material map settings
+    alert('Enregistrement...');
+    closeModal();
+  }
+
+  async function deleteMap() {
+    if (!selectedMap) return;
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedMap.name}" ?`)) return;
+    
+    // TODO: Delete from API
+    setMaterialMaps((prev) => prev.filter((m) => m.id !== selectedMap.id));
+    closeModal();
+  }
 
   const filteredMaps = materialMaps.filter((map) =>
     map.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -130,6 +207,7 @@ export default function MaterialMapsConfigPage() {
               e.currentTarget.style.borderColor = '#2a2a2a';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
+            onClick={() => openModal(map)}
           >
             {/* Preview Placeholder */}
             <div style={{
@@ -234,6 +312,960 @@ export default function MaterialMapsConfigPage() {
           </p>
         </div>
       </div>
+
+      {/* Material Map Modal */}
+      {selectedMap && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '32px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeModal();
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '12px',
+              border: '1px solid #2a2a2a',
+              width: '100%',
+              maxWidth: '1400px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)'
+              }}>
+                {selectedMap.name} - Material Maps
+              </h2>
+              <button
+                onClick={closeModal}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  transition: 'all 0.2s',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#a0a0a0';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{
+              display: 'flex',
+              flex: 1,
+              overflow: 'hidden',
+              minHeight: '600px'
+            }}>
+              {/* Left: Material Preview */}
+              <div style={{
+                flex: '1.5',
+                padding: '24px',
+                borderRight: '1px solid #2a2a2a',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px'
+              }}>
+                <div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Prévisualisation Material
+                  </h3>
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '1',
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '8px',
+                    border: '1px solid #2a2a2a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '300px'
+                  }}>
+                    <div style={{
+                      width: '150px',
+                      height: '150px',
+                      borderRadius: '50%',
+                      backgroundColor: '#2a2a2a',
+                      border: '2px solid #4a4a4a'
+                    }} />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Maps chargées
+                  </h3>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '6px',
+                      border: '1px solid #2a2a2a'
+                    }}>
+                      <span style={{
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Diffuse Map
+                      </span>
+                      <span style={{
+                        fontSize: '14px',
+                        color: mapSettings.diffuse.loaded ? '#8eff36' : '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.diffuse.loaded ? '✓ Chargé' : '- Non chargé'}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '6px',
+                      border: '1px solid #2a2a2a'
+                    }}>
+                      <span style={{
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Normal Map
+                      </span>
+                      <span style={{
+                        fontSize: '14px',
+                        color: mapSettings.normal.loaded ? '#8eff36' : '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.normal.loaded ? '✓ Chargé' : '- Non chargé'}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '6px',
+                      border: '1px solid #2a2a2a'
+                    }}>
+                      <span style={{
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Roughness Map
+                      </span>
+                      <span style={{
+                        fontSize: '14px',
+                        color: mapSettings.roughness.loaded ? '#8eff36' : '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.roughness.loaded ? '✓ Chargé' : '- Non chargé'}
+                      </span>
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '6px',
+                      border: '1px solid #2a2a2a'
+                    }}>
+                      <span style={{
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Metallic Map
+                      </span>
+                      <span style={{
+                        fontSize: '14px',
+                        color: mapSettings.metallic.loaded ? '#8eff36' : '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.metallic.loaded ? '✓ Chargé' : '- Non chargé'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Map Settings */}
+              <div style={{
+                flex: '1',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                overflowY: 'auto'
+              }}>
+                {/* Diffuse Map */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #2a2a2a'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '4px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Diffuse Map
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Couleur de base du material
+                  </p>
+                  
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '16px',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{
+                      border: '2px dashed #2a2a2a',
+                      borderRadius: '8px',
+                      padding: '32px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                    }}>
+                      <div style={{
+                        fontSize: '24px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px'
+                      }}>↑</div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Cliquez pour uploader
+                      </div>
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#666666',
+                        marginTop: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        PNG, JPG (max 4096x4096)
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('diffuse', file);
+                      }}
+                    />
+                  </label>
+
+                  {/* Intensity Slider */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Intensité
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.diffuse.intensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={mapSettings.diffuse.intensity}
+                      onChange={(e) => updateMapSetting('diffuse', 'intensity', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+
+                  {/* Scale Slider */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Échelle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.diffuse.scale.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={mapSettings.diffuse.scale}
+                      onChange={(e) => updateMapSetting('diffuse', 'scale', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Normal Map */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #2a2a2a'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '4px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Normal Map
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Relief et détails de surface
+                  </p>
+                  
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '16px',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{
+                      border: '2px dashed #2a2a2a',
+                      borderRadius: '8px',
+                      padding: '32px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                    }}>
+                      <div style={{
+                        fontSize: '24px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px'
+                      }}>↑</div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Cliquez pour uploader
+                      </div>
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#666666',
+                        marginTop: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        PNG, JPG (max 4096x4096)
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('normal', file);
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Intensité
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.normal.intensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={mapSettings.normal.intensity}
+                      onChange={(e) => updateMapSetting('normal', 'intensity', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Échelle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.normal.scale.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={mapSettings.normal.scale}
+                      onChange={(e) => updateMapSetting('normal', 'scale', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Roughness Map */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #2a2a2a'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '4px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Roughness Map
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Rugosité du material
+                  </p>
+                  
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '16px',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{
+                      border: '2px dashed #2a2a2a',
+                      borderRadius: '8px',
+                      padding: '32px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                    }}>
+                      <div style={{
+                        fontSize: '24px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px'
+                      }}>↑</div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Cliquez pour uploader
+                      </div>
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#666666',
+                        marginTop: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        PNG, JPG (max 4096x4096)
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('roughness', file);
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Intensité
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.roughness.intensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={mapSettings.roughness.intensity}
+                      onChange={(e) => updateMapSetting('roughness', 'intensity', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Échelle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.roughness.scale.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={mapSettings.roughness.scale}
+                      onChange={(e) => updateMapSetting('roughness', 'scale', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Metallic Map */}
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '8px',
+                  border: '1px solid #2a2a2a'
+                }}>
+                  <h4 style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#ffffff',
+                    marginBottom: '4px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Metallic Map
+                  </h4>
+                  <p style={{
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '16px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Propriétés métalliques
+                  </p>
+                  
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '16px',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{
+                      border: '2px dashed #2a2a2a',
+                      borderRadius: '8px',
+                      padding: '32px',
+                      textAlign: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                    }}>
+                      <div style={{
+                        fontSize: '24px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px'
+                      }}>↑</div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Cliquez pour uploader
+                      </div>
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#666666',
+                        marginTop: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        PNG, JPG (max 4096x4096)
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload('metallic', file);
+                      }}
+                    />
+                  </label>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Intensité
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.metallic.intensity}%
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={mapSettings.metallic.intensity}
+                      onChange={(e) => updateMapSetting('metallic', 'intensity', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Échelle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {mapSettings.metallic.scale.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.1"
+                      value={mapSettings.metallic.scale}
+                      onChange={(e) => updateMapSetting('metallic', 'scale', Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        borderRadius: '3px',
+                        backgroundColor: '#2a2a2a',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderTop: '1px solid #2a2a2a'
+            }}>
+              <button
+                onClick={deleteMap}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ff4444',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+              >
+                Supprimer
+              </button>
+              <div style={{
+                display: 'flex',
+                gap: '12px'
+              }}>
+                <button
+                  onClick={closeModal}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#2a2a2a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#3a3a3a';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={saveMap}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#8eff36',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#000000',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
