@@ -716,6 +716,8 @@ export default function ModelsConfigPage() {
                     }}>
                       <Model3DPreview 
                         url={(selectedModel as any).glb_url || (selectedModel as any).glbUrl} 
+                        modelParts={modelParts}
+                        materialMaps={materialMaps}
                         style={{ width: '100%', height: '100%' }}
                       />
                     </div>
