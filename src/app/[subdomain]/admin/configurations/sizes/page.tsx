@@ -43,6 +43,16 @@ export default function SizesConfigPage() {
   });
   const [uploadingSize, setUploadingSize] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [showAddSizeModal, setShowAddSizeModal] = useState(false);
+  const [newSizeData, setNewSizeData] = useState<{
+    name: string;
+    fileUV0: File | null;
+    fileUV2: File | null;
+  }>({
+    name: "",
+    fileUV0: null,
+    fileUV2: null,
+  });
 
   useEffect(() => {
     fetchModels();
@@ -286,25 +296,75 @@ export default function SizesConfigPage() {
     }
   }
 
-  function addSize() {
-    const sizeName = prompt("Nom de la taille (ex: XS, S, M, L, XL, XXL, ou un nom personnalisé):");
-    if (sizeName && sizeName.trim()) {
-      if (editingPattern) {
-        if (!editingPattern.sizes.includes(sizeName.trim())) {
-          setEditingPattern({
-            ...editingPattern,
-            sizes: [...editingPattern.sizes, sizeName.trim()].sort(),
-          });
-        }
-      } else {
-        if (!newPattern.sizes.includes(sizeName.trim())) {
-          setNewPattern({
-            ...newPattern,
-            sizes: [...newPattern.sizes, sizeName.trim()].sort(),
-          });
-        }
+  function openAddSizeModal() {
+    setNewSizeData({
+      name: "",
+      fileUV0: null,
+      fileUV2: null,
+    });
+    setShowAddSizeModal(true);
+  }
+
+  async function handleAddSize() {
+    if (!newSizeData.name.trim()) {
+      alert("Veuillez entrer un nom de taille");
+      return;
+    }
+
+    const sizeName = newSizeData.name.trim();
+
+    // Ajouter la taille à la liste
+    if (editingPattern) {
+      if (editingPattern.sizes.includes(sizeName)) {
+        alert("Cette taille existe déjà");
+        return;
+      }
+      setEditingPattern({
+        ...editingPattern,
+        sizes: [...editingPattern.sizes, sizeName].sort(),
+      });
+    } else {
+      if (newPattern.sizes.includes(sizeName)) {
+        alert("Cette taille existe déjà");
+        return;
+      }
+      setNewPattern({
+        ...newPattern,
+        sizes: [...newPattern.sizes, sizeName].sort(),
+      });
+    }
+
+    // Si on est en mode édition et qu'il y a des fichiers, les uploader
+    if (editingPattern && (newSizeData.fileUV0 || newSizeData.fileUV2)) {
+      // Trouver les patterns UV0 et UV2
+      const patternUV0 = patterns.find(p => 
+        p.name === editingPattern.name && 
+        p.model3dId === editingPattern.model3dId &&
+        p.id === editingPattern.id
+      );
+      
+      // Chercher le pattern UV2 correspondant
+      const patternUV2 = patterns.find(p => 
+        p.name === editingPattern.name && 
+        p.model3dId === editingPattern.model3dId &&
+        p.id !== editingPattern.id
+      );
+
+      if (newSizeData.fileUV0 && patternUV0) {
+        await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.fileUV0);
+      }
+      if (newSizeData.fileUV2 && patternUV2) {
+        await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.fileUV2);
       }
     }
+
+    // Fermer le modal
+    setShowAddSizeModal(false);
+    setNewSizeData({
+      name: "",
+      fileUV0: null,
+      fileUV2: null,
+    });
   }
 
   function removeSize(size: string) {
