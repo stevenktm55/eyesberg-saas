@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Model3DPreview } from "@/components/Model3DPreview";
 import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
+import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
 
 type Model3D = {
   id: string;
@@ -38,6 +39,8 @@ export default function ModelsConfigPage() {
   const [newModelName, setNewModelName] = useState("");
   const [newModelFile, setNewModelFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showMaterialMapSelector, setShowMaterialMapSelector] = useState(false);
+  const [selectedPartForMaterial, setSelectedPartForMaterial] = useState<string | null>(null);
 
   useEffect(() => {
     fetchModels();
@@ -80,7 +83,7 @@ export default function ModelsConfigPage() {
       const res = await fetch("/api/material-maps");
       if (!res.ok) throw new Error("Failed to fetch material maps");
       const data = await res.json();
-      setMaterialMaps(Array.isArray(data) ? data.map((m: any) => ({ id: m.id, name: m.name })) : []);
+      setMaterialMaps(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching material maps:", error);
     }
@@ -169,23 +172,27 @@ export default function ModelsConfigPage() {
   function changeMaterial(partName: string) {
     const part = modelParts.find(p => p.name === partName);
     if (!part) return;
+    
+    setSelectedPartForMaterial(partName);
+    setShowMaterialMapSelector(true);
+  }
 
-    // Créer un modal de sélection simple
-    const options = materialMaps.map(m => m.name).join('\n');
-    const materialName = prompt(
-      `Choisir un material pour ${partName}:\n\n${options}\n\nEntrez le nom du material:`
-    );
+  function selectMaterialMap(materialMapId: string, materialMapName: string) {
+    if (!selectedPartForMaterial) return;
+    
+    setModelParts(prev => prev.map(p => 
+      p.name === selectedPartForMaterial 
+        ? { ...p, materialId: materialMapId, materialName: materialMapName }
+        : p
+    ));
+    
+    setShowMaterialMapSelector(false);
+    setSelectedPartForMaterial(null);
+  }
 
-    if (materialName) {
-      const selectedMaterial = materialMaps.find(m => m.name === materialName);
-      if (selectedMaterial) {
-        setModelParts(prev => prev.map(p => 
-          p.name === partName 
-            ? { ...p, materialId: selectedMaterial.id, materialName: selectedMaterial.name }
-            : p
-        ));
-      }
-    }
+  function closeMaterialMapSelector() {
+    setShowMaterialMapSelector(false);
+    setSelectedPartForMaterial(null);
   }
 
   async function createModel() {
@@ -988,6 +995,223 @@ export default function ModelsConfigPage() {
                   {loading ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Material Map Selector Modal */}
+      {showMaterialMapSelector && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={closeMaterialMapSelector}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '1200px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)',
+                margin: 0
+              }}>
+                Sélectionner un material map pour "{selectedPartForMaterial}"
+              </h2>
+              <button
+                onClick={closeMaterialMapSelector}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  transition: 'all 0.2s',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#a0a0a0';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content - Grid of Material Maps */}
+            <div style={{
+              padding: '24px',
+              overflowY: 'auto',
+              flex: 1
+            }}>
+              {materialMaps.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  color: '#a0a0a0',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Aucun material map disponible
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  gap: '24px'
+                }}>
+                  {/* Option: Aucun material */}
+                  <div
+                    style={{
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#2a2a2a';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    onClick={() => selectMaterialMap('', 'Aucun material')}
+                  >
+                    <div style={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      backgroundColor: '#0a0a0a',
+                      borderBottom: '1px solid #2a2a2a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#4a4a4a',
+                      fontSize: '48px'
+                    }}>
+                      □
+                    </div>
+                    <div style={{ padding: '16px' }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#ffffff',
+                        marginBottom: '0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Aucun material
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Material Maps */}
+                  {materialMaps.map((map: any) => {
+                    const files = map.material_map_files || [];
+                    const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+                    const normalFile = files.find((f: any) => f.map_type === 'normal');
+                    const roughnessFile = files.find((f: any) => f.map_type === 'roughness');
+                    const metallicFile = files.find((f: any) => f.map_type === 'metallic');
+                    const aoFile = files.find((f: any) => f.map_type === 'ao');
+
+                    return (
+                      <div
+                        key={map.id}
+                        style={{
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#8eff36';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2a2a';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                        onClick={() => selectMaterialMap(map.id, map.name)}
+                      >
+                        {/* Preview 3D Static */}
+                        <div style={{
+                          width: '100%',
+                          aspectRatio: '1',
+                          backgroundColor: '#0a0a0a',
+                          borderBottom: '1px solid #2a2a2a',
+                          position: 'relative',
+                          overflow: 'hidden'
+                        }}>
+                          <MaterialMapPreview3DStatic
+                            diffuseUrl={diffuseFile?.file_url || null}
+                            normalUrl={normalFile?.file_url || null}
+                            roughnessUrl={roughnessFile?.file_url || null}
+                            metallicUrl={metallicFile?.file_url || null}
+                            aoUrl={aoFile?.file_url || null}
+                            style={{ width: '100%', height: '100%' }}
+                          />
+                        </div>
+                        
+                        {/* Info */}
+                        <div style={{ padding: '16px' }}>
+                          <h3 style={{
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: '#ffffff',
+                            marginBottom: '12px',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {map.name}
+                          </h3>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
