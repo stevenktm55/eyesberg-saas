@@ -331,8 +331,8 @@ export default function SizesConfigPage() {
       });
     }
 
-    // Si on est en mode édition et qu'il y a des fichiers, les uploader
-    if (editingPattern && (newSizeData.fileUV0 || newSizeData.fileUV2)) {
+    // Si on est en mode édition et qu'il y a un fichier, l'uploader pour UV0 et UV2
+    if (editingPattern && newSizeData.file) {
       // Trouver les patterns UV0 et UV2
       const patternUV0 = patterns.find(p => 
         p.name === editingPattern.name && 
@@ -347,11 +347,12 @@ export default function SizesConfigPage() {
         p.id !== editingPattern.id
       );
 
-      if (newSizeData.fileUV0 && patternUV0) {
-        await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.fileUV0);
+      // Uploader le même fichier pour UV0 et UV2
+      if (patternUV0) {
+        await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.file);
       }
-      if (newSizeData.fileUV2 && patternUV2) {
-        await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.fileUV2);
+      if (patternUV2) {
+        await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.file);
       }
     }
 
@@ -359,8 +360,7 @@ export default function SizesConfigPage() {
     setShowAddSizeModal(false);
     setNewSizeData({
       name: "",
-      fileUV0: null,
-      fileUV2: null,
+      file: null,
     });
   }
 
@@ -1281,8 +1281,7 @@ export default function SizesConfigPage() {
                   setShowAddSizeModal(false);
                   setNewSizeData({
                     name: "",
-                    fileUV0: null,
-                    fileUV2: null,
+                    file: null,
                   });
                 }}
                 style={{
@@ -1444,8 +1443,7 @@ export default function SizesConfigPage() {
                   setShowAddSizeModal(false);
                   setNewSizeData({
                     name: "",
-                    fileUV0: null,
-                    fileUV2: null,
+                    file: null,
                   });
                 }}
                 style={{
