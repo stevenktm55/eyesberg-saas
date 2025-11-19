@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, uploadFile } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 // POST - Uploader un fichier de texture pour un Material Map
 export async function POST(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
     const materialMapId = formData.get('materialMapId') as string;
     const mapType = formData.get('mapType') as string; // 'diffuse', 'normal', 'roughness', 'metallic'
@@ -15,6 +24,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'materialMapId, mapType, and file are required' },
         { status: 400 }
+      );
+    }
+
+    // Vérifier que le Material Map appartient au sous-domaine
+    const { data: materialMap, error: mapError } = await supabaseAdmin
+      .from('material_maps')
+      .select('id')
+      .eq('id', materialMapId)
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (mapError || !materialMap) {
+      return NextResponse.json(
+        { error: 'Material Map not found or access denied' },
+        { status: 404 }
       );
     }
 

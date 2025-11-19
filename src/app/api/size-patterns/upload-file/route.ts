@@ -1,9 +1,9 @@
 // =====================================================
 // API POUR UPLOADER UN FICHIER SVG PAR TAILLE
 // =====================================================
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { parseSVGPieces } from '@/utils/sizePatternGenerator';
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin, uploadFile } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 export const runtime = 'nodejs';
 
@@ -12,8 +12,16 @@ export const runtime = 'nodejs';
  * Upload un fichier SVG pour une taille spécifique
  * Parse automatiquement le SVG pour extraire les pièces
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const patternId = formData.get('patternId') as string;
@@ -23,6 +31,21 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'file, patternId, and size are required' },
         { status: 400 }
+      );
+    }
+
+    // Vérifier que le pattern appartient au sous-domaine
+    const { data: pattern, error: patternError } = await supabaseAdmin
+      .from('size_patterns')
+      .select('id')
+      .eq('id', patternId)
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (patternError || !pattern) {
+      return NextResponse.json(
+        { error: 'Pattern not found or access denied' },
+        { status: 404 }
       );
     }
     
@@ -38,36 +61,16 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // Générer un nom de fichier unique
-    const fileName = `size-patterns/${patternId}/${size}-${Date.now()}.svg`;
-    
     // Upload vers Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('models-3D') // Ou un bucket dédié
-      .upload(fileName, buffer, {
-        contentType: 'image/svg+xml',
-        upsert: true,
-      });
-    
-    if (uploadError) {
-      console.error('Error uploading SVG:', uploadError);
-      return NextResponse.json(
-        { error: 'Failed to upload SVG' },
-        { status: 500 }
-      );
-    }
-    
-    // Obtenir l'URL publique
-    const { data: { publicUrl } } = supabase.storage
-      .from('models-3D')
-      .getPublicUrl(fileName);
+    const fileName = `${patternId}-${size}-${Date.now()}.svg`;
+    const svgUrl = await uploadFile('size-patterns', fileName, file);
     
     // Parser le SVG pour extraire les pièces (côté serveur)
     // Note: parseSVGPieces est conçu pour le client, on va le faire différemment
     // Pour l'instant, on laisse metadata null, il sera généré côté client lors de l'utilisation
     
     // Sauvegarder ou mettre à jour le fichier dans la base de données
-    const { data: existingFile } = await supabase
+    const { data: existingFile } = await supabaseAdmin
       .from('size_pattern_files')
       .select('id')
       .eq('pattern_id', patternId)
@@ -76,10 +79,10 @@ export async function POST(request: Request) {
     
     if (existingFile) {
       // Mettre à jour
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('size_pattern_files')
         .update({
-          svg_url: publicUrl,
+          svg_url: svgUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingFile.id);
@@ -89,12 +92,12 @@ export async function POST(request: Request) {
       }
     } else {
       // Créer
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseAdmin
         .from('size_pattern_files')
         .insert({
           pattern_id: patternId,
           size_name: size,
-          svg_url: publicUrl,
+          svg_url: svgUrl,
         });
       
       if (insertError) {
@@ -103,7 +106,7 @@ export async function POST(request: Request) {
     }
     
     return NextResponse.json({
-      url: publicUrl,
+      url: svgUrl,
       fileName,
       size,
       message: 'File uploaded successfully',

@@ -1,8 +1,9 @@
 // =====================================================
 // API POUR GÉRER LES PATRONS MULTI-TAILLES
 // =====================================================
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 /**
  * GET /api/size-patterns
@@ -10,15 +11,23 @@ import { supabase } from '@/lib/supabase';
  * - Si model3dId est fourni : retourne le pattern pour ce modèle et type UV
  * - Sinon : retourne tous les patterns actifs
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const model3dId = searchParams.get('model3dId');
     const uvType = searchParams.get('uvType') || 'UV0';
     
     // Si model3dId est fourni, retourner un seul pattern
     if (model3dId) {
-      const { data: pattern, error } = await supabase
+      const { data: pattern, error } = await supabaseAdmin
         .from('size_patterns')
         .select(`
           *,
@@ -26,6 +35,7 @@ export async function GET(request: Request) {
         `)
         .eq('model_3d_id', model3dId)
         .eq('uv_type', uvType)
+        .eq('subdomain', subdomain)
         .eq('active', true)
         .single();
       
@@ -55,12 +65,13 @@ export async function GET(request: Request) {
     }
     
     // Sinon, retourner tous les patterns actifs
-    const { data: patterns, error } = await supabase
+    const { data: patterns, error } = await supabaseAdmin
       .from('size_patterns')
       .select(`
         *,
         size_pattern_files (*)
       `)
+      .eq('subdomain', subdomain)
       .eq('active', true)
       .order('created_at', { ascending: false });
     
@@ -99,8 +110,16 @@ export async function GET(request: Request) {
  * Crée ou met à jour un template de patron
  * Peut aussi ajouter/mettre à jour un fichier SVG pour une taille spécifique
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const {
       model3dId,
@@ -119,20 +138,36 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Vérifier que le modèle appartient au sous-domaine
+    const { data: model, error: modelError } = await supabaseAdmin
+      .from('models_3d')
+      .select('id')
+      .eq('id', model3dId)
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (modelError || !model) {
+      return NextResponse.json(
+        { error: 'Model not found or access denied' },
+        { status: 404 }
+      );
+    }
     
     // Vérifier si un pattern existe déjà pour ce modèle et type UV
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from('size_patterns')
       .select('id')
       .eq('model_3d_id', model3dId)
       .eq('uv_type', uvType)
+      .eq('subdomain', subdomain)
       .single();
     
     let patternId: string;
     
     if (existing) {
       // Mettre à jour le pattern existant
-      const { data: updated, error: updateError } = await supabase
+      const { data: updated, error: updateError } = await supabaseAdmin
         .from('size_patterns')
         .update({
           name,
@@ -140,6 +175,7 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
+        .eq('subdomain', subdomain)
         .select()
         .single();
       
@@ -150,9 +186,10 @@ export async function POST(request: Request) {
       patternId = updated.id;
     } else {
       // Créer un nouveau pattern
-      const { data: created, error: createError } = await supabase
+      const { data: created, error: createError } = await supabaseAdmin
         .from('size_patterns')
         .insert({
+          subdomain,
           model_3d_id: model3dId,
           name,
           description,
@@ -171,7 +208,7 @@ export async function POST(request: Request) {
     // Si un fichier SVG est fourni pour une taille, l'ajouter/mettre à jour
     if (size && svgUrl) {
       // Vérifier si un fichier existe déjà pour cette taille
-      const { data: existingFile } = await supabase
+      const { data: existingFile } = await supabaseAdmin
         .from('size_pattern_files')
         .select('id')
         .eq('pattern_id', patternId)
@@ -180,7 +217,7 @@ export async function POST(request: Request) {
       
       if (existingFile) {
         // Mettre à jour le fichier existant
-        const { error: updateFileError } = await supabase
+        const { error: updateFileError } = await supabaseAdmin
           .from('size_pattern_files')
           .update({
             svg_url: svgUrl,
@@ -194,7 +231,7 @@ export async function POST(request: Request) {
         }
       } else {
         // Créer un nouveau fichier
-        const { error: insertFileError } = await supabase
+        const { error: insertFileError } = await supabaseAdmin
           .from('size_pattern_files')
           .insert({
             pattern_id: patternId,
@@ -226,8 +263,16 @@ export async function POST(request: Request) {
  * DELETE /api/size-patterns
  * Supprime un template de patron
  */
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
@@ -239,10 +284,11 @@ export async function DELETE(request: Request) {
     }
     
     // Supprimer le pattern (les pièces seront supprimées en cascade)
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('size_patterns')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('subdomain', subdomain);
     
     if (error) {
       throw error;

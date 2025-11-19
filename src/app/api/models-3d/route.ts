@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, uploadFile, deleteFile } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 // GET - Récupérer tous les modèles 3D avec leurs parties
 export async function GET(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { data: models, error: modelsError } = await supabaseAdmin
       .from('models_3d')
       .select(`
@@ -18,6 +27,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `)
+      .eq('subdomain', subdomain)
       .order('created_at', { ascending: false });
 
     if (modelsError) throw modelsError;
@@ -35,6 +45,14 @@ export async function GET(request: NextRequest) {
 // POST - Créer un nouveau modèle 3D
 export async function POST(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
     const name = formData.get('name') as string;
     const file = formData.get('file') as File | null;
@@ -59,6 +77,7 @@ export async function POST(request: NextRequest) {
     const { data: model, error: modelError } = await supabaseAdmin
       .from('models_3d')
       .insert({
+        subdomain,
         name,
         glb_url: glbUrl,
         description: description || null,
@@ -97,6 +116,14 @@ export async function POST(request: NextRequest) {
 // PUT - Mettre à jour un modèle 3D
 export async function PUT(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const formData = await request.formData();
     const id = formData.get('id') as string;
     const name = formData.get('name') as string | null;
@@ -124,6 +151,7 @@ export async function PUT(request: NextRequest) {
       .from('models_3d')
       .update(updateData)
       .eq('id', id)
+      .eq('subdomain', subdomain) // Vérifier que le modèle appartient au sous-domaine
       .select()
       .single();
 
@@ -142,6 +170,14 @@ export async function PUT(request: NextRequest) {
 // DELETE - Supprimer un modèle 3D
 export async function DELETE(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -157,6 +193,7 @@ export async function DELETE(request: NextRequest) {
       .from('models_3d')
       .select('glb_url')
       .eq('id', id)
+      .eq('subdomain', subdomain) // Vérifier que le modèle appartient au sous-domaine
       .single();
 
     if (fetchError) throw fetchError;
@@ -177,7 +214,8 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabaseAdmin
       .from('models_3d')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('subdomain', subdomain); // Double vérification
 
     if (error) throw error;
 

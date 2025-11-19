@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, uploadFile, deleteFile } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 // GET - Récupérer tous les Material Maps avec leurs fichiers
 export async function GET(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { data: materialMaps, error } = await supabaseAdmin
       .from('material_maps')
       .select(`
@@ -16,6 +25,7 @@ export async function GET(request: NextRequest) {
           scale
         )
       `)
+      .eq('subdomain', subdomain)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -33,6 +43,14 @@ export async function GET(request: NextRequest) {
 // POST - Créer un nouveau Material Map
 export async function POST(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const { name, description } = body;
 
@@ -46,6 +64,7 @@ export async function POST(request: NextRequest) {
     const { data: materialMap, error } = await supabaseAdmin
       .from('material_maps')
       .insert({
+        subdomain,
         name,
         description: description || null,
       })
@@ -67,6 +86,14 @@ export async function POST(request: NextRequest) {
 // PUT - Mettre à jour un Material Map
 export async function PUT(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const { id, name, description, settings } = body;
 
@@ -86,6 +113,7 @@ export async function PUT(request: NextRequest) {
       .from('material_maps')
       .update(updateData)
       .eq('id', id)
+      .eq('subdomain', subdomain) // Vérifier que le Material Map appartient au sous-domaine
       .select()
       .single();
 
@@ -121,6 +149,14 @@ export async function PUT(request: NextRequest) {
 // DELETE - Supprimer un Material Map
 export async function DELETE(request: NextRequest) {
   try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -128,6 +164,21 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: 'ID is required' },
         { status: 400 }
+      );
+    }
+
+    // Vérifier que le Material Map appartient au sous-domaine
+    const { data: materialMap, error: mapError } = await supabaseAdmin
+      .from('material_maps')
+      .select('id')
+      .eq('id', id)
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (mapError || !materialMap) {
+      return NextResponse.json(
+        { error: 'Material Map not found or access denied' },
+        { status: 404 }
       );
     }
 
@@ -159,7 +210,8 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabaseAdmin
       .from('material_maps')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('subdomain', subdomain); // Double vérification
 
     if (error) throw error;
 

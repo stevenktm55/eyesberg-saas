@@ -12,6 +12,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- =====================================================
 CREATE TABLE IF NOT EXISTS material_maps (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subdomain TEXT NOT NULL, -- Isolation par sous-domaine
   name TEXT NOT NULL,
   description TEXT,
   preview_url TEXT,
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS material_maps (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS models_3d (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subdomain TEXT NOT NULL, -- Isolation par sous-domaine
   name TEXT NOT NULL,
   glb_url TEXT NOT NULL,
   thumbnail_url TEXT,
@@ -66,6 +68,7 @@ CREATE TABLE IF NOT EXISTS material_map_files (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS size_patterns (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subdomain TEXT NOT NULL, -- Isolation par sous-domaine
   model_3d_id UUID REFERENCES models_3d(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -94,6 +97,7 @@ CREATE TABLE IF NOT EXISTS size_pattern_files (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS designs_2d (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  subdomain TEXT NOT NULL, -- Isolation par sous-domaine
   name TEXT NOT NULL,
   svg_url TEXT NOT NULL,
   thumbnail_url TEXT,
@@ -110,6 +114,12 @@ CREATE INDEX IF NOT EXISTS idx_model_parts_material_map_id ON model_parts(materi
 CREATE INDEX IF NOT EXISTS idx_material_map_files_material_map_id ON material_map_files(material_map_id);
 CREATE INDEX IF NOT EXISTS idx_size_patterns_model_3d_id ON size_patterns(model_3d_id);
 CREATE INDEX IF NOT EXISTS idx_size_pattern_files_pattern_id ON size_pattern_files(pattern_id);
+
+-- Indexes pour l'isolation par sous-domaine
+CREATE INDEX IF NOT EXISTS idx_material_maps_subdomain ON material_maps(subdomain);
+CREATE INDEX IF NOT EXISTS idx_models_3d_subdomain ON models_3d(subdomain);
+CREATE INDEX IF NOT EXISTS idx_size_patterns_subdomain ON size_patterns(subdomain);
+CREATE INDEX IF NOT EXISTS idx_designs_2d_subdomain ON designs_2d(subdomain);
 
 -- =====================================================
 -- TRIGGERS - Updated_at
