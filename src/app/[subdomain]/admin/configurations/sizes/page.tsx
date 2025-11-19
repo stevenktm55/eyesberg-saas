@@ -596,7 +596,7 @@ export default function SizesConfigPage() {
                   }}>
                     <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                       <button
-                        onClick={addSize}
+                        onClick={openAddSizeModal}
                         style={{
                           padding: '8px 16px',
                           backgroundColor: '#2a2a2a',
