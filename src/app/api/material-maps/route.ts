@@ -124,14 +124,39 @@ export async function PUT(request: NextRequest) {
       for (const setting of settings) {
         const { mapType, intensity, scale } = setting;
         if (mapType) {
-          await supabaseAdmin
+          // Vérifier d'abord si le fichier existe
+          const { data: existingFile, error: checkError } = await supabaseAdmin
             .from('material_map_files')
-            .update({
-              intensity: intensity !== undefined ? intensity : 100,
-              scale: scale !== undefined ? scale : 1.0,
-            })
+            .select('id')
             .eq('material_map_id', id)
-            .eq('map_type', mapType);
+            .eq('map_type', mapType)
+            .single();
+          
+          if (checkError && checkError.code !== 'PGRST116') {
+            // PGRST116 = not found, ce qui est OK si le fichier n'existe pas encore
+            console.error(`Error checking ${mapType} file:`, checkError);
+            continue;
+          }
+          
+          if (existingFile) {
+            // Le fichier existe, mettre à jour
+            const { error: updateFileError } = await supabaseAdmin
+              .from('material_map_files')
+              .update({
+                intensity: intensity !== undefined ? intensity : 100,
+                scale: scale !== undefined ? scale : 1.0,
+              })
+              .eq('id', existingFile.id);
+            
+            if (updateFileError) {
+              console.error(`Error updating ${mapType} file settings:`, updateFileError);
+              // Ne pas throw ici, continuer avec les autres settings
+            }
+          } else {
+            // Le fichier n'existe pas encore, on ne peut pas mettre à jour ses settings
+            // C'est normal si le fichier n'a pas été uploadé
+            console.log(`File ${mapType} does not exist yet, skipping settings update`);
+          }
         }
       }
     }

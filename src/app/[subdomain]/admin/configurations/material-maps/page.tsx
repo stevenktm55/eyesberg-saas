@@ -233,7 +233,10 @@ export default function MaterialMapsConfigPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to save material map");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to save material map");
+      }
       
       await fetchMaterialMaps();
       closeModal();
