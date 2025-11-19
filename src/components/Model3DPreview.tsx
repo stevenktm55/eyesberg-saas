@@ -62,6 +62,7 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
 
     const loader = new THREE.TextureLoader();
     const texturePromises: Promise<void>[] = [];
+    const loadedTextures: THREE.Texture[] = [];
 
     // Parcourir tous les objets de la scène
     clonedScene.traverse((object) => {
@@ -80,6 +81,20 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
             }
             return;
           }
+
+          // Nettoyer les textures précédentes
+          if (material.map) material.map.dispose();
+          if (material.normalMap) material.normalMap.dispose();
+          if (material.roughnessMap) material.roughnessMap.dispose();
+          if (material.metalnessMap) material.metalnessMap.dispose();
+          if (material.aoMap) material.aoMap.dispose();
+
+          // Réinitialiser les propriétés
+          material.map = null;
+          material.normalMap = null;
+          material.roughnessMap = null;
+          material.metalnessMap = null;
+          material.aoMap = null;
 
           // Trouver le material map correspondant par nom du matériau
           // Essayer plusieurs stratégies de correspondance
@@ -125,6 +140,7 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
                       texture.wrapS = THREE.RepeatWrapping;
                       texture.wrapT = THREE.RepeatWrapping;
                       texture.repeat.set(file.scale, file.scale);
+                      loadedTextures.push(texture);
                       
                       if (file.map_type === 'diffuse') {
                         texture.colorSpace = THREE.SRGBColorSpace;
@@ -167,6 +183,11 @@ function Model({ url, modelParts, materialMaps }: { url: string; modelParts?: Mo
     Promise.all(texturePromises).then(() => {
       setTexturesLoaded(true);
     });
+
+    // Cleanup function
+    return () => {
+      loadedTextures.forEach(texture => texture.dispose());
+    };
   }, [clonedScene, modelParts, materialMaps]);
 
   return <primitive ref={groupRef} object={clonedScene} />;
