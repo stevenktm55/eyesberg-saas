@@ -66,10 +66,18 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(newProduct);
     } else {
-      return NextResponse.json(
-        { error: 'id or shop parameter is required' },
-        { status: 400 }
-      );
+      // Récupérer tous les produits pour ce sous-domaine
+      const { data: products, error } = await supabaseAdmin
+        .from('product_builder')
+        .select('*')
+        .eq('subdomain', subdomain)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return NextResponse.json(products || []);
     }
   } catch (error: any) {
     console.error('Error fetching/creating product builder:', error);

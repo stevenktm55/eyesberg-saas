@@ -28,6 +28,14 @@ interface ShopData {
   scopes: string | null;
 }
 
+interface ProductBuilder {
+  id: string;
+  name: string;
+  status: string;
+  updated_at: string;
+  created_at: string;
+}
+
 /**
  * Page admin accessible via sous-domaine avec sidebar
  */
@@ -38,6 +46,8 @@ export default function SubdomainAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subdomain, setSubdomain] = useState<string | null>(null);
+  const [products, setProducts] = useState<ProductBuilder[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   useEffect(() => {
     // Récupérer le sous-domaine depuis le host
@@ -90,6 +100,28 @@ export default function SubdomainAdminPage() {
 
     loadShopData();
   }, []);
+
+  // Charger les produits du builder
+  useEffect(() => {
+    if (!subdomain) return;
+
+    async function loadProducts() {
+      setLoadingProducts(true);
+      try {
+        const response = await fetch(`/api/product-builder`);
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Error loading products:', err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    }
+
+    loadProducts();
+  }, [subdomain]);
 
   const handleConnectShopify = () => {
     if (!subdomain) {
@@ -358,50 +390,125 @@ export default function SubdomainAdminPage() {
               </div>
             </div>
 
-            {/* Products Grid - Placeholder */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: '24px'
-            }}>
-              <div style={{
-                backgroundColor: '#0a0a0a',
-                borderRadius: '8px',
-                padding: '16px',
-                border: '1px solid #1a1a1a',
-                textAlign: 'center'
-              }}>
-                <div style={{
-                  width: '100%',
-                  aspectRatio: '1',
-                  backgroundColor: '#1a1a1a',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#a0a0a0',
-                  fontSize: '48px'
-                }}>
-                  +
-                </div>
-                <p style={{
-                  color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
-                  fontSize: '14px',
-                  marginBottom: '8px'
-                }}>
-                  No products yet
-                </p>
-                <p style={{
-                  color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
-                  fontSize: '12px'
-                }}>
-                  Create your first product
-                </p>
+            {/* Products Grid */}
+            {loadingProducts ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#a0a0a0' }}>
+                <p style={{ fontFamily: 'var(--stepn-font-body)' }}>Loading products...</p>
               </div>
-            </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '24px'
+              }}>
+                {/* Existing Products */}
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => router.push(`/admin/products/new?shop=${shopData?.shop_domain}&id=${product.id}`)}
+                    style={{
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      border: '1px solid #1a1a1a',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#1a1a1a';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '4px',
+                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#a0a0a0',
+                      fontSize: '32px'
+                    }}>
+                      📦
+                    </div>
+                    <p style={{
+                      color: '#ffffff',
+                      fontFamily: 'var(--stepn-font-body)',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      {product.name}
+                    </p>
+                    <p style={{
+                      color: '#a0a0a0',
+                      fontFamily: 'var(--stepn-font-body)',
+                      fontSize: '12px'
+                    }}>
+                      {product.status === 'published' ? 'Published' : 'Draft'}
+                    </p>
+                  </div>
+                ))}
+
+                {/* Add New Product Card */}
+                <div
+                  onClick={() => shopData && router.push(`/admin/products/new?shop=${shopData.shop_domain}`)}
+                  style={{
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    border: '1px solid #1a1a1a',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#1a1a1a';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '1',
+                    backgroundColor: '#1a1a1a',
+                    borderRadius: '4px',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#a0a0a0',
+                    fontSize: '48px'
+                  }}>
+                    +
+                  </div>
+                  <p style={{
+                    color: '#ffffff',
+                    fontFamily: 'var(--stepn-font-body)',
+                    fontSize: '14px',
+                    marginBottom: '8px'
+                  }}>
+                    {products.length === 0 ? 'No products yet' : 'New product'}
+                  </p>
+                  <p style={{
+                    color: '#a0a0a0',
+                    fontFamily: 'var(--stepn-font-body)',
+                    fontSize: '12px'
+                  }}>
+                    {products.length === 0 ? 'Create your first product' : 'Add product'}
+                  </p>
+                </div>
+              </div>
+            )}
               </>
             )}
           </div>
