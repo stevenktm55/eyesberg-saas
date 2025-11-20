@@ -269,7 +269,31 @@ export default function SizesConfigPage() {
 
       if (!res.ok) throw new Error("Failed to upload file");
       
+      // Sauvegarder les tailles locales avant fetchPatterns
+      const wasEditing = editingPattern && editingPattern.id === patternId;
+      const editingSizes = wasEditing ? editingPattern.sizes : null;
+      
       await fetchPatterns();
+      
+      // Si on était en mode édition, mettre à jour editingPattern avec les nouvelles données
+      // mais préserver les tailles locales qui n'ont pas encore été sauvegardées
+      if (wasEditing && editingSizes) {
+        // Utiliser setTimeout pour s'assurer que patterns est mis à jour
+        setTimeout(() => {
+          setPatterns(prevPatterns => {
+            const updatedPattern = prevPatterns.find(p => p.id === patternId);
+            if (updatedPattern) {
+              // Préserver les tailles locales qui pourraient ne pas être encore dans la base
+              const mergedSizes = Array.from(new Set([...updatedPattern.sizes, ...editingSizes])).sort();
+              setEditingPattern({
+                ...updatedPattern,
+                sizes: mergedSizes,
+              });
+            }
+            return prevPatterns;
+          });
+        }, 0);
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       alert("Erreur lors de l'upload du fichier");
