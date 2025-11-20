@@ -252,6 +252,15 @@ export default function ProductBuilderPage() {
 
   function deleteModule(moduleId: string) {
     setCustomizationModules(customizationModules.filter(m => m.id !== moduleId));
+    // Si le module supprimé était sélectionné, réinitialiser la sélection
+    if (selectedModule?.id === moduleId) {
+      setSelectedModule(null);
+      setShowQuestionSettings(false);
+    }
+    // Si le module supprimé était actif dans le customizer, fermer l'onglet
+    if (activeCustomizerTab === moduleId) {
+      setActiveCustomizerTab(null);
+    }
   }
 
   function updateQuestion(questionId: string, updates: Partial<Question>) {
