@@ -763,12 +763,15 @@ export default function SizesConfigPage() {
                                 {/* Actions Column */}
                                 <td style={{ padding: '12px' }}>
                                   <button
-                                    onClick={() => openAddSizeModal(
-                                      displayPattern,
-                                      size,
-                                      fileUV0 ? { id: fileUV0.id, svgUrl: fileUV0.svgUrl } : undefined,
-                                      fileUV2 ? { id: fileUV2.id, svgUrl: fileUV2.svgUrl } : undefined
-                                    )}
+                                    onClick={() => {
+                                      const fileUV2 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV2");
+                                      openAddSizeModal(
+                                        displayPattern,
+                                        size,
+                                        fileUV0 ? { id: fileUV0.id, svgUrl: fileUV0.svgUrl } : undefined,
+                                        fileUV2 ? { id: fileUV2.id, svgUrl: fileUV2.svgUrl } : undefined
+                                      );
+                                    }}
                                     style={{
                                       padding: '8px',
                                       backgroundColor: 'transparent',
