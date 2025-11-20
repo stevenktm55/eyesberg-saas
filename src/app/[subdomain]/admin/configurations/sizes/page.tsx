@@ -1478,9 +1478,9 @@ export default function SizesConfigPage() {
                     e.currentTarget.style.opacity = '1';
                   }
                 }}
-              >
-                Ajouter
-              </button>
+                >
+                  {editingSize ? 'Remplacer' : 'Ajouter'}
+                </button>
             </div>
           </div>
         </div>
