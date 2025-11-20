@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         .eq('model_3d_id', pattern.model_3d_id)
         .eq('uv_type', uvType)
         .eq('subdomain', subdomain)
-        .single();
+        .maybeSingle();
       
       if (matchingPattern) {
         targetPatternId = matchingPattern.id;
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('pattern_id', targetPatternId)
       .eq('size_name', size)
-      .single();
+      .maybeSingle();
     
     if (existingFile) {
       // Mettre à jour
