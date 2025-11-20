@@ -6,6 +6,16 @@ import { Model3DPreviewStatic } from '@/components/Model3DPreviewStatic';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
+type CustomizationModule = {
+  id: string;
+  tabName: string; // Nom de l'onglet dans la sidebar
+  icon: string; // Icône (emoji ou texte)
+  inputType: 'thumbnail' | 'dropdown' | 'radio' | 'label' | 'file-upload' | 'text-input' | 'checkbox';
+  required?: boolean;
+  options?: string[]; // Pour dropdown et radio
+};
+
+// Garder Question pour compatibilité avec l'ancien système
 type Question = {
   id: string;
   type: 'text' | 'number' | 'color' | 'image' | 'select';
@@ -35,8 +45,15 @@ export default function ProductBuilderPage() {
   const [productName, setProductName] = useState('Untitled Product');
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [customizationModules, setCustomizationModules] = useState<CustomizationModule[]>([]);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [showQuestionSettings, setShowQuestionSettings] = useState(false);
+  const [showCreateModuleModal, setShowCreateModuleModal] = useState(false);
+  const [newModule, setNewModule] = useState<Partial<CustomizationModule>>({
+    tabName: '',
+    icon: '🎨',
+    inputType: 'thumbnail'
+  });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,7 +61,7 @@ export default function ProductBuilderPage() {
   const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
-  const [activeCustomizerTab, setActiveCustomizerTab] = useState<'design' | 'color' | 'number' | 'name' | 'logo' | null>(null);
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -67,6 +84,7 @@ export default function ProductBuilderPage() {
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
             setQuestions(product.builder_data?.questions || []);
+            setCustomizationModules(product.builder_data?.customizationModules || []);
             setSelectedModel3DId(product.builder_data?.model3DId || null);
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
           }
@@ -128,6 +146,7 @@ export default function ProductBuilderPage() {
           name: productName,
           builderData: {
             questions: questions,
+            customizationModules: customizationModules,
             activeTab: activeTab,
             model3DId: selectedModel3DId,
             design2DId: selectedDesign2DId,
@@ -144,7 +163,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, activeTab, selectedModel3DId, selectedDesign2DId]);
+  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
@@ -165,20 +184,44 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, activeTab, productId, selectedModel3DId, selectedDesign2DId, autoSave]);
+  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, autoSave]);
 
   function addQuestion() {
-    const newQuestion: Question = {
-      id: `question-${Date.now()}`,
-      type: 'text',
-      label: 'New Question',
-      required: false,
+    // Ouvrir le modal de création de module
+    setNewModule({
+      tabName: '',
+      icon: '🎨',
+      inputType: 'thumbnail'
+    });
+    setShowCreateModuleModal(true);
+  }
+
+  function createModule() {
+    if (!newModule.tabName || !newModule.icon || !newModule.inputType) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    const module: CustomizationModule = {
+      id: `module-${Date.now()}`,
+      tabName: newModule.tabName,
+      icon: newModule.icon,
+      inputType: newModule.inputType as CustomizationModule['inputType'],
+      required: newModule.required || false,
+      options: (newModule.inputType === 'dropdown' || newModule.inputType === 'radio') ? [] : undefined
     };
-    const updatedQuestions = [...questions, newQuestion];
-    setQuestions(updatedQuestions);
-    setSelectedQuestion(newQuestion);
-    setShowQuestionSettings(true);
-    // La sauvegarde automatique sera déclenchée par le useEffect
+
+    setCustomizationModules([...customizationModules, module]);
+    setShowCreateModuleModal(false);
+    setNewModule({
+      tabName: '',
+      icon: '🎨',
+      inputType: 'thumbnail'
+    });
+  }
+
+  function deleteModule(moduleId: string) {
+    setCustomizationModules(customizationModules.filter(m => m.id !== moduleId));
   }
 
   function updateQuestion(questionId: string, updates: Partial<Question>) {
@@ -723,184 +766,123 @@ export default function ProductBuilderPage() {
                 padding: '16px 0',
                 gap: '8px'
               }}>
-                <button
-                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'design' ? null : 'design')}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: activeCustomizerTab === 'design' ? '#000000' : 'transparent',
-                    border: activeCustomizerTab === 'design' ? '1px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: activeCustomizerTab === 'design' ? '#ffffff' : '#666666',
-                    fontSize: '20px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🎨
-                </button>
-                <button
-                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'color' ? null : 'color')}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: activeCustomizerTab === 'color' ? '#000000' : 'transparent',
-                    border: activeCustomizerTab === 'color' ? '1px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: activeCustomizerTab === 'color' ? '#ffffff' : '#666666',
-                    fontSize: '20px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🎨
-                </button>
-                <button
-                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'number' ? null : 'number')}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: activeCustomizerTab === 'number' ? '#000000' : 'transparent',
-                    border: activeCustomizerTab === 'number' ? '1px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: activeCustomizerTab === 'number' ? '#ffffff' : '#666666',
-                    fontSize: '20px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🔢
-                </button>
-                <button
-                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'name' ? null : 'name')}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: activeCustomizerTab === 'name' ? '#000000' : 'transparent',
-                    border: activeCustomizerTab === 'name' ? '1px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: activeCustomizerTab === 'name' ? '#ffffff' : '#666666',
-                    fontSize: '20px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'logo' ? null : 'logo')}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: activeCustomizerTab === 'logo' ? '#000000' : 'transparent',
-                    border: activeCustomizerTab === 'logo' ? '1px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: activeCustomizerTab === 'logo' ? '#ffffff' : '#666666',
-                    fontSize: '20px',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  🏷️
-                </button>
+                {customizationModules.map((module) => (
+                  <button
+                    key={module.id}
+                    onClick={() => setActiveCustomizerTab(activeCustomizerTab === module.id ? null : module.id)}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      backgroundColor: activeCustomizerTab === module.id ? '#000000' : 'transparent',
+                      border: activeCustomizerTab === module.id ? '1px solid #000000' : '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: activeCustomizerTab === module.id ? '#ffffff' : '#666666',
+                      fontSize: '20px',
+                      transition: 'all 0.2s'
+                    }}
+                    title={module.tabName}
+                  >
+                    {module.icon}
+                  </button>
+                ))}
               </div>
             )}
 
             {/* Customizer Tab Panel (slides in from left) */}
-            {selectedModel3DId && activeCustomizerTab && (
-              <div style={{
-                width: '320px',
-                backgroundColor: '#ffffff',
-                borderRight: '1px solid #e0e0e0',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                animation: 'slideIn 0.3s ease-out'
-              }}>
-                {/* Tab Header */}
+            {selectedModel3DId && activeCustomizerTab && (() => {
+              const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+              if (!activeModule) return null;
+              
+              return (
                 <div style={{
-                  padding: '16px',
-                  borderBottom: '1px solid #e0e0e0',
-                  backgroundColor: '#000000',
+                  width: '320px',
+                  backgroundColor: '#ffffff',
+                  borderRight: '1px solid #e0e0e0',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  animation: 'slideIn 0.3s ease-out'
                 }}>
-                  <span style={{ color: '#ffffff', fontSize: '16px' }}>
-                    {activeCustomizerTab === 'design' && '🎨'}
-                    {activeCustomizerTab === 'color' && '🎨'}
-                    {activeCustomizerTab === 'number' && '🔢'}
-                    {activeCustomizerTab === 'name' && '✏️'}
-                    {activeCustomizerTab === 'logo' && '🏷️'}
-                  </span>
-                  <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
-                    {activeCustomizerTab === 'design' && 'Sélectionner le design'}
-                    {activeCustomizerTab === 'color' && 'Couleur'}
-                    {activeCustomizerTab === 'number' && 'Numéro'}
-                    {activeCustomizerTab === 'name' && 'Nom'}
-                    {activeCustomizerTab === 'logo' && 'Logo'}
-                  </span>
-                </div>
+                  {/* Tab Header */}
+                  <div style={{
+                    padding: '16px',
+                    borderBottom: '1px solid #e0e0e0',
+                    backgroundColor: '#000000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <span style={{ color: '#ffffff', fontSize: '16px' }}>
+                      {activeModule.icon}
+                    </span>
+                    <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
+                      {activeModule.tabName}
+                    </span>
+                  </div>
 
-                {/* Tab Content */}
-                <div style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  padding: '16px'
-                }}>
-                  {activeCustomizerTab === 'design' && (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Sélectionnez un design 2D
-                      </p>
-                    </div>
-                  )}
-                  {activeCustomizerTab === 'color' && (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Sélectionnez une couleur
-                      </p>
-                    </div>
-                  )}
-                  {activeCustomizerTab === 'number' && (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Ajoutez un numéro
-                      </p>
-                    </div>
-                  )}
-                  {activeCustomizerTab === 'name' && (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Ajoutez un nom
-                      </p>
-                    </div>
-                  )}
-                  {activeCustomizerTab === 'logo' && (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Ajoutez un logo
-                      </p>
-                    </div>
-                  )}
+                  {/* Tab Content */}
+                  <div style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    padding: '16px'
+                  }}>
+                    {activeModule.inputType === 'thumbnail' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Sélection par miniatures
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'dropdown' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Menu déroulant
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'radio' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Boutons radio
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'label' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Label
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'file-upload' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Upload de fichier
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'text-input' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Champ texte
+                        </p>
+                      </div>
+                    )}
+                    {activeModule.inputType === 'checkbox' && (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Case à cocher
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Center: 3D Model Display */}
             <div style={{
@@ -1172,6 +1154,237 @@ export default function ProductBuilderPage() {
           )}
         </div>
       </div>
+
+      {/* Create Module Modal */}
+      {showCreateModuleModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 20000
+          }}
+          onClick={() => setShowCreateModuleModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              padding: '24px',
+              borderRadius: '8px',
+              border: '1px solid #2a2a2a',
+              width: '90%',
+              maxWidth: '500px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#ffffff',
+              marginBottom: '20px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Créer un module de personnalisation
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Tab Name */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Nom de l'onglet
+                </label>
+                <input
+                  type="text"
+                  value={newModule.tabName || ''}
+                  onChange={(e) => setNewModule({ ...newModule, tabName: e.target.value })}
+                  placeholder="Ex: Design, Couleur, Numéro..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#2a2a2a';
+                  }}
+                />
+              </div>
+
+              {/* Icon */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Icône (emoji ou texte)
+                </label>
+                <input
+                  type="text"
+                  value={newModule.icon || ''}
+                  onChange={(e) => setNewModule({ ...newModule, icon: e.target.value })}
+                  placeholder="🎨"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#2a2a2a';
+                  }}
+                />
+              </div>
+
+              {/* Input Type */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Type d'input
+                </label>
+                <select
+                  value={newModule.inputType || 'thumbnail'}
+                  onChange={(e) => setNewModule({ ...newModule, inputType: e.target.value as CustomizationModule['inputType'] })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#8eff36';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#2a2a2a';
+                  }}
+                >
+                  <option value="thumbnail">Thumbnail (Miniatures)</option>
+                  <option value="dropdown">Dropdown (Menu déroulant)</option>
+                  <option value="radio">Radio Button (Boutons radio)</option>
+                  <option value="label">Label (Étiquette)</option>
+                  <option value="file-upload">File Upload (Upload fichier)</option>
+                  <option value="text-input">Text Input (Champ texte)</option>
+                  <option value="checkbox">Checkbox (Case à cocher)</option>
+                </select>
+              </div>
+
+              {/* Required */}
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={newModule.required || false}
+                    onChange={(e) => setNewModule({ ...newModule, required: e.target.checked })}
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  Requis
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button
+                onClick={() => {
+                  setShowCreateModuleModal(false);
+                  setNewModule({
+                    tabName: '',
+                    icon: '🎨',
+                    inputType: 'thumbnail'
+                  });
+                }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#2a2a2a',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={createModule}
+                disabled={!newModule.tabName || !newModule.icon || !newModule.inputType}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? '#4a4a4a' : '#8eff36',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? '#a0a0a0' : '#000000',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Créer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
