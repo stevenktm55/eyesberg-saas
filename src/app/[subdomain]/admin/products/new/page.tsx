@@ -923,11 +923,22 @@ export default function ProductBuilderPage() {
                   {(() => {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                     if (selectedModel) {
+                      const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
                       return (
-                        <Model3DPreviewStatic
-                          glbUrl={selectedModel.glb_url || selectedModel.glbUrl || ''}
-                          modelName={selectedModel.name}
-                        />
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          minHeight: '600px'
+                        }}>
+                          <Model3DPreviewStatic
+                            url={modelUrl}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              minHeight: '600px'
+                            }}
+                          />
+                        </div>
                       );
                     }
                     return null;
