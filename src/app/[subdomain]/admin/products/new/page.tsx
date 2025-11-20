@@ -1354,39 +1354,7 @@ export default function ProductBuilderPage() {
                 Delete Question
               </button>
             </div>
-          ) : (
-            <div style={{
-              width: '320px',
-              backgroundColor: '#0a0a0a',
-              borderLeft: '1px solid #1a1a1a',
-              padding: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <div style={{
-                textAlign: 'center',
-                color: '#a0a0a0'
-              }}>
-                <h3 style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
-                  marginBottom: '8px'
-                }}>
-                  Question settings
-                </h3>
-                <p style={{
-                  fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  lineHeight: '1.5'
-                }}>
-                  You will manage your question settings in this panel once you create your first question.
-                </p>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 
