@@ -629,58 +629,60 @@ export default function FontsConfigPage() {
                               border: '1px solid #2a2a2a',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'space-between',
                               gap: '16px'
                             }}
                           >
-                            <div style={{ flex: 1 }}>
-                              <div style={{ marginBottom: '8px' }}>
-                                <h4 style={{
-                                  fontSize: '14px',
-                                  fontWeight: '600',
-                                  color: '#ffffff',
-                                  margin: 0,
-                                  fontFamily: 'var(--stepn-font-body)'
-                                }}>
-                                  {font.name}
-                                </h4>
-                                <p style={{
-                                  fontSize: '12px',
-                                  color: '#a0a0a0',
-                                  margin: '4px 0 0 0',
-                                  fontFamily: 'var(--stepn-font-body)'
-                                }}>
-                                  {font.file_name} • Letter-spacing: {font.letter_spacing}
-                                </p>
-                              </div>
-                              {/* Font Preview */}
-                              <div style={{
-                                padding: '12px',
-                                backgroundColor: '#0a0a0a',
-                                borderRadius: '4px',
-                                border: '1px solid #2a2a2a',
-                                marginTop: '8px'
+                            {/* Name and Info */}
+                            <div style={{ minWidth: '200px' }}>
+                              <h4 style={{
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: '#ffffff',
+                                margin: 0,
+                                fontFamily: 'var(--stepn-font-body)'
                               }}>
-                                <style>{`
-                                  @font-face {
-                                    font-family: '${font.name}';
-                                    src: url('${font.file_url}') format('${font.file_type === 'woff' ? 'woff' : font.file_type === 'woff2' ? 'woff2' : font.file_type === 'otf' ? 'opentype' : 'truetype'}');
-                                  }
-                                `}</style>
-                                <div
-                                  style={{
-                                    fontFamily: `"${font.name}", sans-serif`,
-                                    fontSize: '24px',
-                                    color: '#ffffff',
-                                    letterSpacing: font.letter_spacing,
-                                    lineHeight: '1.4'
-                                  }}
-                                >
-                                  AaBbCc 123
-                                </div>
+                                {font.name}
+                              </h4>
+                              <p style={{
+                                fontSize: '12px',
+                                color: '#a0a0a0',
+                                margin: '4px 0 0 0',
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}>
+                                {font.file_name} • Letter-spacing: {font.letter_spacing}
+                              </p>
+                            </div>
+                            
+                            {/* Font Preview */}
+                            <div style={{
+                              flex: 1,
+                              padding: '12px',
+                              backgroundColor: '#0a0a0a',
+                              borderRadius: '4px',
+                              border: '1px solid #2a2a2a',
+                              minWidth: '200px'
+                            }}>
+                              <style>{`
+                                @font-face {
+                                  font-family: '${font.name}';
+                                  src: url('${font.file_url}') format('${font.file_type === 'woff' ? 'woff' : font.file_type === 'woff2' ? 'woff2' : font.file_type === 'otf' ? 'opentype' : 'truetype'}');
+                                }
+                              `}</style>
+                              <div
+                                style={{
+                                  fontFamily: `"${font.name}", sans-serif`,
+                                  fontSize: '24px',
+                                  color: '#ffffff',
+                                  letterSpacing: font.letter_spacing,
+                                  lineHeight: '1.4'
+                                }}
+                              >
+                                AaBbCc 123
                               </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            
+                            {/* Actions */}
+                            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                               <button
                                 onClick={() => openEditFontModal(group.id, font)}
                                 disabled={loading}
