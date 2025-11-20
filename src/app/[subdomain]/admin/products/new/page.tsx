@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
@@ -24,7 +24,7 @@ export default function ProductBuilderPage() {
   const [showQuestionSettings, setShowQuestionSettings] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const saveTimeoutRef = useState<NodeJS.Timeout | null>(null)[0];
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -100,19 +100,22 @@ export default function ProductBuilderPage() {
   useEffect(() => {
     if (!productId) return;
 
-    const timeout = setTimeout(() => {
+    // Nettoyer le timeout précédent
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Créer un nouveau timeout
+    saveTimeoutRef.current = setTimeout(() => {
       autoSave();
     }, 1000); // Sauvegarder 1 seconde après la dernière modification
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [productName, questions, activeTab, productId]);
-
-  // Sauvegarder aussi quand on change de tab
-  useEffect(() => {
-    if (productId) {
-      autoSave();
-    }
-  }, [activeTab]);
 
   function addQuestion() {
     const newQuestion: Question = {
