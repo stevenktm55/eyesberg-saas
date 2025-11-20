@@ -145,6 +145,29 @@ export default function ColorsConfigPage() {
     }
   }
 
+  async function duplicatePalette(palette: ColorPalette) {
+    setLoading(true);
+    try {
+      const newName = `${palette.name} (copie)`;
+      const res = await fetch("/api/color-palettes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newName,
+          colors: palette.colors, // Copier toutes les couleurs
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to duplicate palette");
+      await fetchPalettes();
+    } catch (error) {
+      console.error("Error duplicating palette:", error);
+      alert("Erreur lors de la duplication");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function addColorToPalette(paletteId: string) {
     if (!newColor.hex || !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(newColor.hex)) {
       alert("Veuillez entrer une couleur hex valide (ex: #FF0000)");
@@ -488,29 +511,59 @@ export default function ColorsConfigPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditNameModal(palette);
-                    }}
-                    style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: '#a0a0a0',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#8eff36';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#a0a0a0';
-                    }}
-                  >
-                    ✎
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditNameModal(palette);
+                      }}
+                      style={{
+                        padding: '8px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: '#a0a0a0',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#8eff36';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#a0a0a0';
+                      }}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicatePalette(palette);
+                      }}
+                      disabled={loading}
+                      style={{
+                        padding: '8px',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: loading ? '#4a4a4a' : '#a0a0a0',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        fontSize: '16px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loading) {
+                          e.currentTarget.style.color = '#8eff36';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!loading) {
+                          e.currentTarget.style.color = '#a0a0a0';
+                        }
+                      }}
+                    >
+                      ⧉
+                    </button>
+                  </div>
                 </div>
 
                 {/* Expanded Content */}
