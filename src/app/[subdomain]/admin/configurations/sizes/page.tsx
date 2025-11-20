@@ -887,75 +887,32 @@ export default function SizesConfigPage() {
                                 
                                 {/* Actions Column */}
                                 <td style={{ padding: '12px' }}>
-                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    {fileUV0 && (
-                                      <button
-                                        onClick={() => deleteFile(displayPattern.id, fileUV0.id)}
-                                        style={{
-                                          padding: '6px',
-                                          backgroundColor: 'transparent',
-                                          border: 'none',
-                                          color: '#a0a0a0',
-                                          cursor: 'pointer',
-                                          fontSize: '14px',
-                                          transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.color = '#ff4444';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.color = '#a0a0a0';
-                                        }}
-                                        title="Supprimer UV0"
-                                      >
-                                        ×
-                                      </button>
+                                  <button
+                                    onClick={() => openAddSizeModal(
+                                      displayPattern,
+                                      size,
+                                      fileUV0 ? { id: fileUV0.id, svgUrl: fileUV0.svgUrl } : undefined,
+                                      fileUV2 ? { id: fileUV2.id, svgUrl: fileUV2.svgUrl } : undefined
                                     )}
-                                    {fileUV2 && (
-                                      <button
-                                        onClick={() => deleteFile(displayPattern.id, fileUV2.id)}
-                                        style={{
-                                          padding: '6px',
-                                          backgroundColor: 'transparent',
-                                          border: 'none',
-                                          color: '#a0a0a0',
-                                          cursor: 'pointer',
-                                          fontSize: '14px',
-                                          transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.color = '#ff4444';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.color = '#a0a0a0';
-                                        }}
-                                        title="Supprimer UV2"
-                                      >
-                                        ×
-                                      </button>
-                                    )}
-                                    <button
-                                      onClick={() => removeSize(size)}
-                                      style={{
-                                        padding: '6px',
-                                        backgroundColor: 'transparent',
-                                        border: 'none',
-                                        color: '#a0a0a0',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        transition: 'all 0.2s'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.color = '#ff4444';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.color = '#a0a0a0';
-                                      }}
-                                      title="Supprimer la taille"
-                                    >
-                                      🗑
-                                    </button>
-                                  </div>
+                                    style={{
+                                      padding: '8px',
+                                      backgroundColor: 'transparent',
+                                      border: 'none',
+                                      color: '#a0a0a0',
+                                      cursor: 'pointer',
+                                      fontSize: '16px',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.color = '#8eff36';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.color = '#a0a0a0';
+                                    }}
+                                    title="Éditer la taille"
+                                  >
+                                    ✎
+                                  </button>
                                 </td>
                               </tr>
                             );
