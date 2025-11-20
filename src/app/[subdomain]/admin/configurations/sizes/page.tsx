@@ -990,6 +990,7 @@ export default function SizesConfigPage() {
           onClick={() => {
             setEditingPattern(null);
             setIsCreating(false);
+            setShowPatternEditModal(false);
             setNewPattern({
               model3dId: "",
               name: "",
@@ -1032,6 +1033,7 @@ export default function SizesConfigPage() {
               <button
                 onClick={() => {
                   setEditingPattern(null);
+                  setShowPatternEditModal(false);
                   setNewPattern({
                     model3dId: "",
                     name: "",
@@ -1226,6 +1228,7 @@ export default function SizesConfigPage() {
                 <button
                   onClick={() => {
                     setEditingPattern(null);
+                    setShowPatternEditModal(false);
                     setNewPattern({
                       model3dId: "",
                       name: "",
