@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -9,9 +9,22 @@ interface Model3DPreviewStaticProps {
   url: string | null;
   className?: string;
   style?: React.CSSProperties;
+  materialMaps?: Record<string, any>; // material_map_id -> material map with files
+  design2DUrl?: string | null;
+  modelParts?: Array<{ name: string; material_map_id?: string | null }>;
 }
 
-function Model({ url }: { url: string }) {
+function Model({ 
+  url, 
+  materialMaps, 
+  design2DUrl, 
+  modelParts 
+}: { 
+  url: string;
+  materialMaps?: Record<string, any>;
+  design2DUrl?: string | null;
+  modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+}) {
   const { scene } = useGLTF(url);
   
   // Auto-fit le modèle dans la scène
@@ -28,10 +41,111 @@ function Model({ url }: { url: string }) {
     scene.position.sub(center.multiplyScalar(scale));
   }
 
+  // Appliquer les material maps et le design 2D
+  React.useEffect(() => {
+    if (!scene) return;
+
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const mesh = child as THREE.Mesh;
+        const material = mesh.material;
+        
+        // Trouver la partie correspondante par nom de mesh
+        const meshName = mesh.name || '';
+        const part = modelParts?.find(p => p.name === meshName);
+        
+        if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
+          const materialMap = materialMaps[part.material_map_id];
+          const files = materialMap.material_map_files || [];
+          
+          // Créer un nouveau matériau MeshStandardMaterial si nécessaire
+          let standardMaterial: THREE.MeshStandardMaterial;
+          if (material instanceof THREE.MeshStandardMaterial) {
+            standardMaterial = material;
+          } else {
+            standardMaterial = new THREE.MeshStandardMaterial();
+            if (material instanceof THREE.MeshBasicMaterial) {
+              standardMaterial.color.copy(material.color);
+            }
+            mesh.material = standardMaterial;
+          }
+          
+          // Appliquer les textures
+          const textureLoader = new THREE.TextureLoader();
+          
+          files.forEach((file: any) => {
+            const mapType = file.map_type;
+            const fileUrl = file.file_url;
+            const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+            const scale = file.scale !== undefined ? file.scale : 1;
+            
+            if (!fileUrl) return;
+            
+            textureLoader.load(fileUrl, (texture) => {
+              texture.wrapS = THREE.RepeatWrapping;
+              texture.wrapT = THREE.RepeatWrapping;
+              texture.repeat.set(scale, scale);
+              
+              switch (mapType) {
+                case 'diffuse':
+                  standardMaterial.map = texture;
+                  standardMaterial.map.needsUpdate = true;
+                  break;
+                case 'normal':
+                  standardMaterial.normalMap = texture;
+                  standardMaterial.normalScale.set(intensity, intensity);
+                  standardMaterial.normalMap.needsUpdate = true;
+                  break;
+                case 'roughness':
+                  standardMaterial.roughnessMap = texture;
+                  standardMaterial.roughnessMap.needsUpdate = true;
+                  break;
+                case 'metallic':
+                  standardMaterial.metalnessMap = texture;
+                  standardMaterial.metalnessMap.needsUpdate = true;
+                  break;
+                case 'ao':
+                  standardMaterial.aoMap = texture;
+                  standardMaterial.aoMapIntensity = intensity;
+                  standardMaterial.aoMap.needsUpdate = true;
+                  break;
+              }
+              
+              standardMaterial.needsUpdate = true;
+            });
+          });
+        }
+        
+        // Appliquer le design 2D comme texture si disponible
+        if (design2DUrl && material instanceof THREE.MeshStandardMaterial) {
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(design2DUrl, (texture) => {
+            // Utiliser le design 2D comme texture de base ou overlay
+            if (!material.map) {
+              material.map = texture;
+            } else {
+              // Si une texture existe déjà, on peut la combiner ou la remplacer
+              material.map = texture;
+            }
+            material.map.needsUpdate = true;
+            material.needsUpdate = true;
+          });
+        }
+      }
+    });
+  }, [scene, materialMaps, design2DUrl, modelParts]);
+
   return <primitive object={scene} />;
 }
 
-export function Model3DPreviewStatic({ url, className, style }: Model3DPreviewStaticProps) {
+export function Model3DPreviewStatic({ 
+  url, 
+  className, 
+  style, 
+  materialMaps, 
+  design2DUrl, 
+  modelParts 
+}: Model3DPreviewStaticProps) {
   if (!url) {
     return (
       <div 
@@ -83,7 +197,12 @@ export function Model3DPreviewStatic({ url, className, style }: Model3DPreviewSt
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-          <Model url={url} />
+          <Model 
+            url={url} 
+            materialMaps={materialMaps}
+            design2DUrl={design2DUrl}
+            modelParts={modelParts}
+          />
           <Environment preset="city" />
         </Suspense>
       </Canvas>

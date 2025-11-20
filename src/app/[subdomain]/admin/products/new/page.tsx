@@ -77,6 +77,8 @@ export default function ProductBuilderPage() {
   const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
+  const [materialMaps, setMaterialMaps] = useState<any[]>([]);
+  const [modelMaterialMaps, setModelMaterialMaps] = useState<Record<string, any>>({}); // material_map_id -> material map avec fichiers
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -125,6 +127,7 @@ export default function ProductBuilderPage() {
     fetchLogoLibraries();
     fetchFontGroups();
     fetchSizePatterns();
+    fetchMaterialMaps();
   }, [searchParams, router]);
 
   async function fetchModels3D() {
@@ -198,6 +201,47 @@ export default function ProductBuilderPage() {
       console.error('Error fetching size patterns:', error);
     }
   }
+
+  async function fetchMaterialMaps() {
+    try {
+      const res = await fetch('/api/material-maps');
+      if (res.ok) {
+        const data = await res.json();
+        setMaterialMaps(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching material maps:', error);
+    }
+  }
+
+  // Récupérer les material maps assignés au modèle 3D sélectionné
+  useEffect(() => {
+    if (!selectedModel3DId || models3D.length === 0) {
+      setModelMaterialMaps({});
+      return;
+    }
+
+    const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+    if (!selectedModel || !(selectedModel as any).model_parts) {
+      setModelMaterialMaps({});
+      return;
+    }
+
+    // Créer un map des material_map_id vers les material maps avec leurs fichiers
+    const materialMapMap: Record<string, any> = {};
+    const parts = (selectedModel as any).model_parts || [];
+    
+    parts.forEach((part: any) => {
+      if (part.material_map_id && !materialMapMap[part.material_map_id]) {
+        const materialMap = materialMaps.find(m => m.id === part.material_map_id);
+        if (materialMap) {
+          materialMapMap[part.material_map_id] = materialMap;
+        }
+      }
+    });
+
+    setModelMaterialMaps(materialMapMap);
+  }, [selectedModel3DId, models3D, materialMaps]);
 
   // Fonction de sauvegarde automatique avec debounce
   const autoSave = useCallback(async () => {
@@ -1293,6 +1337,19 @@ export default function ProductBuilderPage() {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                     if (selectedModel) {
                       const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
+                      const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
+                      const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+                      
+                      // Préparer les material maps pour chaque partie du modèle
+                      const parts = (selectedModel as any).model_parts || [];
+                      const materialMapsForModel: Record<string, any> = {};
+                      parts.forEach((part: any) => {
+                        if (part.material_map_id && modelMaterialMaps[part.material_map_id]) {
+                          // Utiliser material_map_id comme clé
+                          materialMapsForModel[part.material_map_id] = modelMaterialMaps[part.material_map_id];
+                        }
+                      });
+                      
                       return (
                         <div style={{
                           width: '100%',
@@ -1301,6 +1358,9 @@ export default function ProductBuilderPage() {
                         }}>
                           <Model3DPreviewStatic
                             url={modelUrl}
+                            materialMaps={materialMapsForModel}
+                            design2DUrl={designUrl}
+                            modelParts={parts}
                             style={{
                               width: '100%',
                               height: '100%',
