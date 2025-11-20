@@ -196,7 +196,7 @@ export default function ProductBuilderPage() {
               }}
             >
               <img
-                src="/icons/logo-white.svg"
+                src="/eyesberg.svg"
                 alt="Eyesberg"
                 style={{
                   height: '32px',

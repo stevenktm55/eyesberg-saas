@@ -40,21 +40,24 @@ export default function AdminSidebar() {
     }}>
       {/* Logo/Brand */}
       <div style={{ padding: '0 24px 32px', borderBottom: '1px solid #1a1a1a' }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          backgroundColor: '#8eff36',
-          borderRadius: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#000000',
-          fontWeight: 'bold',
-          fontSize: '18px',
-          fontFamily: 'PP Neue Machina Inktrap Ultrabold Italic, sans-serif'
-        }}>
-          E
-        </div>
+        <Link href="/admin" style={{ display: 'inline-block', textDecoration: 'none' }}>
+          <img
+            src="/eyesberg.svg"
+            alt="Eyesberg"
+            style={{
+              height: '32px',
+              width: 'auto',
+              cursor: 'pointer',
+              transition: 'opacity 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '0.8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '1';
+            }}
+          />
+        </Link>
       </div>
 
       {/* Navigation */}
