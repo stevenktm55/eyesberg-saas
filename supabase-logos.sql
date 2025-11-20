@@ -57,52 +57,64 @@ ALTER TABLE logos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE logo_variants ENABLE ROW LEVEL SECURITY;
 
 -- Policies for logo_libraries
+DROP POLICY IF EXISTS "Public read access for logo_libraries" ON logo_libraries;
 CREATE POLICY "Public read access for logo_libraries" ON logo_libraries
   FOR SELECT TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public insert access for logo_libraries" ON logo_libraries;
 CREATE POLICY "Public insert access for logo_libraries" ON logo_libraries
   FOR INSERT TO public
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public update access for logo_libraries" ON logo_libraries;
 CREATE POLICY "Public update access for logo_libraries" ON logo_libraries
   FOR UPDATE TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public delete access for logo_libraries" ON logo_libraries;
 CREATE POLICY "Public delete access for logo_libraries" ON logo_libraries
   FOR DELETE TO public
   USING (true);
 
 -- Policies for logos
+DROP POLICY IF EXISTS "Public read access for logos" ON logos;
 CREATE POLICY "Public read access for logos" ON logos
   FOR SELECT TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public insert access for logos" ON logos;
 CREATE POLICY "Public insert access for logos" ON logos
   FOR INSERT TO public
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public update access for logos" ON logos;
 CREATE POLICY "Public update access for logos" ON logos
   FOR UPDATE TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public delete access for logos" ON logos;
 CREATE POLICY "Public delete access for logos" ON logos
   FOR DELETE TO public
   USING (true);
 
 -- Policies for logo_variants
+DROP POLICY IF EXISTS "Public read access for logo_variants" ON logo_variants;
 CREATE POLICY "Public read access for logo_variants" ON logo_variants
   FOR SELECT TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public insert access for logo_variants" ON logo_variants;
 CREATE POLICY "Public insert access for logo_variants" ON logo_variants
   FOR INSERT TO public
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Public update access for logo_variants" ON logo_variants;
 CREATE POLICY "Public update access for logo_variants" ON logo_variants
   FOR UPDATE TO public
   USING (true);
 
+DROP POLICY IF EXISTS "Public delete access for logo_variants" ON logo_variants;
 CREATE POLICY "Public delete access for logo_variants" ON logo_variants
   FOR DELETE TO public
   USING (true);
