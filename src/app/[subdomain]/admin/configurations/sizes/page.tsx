@@ -298,7 +298,8 @@ export default function SizesConfigPage() {
     // Si un pattern est fourni et qu'on n'est pas déjà en mode édition pour ce pattern,
     // définir editingPattern pour que la taille soit ajoutée au bon pattern
     if (pattern && (!editingPattern || editingPattern.id !== pattern.id)) {
-      setEditingPattern(pattern);
+      console.log("Setting editingPattern from pattern:", pattern);
+      setEditingPattern({ ...pattern }); // Créer une copie pour éviter les mutations
     }
     setNewSizeData({
       name: "",
