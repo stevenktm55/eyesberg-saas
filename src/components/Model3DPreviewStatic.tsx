@@ -81,10 +81,23 @@ function Model({
         }
         
         // Trouver la partie correspondante par nom de mesh
+        // Essayer plusieurs correspondances possibles
         const meshName = mesh.name || '';
-        const part = modelParts?.find(p => p.name === meshName);
+        let part = modelParts?.find(p => p.name === meshName);
         
-        console.log(`Mesh: ${meshName}, Part:`, part, 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none');
+        // Si pas de correspondance exacte, essayer de trouver par préfixe ou pattern
+        if (!part && modelParts) {
+          // Essayer de trouver une partie dont le nom est contenu dans le nom du mesh
+          part = modelParts.find(p => meshName.includes(p.name) || p.name.includes(meshName));
+          
+          // Si toujours pas trouvé, essayer avec le premier mesh (sans suffixe)
+          if (!part && meshName.includes('_')) {
+            const baseName = meshName.split('_')[0];
+            part = modelParts.find(p => p.name.includes(baseName) || baseName.includes(p.name));
+          }
+        }
+        
+        console.log(`Mesh: ${meshName}, Part:`, part, 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none', 'All parts:', modelParts?.map(p => p.name));
         
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
           const materialMap = materialMaps[part.material_map_id];
@@ -152,7 +165,13 @@ function Model({
         }
         
         // Appliquer le design 2D comme texture si disponible
-        if (design2DUrl) {
+        // Note: Les SVG ne peuvent pas être chargés directement comme texture
+        // Il faudrait les convertir en PNG/JPEG côté serveur ou utiliser un loader SVG
+        if (design2DUrl && design2DUrl.toLowerCase().endsWith('.svg')) {
+          console.log(`Design 2D is SVG, cannot load directly as texture: ${design2DUrl}`);
+          // Pour l'instant, on ne peut pas charger les SVG directement
+          // Il faudrait convertir le SVG en image raster (PNG/JPEG) côté serveur
+        } else if (design2DUrl) {
           console.log(`Loading design 2D: ${design2DUrl}`);
           const textureLoader = new THREE.TextureLoader();
           textureLoader.load(
