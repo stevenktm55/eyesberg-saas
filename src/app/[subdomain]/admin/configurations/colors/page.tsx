@@ -39,6 +39,20 @@ export default function ColorsConfigPage() {
   const [draggedColorIndex, setDraggedColorIndex] = useState<number | null>(null);
   const [dragOverColorIndex, setDragOverColorIndex] = useState<number | null>(null);
 
+  // Fonctions helper pour parser/formater CMYK
+  function parseCmyk(cmykString: string): { c: string; m: string; y: string; k: string } {
+    const parts = cmykString.split(' ');
+    return {
+      c: parts[0] || '0',
+      m: parts[1] || '0',
+      y: parts[2] || '0',
+      k: parts[3] || '0'
+    };
+  }
+
+  function formatCmyk(c: string, m: string, y: string, k: string): string {
+    return `${c || '0'} ${m || '0'} ${y || '0'} ${k || '0'}`;
+  }
 
   useEffect(() => {
     fetchPalettes();
@@ -642,30 +656,137 @@ export default function ColorsConfigPage() {
                           e.currentTarget.style.borderColor = '#2a2a2a';
                         }}
                       />
-                      <input
-                        type="text"
-                        value={newColor.cmyk}
-                        onChange={(e) => setNewColor({ ...newColor, cmyk: e.target.value })}
-                        placeholder="0 0 0 100"
-                        style={{
-                          width: '120px',
-                          padding: '10px 12px',
-                          backgroundColor: '#1a1a1a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '6px',
-                          color: '#ffffff',
-                          fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          outline: 'none',
-                          transition: 'all 0.2s'
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#8eff36';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#2a2a2a';
-                        }}
-                      />
+                      {/* CMYK - 4 champs séparés */}
+                      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>C</span>
+                          <input
+                            type="text"
+                            value={parseCmyk(newColor.cmyk).c}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                              const cmyk = parseCmyk(newColor.cmyk);
+                              setNewColor({ ...newColor, cmyk: formatCmyk(val, cmyk.m, cmyk.y, cmyk.k) });
+                            }}
+                            placeholder="0"
+                            style={{
+                              width: '40px',
+                              padding: '8px 4px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              outline: 'none',
+                              transition: 'all 0.2s',
+                              textAlign: 'center'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#8eff36';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = '#2a2a2a';
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>M</span>
+                          <input
+                            type="text"
+                            value={parseCmyk(newColor.cmyk).m}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                              const cmyk = parseCmyk(newColor.cmyk);
+                              setNewColor({ ...newColor, cmyk: formatCmyk(cmyk.c, val, cmyk.y, cmyk.k) });
+                            }}
+                            placeholder="0"
+                            style={{
+                              width: '40px',
+                              padding: '8px 4px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              outline: 'none',
+                              transition: 'all 0.2s',
+                              textAlign: 'center'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#8eff36';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = '#2a2a2a';
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>Y</span>
+                          <input
+                            type="text"
+                            value={parseCmyk(newColor.cmyk).y}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                              const cmyk = parseCmyk(newColor.cmyk);
+                              setNewColor({ ...newColor, cmyk: formatCmyk(cmyk.c, cmyk.m, val, cmyk.k) });
+                            }}
+                            placeholder="0"
+                            style={{
+                              width: '40px',
+                              padding: '8px 4px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              outline: 'none',
+                              transition: 'all 0.2s',
+                              textAlign: 'center'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#8eff36';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = '#2a2a2a';
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>K</span>
+                          <input
+                            type="text"
+                            value={parseCmyk(newColor.cmyk).k}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                              const cmyk = parseCmyk(newColor.cmyk);
+                              setNewColor({ ...newColor, cmyk: formatCmyk(cmyk.c, cmyk.m, cmyk.y, val) });
+                            }}
+                            placeholder="0"
+                            style={{
+                              width: '40px',
+                              padding: '8px 4px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              outline: 'none',
+                              transition: 'all 0.2s',
+                              textAlign: 'center'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#8eff36';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = '#2a2a2a';
+                            }}
+                          />
+                        </div>
+                      </div>
                       <button
                         onClick={() => addColorToPalette(palette.id)}
                         disabled={loading || !newColor.name.trim() || !newColor.hex}
@@ -708,7 +829,7 @@ export default function ColorsConfigPage() {
                         {/* Header */}
                         <div style={{
                           display: 'grid',
-                          gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 130px 110px',
+                          gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 200px 110px',
                           gap: '12px',
                           alignItems: 'center',
                           padding: '8px 12px',
@@ -736,7 +857,7 @@ export default function ColorsConfigPage() {
                             onDrop={(e) => handleColorDrop(e, palette.id, index)}
                             style={{
                               display: 'grid',
-                              gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 130px 110px',
+                              gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 200px 110px',
                               gap: '12px',
                               alignItems: 'center',
                               backgroundColor: draggedColorIndex === index ? '#2a2a2a' : '#1a1a1a',
@@ -839,36 +960,149 @@ export default function ColorsConfigPage() {
                               }}
                               onClick={(e) => e.stopPropagation()}
                             />
-                            {/* CMYK */}
-                            <input
-                              type="text"
-                              value={color.cmyk}
-                              onChange={(e) => {
-                                const updated = { ...color, cmyk: e.target.value };
-                                updateColorInPalette(palette.id, index, updated);
-                              }}
-                              style={{
-                                padding: '8px 12px',
-                                backgroundColor: '#0a0a0a',
-                                border: '1px solid #2a2a2a',
-                                borderRadius: '4px',
-                                color: '#ffffff',
-                                fontSize: '14px',
-                                fontFamily: 'var(--stepn-font-body)',
-                                outline: 'none',
-                                transition: 'all 0.2s',
-                                width: '100%',
-                                boxSizing: 'border-box',
-                                height: '38px'
-                              }}
-                              onFocus={(e) => {
-                                e.currentTarget.style.borderColor = '#8eff36';
-                              }}
-                              onBlur={(e) => {
-                                e.currentTarget.style.borderColor = '#2a2a2a';
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            {/* CMYK - 4 champs séparés */}
+                            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>C</span>
+                                <input
+                                  type="text"
+                                  value={parseCmyk(color.cmyk).c}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                                    const cmyk = parseCmyk(color.cmyk);
+                                    const updated = { ...color, cmyk: formatCmyk(val, cmyk.m, cmyk.y, cmyk.k) };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  }}
+                                  placeholder="0"
+                                  style={{
+                                    width: '40px',
+                                    padding: '6px 4px',
+                                    backgroundColor: '#0a0a0a',
+                                    border: '1px solid #2a2a2a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    textAlign: 'center',
+                                    height: '38px',
+                                    boxSizing: 'border-box'
+                                  }}
+                                  onFocus={(e) => {
+                                    e.currentTarget.style.borderColor = '#8eff36';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.currentTarget.style.borderColor = '#2a2a2a';
+                                  }}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>M</span>
+                                <input
+                                  type="text"
+                                  value={parseCmyk(color.cmyk).m}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                                    const cmyk = parseCmyk(color.cmyk);
+                                    const updated = { ...color, cmyk: formatCmyk(cmyk.c, val, cmyk.y, cmyk.k) };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  }}
+                                  placeholder="0"
+                                  style={{
+                                    width: '40px',
+                                    padding: '6px 4px',
+                                    backgroundColor: '#0a0a0a',
+                                    border: '1px solid #2a2a2a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    textAlign: 'center',
+                                    height: '38px',
+                                    boxSizing: 'border-box'
+                                  }}
+                                  onFocus={(e) => {
+                                    e.currentTarget.style.borderColor = '#8eff36';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.currentTarget.style.borderColor = '#2a2a2a';
+                                  }}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>Y</span>
+                                <input
+                                  type="text"
+                                  value={parseCmyk(color.cmyk).y}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                                    const cmyk = parseCmyk(color.cmyk);
+                                    const updated = { ...color, cmyk: formatCmyk(cmyk.c, cmyk.m, val, cmyk.k) };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  }}
+                                  placeholder="0"
+                                  style={{
+                                    width: '40px',
+                                    padding: '6px 4px',
+                                    backgroundColor: '#0a0a0a',
+                                    border: '1px solid #2a2a2a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    textAlign: 'center',
+                                    height: '38px',
+                                    boxSizing: 'border-box'
+                                  }}
+                                  onFocus={(e) => {
+                                    e.currentTarget.style.borderColor = '#8eff36';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.currentTarget.style.borderColor = '#2a2a2a';
+                                  }}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '10px', color: '#a0a0a0', fontWeight: '500' }}>K</span>
+                                <input
+                                  type="text"
+                                  value={parseCmyk(color.cmyk).k}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 3);
+                                    const cmyk = parseCmyk(color.cmyk);
+                                    const updated = { ...color, cmyk: formatCmyk(cmyk.c, cmyk.m, cmyk.y, val) };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  }}
+                                  placeholder="0"
+                                  style={{
+                                    width: '40px',
+                                    padding: '6px 4px',
+                                    backgroundColor: '#0a0a0a',
+                                    border: '1px solid #2a2a2a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    outline: 'none',
+                                    transition: 'all 0.2s',
+                                    textAlign: 'center',
+                                    height: '38px',
+                                    boxSizing: 'border-box'
+                                  }}
+                                  onFocus={(e) => {
+                                    e.currentTarget.style.borderColor = '#8eff36';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.currentTarget.style.borderColor = '#2a2a2a';
+                                  }}
+                                />
+                              </div>
+                            </div>
                             {/* Delete Button - Column 6 */}
                             <button
                               onClick={(e) => {
