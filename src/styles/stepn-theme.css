@@ -246,13 +246,16 @@ a:hover {
   color: var(--stepn-text);
 }
 
-/* Override pour les spans dans les boutons verts */
-button span {
-  color: inherit;
+/* Override pour les spans dans les boutons verts - force la couleur noire */
+/* Cible les boutons avec backgroundColor en camelCase (React) */
+button[style*="backgroundColor: #8eff36"] > span,
+button[style*="background-color: #8eff36"] > span,
+button[style*="#8eff36"] > span {
+  color: #000000 !important;
 }
 
-/* Force les spans dans les boutons avec fond vert à être noirs */
-button[style*="#8eff36"] span {
+/* Classe utilitaire pour forcer la couleur noire sur les spans */
+.green-button-icon {
   color: #000000 !important;
 }
 

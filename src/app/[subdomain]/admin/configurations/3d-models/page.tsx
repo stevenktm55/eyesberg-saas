@@ -424,7 +424,7 @@ export default function ModelsConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span>+</span>
+          <span className="green-button-icon">+</span>
           Nouveau modèle 3D
         </button>
       </div>

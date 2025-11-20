@@ -560,7 +560,7 @@ export default function SizesConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span>+</span>
+          <span className="green-button-icon">+</span>
           Nouveau groupe de tailles
         </button>
       </div>
