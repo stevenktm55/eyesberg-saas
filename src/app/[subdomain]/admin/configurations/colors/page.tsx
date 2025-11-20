@@ -44,6 +44,11 @@ export default function ColorsConfigPage() {
     // Retirer le # si présent
     hex = hex.replace('#', '');
     
+    // Gérer les couleurs courtes (#FFF -> #FFFFFF)
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
+    }
+    
     // Convertir en RGB
     const r = parseInt(hex.substring(0, 2), 16) / 255;
     const g = parseInt(hex.substring(2, 4), 16) / 255;
