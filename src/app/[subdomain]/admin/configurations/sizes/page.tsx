@@ -560,7 +560,7 @@ export default function SizesConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span>+</span>
+          <span style={{ color: '#000000' }}>+</span>
           Nouveau groupe de tailles
         </button>
       </div>
@@ -718,7 +718,7 @@ export default function SizesConfigPage() {
                           e.currentTarget.style.backgroundColor = '#2a2a2a';
                         }}
                       >
-                        <span>+</span>
+                        <span style={{ color: '#ffffff' }}>+</span>
                         {editingSize ? 'Éditer la taille' : 'Ajouter une taille'}
                       </button>
                     </div>
