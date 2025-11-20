@@ -673,6 +673,7 @@ export default function SizesConfigPage() {
             });
             setEditingPattern(null);
             setIsCreating(true);
+            setShowPatternEditModal(true);
           }}
           style={{
             padding: '12px 24px',
