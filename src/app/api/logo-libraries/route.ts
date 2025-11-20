@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       throw librariesError;
     }
 
-    // Récupérer les logos pour chaque bibliothèque
+    // Récupérer les logos pour chaque bibliothèque avec leurs variantes
     const librariesWithLogos = await Promise.all(
       (logoLibraries || []).map(async (library: any) => {
         const { data: logos, error: logosError } = await supabaseAdmin
@@ -42,10 +42,30 @@ export async function GET(request: NextRequest) {
           console.error('Error fetching logos for library:', logosError);
         }
 
+        // Récupérer les variantes pour chaque logo
+        const logosWithVariants = await Promise.all(
+          (logos || []).map(async (logo: any) => {
+            const { data: variants, error: variantsError } = await supabaseAdmin
+              .from('logo_variants')
+              .select('*')
+              .eq('logo_id', logo.id)
+              .order('created_at', { ascending: true });
+
+            if (variantsError) {
+              console.error('Error fetching variants for logo:', variantsError);
+            }
+
+            return {
+              ...logo,
+              variants: variants || [],
+            };
+          })
+        );
+
         return {
           id: library.id,
           name: library.name,
-          logos: logos || [],
+          logos: logosWithVariants,
           created_at: library.created_at,
           updated_at: library.updated_at,
         };
