@@ -30,6 +30,7 @@ export default function SizesConfigPage() {
   const [loading, setLoading] = useState(false);
   const [editingPattern, setEditingPattern] = useState<SizePattern | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showPatternEditModal, setShowPatternEditModal] = useState(false);
   const [newPattern, setNewPattern] = useState<{
     model3dId: string;
     name: string;
@@ -175,6 +176,7 @@ export default function SizesConfigPage() {
       });
       setEditingPattern(null);
       setIsCreating(false);
+      setShowPatternEditModal(false);
     } catch (error) {
       console.error("Error creating pattern:", error);
       alert("Erreur lors de la création du groupe de tailles");
@@ -219,6 +221,7 @@ export default function SizesConfigPage() {
       await fetchPatterns();
       setEditingPattern(null);
       setIsCreating(false);
+      setShowPatternEditModal(false);
     } catch (error) {
       console.error("Error updating pattern:", error);
       alert("Erreur lors de la mise à jour du groupe de tailles");
@@ -445,7 +448,7 @@ export default function SizesConfigPage() {
     pattern.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const showModal = editingPattern !== null || isCreating;
+  const showModal = showPatternEditModal && (editingPattern !== null || isCreating);
 
   return (
     <div style={{ fontFamily: 'var(--stepn-font-body)' }}>
@@ -626,6 +629,7 @@ export default function SizesConfigPage() {
                     e.stopPropagation();
                     setEditingPattern(pattern);
                     setIsCreating(false);
+                    setShowPatternEditModal(true);
                   }}
                     style={{
                       padding: '8px',
