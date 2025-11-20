@@ -55,6 +55,36 @@ export async function POST(request: NextRequest) {
     console.log('Starting font upload:', { fileName, fontGroupId, name, fileSize: file.size });
     
     try {
+      // Vérifier si le bucket existe, sinon le créer
+      const { data: existingBucket, error: checkError } = await supabaseAdmin.storage.getBucket('fonts');
+      
+      if (!existingBucket && (checkError?.message?.includes('not found') || checkError?.statusCode === '404')) {
+        console.log('Bucket "fonts" n\'existe pas, création en cours...');
+        const { error: createError } = await supabaseAdmin.storage.createBucket('fonts', {
+          public: true,
+          fileSizeLimit: 10 * 1024 * 1024, // 10MB
+          allowedMimeTypes: [
+            'font/ttf',
+            'font/otf',
+            'font/woff',
+            'font/woff2',
+            'application/x-font-ttf',
+            'application/x-font-opentype',
+            'application/font-woff',
+            'application/font-woff2'
+          ],
+        });
+        
+        if (createError) {
+          console.error('Error creating bucket:', createError);
+          return NextResponse.json(
+            { error: `Failed to create bucket: ${createError.message}` },
+            { status: 500 }
+          );
+        }
+        console.log('Bucket "fonts" créé avec succès');
+      }
+
       const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from('fonts')
         .upload(fileName, file, {
