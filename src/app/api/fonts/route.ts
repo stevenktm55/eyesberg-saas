@@ -51,43 +51,77 @@ export async function POST(request: NextRequest) {
 
     // Upload du fichier
     const fileName = `${Date.now()}-${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from('fonts')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+    
+    try {
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('fonts')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-    if (uploadError) {
-      console.error('Error uploading font file:', uploadError);
+      if (uploadError) {
+        console.error('Error uploading font file:', uploadError);
+        // Si le bucket n'existe pas, créer un message d'erreur plus clair
+        if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('not found')) {
+          return NextResponse.json(
+            { error: 'Le bucket "fonts" n\'existe pas dans Supabase Storage. Veuillez le créer dans le dashboard Supabase.' },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json(
+          { error: `Failed to upload file: ${uploadError.message}` },
+          { status: 500 }
+        );
+      }
+
+      if (!uploadData) {
+        return NextResponse.json(
+          { error: 'Upload failed: no data returned' },
+          { status: 500 }
+        );
+      }
+
+      const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('fonts')
+        .getPublicUrl(uploadData.path);
+
+      // Créer la font dans la base de données
+      const fileTypeWithoutDot = fileExtension.substring(1); // Enlever le point
+      const { data: font, error } = await supabaseAdmin
+        .from('fonts')
+        .insert({
+          font_group_id: fontGroupId,
+          name,
+          file_url: publicUrl,
+          file_name: file.name,
+          file_type: fileTypeWithoutDot,
+          letter_spacing: letterSpacing,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error inserting font into database:', error);
+        // Supprimer le fichier si l'insertion échoue
+        try {
+          await supabaseAdmin.storage.from('fonts').remove([fileName]);
+        } catch (removeError) {
+          console.error('Error removing uploaded file:', removeError);
+        }
+        return NextResponse.json(
+          { error: `Failed to create font: ${error.message}` },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(font);
+    } catch (error: any) {
+      console.error('Unexpected error in font creation:', error);
       return NextResponse.json(
-        { error: `Failed to upload file: ${uploadError.message}` },
+        { error: error.message || 'Failed to create font' },
         { status: 500 }
       );
-    }
-
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('fonts')
-      .getPublicUrl(uploadData.path);
-
-    // Créer la font dans la base de données
-    const { data: font, error } = await supabaseAdmin
-      .from('fonts')
-      .insert({
-        font_group_id: fontGroupId,
-        name,
-        file_url: publicUrl,
-        file_name: file.name,
-        file_type: fileExtension.substring(1), // Enlever le point
-        letter_spacing: letterSpacing,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      // Supprimer le fichier si l'insertion échoue
-      await supabaseAdmin.storage.from('fonts').remove([fileName]);
-      throw error;
     }
 
     return NextResponse.json(font);

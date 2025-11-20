@@ -329,15 +329,21 @@ export default function FontsConfigPage() {
 
   return (
     <div>
-      {/* Search Bar */}
-      <div style={{ marginBottom: '24px' }}>
+      {/* Search Bar and Create Button */}
+      <div style={{ 
+        marginBottom: '24px', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        gap: '16px'
+      }}>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Rechercher un groupe ou une font..."
           style={{
-            width: '100%',
+            flex: 1,
             maxWidth: '400px',
             padding: '12px 16px',
             backgroundColor: '#1a1a1a',
@@ -356,10 +362,6 @@ export default function FontsConfigPage() {
             e.currentTarget.style.borderColor = '#2a2a2a';
           }}
         />
-      </div>
-
-      {/* Create Group Button */}
-      <div style={{ marginBottom: '24px' }}>
         <button
           onClick={openCreateModal}
           disabled={loading}
@@ -732,7 +734,13 @@ export default function FontsConfigPage() {
                     )}
 
                     {/* Delete Group Button */}
-                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #2a2a2a' }}>
+                    <div style={{ 
+                      marginTop: '16px', 
+                      paddingTop: '16px', 
+                      borderTop: '1px solid #2a2a2a',
+                      display: 'flex',
+                      justifyContent: 'flex-end'
+                    }}>
                       <button
                         onClick={() => deleteGroup(group.id, group.name)}
                         disabled={loading}
@@ -746,11 +754,10 @@ export default function FontsConfigPage() {
                           fontWeight: '500',
                           cursor: loading ? 'not-allowed' : 'pointer',
                           fontFamily: 'var(--stepn-font-body)',
-                          transition: 'all 0.2s',
-                          width: '100%'
+                          transition: 'all 0.2s'
                         }}
                       >
-                        Supprimer le groupe
+                        SUPPRIMER LE GROUPE
                       </button>
                     </div>
                   </div>
