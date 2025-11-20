@@ -7,8 +7,9 @@ import MaterialMapsConfigPage from "./material-maps/page";
 import SizesConfigPage from "./sizes/page";
 import DesignsConfigPage from "./2d-designs/page";
 import ColorsConfigPage from "./colors/page";
+import FontsConfigPage from "./fonts/page";
 
-type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs" | "colors";
+type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs" | "colors" | "fonts";
 
 export default function ConfigurationsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("3d-models");
@@ -188,6 +189,33 @@ export default function ConfigurationsAdminPage() {
         >
           Couleurs
         </button>
+        <button
+          onClick={() => setActiveTab("fonts")}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            fontFamily: 'var(--stepn-font-body)',
+            color: activeTab === "fonts" ? '#8eff36' : '#a0a0a0',
+            borderBottom: activeTab === "fonts" ? '2px solid #8eff36' : '2px solid transparent',
+            backgroundColor: activeTab === "fonts" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "fonts") {
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "fonts") {
+              e.currentTarget.style.color = '#a0a0a0';
+            }
+          }}
+        >
+          Fonts
+        </button>
       </div>
 
         {/* Content */}
@@ -197,6 +225,7 @@ export default function ConfigurationsAdminPage() {
           {activeTab === "sizes" && <SizesConfigPage />}
           {activeTab === "2d-designs" && <DesignsConfigPage />}
           {activeTab === "colors" && <ColorsConfigPage />}
+          {activeTab === "fonts" && <FontsConfigPage />}
         </div>
       </div>
     </div>
