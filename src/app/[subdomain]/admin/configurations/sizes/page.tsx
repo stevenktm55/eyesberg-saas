@@ -294,7 +294,12 @@ export default function SizesConfigPage() {
     }
   }
 
-  function openAddSizeModal() {
+  function openAddSizeModal(pattern?: SizePattern) {
+    // Si un pattern est fourni et qu'on n'est pas déjà en mode édition pour ce pattern,
+    // définir editingPattern pour que la taille soit ajoutée au bon pattern
+    if (pattern && (!editingPattern || editingPattern.id !== pattern.id)) {
+      setEditingPattern(pattern);
+    }
     setNewSizeData({
       name: "",
       file: null,
@@ -601,7 +606,7 @@ export default function SizesConfigPage() {
                   }}>
                     <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                       <button
-                        onClick={openAddSizeModal}
+                        onClick={() => openAddSizeModal(displayPattern)}
                         style={{
                           padding: '8px 16px',
                           backgroundColor: '#2a2a2a',
