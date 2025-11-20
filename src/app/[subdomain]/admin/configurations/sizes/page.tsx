@@ -44,6 +44,11 @@ export default function SizesConfigPage() {
   const [uploadingSize, setUploadingSize] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const [showAddSizeModal, setShowAddSizeModal] = useState(false);
+  const [editingSize, setEditingSize] = useState<{
+    size: string;
+    fileUV0?: { id: string; svgUrl: string };
+    fileUV2?: { id: string; svgUrl: string };
+  } | null>(null);
   const [newSizeData, setNewSizeData] = useState<{
     name: string;
     file: File | null;
@@ -318,17 +323,28 @@ export default function SizesConfigPage() {
     }
   }
 
-  function openAddSizeModal(pattern?: SizePattern) {
+  function openAddSizeModal(pattern?: SizePattern, size?: string, fileUV0?: { id: string; svgUrl: string }, fileUV2?: { id: string; svgUrl: string }) {
     // Si un pattern est fourni et qu'on n'est pas déjà en mode édition pour ce pattern,
     // définir editingPattern pour que la taille soit ajoutée au bon pattern
     if (pattern && (!editingPattern || editingPattern.id !== pattern.id)) {
       console.log("Setting editingPattern from pattern:", pattern);
       setEditingPattern({ ...pattern }); // Créer une copie pour éviter les mutations
     }
-    setNewSizeData({
-      name: "",
-      file: null,
-    });
+    
+    // Si on édite une taille existante
+    if (size) {
+      setEditingSize({ size, fileUV0, fileUV2 });
+      setNewSizeData({
+        name: size,
+        file: null,
+      });
+    } else {
+      setEditingSize(null);
+      setNewSizeData({
+        name: "",
+        file: null,
+      });
+    }
     setShowAddSizeModal(true);
   }
 
@@ -390,6 +406,7 @@ export default function SizesConfigPage() {
 
     // Fermer le modal
     setShowAddSizeModal(false);
+    setEditingSize(null);
     setNewSizeData({
       name: "",
       file: null,
@@ -659,7 +676,7 @@ export default function SizesConfigPage() {
                         }}
                       >
                         <span>+</span>
-                        Ajouter une taille
+                        {editingSize ? 'Éditer la taille' : 'Ajouter une taille'}
                       </button>
                     </div>
                     <table style={{
@@ -1281,6 +1298,7 @@ export default function SizesConfigPage() {
           }}
           onClick={() => {
             setShowAddSizeModal(false);
+            setEditingSize(null);
             setNewSizeData({
               name: "",
               file: null,
@@ -1316,7 +1334,7 @@ export default function SizesConfigPage() {
                 fontFamily: 'var(--stepn-font-body)',
                 margin: 0
               }}>
-                Ajouter une taille
+                {editingSize ? 'Éditer la taille' : 'Ajouter une taille'}
               </h2>
               <button
                 onClick={() => {
@@ -1378,15 +1396,17 @@ export default function SizesConfigPage() {
                       setNewSizeData({ ...newSizeData, name: e.target.value });
                     }}
                     placeholder="Ex: XS, S, M, L, XL, XXL, ou un nom personnalisé"
+                    disabled={!!editingSize}
                     style={{
                       width: '100%',
                       padding: '12px 16px',
-                      backgroundColor: '#0a0a0a',
+                      backgroundColor: editingSize ? '#1a1a1a' : '#0a0a0a',
                       border: '1px solid #2a2a2a',
                       borderRadius: '8px',
-                      color: '#ffffff',
+                      color: editingSize ? '#a0a0a0' : '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: editingSize ? 'not-allowed' : 'text'
                     }}
                   />
                 </div>
@@ -1401,6 +1421,84 @@ export default function SizesConfigPage() {
                   }}>
                     Fichier SVG {newSizeData.file && <span style={{ color: '#8eff36', fontSize: '12px' }}>✓</span>}
                   </label>
+                  
+                  {/* Afficher les fichiers existants */}
+                  {editingSize && (editingSize.fileUV0 || editingSize.fileUV2) && (
+                    <div style={{
+                      marginBottom: '12px',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px'
+                    }}>
+                      <p style={{ color: '#ffffff', fontSize: '12px', marginBottom: '8px', fontWeight: '500' }}>
+                        Fichier actuel:
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {editingSize.fileUV0 && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px',
+                            backgroundColor: '#1a1a1a',
+                            borderRadius: '4px'
+                          }}>
+                            <span style={{ color: '#a0a0a0', fontSize: '12px' }}>UV0:</span>
+                            <a
+                              href={editingSize.fileUV0.svgUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: '#8eff36',
+                                fontSize: '12px',
+                                textDecoration: 'none'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.textDecoration = 'underline';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.textDecoration = 'none';
+                              }}
+                            >
+                              Visualiser
+                            </a>
+                          </div>
+                        )}
+                        {editingSize.fileUV2 && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '8px',
+                            backgroundColor: '#1a1a1a',
+                            borderRadius: '4px'
+                          }}>
+                            <span style={{ color: '#a0a0a0', fontSize: '12px' }}>UV2:</span>
+                            <a
+                              href={editingSize.fileUV2.svgUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: '#8eff36',
+                                fontSize: '12px',
+                                textDecoration: 'none'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.textDecoration = 'underline';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.textDecoration = 'none';
+                              }}
+                            >
+                              Visualiser
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <input
                     type="file"
                     accept=".svg"
@@ -1423,11 +1521,11 @@ export default function SizesConfigPage() {
                   />
                   {newSizeData.file && (
                     <p style={{ color: '#8eff36', fontSize: '12px', marginTop: '4px' }}>
-                      Fichier sélectionné: {newSizeData.file.name}
+                      Nouveau fichier sélectionné: {newSizeData.file.name}
                     </p>
                   )}
                   <p style={{ color: '#a0a0a0', fontSize: '12px', marginTop: '4px', fontStyle: 'italic' }}>
-                    Ce fichier sera utilisé pour UV0 (Designs) et UV2 (Logos)
+                    {editingSize ? 'Sélectionnez un nouveau fichier pour remplacer le fichier actuel' : 'Ce fichier sera utilisé pour UV0 (Designs) et UV2 (Logos)'}
                   </p>
                 </div>
 
