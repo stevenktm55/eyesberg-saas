@@ -364,51 +364,85 @@ export default function SizesConfigPage() {
 
     const sizeName = newSizeData.name.trim();
 
-    // Ajouter la taille à la liste
-    if (editingPattern) {
-      if (editingPattern.sizes.includes(sizeName)) {
-        alert("Cette taille existe déjà");
-        return;
+    // Si on édite une taille existante
+    if (editingSize) {
+      // Si on veut supprimer les fichiers (pas de nouveau fichier sélectionné)
+      if (!newSizeData.file) {
+        // Les fichiers seront supprimés dans le modal si l'utilisateur clique sur "Supprimer"
+        // Ici, on ne fait rien, juste fermer le modal
+      } else {
+        // Uploader le nouveau fichier pour remplacer les fichiers existants
+        if (editingPattern) {
+          // Trouver les patterns UV0 et UV2
+          const patternUV0 = patterns.find(p => 
+            p.name === editingPattern.name && 
+            p.model3dId === editingPattern.model3dId &&
+            p.id === editingPattern.id
+          );
+          
+          // Chercher le pattern UV2 correspondant
+          const patternUV2 = patterns.find(p => 
+            p.name === editingPattern.name && 
+            p.model3dId === editingPattern.model3dId &&
+            p.id !== editingPattern.id
+          );
+
+          // Uploader le même fichier pour UV0 et UV2
+          if (patternUV0) {
+            await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.file);
+          }
+          if (patternUV2) {
+            await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.file);
+          }
+        }
       }
-      const updatedPattern = {
-        ...editingPattern,
-        sizes: [...editingPattern.sizes, sizeName].sort(),
-      };
-      setEditingPattern(updatedPattern);
-      console.log("Updated editingPattern:", updatedPattern);
     } else {
-      if (newPattern.sizes.includes(sizeName)) {
-        alert("Cette taille existe déjà");
-        return;
+      // Ajouter une nouvelle taille à la liste
+      if (editingPattern) {
+        if (editingPattern.sizes.includes(sizeName)) {
+          alert("Cette taille existe déjà");
+          return;
+        }
+        const updatedPattern = {
+          ...editingPattern,
+          sizes: [...editingPattern.sizes, sizeName].sort(),
+        };
+        setEditingPattern(updatedPattern);
+        console.log("Updated editingPattern:", updatedPattern);
+      } else {
+        if (newPattern.sizes.includes(sizeName)) {
+          alert("Cette taille existe déjà");
+          return;
+        }
+        setNewPattern({
+          ...newPattern,
+          sizes: [...newPattern.sizes, sizeName].sort(),
+        });
       }
-      setNewPattern({
-        ...newPattern,
-        sizes: [...newPattern.sizes, sizeName].sort(),
-      });
-    }
 
-    // Si on est en mode édition et qu'il y a un fichier, l'uploader pour UV0 et UV2
-    if (editingPattern && newSizeData.file) {
-      // Trouver les patterns UV0 et UV2
-      const patternUV0 = patterns.find(p => 
-        p.name === editingPattern.name && 
-        p.model3dId === editingPattern.model3dId &&
-        p.id === editingPattern.id
-      );
-      
-      // Chercher le pattern UV2 correspondant
-      const patternUV2 = patterns.find(p => 
-        p.name === editingPattern.name && 
-        p.model3dId === editingPattern.model3dId &&
-        p.id !== editingPattern.id
-      );
+      // Si on est en mode édition et qu'il y a un fichier, l'uploader pour UV0 et UV2
+      if (editingPattern && newSizeData.file) {
+        // Trouver les patterns UV0 et UV2
+        const patternUV0 = patterns.find(p => 
+          p.name === editingPattern.name && 
+          p.model3dId === editingPattern.model3dId &&
+          p.id === editingPattern.id
+        );
+        
+        // Chercher le pattern UV2 correspondant
+        const patternUV2 = patterns.find(p => 
+          p.name === editingPattern.name && 
+          p.model3dId === editingPattern.model3dId &&
+          p.id !== editingPattern.id
+        );
 
-      // Uploader le même fichier pour UV0 et UV2
-      if (patternUV0) {
-        await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.file);
-      }
-      if (patternUV2) {
-        await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.file);
+        // Uploader le même fichier pour UV0 et UV2
+        if (patternUV0) {
+          await uploadFile(patternUV0.id, sizeName, "UV0", newSizeData.file);
+        }
+        if (patternUV2) {
+          await uploadFile(patternUV2.id, sizeName, "UV2", newSizeData.file);
+        }
       }
     }
 
