@@ -188,46 +188,69 @@ export default function SizesConfigPage() {
       const res = await fetch("/api/size-patterns");
       if (!res.ok) throw new Error("Failed to fetch patterns");
       const data = await res.json();
-      // Regrouper les patterns UV0 et UV2 par nom et modèle
+      // Regrouper les patterns UV0 et UV2 qui sont créés ensemble (même nom, même modèle, IDs proches)
+      // Mais permettre plusieurs groupes distincts avec le même nom
       const patternsMap = new Map<string, SizePattern>();
+      const processedPatternIds = new Set<string>();
       
       (Array.isArray(data) ? data : []).forEach((pattern: any) => {
-        const key = `${pattern.name}-${pattern.model3dId}`;
-        if (!patternsMap.has(key)) {
-          // Créer un nouveau pattern groupé
-          const sizesSet = new Set<string>();
-          pattern.files?.forEach((f: any) => {
-            sizesSet.add(f.size_name || f.size);
-          });
-          patternsMap.set(key, {
-            id: pattern.id, // Utiliser l'ID du pattern UV0 comme ID principal
-            name: pattern.name,
-            model3dId: pattern.model3dId,
-            description: pattern.description,
-            sizes: Array.from(sizesSet).sort(),
-            files: pattern.files?.map((f: any) => ({
-              id: f.id,
-              size: f.size_name || f.size,
-              uvType: pattern.uv_type || pattern.uvType || "UV0",
-              svgUrl: f.svg_url || f.svgUrl,
-              metadata: f.metadata,
-            })) || [],
-          });
-        } else {
-          // Fusionner avec le pattern existant
-          const existing = patternsMap.get(key)!;
-          pattern.files?.forEach((f: any) => {
-            existing.sizes.push(f.size_name || f.size);
-            existing.files.push({
-              id: f.id,
-              size: f.size_name || f.size,
-              uvType: pattern.uv_type || pattern.uvType || "UV0",
-              svgUrl: f.svg_url || f.svgUrl,
-              metadata: f.metadata,
-            });
-          });
-          existing.sizes = Array.from(new Set(existing.sizes)).sort();
+        // Si ce pattern a déjà été traité (fusionné avec un autre), on le skip
+        if (processedPatternIds.has(pattern.id)) {
+          return;
         }
+        
+        const uvType = pattern.uv_type || pattern.uvType || "UV0";
+        const baseKey = `${pattern.name}-${pattern.model3dId}`;
+        
+        // Chercher un pattern UV0 ou UV2 avec le même nom et modèle qui n'a pas encore été traité
+        // On cherche dans les patterns restants pour trouver le pattern jumeau (UV0/UV2)
+        let pairedPattern: any = null;
+        for (const otherPattern of data) {
+          if (
+            otherPattern.id !== pattern.id &&
+            !processedPatternIds.has(otherPattern.id) &&
+            otherPattern.name === pattern.name &&
+            otherPattern.model3dId === pattern.model3dId &&
+            (otherPattern.uv_type || otherPattern.uvType) !== uvType
+          ) {
+            pairedPattern = otherPattern;
+            break;
+          }
+        }
+        
+        // Créer un pattern groupé avec les fichiers des deux patterns (UV0 et UV2)
+        const allFiles: any[] = [...(pattern.files || [])];
+        if (pairedPattern) {
+          allFiles.push(...(pairedPattern.files || []));
+          processedPatternIds.add(pairedPattern.id);
+        }
+        
+        const sizesSet = new Set<string>();
+        allFiles.forEach((f: any) => {
+          sizesSet.add(f.size_name || f.size);
+        });
+        
+        // Utiliser l'ID du pattern principal comme clé unique
+        // Cela permet d'avoir plusieurs groupes avec le même nom
+        const uniqueKey = pattern.id;
+        patternsMap.set(uniqueKey, {
+          id: pattern.id, // Utiliser l'ID du pattern comme ID principal
+          name: pattern.name,
+          model3dId: pattern.model3dId,
+          description: pattern.description,
+          sizes: Array.from(sizesSet).sort(),
+          files: allFiles.map((f: any) => ({
+            id: f.id,
+            size: f.size_name || f.size,
+            uvType: (f.patternId && pairedPattern && f.patternId === pairedPattern.id) 
+              ? (pairedPattern.uv_type || pairedPattern.uvType || "UV2")
+              : uvType,
+            svgUrl: f.svg_url || f.svgUrl,
+            metadata: f.metadata,
+          })),
+        });
+        
+        processedPatternIds.add(pattern.id);
       });
       
       setPatterns(Array.from(patternsMap.values()));
