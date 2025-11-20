@@ -428,6 +428,26 @@ export default function SizesConfigPage() {
     setShowDeleteModal(true);
   }
 
+  async function confirmDelete() {
+    if (!deleteAction) return;
+
+    if (deleteAction.type === 'measurement' && deleteAction.id) {
+      await deleteMeasurement(deleteAction.id);
+    } else if (deleteAction.type === 'pattern' && deleteAction.id) {
+      await deletePattern(deleteAction.id);
+    } else if (deleteAction.type === 'file' && deleteAction.patternId && deleteAction.fileId) {
+      await deleteFile(deleteAction.patternId, deleteAction.fileId);
+    }
+
+    setShowDeleteModal(false);
+    setDeleteAction(null);
+  }
+
+  function cancelDelete() {
+    setShowDeleteModal(false);
+    setDeleteAction(null);
+  }
+
   async function deleteFile(patternId: string, fileId: string) {
     setLoading(true);
     try {
