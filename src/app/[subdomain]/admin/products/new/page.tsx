@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Model3DPreviewStatic } from '@/components/Model3DPreviewStatic';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
@@ -11,6 +12,20 @@ type Question = {
   label: string;
   required: boolean;
   options?: string[];
+};
+
+type Model3D = {
+  id: string;
+  name: string;
+  glb_url?: string;
+  glbUrl?: string;
+};
+
+type Design2D = {
+  id: string;
+  name: string;
+  svg_url?: string;
+  svgUrl?: string;
 };
 
 export default function ProductBuilderPage() {
@@ -25,6 +40,10 @@ export default function ProductBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [models3D, setModels3D] = useState<Model3D[]>([]);
+  const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
+  const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
+  const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -47,6 +66,8 @@ export default function ProductBuilderPage() {
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
             setQuestions(product.builder_data?.questions || []);
+            setSelectedModel3DId(product.builder_data?.model3DId || null);
+            setSelectedDesign2DId(product.builder_data?.design2DId || null);
           }
         } else if (shop) {
           // Créer un nouveau produit
@@ -64,7 +85,33 @@ export default function ProductBuilderPage() {
     }
 
     loadProduct();
+    fetchModels3D();
+    fetchDesigns2D();
   }, [searchParams, router]);
+
+  async function fetchModels3D() {
+    try {
+      const res = await fetch('/api/models-3d');
+      if (res.ok) {
+        const data = await res.json();
+        setModels3D(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching 3D models:', error);
+    }
+  }
+
+  async function fetchDesigns2D() {
+    try {
+      const res = await fetch('/api/designs-2d');
+      if (res.ok) {
+        const data = await res.json();
+        setDesigns2D(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching 2D designs:', error);
+    }
+  }
 
   // Fonction de sauvegarde automatique avec debounce
   const autoSave = useCallback(async () => {
@@ -81,6 +128,8 @@ export default function ProductBuilderPage() {
           builderData: {
             questions: questions,
             activeTab: activeTab,
+            model3DId: selectedModel3DId,
+            design2DId: selectedDesign2DId,
             settings: {}
           },
         }),
@@ -94,7 +143,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, activeTab]);
+  }, [productId, productName, questions, activeTab, selectedModel3DId, selectedDesign2DId]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
@@ -115,7 +164,7 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, activeTab, productId, autoSave]);
+  }, [productName, questions, activeTab, productId, selectedModel3DId, selectedDesign2DId, autoSave]);
 
   function addQuestion() {
     const newQuestion: Question = {
@@ -540,8 +589,8 @@ export default function ProductBuilderPage() {
               padding: '16px',
               borderTop: '1px solid #1a1a1a',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
+              flexDirection: 'column',
+              gap: '12px'
             }}>
               <div>
                 <div style={{
@@ -560,7 +609,78 @@ export default function ProductBuilderPage() {
                   Not shown in question panel
                 </div>
               </div>
-              <span style={{ color: '#a0a0a0', fontSize: '14px', cursor: 'pointer' }}>+</span>
+              
+              {/* 3D Model Selector */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '11px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#a0a0a0',
+                  marginBottom: '6px'
+                }}>
+                  Modèle 3D
+                </label>
+                <select
+                  value={selectedModel3DId || ''}
+                  onChange={(e) => setSelectedModel3DId(e.target.value || null)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Sélectionner un modèle 3D</option>
+                  {models3D.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2D Design Selector */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '11px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#a0a0a0',
+                  marginBottom: '6px'
+                }}>
+                  Design 2D
+                </label>
+                <select
+                  value={selectedDesign2DId || ''}
+                  onChange={(e) => setSelectedDesign2DId(e.target.value || null)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Sélectionner un design 2D</option>
+                  {designs2D.map((design) => (
+                    <option key={design.id} value={design.id}>
+                      {design.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Add to cart */}
@@ -608,34 +728,58 @@ export default function ProductBuilderPage() {
               </h2>
             </div>
 
-            {/* Product Preview Placeholder */}
-            <div style={{
-              width: '400px',
-              height: '400px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '24px',
-              position: 'relative'
-            }}>
+            {/* Product Preview */}
+            {selectedModel3DId ? (
               <div style={{
-                fontSize: '48px',
-                color: '#4a4a4a'
+                width: '100%',
+                maxWidth: '600px',
+                height: '500px',
+                marginBottom: '24px',
+                position: 'relative'
               }}>
-                🎩
+                {(() => {
+                  const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                  if (selectedModel) {
+                    return (
+                      <Model3DPreviewStatic
+                        glbUrl={selectedModel.glb_url || selectedModel.glbUrl || ''}
+                        modelName={selectedModel.name}
+                      />
+                    );
+                  }
+                  return null;
+                })()}
               </div>
-            </div>
-
-            <p style={{
-              color: '#a0a0a0',
-              fontSize: '14px',
-              fontFamily: 'var(--stepn-font-body)',
-              marginBottom: '32px'
-            }}>
-              Your product will appear here
-            </p>
+            ) : (
+              <>
+                <div style={{
+                  width: '400px',
+                  height: '400px',
+                  backgroundColor: '#1a1a1a',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '24px',
+                  position: 'relative'
+                }}>
+                  <div style={{
+                    fontSize: '48px',
+                    color: '#4a4a4a'
+                  }}>
+                    🎩
+                  </div>
+                </div>
+                <p style={{
+                  color: '#a0a0a0',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  marginBottom: '32px'
+                }}>
+                  Your product will appear here
+                </p>
+              </>
+            )}
 
             {/* Questions will appear here hint */}
             <p style={{
