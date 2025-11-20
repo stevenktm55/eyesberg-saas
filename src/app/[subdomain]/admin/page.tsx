@@ -48,6 +48,8 @@ export default function SubdomainAdminPage() {
   const [subdomain, setSubdomain] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductBuilder[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     // Récupérer le sous-domaine depuis le host
@@ -101,27 +103,147 @@ export default function SubdomainAdminPage() {
     loadShopData();
   }, []);
 
+  // Fonction pour charger les produits
+  async function loadProducts() {
+    setLoadingProducts(true);
+    try {
+      const response = await fetch(`/api/product-builder`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Error loading products:', err);
+    } finally {
+      setLoadingProducts(false);
+    }
+  }
+
   // Charger les produits du builder
   useEffect(() => {
     if (!subdomain) return;
-
-    async function loadProducts() {
-      setLoadingProducts(true);
-      try {
-        const response = await fetch(`/api/product-builder`);
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        console.error('Error loading products:', err);
-      } finally {
-        setLoadingProducts(false);
-      }
-    }
-
     loadProducts();
   }, [subdomain]);
+
+  // Fermer le menu au clic extérieur
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (openMenuId && !(event.target as Element).closest('[data-menu-container]')) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
+
+  // Fonction pour formater la date relative
+  function formatRelativeTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `Updated ${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `Updated ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 30) return `Updated ${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffMonths < 12) return `Updated ${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`;
+    return `Updated ${diffYears} year${diffYears > 1 ? 's' : ''} ago`;
+  }
+
+  // Filtrer les produits selon l'onglet actif
+  const filteredProducts = products.filter(product => {
+    if (activeTab === 'archived') {
+      return product.status === 'archived';
+    }
+    return product.status !== 'archived';
+  });
+
+  async function archiveProduct(id: string) {
+    try {
+      const res = await fetch('/api/product-builder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          status: 'archived',
+        }),
+      });
+      if (res.ok) {
+        await loadProducts();
+        setOpenMenuId(null);
+      }
+    } catch (error) {
+      console.error('Error archiving product:', error);
+      alert('Erreur lors de l\'archivage');
+    }
+  }
+
+  async function unarchiveProduct(id: string) {
+    try {
+      const res = await fetch('/api/product-builder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          status: 'draft',
+        }),
+      });
+      if (res.ok) {
+        await loadProducts();
+        setOpenMenuId(null);
+      }
+    } catch (error) {
+      console.error('Error unarchiving product:', error);
+      alert('Erreur lors de la désarchivage');
+    }
+  }
+
+  async function deleteProduct(id: string) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;
+    
+    try {
+      const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await loadProducts();
+        setOpenMenuId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Erreur lors de la suppression');
+    }
+  }
+
+  async function duplicateProduct(id: string) {
+    try {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+
+      const res = await fetch('/api/product-builder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${product.name} (Copy)`,
+          builderData: (product as any).builder_data,
+          shopDomain: shopData?.shop_domain,
+          status: 'draft',
+        }),
+      });
+      if (res.ok) {
+        await loadProducts();
+        setOpenMenuId(null);
+      }
+    } catch (error) {
+      console.error('Error duplicating product:', error);
+      alert('Erreur lors de la duplication');
+    }
+  }
 
   const handleConnectShopify = () => {
     if (!subdomain) {
@@ -269,31 +391,35 @@ export default function SubdomainAdminPage() {
               borderBottom: '1px solid #1a1a1a'
             }}>
               <button
+                onClick={() => setActiveTab('active')}
                 style={{
                   padding: '12px 0',
                   backgroundColor: 'transparent',
-                  color: '#8eff36',
+                  color: activeTab === 'active' ? '#8eff36' : '#a0a0a0',
                   border: 'none',
-                  borderBottom: '2px solid #8eff36',
+                  borderBottom: activeTab === 'active' ? '2px solid #8eff36' : '2px solid transparent',
                   fontSize: '16px',
                   cursor: 'pointer',
                   fontFamily: 'var(--stepn-font-body)',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
                 }}
               >
                 Active
               </button>
               <button
+                onClick={() => setActiveTab('archived')}
                 style={{
                   padding: '12px 0',
                   backgroundColor: 'transparent',
-                  color: '#a0a0a0',
+                  color: activeTab === 'archived' ? '#8eff36' : '#a0a0a0',
                   border: 'none',
-                  borderBottom: '2px solid transparent',
+                  borderBottom: activeTab === 'archived' ? '2px solid #8eff36' : '2px solid transparent',
                   fontSize: '16px',
                   cursor: 'pointer',
                   fontFamily: 'var(--stepn-font-body)',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
                 }}
               >
                 Archived
@@ -402,15 +528,228 @@ export default function SubdomainAdminPage() {
                 gap: '24px'
               }}>
                 {/* Existing Products */}
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    onClick={() => router.push(`/admin/products/new?shop=${shopData?.shop_domain}&id=${product.id}`)}
+                    data-menu-container
                     style={{
                       backgroundColor: '#0a0a0a',
                       borderRadius: '8px',
                       padding: '16px',
                       border: '1px solid #1a1a1a',
+                      position: 'relative',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#8eff36';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#1a1a1a';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    {/* Menu Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === product.id ? null : product.id);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '16px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2a2a2a';
+                        e.currentTarget.style.borderColor = '#8eff36';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                        e.currentTarget.style.borderColor = '#2a2a2a';
+                      }}
+                    >
+                      ⋯
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {openMenuId === product.id && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '40px',
+                          right: '12px',
+                          backgroundColor: '#ffffff',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                          zIndex: 1000,
+                          minWidth: '160px',
+                          padding: '8px 0',
+                          border: '1px solid #e0e0e0'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => router.push(`/admin/products/new?shop=${shopData?.shop_domain}&id=${product.id}&preview=true`)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            textAlign: 'left',
+                            color: '#000000',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          Preview
+                        </button>
+                        <button
+                          onClick={() => duplicateProduct(product.id)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            textAlign: 'left',
+                            color: '#000000',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          Duplicate
+                        </button>
+                        <div style={{
+                          height: '1px',
+                          backgroundColor: '#e0e0e0',
+                          margin: '4px 0'
+                        }} />
+                        <button
+                          onClick={() => activeTab === 'active' ? archiveProduct(product.id) : unarchiveProduct(product.id)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            textAlign: 'left',
+                            color: '#d97706',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#fef3c7';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          {activeTab === 'active' ? 'Archive' : 'Unarchive'}
+                        </button>
+                        <button
+                          onClick={() => deleteProduct(product.id)}
+                          style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            textAlign: 'left',
+                            color: '#dc2626',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#fee2e2';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+
+                    <div
+                      onClick={() => router.push(`/admin/products/new?shop=${shopData?.shop_domain}&id=${product.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div style={{
+                        width: '100%',
+                        aspectRatio: '1',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '4px',
+                        marginBottom: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#a0a0a0',
+                        fontSize: '32px'
+                      }}>
+                        📦
+                      </div>
+                      <p style={{
+                        color: '#ffffff',
+                        fontFamily: 'var(--stepn-font-body)',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        marginBottom: '4px'
+                      }}>
+                        {product.name}
+                      </p>
+                      <p style={{
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)',
+                        fontSize: '12px'
+                      }}>
+                        {formatRelativeTime(product.updated_at || product.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add New Product Card - Only show in Active tab */}
+                {activeTab === 'active' && (
+                  <div
+                    onClick={() => shopData && router.push(`/admin/products/new?shop=${shopData.shop_domain}`)}
+                    style={{
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      border: '1px solid #1a1a1a',
+                      textAlign: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
@@ -433,80 +772,27 @@ export default function SubdomainAdminPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: '#a0a0a0',
-                      fontSize: '32px'
+                      fontSize: '48px'
                     }}>
-                      📦
+                      +
                     </div>
                     <p style={{
                       color: '#ffffff',
                       fontFamily: 'var(--stepn-font-body)',
                       fontSize: '14px',
-                      fontWeight: '500',
-                      marginBottom: '4px'
+                      marginBottom: '8px'
                     }}>
-                      {product.name}
+                      {filteredProducts.length === 0 ? 'No products yet' : 'New product'}
                     </p>
                     <p style={{
                       color: '#a0a0a0',
                       fontFamily: 'var(--stepn-font-body)',
                       fontSize: '12px'
                     }}>
-                      {product.status === 'published' ? 'Published' : 'Draft'}
+                      {filteredProducts.length === 0 ? 'Create your first product' : 'Add product'}
                     </p>
                   </div>
-                ))}
-
-                {/* Add New Product Card */}
-                <div
-                  onClick={() => shopData && router.push(`/admin/products/new?shop=${shopData.shop_domain}`)}
-                  style={{
-                    backgroundColor: '#0a0a0a',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    border: '1px solid #1a1a1a',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#8eff36';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#1a1a1a';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{
-                    width: '100%',
-                    aspectRatio: '1',
-                    backgroundColor: '#1a1a1a',
-                    borderRadius: '4px',
-                    marginBottom: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#a0a0a0',
-                    fontSize: '48px'
-                  }}>
-                    +
-                  </div>
-                  <p style={{
-                    color: '#ffffff',
-                    fontFamily: 'var(--stepn-font-body)',
-                    fontSize: '14px',
-                    marginBottom: '8px'
-                  }}>
-                    {products.length === 0 ? 'No products yet' : 'New product'}
-                  </p>
-                  <p style={{
-                    color: '#a0a0a0',
-                    fontFamily: 'var(--stepn-font-body)',
-                    fontSize: '12px'
-                  }}>
-                    {products.length === 0 ? 'Create your first product' : 'Add product'}
-                  </p>
-                </div>
+                )}
               </div>
             )}
               </>
