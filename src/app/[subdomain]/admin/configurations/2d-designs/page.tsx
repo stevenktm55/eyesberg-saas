@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Design2DPreviewStatic } from "@/components/Design2DPreviewStatic";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type Design2D = {
   id: string;
@@ -18,6 +19,7 @@ export default function Designs2DConfigPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedDesign, setSelectedDesign] = useState<Design2D | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newDesignName, setNewDesignName] = useState("");
   const [newDesignFile, setNewDesignFile] = useState<File | null>(null);
@@ -90,9 +92,13 @@ export default function Designs2DConfigPage() {
     }
   }
 
+  function openDeleteModal() {
+    if (!selectedDesign) return;
+    setShowDeleteModal(true);
+  }
+
   async function deleteDesign() {
     if (!selectedDesign) return;
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedDesign.name}" ?`)) return;
     
     setLoading(true);
     try {
@@ -102,6 +108,7 @@ export default function Designs2DConfigPage() {
       if (!res.ok) throw new Error("Failed to delete");
       await fetchDesigns();
       closeModal();
+      setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting design:", error);
       alert("Erreur lors de la suppression");
@@ -562,7 +569,7 @@ export default function Designs2DConfigPage() {
             }}>
               {selectedDesign && (
                 <button
-                  onClick={deleteDesign}
+                  onClick={openDeleteModal}
                   disabled={loading}
                   style={{
                     padding: '12px 24px',
@@ -649,6 +656,15 @@ export default function Designs2DConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={deleteDesign}
+        title={selectedDesign ? `Êtes-vous sûr de vouloir supprimer "${selectedDesign.name}" ?` : ""}
+        message="Cette action est irréversible."
+      />
     </div>
   );
 }

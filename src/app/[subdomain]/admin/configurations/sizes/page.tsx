@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type SizePattern = {
   id: string;
@@ -79,6 +80,14 @@ export default function SizesConfigPage() {
     name: "",
     value: "",
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<{
+    type: 'measurement' | 'pattern' | 'file';
+    id?: string;
+    patternId?: string;
+    fileId?: string;
+    name?: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchModels();
@@ -150,9 +159,12 @@ export default function SizesConfigPage() {
     }
   }
 
-  async function deleteMeasurement(id: string) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette mesure ?")) return;
+  function openDeleteMeasurementModal(id: string) {
+    setDeleteAction({ type: 'measurement', id });
+    setShowDeleteModal(true);
+  }
 
+  async function deleteMeasurement(id: string) {
     setLoading(true);
     try {
       const res = await fetch(`/api/size-measurements?id=${encodeURIComponent(id)}`, {
@@ -327,9 +339,13 @@ export default function SizesConfigPage() {
     }
   }
 
-  async function deletePattern(patternId: string) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce groupe de tailles ?")) return;
+  function openDeletePatternModal(patternId: string) {
+    const pattern = patterns.find(p => p.id === patternId);
+    setDeleteAction({ type: 'pattern', id: patternId, name: pattern?.name });
+    setShowDeleteModal(true);
+  }
 
+  async function deletePattern(patternId: string) {
     setLoading(true);
     try {
       // Supprimer les deux patterns (UV0 et UV2)
@@ -407,9 +423,12 @@ export default function SizesConfigPage() {
     }
   }
 
-  async function deleteFile(patternId: string, fileId: string) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce fichier ?")) return;
+  function openDeleteFileModal(patternId: string, fileId: string) {
+    setDeleteAction({ type: 'file', patternId, fileId });
+    setShowDeleteModal(true);
+  }
 
+  async function deleteFile(patternId: string, fileId: string) {
     setLoading(true);
     try {
       // TODO: Implémenter l'API DELETE pour les fichiers
@@ -1198,7 +1217,7 @@ export default function SizesConfigPage() {
             }}>
               {editingPattern && (
                 <button
-                  onClick={() => deletePattern(editingPattern.id)}
+                  onClick={() => openDeletePatternModal(editingPattern.id)}
                   disabled={loading}
                   style={{
                     padding: '12px 24px',
@@ -1847,7 +1866,7 @@ export default function SizesConfigPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => deleteMeasurement(measurement.id)}
+                          onClick={() => openDeleteMeasurementModal(measurement.id)}
                           disabled={loading}
                           style={{
                             padding: '6px 12px',
@@ -1883,6 +1902,25 @@ export default function SizesConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={
+          deleteAction?.type === 'measurement'
+            ? "Êtes-vous sûr de vouloir supprimer cette mesure ?"
+            : deleteAction?.type === 'pattern'
+            ? `Êtes-vous sûr de vouloir supprimer le groupe de tailles "${deleteAction.name}" ?`
+            : "Êtes-vous sûr de vouloir supprimer ce fichier ?"
+        }
+        message={
+          deleteAction?.type === 'pattern'
+            ? "Cette action est irréversible."
+            : undefined
+        }
+      />
     </div>
   );
 }

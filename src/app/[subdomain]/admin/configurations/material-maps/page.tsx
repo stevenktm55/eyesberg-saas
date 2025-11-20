@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MaterialMapPreview3D } from "@/components/MaterialMapPreview3D";
 import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type MaterialMap = {
   id: string;
@@ -28,6 +29,7 @@ export default function MaterialMapsConfigPage() {
   const [loading, setLoading] = useState(false);
   const [uploadingMapType, setUploadingMapType] = useState<string | null>(null);
   const [selectedMap, setSelectedMap] = useState<MaterialMap | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newMapName, setNewMapName] = useState("");
   const [mapSettings, setMapSettings] = useState<MapSettings>({
@@ -249,9 +251,13 @@ export default function MaterialMapsConfigPage() {
     }
   }
 
+  function openDeleteModal() {
+    if (!selectedMap) return;
+    setShowDeleteModal(true);
+  }
+
   async function deleteMap() {
     if (!selectedMap) return;
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedMap.name}" ?`)) return;
     
     setLoading(true);
     try {
@@ -261,6 +267,7 @@ export default function MaterialMapsConfigPage() {
       if (!res.ok) throw new Error("Failed to delete");
       await fetchMaterialMaps();
       closeModal();
+      setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting material map:", error);
       alert("Erreur lors de la suppression");
@@ -1841,7 +1848,7 @@ export default function MaterialMapsConfigPage() {
               borderTop: '1px solid #2a2a2a'
             }}>
               <button
-                onClick={deleteMap}
+                onClick={openDeleteModal}
                 style={{
                   padding: '12px 24px',
                   backgroundColor: '#ff4444',
@@ -1918,6 +1925,15 @@ export default function MaterialMapsConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={deleteMap}
+        title={selectedMap ? `Êtes-vous sûr de vouloir supprimer "${selectedMap.name}" ?` : ""}
+        message="Cette action est irréversible."
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Model3DPreview } from "@/components/Model3DPreview";
 import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
 import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type Model3D = {
   id: string;
@@ -32,6 +33,7 @@ export default function ModelsConfigPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model3D | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [modelParts, setModelParts] = useState<ModelPart[]>([]);
   const [detectedMaterials, setDetectedMaterials] = useState<DetectedMaterial[]>([]);
@@ -332,9 +334,13 @@ export default function ModelsConfigPage() {
     }
   }
 
+  function openDeleteModal() {
+    if (!selectedModel) return;
+    setShowDeleteModal(true);
+  }
+
   async function deleteModel() {
     if (!selectedModel) return;
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${selectedModel.name}" ?`)) return;
     
     setLoading(true);
     try {
@@ -344,6 +350,7 @@ export default function ModelsConfigPage() {
       if (!res.ok) throw new Error("Failed to delete");
       await fetchModels();
       closeModal();
+      setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting model:", error);
       alert("Erreur lors de la suppression");
@@ -979,7 +986,7 @@ export default function ModelsConfigPage() {
             }}>
               {!isCreating && (
                 <button
-                  onClick={deleteModel}
+                  onClick={openDeleteModal}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: '#ff4444',
@@ -1283,6 +1290,15 @@ export default function ModelsConfigPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={deleteModel}
+        title={selectedModel ? `Êtes-vous sûr de vouloir supprimer "${selectedModel.name}" ?` : ""}
+        message="Cette action est irréversible."
+      />
     </div>
   );
 }
