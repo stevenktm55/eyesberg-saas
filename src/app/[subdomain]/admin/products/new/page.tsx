@@ -241,14 +241,13 @@ export default function ProductBuilderPage() {
     };
 
     setCustomizationModules([...customizationModules, module]);
+    setNewModule({
+      tabName: '',
+      icon: '🎨',
+      inputType: 'thumbnail'
+    });
+    setNewModuleIconFile(null);
     setShowCreateModuleModal(false);
-                setNewModule({
-                  tabName: '',
-                  icon: '🎨',
-                  inputType: 'thumbnail'
-                });
-                setNewModuleIconFile(null);
-                setShowCreateModuleModal(false);
   }
 
   function deleteModule(moduleId: string) {
