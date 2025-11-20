@@ -504,12 +504,14 @@ export default function SizesConfigPage() {
             const fileCount = pattern.files.length;
             
             // Utiliser editingPattern.sizes si on est en mode édition pour ce pattern
-            const displayPattern = editingPattern && editingPattern.id === pattern.id 
-              ? editingPattern 
-              : pattern;
-            const displaySizes = editingPattern && editingPattern.id === pattern.id
-              ? editingPattern.sizes
-              : pattern.sizes;
+            const isEditingThisPattern = editingPattern && editingPattern.id === pattern.id;
+            const displayPattern = isEditingThisPattern ? editingPattern : pattern;
+            const displaySizes = isEditingThisPattern ? editingPattern.sizes : pattern.sizes;
+            
+            // Debug log
+            if (isEditingThisPattern) {
+              console.log(`Pattern ${pattern.id} is being edited. displaySizes:`, displaySizes);
+            }
 
             return (
               <div
