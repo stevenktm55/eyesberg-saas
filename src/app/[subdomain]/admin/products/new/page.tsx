@@ -44,6 +44,7 @@ export default function ProductBuilderPage() {
   const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<'design' | 'color' | 'number' | 'name' | 'logo' | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -702,145 +703,269 @@ export default function ProductBuilderPage() {
             </div>
           </div>
 
-          {/* Center: Preview Area */}
+          {/* Center: Customizer Preview Area */}
           <div style={{
             flex: 1,
             backgroundColor: '#000000',
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
             position: 'relative',
-            overflow: 'auto'
+            overflow: 'hidden'
           }}>
-            <div style={{
-              textAlign: 'center',
-              color: '#ffffff',
-              fontFamily: 'var(--stepn-font-body)',
-              marginBottom: '24px'
-            }}>
-              <h2 style={{
-                fontSize: '24px',
-                fontWeight: '600',
-                marginBottom: '8px'
-              }}>
-                Customizer title
-              </h2>
-            </div>
-
-            {/* Product Preview */}
-            {selectedModel3DId ? (
+            {/* Left Sidebar - Customizer Tabs (only visible when model is selected) */}
+            {selectedModel3DId && (
               <div style={{
-                width: '100%',
-                maxWidth: '600px',
-                height: '500px',
-                marginBottom: '24px',
-                position: 'relative'
+                width: '80px',
+                backgroundColor: '#0a0a0a',
+                borderRight: '1px solid #1a1a1a',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '16px 0',
+                gap: '8px'
               }}>
-                {(() => {
-                  const selectedModel = models3D.find(m => m.id === selectedModel3DId);
-                  if (selectedModel) {
-                    return (
-                      <Model3DPreviewStatic
-                        glbUrl={selectedModel.glb_url || selectedModel.glbUrl || ''}
-                        modelName={selectedModel.name}
-                      />
-                    );
-                  }
-                  return null;
-                })()}
+                <button
+                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'design' ? null : 'design')}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: activeCustomizerTab === 'design' ? '#1a1a1a' : 'transparent',
+                    border: activeCustomizerTab === 'design' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: activeCustomizerTab === 'design' ? '#8eff36' : '#a0a0a0',
+                    fontSize: '20px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🎨
+                </button>
+                <button
+                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'color' ? null : 'color')}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: activeCustomizerTab === 'color' ? '#1a1a1a' : 'transparent',
+                    border: activeCustomizerTab === 'color' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: activeCustomizerTab === 'color' ? '#8eff36' : '#a0a0a0',
+                    fontSize: '20px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🎨
+                </button>
+                <button
+                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'number' ? null : 'number')}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: activeCustomizerTab === 'number' ? '#1a1a1a' : 'transparent',
+                    border: activeCustomizerTab === 'number' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: activeCustomizerTab === 'number' ? '#8eff36' : '#a0a0a0',
+                    fontSize: '20px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🔢
+                </button>
+                <button
+                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'name' ? null : 'name')}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: activeCustomizerTab === 'name' ? '#1a1a1a' : 'transparent',
+                    border: activeCustomizerTab === 'name' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: activeCustomizerTab === 'name' ? '#8eff36' : '#a0a0a0',
+                    fontSize: '20px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => setActiveCustomizerTab(activeCustomizerTab === 'logo' ? null : 'logo')}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    backgroundColor: activeCustomizerTab === 'logo' ? '#1a1a1a' : 'transparent',
+                    border: activeCustomizerTab === 'logo' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: activeCustomizerTab === 'logo' ? '#8eff36' : '#a0a0a0',
+                    fontSize: '20px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🏷️
+                </button>
               </div>
-            ) : (
-              <>
-                <div style={{
-                  width: '400px',
-                  height: '400px',
-                  backgroundColor: '#1a1a1a',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '24px',
-                  position: 'relative'
-                }}>
-                  <div style={{
-                    fontSize: '48px',
-                    color: '#4a4a4a'
-                  }}>
-                    🎩
-                  </div>
-                </div>
-                <p style={{
-                  color: '#a0a0a0',
-                  fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  marginBottom: '32px'
-                }}>
-                  Your product will appear here
-                </p>
-              </>
             )}
 
-            {/* Questions will appear here hint */}
-            <p style={{
-              color: '#2a2a2a',
-              fontSize: '12px',
-              fontFamily: 'var(--stepn-font-body)',
-              position: 'absolute',
-              right: '24px',
-              top: '50%',
-              transform: 'translateY(-50%)'
-            }}>
-              Your questions will appear here
-            </p>
+            {/* Customizer Tab Panel (slides in from left) */}
+            {selectedModel3DId && activeCustomizerTab && (
+              <div style={{
+                width: '320px',
+                backgroundColor: '#ffffff',
+                borderRight: '1px solid #e0e0e0',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                animation: 'slideIn 0.3s ease-out'
+              }}>
+                {/* Tab Header */}
+                <div style={{
+                  padding: '16px',
+                  borderBottom: '1px solid #e0e0e0',
+                  backgroundColor: '#000000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <span style={{ color: '#ffffff', fontSize: '16px' }}>
+                    {activeCustomizerTab === 'design' && '🎨'}
+                    {activeCustomizerTab === 'color' && '🎨'}
+                    {activeCustomizerTab === 'number' && '🔢'}
+                    {activeCustomizerTab === 'name' && '✏️'}
+                    {activeCustomizerTab === 'logo' && '🏷️'}
+                  </span>
+                  <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
+                    {activeCustomizerTab === 'design' && 'Sélectionner le design'}
+                    {activeCustomizerTab === 'color' && 'Couleur'}
+                    {activeCustomizerTab === 'number' && 'Numéro'}
+                    {activeCustomizerTab === 'name' && 'Nom'}
+                    {activeCustomizerTab === 'logo' && 'Logo'}
+                  </span>
+                </div>
 
-            {/* Add to cart button */}
+                {/* Tab Content */}
+                <div style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '16px'
+                }}>
+                  {activeCustomizerTab === 'design' && (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Sélectionnez un design 2D
+                      </p>
+                    </div>
+                  )}
+                  {activeCustomizerTab === 'color' && (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Sélectionnez une couleur
+                      </p>
+                    </div>
+                  )}
+                  {activeCustomizerTab === 'number' && (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Ajoutez un numéro
+                      </p>
+                    </div>
+                  )}
+                  {activeCustomizerTab === 'name' && (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Ajoutez un nom
+                      </p>
+                    </div>
+                  )}
+                  {activeCustomizerTab === 'logo' && (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Ajoutez un logo
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Center: 3D Model Display */}
             <div style={{
-              position: 'absolute',
-              bottom: '24px',
-              right: '24px',
+              flex: 1,
+              backgroundColor: '#f5f5f5',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'auto'
             }}>
-              <button style={{
-                padding: '12px 24px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '4px',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontFamily: 'var(--stepn-font-body)',
-                cursor: 'pointer'
-              }}>
-                Add to cart
-              </button>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontFamily: 'var(--stepn-font-body)',
-                position: 'relative'
-              }}>
-                0
+              {selectedModel3DId ? (
                 <div style={{
-                  position: 'absolute',
-                  bottom: '0',
-                  right: '0',
-                  width: '8px',
-                  height: '8px',
-                  backgroundColor: '#ff4444',
-                  borderRadius: '50%',
-                  border: '2px solid #1a1a1a'
-                }} />
-              </div>
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {(() => {
+                    const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                    if (selectedModel) {
+                      return (
+                        <Model3DPreviewStatic
+                          glbUrl={selectedModel.glb_url || selectedModel.glbUrl || ''}
+                          modelName={selectedModel.name}
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              ) : (
+                <div style={{
+                  textAlign: 'center',
+                  color: '#666',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  <div style={{
+                    width: '400px',
+                    height: '400px',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 24px',
+                    position: 'relative'
+                  }}>
+                    <div style={{
+                      fontSize: '48px',
+                      color: '#999'
+                    }}>
+                      🎩
+                    </div>
+                  </div>
+                  <p style={{
+                    color: '#999',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Sélectionnez un modèle 3D dans "Behind the scene"
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
