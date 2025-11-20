@@ -503,33 +503,6 @@ export default function ProductBuilderPage() {
           </div>
         </div>
 
-        {/* View Selector */}
-        {activeTab === 'build' && (
-          <div style={{
-            backgroundColor: '#0a0a0a',
-            borderBottom: '1px solid #1a1a1a',
-            padding: '8px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>◀</span>
-            <select style={{
-              backgroundColor: '#1a1a1a',
-              border: '1px solid #2a2a2a',
-              borderRadius: '4px',
-              color: '#ffffff',
-              fontSize: '12px',
-              padding: '4px 8px',
-              fontFamily: 'var(--stepn-font-body)',
-              cursor: 'pointer',
-              outline: 'none'
-            }}>
-              <option>View &lt;1&gt;</option>
-            </select>
-            <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>▶</span>
-          </div>
-        )}
 
         {/* Main Builder Area */}
         <div style={{
