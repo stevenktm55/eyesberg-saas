@@ -50,6 +50,8 @@ export default function SubdomainAdminPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     // Récupérer le sous-domaine depuis le host
@@ -207,21 +209,33 @@ export default function SubdomainAdminPage() {
     }
   }
 
-  async function deleteProduct(id: string) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;
+  function openDeleteModal(id: string) {
+    setProductToDelete(id);
+    setShowDeleteModal(true);
+    setOpenMenuId(null);
+  }
+
+  async function confirmDelete() {
+    if (!productToDelete) return;
     
     try {
-      const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}`, {
+      const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productToDelete)}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         await loadProducts();
-        setOpenMenuId(null);
+        setShowDeleteModal(false);
+        setProductToDelete(null);
       }
     } catch (error) {
       console.error('Error deleting product:', error);
       alert('Erreur lors de la suppression');
     }
+  }
+
+  function cancelDelete() {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   }
 
   async function duplicateProduct(id: string) {
@@ -688,7 +702,7 @@ export default function SubdomainAdminPage() {
                           {activeTab === 'active' ? 'Archive' : 'Unarchive'}
                         </button>
                         <button
-                          onClick={() => deleteProduct(product.id)}
+                          onClick={() => openDeleteModal(product.id)}
                           style={{
                             width: '100%',
                             padding: '8px 16px',
@@ -813,6 +827,115 @@ export default function SubdomainAdminPage() {
           </div>
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '32px'
+          }}
+          onClick={cancelDelete}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '12px',
+              border: '1px solid #2a2a2a',
+              width: '100%',
+              maxWidth: '400px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#ffffff',
+              fontFamily: 'var(--stepn-font-body)',
+              margin: 0
+            }}>
+              Êtes-vous sûr de vouloir supprimer ce produit ?
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)',
+              margin: 0
+            }}>
+              Cette action est irréversible.
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={cancelDelete}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#2a2a2a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                  e.currentTarget.style.borderColor = '#3a3a3a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.borderColor = '#2a2a2a';
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#dc2626',
+                  border: '1px solid #dc2626',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#b91c1c';
+                  e.currentTarget.style.borderColor = '#b91c1c';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                  e.currentTarget.style.borderColor = '#dc2626';
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
