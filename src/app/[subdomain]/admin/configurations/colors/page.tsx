@@ -3,10 +3,16 @@
 import { useEffect, useState } from "react";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
+type ColorItem = {
+  name: string;
+  hex: string;
+  cmyk: string; // Format: "C M Y K" (e.g., "0 0 0 100")
+};
+
 type ColorPalette = {
   id: string;
   name: string;
-  colors: string[]; // Array of hex colors
+  colors: ColorItem[]; // Array of color objects
   created_at?: string;
   updated_at?: string;
 };
@@ -25,7 +31,46 @@ export default function ColorsConfigPage() {
     id: string;
     name: string;
   } | null>(null);
-  const [newColor, setNewColor] = useState("#000000");
+  const [newColor, setNewColor] = useState<ColorItem>({
+    name: "",
+    hex: "#000000",
+    cmyk: "0 0 0 100"
+  });
+  const [draggedColorIndex, setDraggedColorIndex] = useState<number | null>(null);
+  const [dragOverColorIndex, setDragOverColorIndex] = useState<number | null>(null);
+
+  // Fonction pour convertir HEX en CMYK
+  function hexToCmyk(hex: string): string {
+    // Retirer le # si présent
+    hex = hex.replace('#', '');
+    
+    // Convertir en RGB
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    
+    // Calculer CMYK
+    const k = 1 - Math.max(r, g, b);
+    if (k === 1) {
+      return "0 0 0 100";
+    }
+    
+    const c = Math.round(((1 - r - k) / (1 - k)) * 100);
+    const m = Math.round(((1 - g - k) / (1 - k)) * 100);
+    const y = Math.round(((1 - b - k) / (1 - k)) * 100);
+    const kPercent = Math.round(k * 100);
+    
+    return `${c} ${m} ${y} ${kPercent}`;
+  }
+
+  // Mettre à jour CMYK quand HEX change
+  function updateNewColorHex(hex: string) {
+    setNewColor({
+      ...newColor,
+      hex,
+      cmyk: hexToCmyk(hex)
+    });
+  }
 
   useEffect(() => {
     fetchPalettes();
@@ -133,8 +178,13 @@ export default function ColorsConfigPage() {
   }
 
   async function addColorToPalette(paletteId: string) {
-    if (!newColor || !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(newColor)) {
+    if (!newColor.hex || !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(newColor.hex)) {
       alert("Veuillez entrer une couleur hex valide (ex: #FF0000)");
+      return;
+    }
+
+    if (!newColor.name.trim()) {
+      alert("Veuillez entrer un nom pour la couleur");
       return;
     }
 
@@ -143,7 +193,7 @@ export default function ColorsConfigPage() {
       const palette = palettes.find((p) => p.id === paletteId);
       if (!palette) return;
 
-      const updatedColors = [...palette.colors, newColor];
+      const updatedColors = [...palette.colors, { ...newColor }];
 
       const res = await fetch(`/api/color-palettes?id=${encodeURIComponent(paletteId)}`, {
         method: "PUT",
@@ -156,7 +206,11 @@ export default function ColorsConfigPage() {
 
       if (!res.ok) throw new Error("Failed to add color");
       await fetchPalettes();
-      setNewColor("#000000");
+      setNewColor({
+        name: "",
+        hex: "#000000",
+        cmyk: "0 0 0 100"
+      });
     } catch (error) {
       console.error("Error adding color:", error);
       alert("Erreur lors de l'ajout de la couleur");
@@ -187,6 +241,96 @@ export default function ColorsConfigPage() {
     } catch (error) {
       console.error("Error removing color:", error);
       alert("Erreur lors de la suppression de la couleur");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Drag & Drop handlers
+  function handleColorDragStart(e: React.DragEvent, index: number) {
+    setDraggedColorIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleColorDragEnd() {
+    setDraggedColorIndex(null);
+    setDragOverColorIndex(null);
+  }
+
+  function handleColorDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedColorIndex !== null && draggedColorIndex !== index) {
+      setDragOverColorIndex(index);
+    }
+  }
+
+  function handleColorDragLeave() {
+    setDragOverColorIndex(null);
+  }
+
+  async function handleColorDrop(e: React.DragEvent, paletteId: string, targetIndex: number) {
+    e.preventDefault();
+    if (draggedColorIndex === null || draggedColorIndex === targetIndex) {
+      setDraggedColorIndex(null);
+      setDragOverColorIndex(null);
+      return;
+    }
+
+    const palette = palettes.find((p) => p.id === paletteId);
+    if (!palette) return;
+
+    const newColors = [...palette.colors];
+    const [removed] = newColors.splice(draggedColorIndex, 1);
+    newColors.splice(targetIndex, 0, removed);
+
+    setDraggedColorIndex(null);
+    setDragOverColorIndex(null);
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/color-palettes?id=${encodeURIComponent(paletteId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: palette.name,
+          colors: newColors,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to reorder colors");
+      await fetchPalettes();
+    } catch (error) {
+      console.error("Error reordering colors:", error);
+      alert("Erreur lors du réordonnancement");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateColorInPalette(paletteId: string, colorIndex: number, updatedColor: ColorItem) {
+    setLoading(true);
+    try {
+      const palette = palettes.find((p) => p.id === paletteId);
+      if (!palette) return;
+
+      const updatedColors = [...palette.colors];
+      updatedColors[colorIndex] = updatedColor;
+
+      const res = await fetch(`/api/color-palettes?id=${encodeURIComponent(paletteId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: palette.name,
+          colors: updatedColors,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update color");
+      await fetchPalettes();
+    } catch (error) {
+      console.error("Error updating color:", error);
+      alert("Erreur lors de la mise à jour");
     } finally {
       setLoading(false);
     }
@@ -409,11 +553,36 @@ export default function ColorsConfigPage() {
                     backgroundColor: '#0a0a0a'
                   }}>
                     {/* Add Color */}
-                    <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input
+                        type="text"
+                        value={newColor.name}
+                        onChange={(e) => setNewColor({ ...newColor, name: e.target.value })}
+                        placeholder="Nom de la couleur"
+                        style={{
+                          flex: 1,
+                          minWidth: '150px',
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none',
+                          transition: 'all 0.2s'
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = '#8eff36';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2a2a';
+                        }}
+                      />
                       <input
                         type="color"
-                        value={newColor}
-                        onChange={(e) => setNewColor(e.target.value)}
+                        value={newColor.hex}
+                        onChange={(e) => updateNewColorHex(e.target.value)}
                         style={{
                           width: '50px',
                           height: '50px',
@@ -424,11 +593,45 @@ export default function ColorsConfigPage() {
                       />
                       <input
                         type="text"
-                        value={newColor}
-                        onChange={(e) => setNewColor(e.target.value)}
+                        value={newColor.hex}
+                        onChange={(e) => {
+                          const hex = e.target.value;
+                          if (/^#?[A-Fa-f0-9]{0,6}$/.test(hex.replace('#', ''))) {
+                            const fullHex = hex.startsWith('#') ? hex : `#${hex}`;
+                            if (fullHex.length === 7) {
+                              updateNewColorHex(fullHex);
+                            } else {
+                              setNewColor({ ...newColor, hex: fullHex });
+                            }
+                          }
+                        }}
                         placeholder="#000000"
                         style={{
-                          flex: 1,
+                          width: '100px',
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none',
+                          transition: 'all 0.2s'
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = '#8eff36';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#2a2a2a';
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={newColor.cmyk}
+                        onChange={(e) => setNewColor({ ...newColor, cmyk: e.target.value })}
+                        placeholder="0 0 0 100"
+                        style={{
+                          width: '120px',
                           padding: '10px 12px',
                           backgroundColor: '#1a1a1a',
                           border: '1px solid #2a2a2a',
@@ -448,26 +651,26 @@ export default function ColorsConfigPage() {
                       />
                       <button
                         onClick={() => addColorToPalette(palette.id)}
-                        disabled={loading}
+                        disabled={loading || !newColor.name.trim() || !newColor.hex}
                         style={{
                           padding: '10px 16px',
-                          backgroundColor: loading ? '#4a4a4a' : '#8eff36',
+                          backgroundColor: loading || !newColor.name.trim() || !newColor.hex ? '#4a4a4a' : '#8eff36',
                           border: 'none',
                           borderRadius: '6px',
-                          color: loading ? '#a0a0a0' : '#000000',
+                          color: loading || !newColor.name.trim() || !newColor.hex ? '#a0a0a0' : '#000000',
                           fontSize: '14px',
                           fontWeight: '500',
-                          cursor: loading ? 'not-allowed' : 'pointer',
+                          cursor: loading || !newColor.name.trim() || !newColor.hex ? 'not-allowed' : 'pointer',
                           fontFamily: 'var(--stepn-font-body)',
                           transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          if (!loading) {
+                          if (!loading && newColor.name.trim() && newColor.hex) {
                             e.currentTarget.style.opacity = '0.9';
                           }
                         }}
                         onMouseLeave={(e) => {
-                          if (!loading) {
+                          if (!loading && newColor.name.trim() && newColor.hex) {
                             e.currentTarget.style.opacity = '1';
                           }
                         }}
@@ -480,45 +683,171 @@ export default function ColorsConfigPage() {
                     {palette.colors.length > 0 ? (
                       <div style={{
                         display: 'flex',
-                        gap: '12px',
-                        flexWrap: 'wrap'
+                        flexDirection: 'column',
+                        gap: '8px'
                       }}>
+                        {/* Header */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '40px 1fr 100px 120px 80px',
+                          gap: '12px',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          backgroundColor: '#0a0a0a',
+                          borderRadius: '6px',
+                          border: '1px solid #2a2a2a',
+                          marginBottom: '4px'
+                        }}>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}></span>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>Nom</span>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>HEX</span>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>CMYK</span>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}></span>
+                        </div>
                         {palette.colors.map((color, index) => (
                           <div
                             key={index}
+                            draggable
+                            onDragStart={(e) => handleColorDragStart(e, index)}
+                            onDragEnd={handleColorDragEnd}
+                            onDragOver={(e) => handleColorDragOver(e, index)}
+                            onDragLeave={handleColorDragLeave}
+                            onDrop={(e) => handleColorDrop(e, palette.id, index)}
                             style={{
-                              display: 'flex',
+                              display: 'grid',
+                              gridTemplateColumns: '40px 1fr 100px 120px 80px',
+                              gap: '12px',
                               alignItems: 'center',
-                              gap: '8px',
-                              backgroundColor: '#1a1a1a',
-                              padding: '8px',
+                              backgroundColor: draggedColorIndex === index ? '#2a2a2a' : '#1a1a1a',
+                              padding: '12px',
                               borderRadius: '6px',
-                              border: '1px solid #2a2a2a'
+                              border: dragOverColorIndex === index ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                              opacity: draggedColorIndex === index ? 0.5 : 1,
+                              cursor: 'move',
+                              transition: 'all 0.2s'
                             }}
                           >
+                            {/* Drag Handle */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#a0a0a0',
+                              fontSize: '16px',
+                              cursor: 'grab'
+                            }}>
+                              ⋮⋮
+                            </div>
+                            {/* Color Preview */}
                             <div
                               style={{
                                 width: '40px',
                                 height: '40px',
-                                backgroundColor: color,
+                                backgroundColor: color.hex,
                                 borderRadius: '4px',
-                                border: '1px solid #2a2a2a'
+                                border: '1px solid #2a2a2a',
+                                flexShrink: 0
                               }}
-                              title={color}
                             />
-                            <span style={{
-                              color: '#ffffff',
-                              fontSize: '12px',
-                              fontFamily: 'var(--stepn-font-body)',
-                              minWidth: '70px'
-                            }}>
-                              {color}
-                            </span>
+                            {/* Name */}
+                            <input
+                              type="text"
+                              value={color.name}
+                              onChange={(e) => {
+                                const updated = { ...color, name: e.target.value };
+                                updateColorInPalette(palette.id, index, updated);
+                              }}
+                              style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#0a0a0a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                fontSize: '14px',
+                                fontFamily: 'var(--stepn-font-body)',
+                                outline: 'none',
+                                transition: 'all 0.2s'
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.style.borderColor = '#8eff36';
+                              }}
+                              onBlur={(e) => {
+                                e.currentTarget.style.borderColor = '#2a2a2a';
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            {/* HEX */}
+                            <input
+                              type="text"
+                              value={color.hex}
+                              onChange={(e) => {
+                                const hex = e.target.value;
+                                if (/^#?[A-Fa-f0-9]{0,6}$/.test(hex.replace('#', ''))) {
+                                  const fullHex = hex.startsWith('#') ? hex : `#${hex}`;
+                                  if (fullHex.length === 7) {
+                                    const updated = { ...color, hex: fullHex, cmyk: hexToCmyk(fullHex) };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  } else {
+                                    const updated = { ...color, hex: fullHex };
+                                    updateColorInPalette(palette.id, index, updated);
+                                  }
+                                }
+                              }}
+                              style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#0a0a0a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                fontSize: '14px',
+                                fontFamily: 'var(--stepn-font-body)',
+                                outline: 'none',
+                                transition: 'all 0.2s'
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.style.borderColor = '#8eff36';
+                              }}
+                              onBlur={(e) => {
+                                e.currentTarget.style.borderColor = '#2a2a2a';
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            {/* CMYK */}
+                            <input
+                              type="text"
+                              value={color.cmyk}
+                              onChange={(e) => {
+                                const updated = { ...color, cmyk: e.target.value };
+                                updateColorInPalette(palette.id, index, updated);
+                              }}
+                              style={{
+                                padding: '8px 12px',
+                                backgroundColor: '#0a0a0a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                fontSize: '14px',
+                                fontFamily: 'var(--stepn-font-body)',
+                                outline: 'none',
+                                transition: 'all 0.2s'
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.style.borderColor = '#8eff36';
+                              }}
+                              onBlur={(e) => {
+                                e.currentTarget.style.borderColor = '#2a2a2a';
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            {/* Delete Button */}
                             <button
-                              onClick={() => removeColorFromPalette(palette.id, index)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeColorFromPalette(palette.id, index);
+                              }}
                               disabled={loading}
                               style={{
-                                padding: '4px 8px',
+                                padding: '6px 12px',
                                 backgroundColor: loading ? '#4a4a4a' : '#ff4444',
                                 border: 'none',
                                 borderRadius: '4px',

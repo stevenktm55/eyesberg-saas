@@ -30,15 +30,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Parser les couleurs JSON si elles sont stockées comme JSONB
-    const formattedPalettes = (palettes || []).map((palette: any) => ({
-      id: palette.id,
-      name: palette.name,
-      colors: typeof palette.colors === 'string' 
+    // Convertir les anciennes palettes (array de strings) en nouveau format (array d'objets)
+    const formattedPalettes = (palettes || []).map((palette: any) => {
+      let colors = typeof palette.colors === 'string' 
         ? JSON.parse(palette.colors) 
-        : palette.colors,
-      created_at: palette.created_at,
-      updated_at: palette.updated_at,
-    }));
+        : palette.colors;
+      
+      // Si les couleurs sont des strings, les convertir en objets
+      if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
+        colors = colors.map((hex: string) => ({
+          name: '',
+          hex: hex,
+          cmyk: '0 0 0 0' // Valeur par défaut, sera calculée côté client
+        }));
+      }
+      
+      return {
+        id: palette.id,
+        name: palette.name,
+        colors: colors || [],
+        created_at: palette.created_at,
+        updated_at: palette.updated_at,
+      };
+    });
 
     return NextResponse.json(formattedPalettes);
   } catch (error: any) {
@@ -77,16 +91,16 @@ export async function POST(request: NextRequest) {
     // Permettre de créer une palette sans couleurs
     const colorsArray = Array.isArray(colors) ? colors : [];
 
-    // Valider que toutes les couleurs sont des hex valides (si présentes)
+    // Valider le format des couleurs (objets avec name, hex, cmyk)
     if (colorsArray.length > 0) {
       const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      const validColors = colorsArray.filter((color: string) => hexColorRegex.test(color));
-      
-      if (validColors.length !== colorsArray.length) {
-        return NextResponse.json(
-          { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
-          { status: 400 }
-        );
+      for (const color of colorsArray) {
+        if (typeof color !== 'object' || !color.hex || !hexColorRegex.test(color.hex)) {
+          return NextResponse.json(
+            { error: 'All colors must be objects with valid hex color (e.g., {name: "Red", hex: "#FF0000", cmyk: "0 100 100 0"})' },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -104,12 +118,23 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
+    let colors = typeof palette.colors === 'string' 
+      ? JSON.parse(palette.colors) 
+      : palette.colors;
+    
+    // Convertir les anciennes palettes (array de strings) en nouveau format
+    if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
+      colors = colors.map((hex: string) => ({
+        name: '',
+        hex: hex,
+        cmyk: '0 0 0 0'
+      }));
+    }
+    
     return NextResponse.json({
       id: palette.id,
       name: palette.name,
-      colors: typeof palette.colors === 'string' 
-        ? JSON.parse(palette.colors) 
-        : palette.colors,
+      colors: colors || [],
       created_at: palette.created_at,
       updated_at: palette.updated_at,
     });
@@ -159,16 +184,16 @@ export async function PUT(request: NextRequest) {
     // Permettre de mettre à jour une palette avec ou sans couleurs
     const colorsArray = Array.isArray(colors) ? colors : [];
 
-    // Valider que toutes les couleurs sont des hex valides (si présentes)
+    // Valider le format des couleurs (objets avec name, hex, cmyk)
     if (colorsArray.length > 0) {
       const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-      const validColors = colorsArray.filter((color: string) => hexColorRegex.test(color));
-      
-      if (validColors.length !== colorsArray.length) {
-        return NextResponse.json(
-          { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
-          { status: 400 }
-        );
+      for (const color of colorsArray) {
+        if (typeof color !== 'object' || !color.hex || !hexColorRegex.test(color.hex)) {
+          return NextResponse.json(
+            { error: 'All colors must be objects with valid hex color (e.g., {name: "Red", hex: "#FF0000", cmyk: "0 100 100 0"})' },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -194,12 +219,23 @@ export async function PUT(request: NextRequest) {
       throw error;
     }
 
+    let colors = typeof palette.colors === 'string' 
+      ? JSON.parse(palette.colors) 
+      : palette.colors;
+    
+    // Convertir les anciennes palettes (array de strings) en nouveau format
+    if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
+      colors = colors.map((hex: string) => ({
+        name: '',
+        hex: hex,
+        cmyk: '0 0 0 0'
+      }));
+    }
+    
     return NextResponse.json({
       id: palette.id,
       name: palette.name,
-      colors: typeof palette.colors === 'string' 
-        ? JSON.parse(palette.colors) 
-        : palette.colors,
+      colors: colors || [],
       created_at: palette.created_at,
       updated_at: palette.updated_at,
     });
