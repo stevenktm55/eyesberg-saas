@@ -6,8 +6,9 @@ import ModelsConfigPage from "./3d-models/page";
 import MaterialMapsConfigPage from "./material-maps/page";
 import SizesConfigPage from "./sizes/page";
 import DesignsConfigPage from "./2d-designs/page";
+import ColorsConfigPage from "./colors/page";
 
-type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs";
+type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs" | "colors";
 
 export default function ConfigurationsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("3d-models");
@@ -160,6 +161,33 @@ export default function ConfigurationsAdminPage() {
         >
           Designs 2D
         </button>
+        <button
+          onClick={() => setActiveTab("colors")}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            fontFamily: 'var(--stepn-font-body)',
+            color: activeTab === "colors" ? '#8eff36' : '#a0a0a0',
+            borderBottom: activeTab === "colors" ? '2px solid #8eff36' : '2px solid transparent',
+            backgroundColor: activeTab === "colors" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "colors") {
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "colors") {
+              e.currentTarget.style.color = '#a0a0a0';
+            }
+          }}
+        >
+          Couleurs
+        </button>
       </div>
 
         {/* Content */}
@@ -168,6 +196,7 @@ export default function ConfigurationsAdminPage() {
           {activeTab === "material-maps" && <MaterialMapsConfigPage />}
           {activeTab === "sizes" && <SizesConfigPage />}
           {activeTab === "2d-designs" && <DesignsConfigPage />}
+          {activeTab === "colors" && <ColorsConfigPage />}
         </div>
       </div>
     </div>
