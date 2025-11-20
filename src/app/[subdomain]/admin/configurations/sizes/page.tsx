@@ -737,10 +737,6 @@ export default function SizesConfigPage() {
                           displaySizes.map((size) => {
                             const fileUV0 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV0");
                             const fileUV2 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV2");
-                            const fileKeyUV0 = `${displayPattern.id}-${size}-UV0`;
-                            const fileKeyUV2 = `${displayPattern.id}-${size}-UV2`;
-                            const isUploadingUV0 = uploadingSize === `${size}-UV0`;
-                            const isUploadingUV2 = uploadingSize === `${size}-UV2`;
 
                             return (
                               <tr key={size} style={{ borderBottom: '1px solid #1a1a1a' }}>
