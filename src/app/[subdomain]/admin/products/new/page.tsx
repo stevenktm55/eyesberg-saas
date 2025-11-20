@@ -1,0 +1,785 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import AdminSidebar from '@/components/AdminSidebar';
+
+type Tab = 'build' | 'pricing' | 'variants' | 'connect';
+
+type Question = {
+  id: string;
+  type: 'text' | 'number' | 'color' | 'image' | 'select';
+  label: string;
+  required: boolean;
+  options?: string[];
+};
+
+export default function ProductBuilderPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [productName, setProductName] = useState('Untitled Product');
+  const [activeTab, setActiveTab] = useState<Tab>('build');
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+  const [showQuestionSettings, setShowQuestionSettings] = useState(false);
+
+  useEffect(() => {
+    // Récupérer le shop depuis l'URL
+    const shop = searchParams.get('shop');
+    if (!shop) {
+      router.push('/admin');
+    }
+  }, [searchParams, router]);
+
+  function addQuestion() {
+    const newQuestion: Question = {
+      id: `question-${Date.now()}`,
+      type: 'text',
+      label: 'New Question',
+      required: false,
+    };
+    setQuestions([...questions, newQuestion]);
+    setSelectedQuestion(newQuestion);
+    setShowQuestionSettings(true);
+  }
+
+  function updateQuestion(questionId: string, updates: Partial<Question>) {
+    setQuestions(questions.map(q => 
+      q.id === questionId ? { ...q, ...updates } : q
+    ));
+    if (selectedQuestion?.id === questionId) {
+      setSelectedQuestion({ ...selectedQuestion, ...updates });
+    }
+  }
+
+  function deleteQuestion(questionId: string) {
+    setQuestions(questions.filter(q => q.id !== questionId));
+    if (selectedQuestion?.id === questionId) {
+      setSelectedQuestion(null);
+      setShowQuestionSettings(false);
+    }
+  }
+
+  return (
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#000000',
+      display: 'flex',
+      fontFamily: 'var(--stepn-font-body), sans-serif'
+    }}>
+      <AdminSidebar />
+
+      {/* Main Content */}
+      <div style={{
+        flex: 1,
+        marginLeft: '240px',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflow: 'hidden'
+      }}>
+        {/* Header */}
+        <div style={{
+          backgroundColor: '#0a0a0a',
+          borderBottom: '1px solid #1a1a1a',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          {/* Left: Product Name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              backgroundColor: '#8eff36',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#000000',
+              fontSize: '14px',
+              fontWeight: '600',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              dk
+            </div>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: '500',
+                fontFamily: 'var(--stepn-font-body)',
+                outline: 'none',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                minWidth: '200px'
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            />
+            <span style={{ color: '#a0a0a0', fontSize: '14px' }}>▼</span>
+          </div>
+
+          {/* Center: Tabs */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setActiveTab('build')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'build' ? '#1a1a1a' : 'transparent',
+                color: activeTab === 'build' ? '#8eff36' : '#a0a0a0',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontFamily: 'var(--stepn-font-body)',
+                fontWeight: activeTab === 'build' ? '600' : '400'
+              }}
+            >
+              Build
+            </button>
+            <button
+              onClick={() => setActiveTab('pricing')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'pricing' ? '#1a1a1a' : 'transparent',
+                color: activeTab === 'pricing' ? '#8eff36' : '#a0a0a0',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontFamily: 'var(--stepn-font-body)',
+                fontWeight: activeTab === 'pricing' ? '600' : '400'
+              }}
+            >
+              Pricing
+            </button>
+            <button
+              onClick={() => setActiveTab('variants')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'variants' ? '#1a1a1a' : 'transparent',
+                color: activeTab === 'variants' ? '#8eff36' : '#a0a0a0',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontFamily: 'var(--stepn-font-body)',
+                fontWeight: activeTab === 'variants' ? '600' : '400',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              Variants
+              <span style={{ fontSize: '12px' }}>🔒</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('connect')}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'connect' ? '#1a1a1a' : 'transparent',
+                color: activeTab === 'connect' ? '#8eff36' : '#a0a0a0',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontFamily: 'var(--stepn-font-body)',
+                fontWeight: activeTab === 'connect' ? '600' : '400'
+              }}
+            >
+              Connect
+            </button>
+          </div>
+
+          {/* Right: Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '4px',
+              border: '1px solid #2a2a2a'
+            }}>
+              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>⌕</span>
+              <input
+                type="text"
+                placeholder="Search..."
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  outline: 'none',
+                  width: '120px'
+                }}
+              />
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '4px',
+              border: '1px solid #2a2a2a',
+              cursor: 'pointer'
+            }}>
+              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>?</span>
+              <span style={{ color: '#ffffff', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Logic</span>
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '4px',
+              border: '1px solid #2a2a2a',
+              cursor: 'pointer'
+            }}>
+              <span style={{ color: '#8eff36', fontSize: '12px' }}>👁</span>
+              <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Published</span>
+            </div>
+            <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▼</span>
+          </div>
+        </div>
+
+        {/* View Selector */}
+        {activeTab === 'build' && (
+          <div style={{
+            backgroundColor: '#0a0a0a',
+            borderBottom: '1px solid #1a1a1a',
+            padding: '8px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>◀</span>
+            <select style={{
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '4px',
+              color: '#ffffff',
+              fontSize: '12px',
+              padding: '4px 8px',
+              fontFamily: 'var(--stepn-font-body)',
+              cursor: 'pointer',
+              outline: 'none'
+            }}>
+              <option>View &lt;1&gt;</option>
+            </select>
+            <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>▶</span>
+          </div>
+        )}
+
+        {/* Main Builder Area */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          overflow: 'hidden'
+        }}>
+          {/* Left Sidebar - Questions */}
+          <div style={{
+            width: '320px',
+            backgroundColor: '#0a0a0a',
+            borderRight: '1px solid #1a1a1a',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Sidebar Header */}
+            <div style={{
+              padding: '16px',
+              borderBottom: '1px solid #1a1a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>☰</span>
+              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>⚙</span>
+              <button
+                onClick={addQuestion}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: '#8eff36',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#000000',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontWeight: '600'
+                }}
+              >
+                +
+              </button>
+            </div>
+
+            {/* Questions List */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px'
+            }}>
+              {questions.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: '#a0a0a0'
+                }}>
+                  <p style={{
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginBottom: '8px',
+                    color: '#ffffff'
+                  }}>
+                    There are no questions, yet
+                  </p>
+                  <p style={{
+                    fontSize: '12px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginBottom: '24px',
+                    color: '#a0a0a0'
+                  }}>
+                    Create your first question to start building your customizer.
+                  </p>
+                  <button
+                    onClick={addQuestion}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#8eff36',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#000000',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--stepn-font-body)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      margin: '0 auto'
+                    }}
+                  >
+                    <span>+</span>
+                    Create question
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {questions.map((question) => (
+                    <div
+                      key={question.id}
+                      onClick={() => {
+                        setSelectedQuestion(question);
+                        setShowQuestionSettings(true);
+                      }}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: selectedQuestion?.id === question.id ? '#1a1a1a' : '#0a0a0a',
+                        border: selectedQuestion?.id === question.id ? '1px solid #8eff36' : '1px solid #1a1a1a',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#ffffff',
+                        marginBottom: '4px'
+                      }}>
+                        {question.label}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        {question.type}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Behind the scene */}
+            <div style={{
+              padding: '16px',
+              borderTop: '1px solid #1a1a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#ffffff',
+                  marginBottom: '4px'
+                }}>
+                  Behind the scene
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#a0a0a0'
+                }}>
+                  Not shown in question panel
+                </div>
+              </div>
+              <span style={{ color: '#a0a0a0', fontSize: '14px', cursor: 'pointer' }}>+</span>
+            </div>
+
+            {/* Add to cart */}
+            <div style={{
+              padding: '16px',
+              borderTop: '1px solid #1a1a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span style={{
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)',
+                color: '#ffffff'
+              }}>
+                Add to cart
+              </span>
+              <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▶</span>
+            </div>
+          </div>
+
+          {/* Center: Preview Area */}
+          <div style={{
+            flex: 1,
+            backgroundColor: '#000000',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'auto'
+          }}>
+            <div style={{
+              textAlign: 'center',
+              color: '#ffffff',
+              fontFamily: 'var(--stepn-font-body)',
+              marginBottom: '24px'
+            }}>
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: '600',
+                marginBottom: '8px'
+              }}>
+                Customizer title
+              </h2>
+            </div>
+
+            {/* Product Preview Placeholder */}
+            <div style={{
+              width: '400px',
+              height: '400px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '24px',
+              position: 'relative'
+            }}>
+              <div style={{
+                fontSize: '48px',
+                color: '#4a4a4a'
+              }}>
+                🎩
+              </div>
+            </div>
+
+            <p style={{
+              color: '#a0a0a0',
+              fontSize: '14px',
+              fontFamily: 'var(--stepn-font-body)',
+              marginBottom: '32px'
+            }}>
+              Your product will appear here
+            </p>
+
+            {/* Questions will appear here hint */}
+            <p style={{
+              color: '#2a2a2a',
+              fontSize: '12px',
+              fontFamily: 'var(--stepn-font-body)',
+              position: 'absolute',
+              right: '24px',
+              top: '50%',
+              transform: 'translateY(-50%)'
+            }}>
+              Your questions will appear here
+            </p>
+
+            {/* Add to cart button */}
+            <div style={{
+              position: 'absolute',
+              bottom: '24px',
+              right: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <button style={{
+                padding: '12px 24px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)',
+                cursor: 'pointer'
+              }}>
+                Add to cart
+              </button>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)',
+                position: 'relative'
+              }}>
+                0
+                <div style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  right: '0',
+                  width: '8px',
+                  height: '8px',
+                  backgroundColor: '#ff4444',
+                  borderRadius: '50%',
+                  border: '2px solid #1a1a1a'
+                }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar - Question Settings */}
+          {showQuestionSettings && selectedQuestion ? (
+            <div style={{
+              width: '320px',
+              backgroundColor: '#0a0a0a',
+              borderLeft: '1px solid #1a1a1a',
+              padding: '24px',
+              overflowY: 'auto'
+            }}>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)',
+                marginBottom: '24px'
+              }}>
+                Question settings
+              </h3>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Question Label
+                </label>
+                <input
+                  type="text"
+                  value={selectedQuestion.label}
+                  onChange={(e) => updateQuestion(selectedQuestion.id, { label: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Question Type
+                </label>
+                <select
+                  value={selectedQuestion.type}
+                  onChange={(e) => updateQuestion(selectedQuestion.id, { type: e.target.value as Question['type'] })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="color">Color</option>
+                  <option value="image">Image</option>
+                  <option value="select">Select</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedQuestion.required}
+                    onChange={(e) => updateQuestion(selectedQuestion.id, { required: e.target.checked })}
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  Required
+                </label>
+              </div>
+
+              {selectedQuestion.type === 'select' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Options (one per line)
+                  </label>
+                  <textarea
+                    value={selectedQuestion.options?.join('\n') || ''}
+                    onChange={(e) => updateQuestion(selectedQuestion.id, { 
+                      options: e.target.value.split('\n').filter(o => o.trim()) 
+                    })}
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={() => deleteQuestion(selectedQuestion.id)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: '#ff4444',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Delete Question
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              width: '320px',
+              backgroundColor: '#0a0a0a',
+              borderLeft: '1px solid #1a1a1a',
+              padding: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div style={{
+                textAlign: 'center',
+                color: '#a0a0a0'
+              }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  fontFamily: 'var(--stepn-font-body)',
+                  marginBottom: '8px'
+                }}>
+                  Question settings
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  lineHeight: '1.5'
+                }}>
+                  You will manage your question settings in this panel once you create your first question.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
