@@ -935,7 +935,8 @@ export default function ProductBuilderPage() {
                             style={{
                               width: '100%',
                               height: '100%',
-                              minHeight: '600px'
+                              minHeight: '600px',
+                              backgroundColor: '#e8e8e8'
                             }}
                           />
                         </div>
