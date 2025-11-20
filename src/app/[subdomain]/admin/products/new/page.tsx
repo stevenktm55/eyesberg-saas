@@ -943,21 +943,35 @@ export default function ProductBuilderPage() {
                     alignItems: 'center',
                     gap: '12px'
                   }}>
-                    <span style={{ color: '#ffffff', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      width: '28px', 
+                      height: '28px',
+                      flexShrink: 0,
+                      minWidth: '28px',
+                      minHeight: '28px'
+                    }}>
                       {activeModule.iconUrl ? (
                         <img
                           src={activeModule.iconUrl}
                           alt={activeModule.tabName}
                           style={{
-                            width: '24px',
-                            height: '24px',
-                            objectFit: 'contain'
+                            width: '28px',
+                            height: '28px',
+                            maxWidth: '28px',
+                            maxHeight: '28px',
+                            objectFit: 'contain',
+                            display: 'block'
                           }}
                         />
                       ) : (
-                        activeModule.icon
+                        <span style={{ color: '#ffffff', fontSize: '20px', lineHeight: '1' }}>
+                          {activeModule.icon}
+                        </span>
                       )}
-                    </span>
+                    </div>
                     <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
                       {activeModule.tabName}
                     </span>
