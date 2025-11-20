@@ -339,7 +339,7 @@ export default function MaterialMapsConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span style={{ color: '#000000' }}>+</span>
+          <span style={{ color: '#000000', fontWeight: 'inherit' }}>+</span>
           Nouveau material map
         </button>
       </div>

@@ -246,3 +246,9 @@ a:hover {
   color: var(--stepn-text);
 }
 
+/* Override pour les spans dans les boutons verts */
+button[style*="background-color: #8eff36"] span,
+button[style*="backgroundColor: #8eff36"] span {
+  color: #000000 !important;
+}
+

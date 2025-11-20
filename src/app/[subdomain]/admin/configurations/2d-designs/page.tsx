@@ -182,7 +182,7 @@ export default function Designs2DConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span style={{ color: '#000000' }}>+</span>
+          <span style={{ color: '#000000', fontWeight: 'inherit' }}>+</span>
           Nouveau design 2D
         </button>
       </div>
