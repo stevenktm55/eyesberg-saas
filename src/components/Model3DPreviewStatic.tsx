@@ -65,9 +65,9 @@ export function Model3DPreviewStatic({ url, className, style }: Model3DPreviewSt
     <div 
       className={className}
       style={{
-        ...style,
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#0a0a0a', // Default dark background
         position: 'relative',
+        ...style, // Override with passed style (including backgroundColor if provided)
       }}
     >
       <Canvas
