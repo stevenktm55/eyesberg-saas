@@ -321,10 +321,12 @@ export default function SizesConfigPage() {
         alert("Cette taille existe déjà");
         return;
       }
-      setEditingPattern({
+      const updatedPattern = {
         ...editingPattern,
         sizes: [...editingPattern.sizes, sizeName].sort(),
-      });
+      };
+      setEditingPattern(updatedPattern);
+      console.log("Updated editingPattern:", updatedPattern);
     } else {
       if (newPattern.sizes.includes(sizeName)) {
         alert("Cette taille existe déjà");
@@ -606,7 +608,7 @@ export default function SizesConfigPage() {
                   }}>
                     <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                       <button
-                        onClick={() => openAddSizeModal(displayPattern)}
+                        onClick={() => openAddSizeModal(pattern)}
                         style={{
                           padding: '8px 16px',
                           backgroundColor: '#2a2a2a',
