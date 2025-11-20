@@ -706,7 +706,7 @@ export default function ProductBuilderPage() {
           {/* Center: Customizer Preview Area */}
           <div style={{
             flex: 1,
-            backgroundColor: '#000000',
+            backgroundColor: '#ffffff',
             display: 'flex',
             position: 'relative',
             overflow: 'hidden'
@@ -715,8 +715,8 @@ export default function ProductBuilderPage() {
             {selectedModel3DId && (
               <div style={{
                 width: '80px',
-                backgroundColor: '#0a0a0a',
-                borderRight: '1px solid #1a1a1a',
+                backgroundColor: '#ffffff',
+                borderRight: '1px solid #e0e0e0',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -728,14 +728,14 @@ export default function ProductBuilderPage() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: activeCustomizerTab === 'design' ? '#1a1a1a' : 'transparent',
-                    border: activeCustomizerTab === 'design' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    backgroundColor: activeCustomizerTab === 'design' ? '#000000' : 'transparent',
+                    border: activeCustomizerTab === 'design' ? '1px solid #000000' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: activeCustomizerTab === 'design' ? '#8eff36' : '#a0a0a0',
+                    color: activeCustomizerTab === 'design' ? '#ffffff' : '#666666',
                     fontSize: '20px',
                     transition: 'all 0.2s'
                   }}
@@ -747,14 +747,14 @@ export default function ProductBuilderPage() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: activeCustomizerTab === 'color' ? '#1a1a1a' : 'transparent',
-                    border: activeCustomizerTab === 'color' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    backgroundColor: activeCustomizerTab === 'color' ? '#000000' : 'transparent',
+                    border: activeCustomizerTab === 'color' ? '1px solid #000000' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: activeCustomizerTab === 'color' ? '#8eff36' : '#a0a0a0',
+                    color: activeCustomizerTab === 'color' ? '#ffffff' : '#666666',
                     fontSize: '20px',
                     transition: 'all 0.2s'
                   }}
@@ -766,14 +766,14 @@ export default function ProductBuilderPage() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: activeCustomizerTab === 'number' ? '#1a1a1a' : 'transparent',
-                    border: activeCustomizerTab === 'number' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    backgroundColor: activeCustomizerTab === 'number' ? '#000000' : 'transparent',
+                    border: activeCustomizerTab === 'number' ? '1px solid #000000' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: activeCustomizerTab === 'number' ? '#8eff36' : '#a0a0a0',
+                    color: activeCustomizerTab === 'number' ? '#ffffff' : '#666666',
                     fontSize: '20px',
                     transition: 'all 0.2s'
                   }}
@@ -785,14 +785,14 @@ export default function ProductBuilderPage() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: activeCustomizerTab === 'name' ? '#1a1a1a' : 'transparent',
-                    border: activeCustomizerTab === 'name' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    backgroundColor: activeCustomizerTab === 'name' ? '#000000' : 'transparent',
+                    border: activeCustomizerTab === 'name' ? '1px solid #000000' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: activeCustomizerTab === 'name' ? '#8eff36' : '#a0a0a0',
+                    color: activeCustomizerTab === 'name' ? '#ffffff' : '#666666',
                     fontSize: '20px',
                     transition: 'all 0.2s'
                   }}
@@ -804,14 +804,14 @@ export default function ProductBuilderPage() {
                   style={{
                     width: '48px',
                     height: '48px',
-                    backgroundColor: activeCustomizerTab === 'logo' ? '#1a1a1a' : 'transparent',
-                    border: activeCustomizerTab === 'logo' ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                    backgroundColor: activeCustomizerTab === 'logo' ? '#000000' : 'transparent',
+                    border: activeCustomizerTab === 'logo' ? '1px solid #000000' : '1px solid #e0e0e0',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    color: activeCustomizerTab === 'logo' ? '#8eff36' : '#a0a0a0',
+                    color: activeCustomizerTab === 'logo' ? '#ffffff' : '#666666',
                     fontSize: '20px',
                     transition: 'all 0.2s'
                   }}
@@ -905,7 +905,7 @@ export default function ProductBuilderPage() {
             {/* Center: 3D Model Display */}
             <div style={{
               flex: 1,
-              backgroundColor: '#f5f5f5',
+              backgroundColor: '#f8f8f8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
