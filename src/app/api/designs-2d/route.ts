@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin, uploadFile, deleteFile } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
 // GET - Récupérer tous les Designs 2D
@@ -59,7 +59,31 @@ export async function POST(request: NextRequest) {
     // Upload du fichier SVG si fourni
     if (file) {
       const fileName = `${Date.now()}-${file.name}`;
-      svgUrl = await uploadFile('designs-2d', fileName, file);
+      try {
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('designs-2d')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+        
+        if (uploadError) {
+          console.error('Supabase Storage Upload Error:', uploadError);
+          throw new Error(`Failed to upload file to storage: ${uploadError.message}`);
+        }
+        
+        const { data: { publicUrl } } = supabaseAdmin.storage
+          .from('designs-2d')
+          .getPublicUrl(uploadData.path);
+        svgUrl = publicUrl;
+        console.log('File uploaded successfully, URL:', svgUrl);
+      } catch (uploadError: any) {
+        console.error('Error during file upload to storage:', uploadError);
+        return NextResponse.json(
+          { error: `Failed to upload file: ${uploadError.message || 'Unknown error'}` },
+          { status: 500 }
+        );
+      }
     }
 
     const { data: design, error } = await supabaseAdmin
@@ -73,7 +97,16 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      throw error;
+    }
 
     return NextResponse.json(design);
   } catch (error: any) {
@@ -121,7 +154,12 @@ export async function DELETE(request: NextRequest) {
       try {
         const urlParts = design.svg_url.split('/');
         const fileName = urlParts[urlParts.length - 1];
-        await deleteFile('designs-2d', fileName);
+        const { error: deleteError } = await supabaseAdmin.storage
+          .from('designs-2d')
+          .remove([fileName]);
+        if (deleteError) {
+          console.error('Error deleting SVG file:', deleteError);
+        }
       } catch (storageError) {
         console.error('Error deleting SVG file:', storageError);
       }
@@ -131,7 +169,12 @@ export async function DELETE(request: NextRequest) {
       try {
         const urlParts = design.thumbnail_url.split('/');
         const fileName = urlParts[urlParts.length - 1];
-        await deleteFile('thumbnails', fileName);
+        const { error: deleteError } = await supabaseAdmin.storage
+          .from('thumbnails')
+          .remove([fileName]);
+        if (deleteError) {
+          console.error('Error deleting thumbnail file:', deleteError);
+        }
       } catch (storageError) {
         console.error('Error deleting thumbnail file:', storageError);
       }
