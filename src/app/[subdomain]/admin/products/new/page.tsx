@@ -9,7 +9,8 @@ type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 type CustomizationModule = {
   id: string;
   tabName: string; // Nom de l'onglet dans la sidebar
-  icon: string; // Icône (emoji ou texte)
+  icon: string; // Icône (emoji ou texte) - fallback si iconUrl n'existe pas
+  iconUrl?: string; // URL de l'icône image (.svg ou .png)
   inputType: 'thumbnail' | 'dropdown' | 'radio' | 'label' | 'file-upload' | 'text-input' | 'checkbox';
   required?: boolean;
   options?: string[]; // Pour dropdown et radio
@@ -54,6 +55,8 @@ export default function ProductBuilderPage() {
     icon: '🎨',
     inputType: 'thumbnail'
   });
+  const [newModuleIconFile, setNewModuleIconFile] = useState<File | null>(null);
+  const [selectedModule, setSelectedModule] = useState<CustomizationModule | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -196,16 +199,42 @@ export default function ProductBuilderPage() {
     setShowCreateModuleModal(true);
   }
 
-  function createModule() {
+  async function createModule() {
     if (!newModule.tabName || !newModule.icon || !newModule.inputType) {
       alert('Veuillez remplir tous les champs');
       return;
+    }
+
+    let iconUrl: string | undefined = undefined;
+
+    // Upload de l'icône si un fichier est fourni
+    if (newModuleIconFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', newModuleIconFile);
+        formData.append('folder', 'module-icons');
+
+        const res = await fetch('/api/upload-icon', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          iconUrl = data.url;
+        } else {
+          console.error('Error uploading icon');
+        }
+      } catch (error) {
+        console.error('Error uploading icon:', error);
+      }
     }
 
     const module: CustomizationModule = {
       id: `module-${Date.now()}`,
       tabName: newModule.tabName,
       icon: newModule.icon,
+      iconUrl: iconUrl,
       inputType: newModule.inputType as CustomizationModule['inputType'],
       required: newModule.required || false,
       options: (newModule.inputType === 'dropdown' || newModule.inputType === 'radio') ? [] : undefined
@@ -213,11 +242,13 @@ export default function ProductBuilderPage() {
 
     setCustomizationModules([...customizationModules, module]);
     setShowCreateModuleModal(false);
-    setNewModule({
-      tabName: '',
-      icon: '🎨',
-      inputType: 'thumbnail'
-    });
+                setNewModule({
+                  tabName: '',
+                  icon: '🎨',
+                  inputType: 'thumbnail'
+                });
+                setNewModuleIconFile(null);
+                setShowCreateModuleModal(false);
   }
 
   function deleteModule(moduleId: string) {
@@ -539,13 +570,13 @@ export default function ProductBuilderPage() {
               </button>
             </div>
 
-            {/* Questions List */}
+            {/* Modules/Questions List */}
             <div style={{
               flex: 1,
               overflowY: 'auto',
               padding: '16px'
             }}>
-              {questions.length === 0 ? (
+              {customizationModules.length === 0 && questions.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
                   padding: '32px 16px',
@@ -591,11 +622,48 @@ export default function ProductBuilderPage() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Customization Modules */}
+                  {customizationModules.map((module) => (
+                    <div
+                      key={module.id}
+                      onClick={() => {
+                        setSelectedModule(module);
+                        setSelectedQuestion(null);
+                        setShowQuestionSettings(true);
+                      }}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a',
+                        border: selectedModule?.id === module.id ? '1px solid #8eff36' : '1px solid #1a1a1a',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#ffffff',
+                        marginBottom: '4px'
+                      }}>
+                        {module.tabName}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        {module.inputType}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Legacy Questions */}
                   {questions.map((question) => (
                     <div
                       key={question.id}
                       onClick={() => {
                         setSelectedQuestion(question);
+                        setSelectedModule(null);
                         setShowQuestionSettings(true);
                       }}
                       style={{
@@ -782,11 +850,25 @@ export default function ProductBuilderPage() {
                       cursor: 'pointer',
                       color: activeCustomizerTab === module.id ? '#ffffff' : '#666666',
                       fontSize: '20px',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      overflow: 'hidden'
                     }}
                     title={module.tabName}
                   >
-                    {module.icon}
+                    {module.iconUrl ? (
+                      <img
+                        src={module.iconUrl}
+                        alt={module.tabName}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          padding: '4px'
+                        }}
+                      />
+                    ) : (
+                      module.icon
+                    )}
                   </button>
                 ))}
               </div>
@@ -816,8 +898,20 @@ export default function ProductBuilderPage() {
                     alignItems: 'center',
                     gap: '12px'
                   }}>
-                    <span style={{ color: '#ffffff', fontSize: '16px' }}>
-                      {activeModule.icon}
+                    <span style={{ color: '#ffffff', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {activeModule.iconUrl ? (
+                        <img
+                          src={activeModule.iconUrl}
+                          alt={activeModule.tabName}
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            objectFit: 'contain'
+                          }}
+                        />
+                      ) : (
+                        activeModule.icon
+                      )}
                     </span>
                     <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
                       {activeModule.tabName}
@@ -963,8 +1057,150 @@ export default function ProductBuilderPage() {
             </div>
           </div>
 
-          {/* Right Sidebar - Question Settings */}
-          {showQuestionSettings && selectedQuestion ? (
+          {/* Right Sidebar - Module/Question Settings */}
+          {showQuestionSettings && selectedModule ? (
+            <div style={{
+              width: '320px',
+              backgroundColor: '#0a0a0a',
+              borderLeft: '1px solid #1a1a1a',
+              padding: '24px',
+              overflowY: 'auto'
+            }}>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)',
+                marginBottom: '24px'
+              }}>
+                Module settings
+              </h3>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Nom de l'onglet
+                </label>
+                <input
+                  type="text"
+                  value={selectedModule.tabName}
+                  onChange={(e) => {
+                    const updated = { ...selectedModule, tabName: e.target.value };
+                    setSelectedModule(updated);
+                    setCustomizationModules(customizationModules.map(m => 
+                      m.id === selectedModule.id ? updated : m
+                    ));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Type d'input
+                </label>
+                <select
+                  value={selectedModule.inputType}
+                  onChange={(e) => {
+                    const updated = { ...selectedModule, inputType: e.target.value as CustomizationModule['inputType'] };
+                    setSelectedModule(updated);
+                    setCustomizationModules(customizationModules.map(m => 
+                      m.id === selectedModule.id ? updated : m
+                    ));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="thumbnail">Thumbnail (Miniatures)</option>
+                  <option value="dropdown">Dropdown (Menu déroulant)</option>
+                  <option value="radio">Radio Button (Boutons radio)</option>
+                  <option value="label">Label (Étiquette)</option>
+                  <option value="file-upload">File Upload (Upload fichier)</option>
+                  <option value="text-input">Text Input (Champ texte)</option>
+                  <option value="checkbox">Checkbox (Case à cocher)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedModule.required || false}
+                    onChange={(e) => {
+                      const updated = { ...selectedModule, required: e.target.checked };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  Requis
+                </label>
+              </div>
+
+              <button
+                onClick={() => deleteModule(selectedModule.id)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: '#ff4444',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Supprimer le module
+              </button>
+            </div>
+          ) : showQuestionSettings && selectedQuestion ? (
             <div style={{
               width: '320px',
               backgroundColor: '#0a0a0a',
@@ -1240,13 +1476,15 @@ export default function ProductBuilderPage() {
                   marginBottom: '8px',
                   fontFamily: 'var(--stepn-font-body)'
                 }}>
-                  Icône (emoji ou texte)
+                  Icône (image .svg ou .png, ou emoji/texte)
                 </label>
                 <input
-                  type="text"
-                  value={newModule.icon || ''}
-                  onChange={(e) => setNewModule({ ...newModule, icon: e.target.value })}
-                  placeholder="🎨"
+                  type="file"
+                  accept=".svg,.png"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setNewModuleIconFile(file);
+                  }}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -1257,7 +1495,40 @@ export default function ProductBuilderPage() {
                     fontSize: '14px',
                     fontFamily: 'var(--stepn-font-body)',
                     outline: 'none',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    cursor: 'pointer',
+                    marginBottom: '8px'
+                  }}
+                />
+                {newModuleIconFile && (
+                  <div style={{
+                    padding: '8px',
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    color: '#8eff36',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Fichier sélectionné: {newModuleIconFile.name}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  value={newModule.icon || ''}
+                  onChange={(e) => setNewModule({ ...newModule, icon: e.target.value })}
+                  placeholder="🎨 (si pas d'image)"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#0a0a0a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    marginTop: '8px'
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = '#8eff36';
@@ -1266,6 +1537,14 @@ export default function ProductBuilderPage() {
                     e.currentTarget.style.borderColor = '#2a2a2a';
                   }}
                 />
+                <p style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  marginTop: '4px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Ou utilisez un emoji/texte si vous n'upload pas d'image
+                </p>
               </div>
 
               {/* Input Type */}
@@ -1347,6 +1626,7 @@ export default function ProductBuilderPage() {
                     icon: '🎨',
                     inputType: 'thumbnail'
                   });
+                  setNewModuleIconFile(null);
                 }}
                 style={{
                   padding: '10px 20px',
