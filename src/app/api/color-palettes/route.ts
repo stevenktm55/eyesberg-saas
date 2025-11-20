@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       .insert({
         subdomain,
         name,
-        colors: colors, // JSONB will handle the array
+        colors: colorsArray, // JSONB will handle the array
       })
       .select()
       .single();
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest) {
       .from('color_palettes')
       .update({
         name,
-        colors: colors,
+        colors: colorsArray,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
