@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
     // Upload du fichier
     const fileName = `${Date.now()}-${file.name}`;
     
+    console.log('Starting font upload:', { fileName, fontGroupId, name, fileSize: file.size });
+    
     try {
       const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from('fonts')
@@ -62,32 +64,47 @@ export async function POST(request: NextRequest) {
 
       if (uploadError) {
         console.error('Error uploading font file:', uploadError);
+        console.error('Upload error details:', JSON.stringify(uploadError, null, 2));
         // Si le bucket n'existe pas, créer un message d'erreur plus clair
-        if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('not found')) {
+        if (uploadError.message?.includes('Bucket') || uploadError.message?.includes('not found') || uploadError.statusCode === '404') {
           return NextResponse.json(
-            { error: 'Le bucket "fonts" n\'existe pas dans Supabase Storage. Veuillez le créer dans le dashboard Supabase.' },
+            { error: 'Le bucket "fonts" n\'existe pas dans Supabase Storage. Veuillez le créer dans le dashboard Supabase (Storage > Create bucket > nom: "fonts" > public).' },
             { status: 500 }
           );
         }
         return NextResponse.json(
-          { error: `Failed to upload file: ${uploadError.message}` },
+          { error: `Failed to upload file: ${uploadError.message || JSON.stringify(uploadError)}` },
           { status: 500 }
         );
       }
 
       if (!uploadData) {
+        console.error('Upload returned no data');
         return NextResponse.json(
           { error: 'Upload failed: no data returned' },
           { status: 500 }
         );
       }
 
+      console.log('File uploaded successfully:', uploadData.path);
+
       const { data: { publicUrl } } = supabaseAdmin.storage
         .from('fonts')
         .getPublicUrl(uploadData.path);
 
+      console.log('Public URL generated:', publicUrl);
+
       // Créer la font dans la base de données
       const fileTypeWithoutDot = fileExtension.substring(1); // Enlever le point
+      console.log('Inserting font into database:', {
+        font_group_id: fontGroupId,
+        name,
+        file_url: publicUrl,
+        file_name: file.name,
+        file_type: fileTypeWithoutDot,
+        letter_spacing: letterSpacing,
+      });
+
       const { data: font, error } = await supabaseAdmin
         .from('fonts')
         .insert({
@@ -103,6 +120,7 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         console.error('Error inserting font into database:', error);
+        console.error('Database error details:', JSON.stringify(error, null, 2));
         // Supprimer le fichier si l'insertion échoue
         try {
           await supabaseAdmin.storage.from('fonts').remove([fileName]);
@@ -110,14 +128,16 @@ export async function POST(request: NextRequest) {
           console.error('Error removing uploaded file:', removeError);
         }
         return NextResponse.json(
-          { error: `Failed to create font: ${error.message}` },
+          { error: `Failed to create font in database: ${error.message || JSON.stringify(error)}` },
           { status: 500 }
         );
       }
 
+      console.log('Font created successfully:', font);
       return NextResponse.json(font);
     } catch (error: any) {
       console.error('Unexpected error in font creation:', error);
+      console.error('Error stack:', error.stack);
       return NextResponse.json(
         { error: error.message || 'Failed to create font' },
         { status: 500 }
