@@ -31,7 +31,7 @@ export default function DeleteConfirmModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 10000,
+        zIndex: 20000,
         padding: '32px'
       }}
       onClick={onClose}
