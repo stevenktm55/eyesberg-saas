@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
@@ -67,7 +67,7 @@ export default function ProductBuilderPage() {
   }, [searchParams, router]);
 
   // Fonction de sauvegarde automatique avec debounce
-  async function autoSave() {
+  const autoSave = useCallback(async () => {
     if (!productId) return;
 
     setSaving(true);
@@ -94,7 +94,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }
+  }, [productId, productName, questions, activeTab]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, activeTab, productId]);
+  }, [productName, questions, activeTab, productId, autoSave]);
 
   function addQuestion() {
     const newQuestion: Question = {
