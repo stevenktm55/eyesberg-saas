@@ -70,6 +70,10 @@ function Model({
             mesh.material = standardMaterial;
           }
           
+          // S'assurer que le matériau n'est pas transparent
+          standardMaterial.transparent = false;
+          standardMaterial.opacity = 1.0;
+          
           // Appliquer les textures
           const textureLoader = new THREE.TextureLoader();
           
@@ -116,6 +120,12 @@ function Model({
           });
         }
         
+        // S'assurer que tous les matériaux ne sont pas transparents
+        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial) {
+          material.transparent = false;
+          material.opacity = 1.0;
+        }
+        
         // Appliquer le design 2D comme texture si disponible
         if (design2DUrl && material instanceof THREE.MeshStandardMaterial) {
           const textureLoader = new THREE.TextureLoader();
@@ -129,6 +139,10 @@ function Model({
             }
             material.map.needsUpdate = true;
             material.needsUpdate = true;
+            material.transparent = false;
+            material.opacity = 1.0;
+          }, undefined, (error) => {
+            console.error('Error loading design 2D texture:', error);
           });
         }
       }
@@ -175,13 +189,16 @@ export function Model3DPreviewStatic({
     );
   }
 
+  // Extraire backgroundColor du style passé ou utiliser une valeur par défaut
+  const backgroundColor = style?.backgroundColor || '#e8e8e8';
+  
   return (
     <div 
       className={className}
       style={{
-        backgroundColor: '#0a0a0a', // Default dark background
         position: 'relative',
-        ...style, // Override with passed style (including backgroundColor if provided)
+        backgroundColor: backgroundColor,
+        ...style, // Appliquer tous les autres styles
       }}
     >
       <Canvas
@@ -190,8 +207,9 @@ export function Model3DPreviewStatic({
           antialias: true,
           alpha: false,
           outputColorSpace: THREE.SRGBColorSpace,
+          clearColor: backgroundColor, // Utiliser le backgroundColor pour le clearColor
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%', height: '100%', backgroundColor: backgroundColor }}
       >
         <Suspense fallback={null}>
           <ambientLight intensity={0.5} />
