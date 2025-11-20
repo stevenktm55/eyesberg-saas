@@ -326,9 +326,13 @@ export default function SizesConfigPage() {
   function openAddSizeModal(pattern?: SizePattern, size?: string, fileUV0?: { id: string; svgUrl: string }, fileUV2?: { id: string; svgUrl: string }) {
     // Si un pattern est fourni et qu'on n'est pas déjà en mode édition pour ce pattern,
     // définir editingPattern pour que la taille soit ajoutée au bon pattern
+    // Mais ne pas ouvrir le modal d'édition du groupe (on garde isCreating à false)
     if (pattern && (!editingPattern || editingPattern.id !== pattern.id)) {
       console.log("Setting editingPattern from pattern:", pattern);
-      setEditingPattern({ ...pattern }); // Créer une copie pour éviter les mutations
+      // Créer une copie pour éviter les mutations, mais ne pas ouvrir le modal d'édition
+      const patternCopy = { ...pattern };
+      setEditingPattern(patternCopy);
+      setIsCreating(false); // S'assurer que le modal d'édition ne s'ouvre pas
     }
     
     // Si on édite une taille existante
