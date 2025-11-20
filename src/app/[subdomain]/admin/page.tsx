@@ -127,11 +127,15 @@ export default function SubdomainAdminPage() {
 
   // Fermer le menu au clic extérieur
   useEffect(() => {
+    if (!openMenuId) return;
+    
     function handleClickOutside(event: MouseEvent) {
-      if (openMenuId && !(event.target as Element).closest('[data-menu-container]')) {
+      const target = event.target as Element;
+      if (!target.closest('[data-menu-container]')) {
         setOpenMenuId(null);
       }
     }
+    
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
