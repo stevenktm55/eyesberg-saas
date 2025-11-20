@@ -45,16 +45,12 @@ function Model({
   React.useEffect(() => {
     if (!scene) return;
 
+    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl);
+
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         const mesh = child as THREE.Mesh;
         let material = mesh.material;
-        
-        // S'assurer que tous les matériaux ne sont pas transparents dès le début
-        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial) {
-          material.transparent = false;
-          material.opacity = 1.0;
-        }
         
         // Si c'est un tableau de matériaux, traiter chaque matériau
         if (Array.isArray(material)) {
@@ -62,29 +58,39 @@ function Model({
           mesh.material = material;
         }
         
+        // Créer un nouveau matériau MeshStandardMaterial si nécessaire
+        let standardMaterial: THREE.MeshStandardMaterial;
+        if (material instanceof THREE.MeshStandardMaterial) {
+          standardMaterial = material;
+        } else {
+          standardMaterial = new THREE.MeshStandardMaterial();
+          if (material instanceof THREE.MeshBasicMaterial) {
+            standardMaterial.color.copy(material.color);
+          } else {
+            // Couleur par défaut si pas de couleur
+            standardMaterial.color.setHex(0xffffff);
+          }
+          mesh.material = standardMaterial;
+        }
+        
+        // S'assurer que le matériau n'est pas transparent et a une couleur de base
+        standardMaterial.transparent = false;
+        standardMaterial.opacity = 1.0;
+        if (standardMaterial.color.getHex() === 0x000000) {
+          standardMaterial.color.setHex(0xffffff); // Blanc par défaut si noir
+        }
+        
         // Trouver la partie correspondante par nom de mesh
         const meshName = mesh.name || '';
         const part = modelParts?.find(p => p.name === meshName);
+        
+        console.log(`Mesh: ${meshName}, Part:`, part, 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none');
         
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
           const materialMap = materialMaps[part.material_map_id];
           const files = materialMap.material_map_files || [];
           
-          // Créer un nouveau matériau MeshStandardMaterial si nécessaire
-          let standardMaterial: THREE.MeshStandardMaterial;
-          if (material instanceof THREE.MeshStandardMaterial) {
-            standardMaterial = material;
-          } else {
-            standardMaterial = new THREE.MeshStandardMaterial();
-            if (material instanceof THREE.MeshBasicMaterial) {
-              standardMaterial.color.copy(material.color);
-            }
-            mesh.material = standardMaterial;
-          }
-          
-          // S'assurer que le matériau n'est pas transparent
-          standardMaterial.transparent = false;
-          standardMaterial.opacity = 1.0;
+          console.log(`Applying material map to ${meshName}:`, files);
           
           // Appliquer les textures
           const textureLoader = new THREE.TextureLoader();
@@ -95,61 +101,76 @@ function Model({
             const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
             const scale = file.scale !== undefined ? file.scale : 1;
             
-            if (!fileUrl) return;
+            if (!fileUrl) {
+              console.warn(`No file URL for ${mapType}`);
+              return;
+            }
             
-            textureLoader.load(fileUrl, (texture) => {
-              texture.wrapS = THREE.RepeatWrapping;
-              texture.wrapT = THREE.RepeatWrapping;
-              texture.repeat.set(scale, scale);
-              
-              switch (mapType) {
-                case 'diffuse':
-                  standardMaterial.map = texture;
-                  standardMaterial.map.needsUpdate = true;
-                  break;
-                case 'normal':
-                  standardMaterial.normalMap = texture;
-                  standardMaterial.normalScale.set(intensity, intensity);
-                  standardMaterial.normalMap.needsUpdate = true;
-                  break;
-                case 'roughness':
-                  standardMaterial.roughnessMap = texture;
-                  standardMaterial.roughnessMap.needsUpdate = true;
-                  break;
-                case 'metallic':
-                  standardMaterial.metalnessMap = texture;
-                  standardMaterial.metalnessMap.needsUpdate = true;
-                  break;
-                case 'ao':
-                  standardMaterial.aoMap = texture;
-                  standardMaterial.aoMapIntensity = intensity;
-                  standardMaterial.aoMap.needsUpdate = true;
-                  break;
+            console.log(`Loading texture: ${mapType} from ${fileUrl}`);
+            
+            textureLoader.load(
+              fileUrl,
+              (texture) => {
+                console.log(`Texture loaded: ${mapType}`);
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(scale, scale);
+                
+                switch (mapType) {
+                  case 'diffuse':
+                    standardMaterial.map = texture;
+                    standardMaterial.map.needsUpdate = true;
+                    break;
+                  case 'normal':
+                    standardMaterial.normalMap = texture;
+                    standardMaterial.normalScale.set(intensity, intensity);
+                    standardMaterial.normalMap.needsUpdate = true;
+                    break;
+                  case 'roughness':
+                    standardMaterial.roughnessMap = texture;
+                    standardMaterial.roughnessMap.needsUpdate = true;
+                    break;
+                  case 'metallic':
+                    standardMaterial.metalnessMap = texture;
+                    standardMaterial.metalnessMap.needsUpdate = true;
+                    break;
+                  case 'ao':
+                    standardMaterial.aoMap = texture;
+                    standardMaterial.aoMapIntensity = intensity;
+                    standardMaterial.aoMap.needsUpdate = true;
+                    break;
+                }
+                
+                standardMaterial.needsUpdate = true;
+              },
+              undefined,
+              (error) => {
+                console.error(`Error loading texture ${mapType}:`, error);
               }
-              
-              standardMaterial.needsUpdate = true;
-            });
+            );
           });
         }
         
         // Appliquer le design 2D comme texture si disponible
-        if (design2DUrl && material instanceof THREE.MeshStandardMaterial) {
+        if (design2DUrl) {
+          console.log(`Loading design 2D: ${design2DUrl}`);
           const textureLoader = new THREE.TextureLoader();
-          textureLoader.load(design2DUrl, (texture) => {
-            // Utiliser le design 2D comme texture de base ou overlay
-            if (!material.map) {
-              material.map = texture;
-            } else {
-              // Si une texture existe déjà, on peut la combiner ou la remplacer
-              material.map = texture;
+          textureLoader.load(
+            design2DUrl,
+            (texture) => {
+              console.log('Design 2D texture loaded');
+              // Utiliser le design 2D comme texture de base ou overlay
+              standardMaterial.map = texture;
+              standardMaterial.map.needsUpdate = true;
+              standardMaterial.needsUpdate = true;
+              standardMaterial.transparent = false;
+              standardMaterial.opacity = 1.0;
+            },
+            undefined,
+            (error) => {
+              console.error('Error loading design 2D texture:', error);
             }
-            material.map.needsUpdate = true;
-            material.needsUpdate = true;
-            material.transparent = false;
-            material.opacity = 1.0;
-          }, undefined, (error) => {
-            console.error('Error loading design 2D texture:', error);
-          });
+          );
         }
       }
     });
