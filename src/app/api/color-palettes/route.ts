@@ -67,22 +67,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, colors } = body;
 
-    if (!name || !Array.isArray(colors) || colors.length === 0) {
+    if (!name) {
       return NextResponse.json(
-        { error: 'name and colors array are required' },
+        { error: 'name is required' },
         { status: 400 }
       );
     }
 
-    // Valider que toutes les couleurs sont des hex valides
-    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    const validColors = colors.filter((color: string) => hexColorRegex.test(color));
-    
-    if (validColors.length !== colors.length) {
-      return NextResponse.json(
-        { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
-        { status: 400 }
-      );
+    // Permettre de créer une palette sans couleurs
+    const colorsArray = Array.isArray(colors) ? colors : [];
+
+    // Valider que toutes les couleurs sont des hex valides (si présentes)
+    if (colorsArray.length > 0) {
+      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      const validColors = colorsArray.filter((color: string) => hexColorRegex.test(color));
+      
+      if (validColors.length !== colorsArray.length) {
+        return NextResponse.json(
+          { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
+          { status: 400 }
+        );
+      }
     }
 
     const { data: palette, error } = await supabaseAdmin
@@ -144,22 +149,27 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { name, colors } = body;
 
-    if (!name || !Array.isArray(colors) || colors.length === 0) {
+    if (!name) {
       return NextResponse.json(
-        { error: 'name and colors array are required' },
+        { error: 'name is required' },
         { status: 400 }
       );
     }
 
-    // Valider que toutes les couleurs sont des hex valides
-    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    const validColors = colors.filter((color: string) => hexColorRegex.test(color));
-    
-    if (validColors.length !== colors.length) {
-      return NextResponse.json(
-        { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
-        { status: 400 }
-      );
+    // Permettre de mettre à jour une palette avec ou sans couleurs
+    const colorsArray = Array.isArray(colors) ? colors : [];
+
+    // Valider que toutes les couleurs sont des hex valides (si présentes)
+    if (colorsArray.length > 0) {
+      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      const validColors = colorsArray.filter((color: string) => hexColorRegex.test(color));
+      
+      if (validColors.length !== colorsArray.length) {
+        return NextResponse.json(
+          { error: 'All colors must be valid hex colors (e.g., #FF0000)' },
+          { status: 400 }
+        );
+      }
     }
 
     const { data: palette, error } = await supabaseAdmin
