@@ -716,27 +716,19 @@ export default function SizesConfigPage() {
                             color: '#a0a0a0',
                             fontWeight: '500',
                             fontSize: '12px'
-                          }}>UV2 (Logos)</th>
-                          <th style={{
-                            textAlign: 'left',
-                            padding: '12px',
-                            color: '#a0a0a0',
-                            fontWeight: '500',
-                            fontSize: '12px'
                           }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {displaySizes.length === 0 ? (
                           <tr>
-                            <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#a0a0a0' }}>
+                            <td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#a0a0a0' }}>
                               Aucune taille. Ajoutez des tailles dans le modal d'édition.
                             </td>
                           </tr>
                         ) : (
                           displaySizes.map((size) => {
                             const fileUV0 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV0");
-                            const fileUV2 = displayPattern.files.find((f) => f.size === size && f.uvType === "UV2");
 
                             return (
                               <tr key={size} style={{ borderBottom: '1px solid #1a1a1a' }}>
@@ -747,32 +739,6 @@ export default function SizesConfigPage() {
                                   {fileUV0 ? (
                                     <a
                                       href={fileUV0.svgUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      style={{
-                                        color: '#8eff36',
-                                        textDecoration: 'none',
-                                        fontSize: '12px'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.textDecoration = 'underline';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.textDecoration = 'none';
-                                      }}
-                                    >
-                                      Voir SVG
-                                    </a>
-                                  ) : (
-                                    <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
-                                  )}
-                                </td>
-                                
-                                {/* UV2 Column */}
-                                <td style={{ padding: '12px' }}>
-                                  {fileUV2 ? (
-                                    <a
-                                      href={fileUV2.svgUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       style={{
