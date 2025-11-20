@@ -560,7 +560,7 @@ export default function SizesConfigPage() {
             e.currentTarget.style.opacity = '1';
           }}
         >
-          <span style={{ color: '#000000', fontWeight: 'inherit' }}>+</span>
+          <span>+</span>
           Nouveau groupe de tailles
         </button>
       </div>
