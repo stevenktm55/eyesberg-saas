@@ -48,7 +48,19 @@ function Model({
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         const mesh = child as THREE.Mesh;
-        const material = mesh.material;
+        let material = mesh.material;
+        
+        // S'assurer que tous les matériaux ne sont pas transparents dès le début
+        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial) {
+          material.transparent = false;
+          material.opacity = 1.0;
+        }
+        
+        // Si c'est un tableau de matériaux, traiter chaque matériau
+        if (Array.isArray(material)) {
+          material = material[0];
+          mesh.material = material;
+        }
         
         // Trouver la partie correspondante par nom de mesh
         const meshName = mesh.name || '';
@@ -120,12 +132,6 @@ function Model({
           });
         }
         
-        // S'assurer que tous les matériaux ne sont pas transparents
-        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshBasicMaterial) {
-          material.transparent = false;
-          material.opacity = 1.0;
-        }
-        
         // Appliquer le design 2D comme texture si disponible
         if (design2DUrl && material instanceof THREE.MeshStandardMaterial) {
           const textureLoader = new THREE.TextureLoader();
@@ -190,7 +196,10 @@ export function Model3DPreviewStatic({
   }
 
   // Extraire backgroundColor du style passé ou utiliser une valeur par défaut
-  const backgroundColor = style?.backgroundColor || '#e8e8e8';
+  const backgroundColor = (style?.backgroundColor as string) || '#e8e8e8';
+  
+  // Convertir la couleur hex en THREE.Color
+  const bgColor = new THREE.Color(backgroundColor);
   
   return (
     <div 
@@ -207,11 +216,14 @@ export function Model3DPreviewStatic({
           antialias: true,
           alpha: false,
           outputColorSpace: THREE.SRGBColorSpace,
-          clearColor: backgroundColor, // Utiliser le backgroundColor pour le clearColor
         }}
-        style={{ width: '100%', height: '100%', backgroundColor: backgroundColor }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(bgColor, 1);
+        }}
+        style={{ width: '100%', height: '100%' }}
       >
         <Suspense fallback={null}>
+          <color attach="background" args={[backgroundColor]} />
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <directionalLight position={[-10, -10, -5]} intensity={0.5} />
