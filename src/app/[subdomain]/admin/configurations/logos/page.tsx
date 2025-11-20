@@ -42,6 +42,7 @@ export default function LogosConfigPage() {
     file: null
   });
   const [editingLogo, setEditingLogo] = useState<{ libraryId: string; logo: Logo | null }>({ libraryId: "", logo: null });
+  const [editingLogoFile, setEditingLogoFile] = useState<File | null>(null);
   const [showLogoEditModal, setShowLogoEditModal] = useState(false);
 
   useEffect(() => {
@@ -265,8 +266,8 @@ export default function LogosConfigPage() {
     try {
       const formData = new FormData();
       formData.append('name', editingLogo.logo.name);
-      if (editingLogo.logo.file) {
-        formData.append('file', editingLogo.logo.file);
+      if (editingLogoFile) {
+        formData.append('file', editingLogoFile);
       }
 
       const res = await fetch(`/api/logos?id=${encodeURIComponent(logoId)}`, {
@@ -278,6 +279,7 @@ export default function LogosConfigPage() {
       await fetchLogoLibraries();
       setShowLogoEditModal(false);
       setEditingLogo({ libraryId: "", logo: null });
+      setEditingLogoFile(null);
     } catch (error) {
       console.error("Error updating logo:", error);
       alert("Erreur lors de la mise à jour");
@@ -306,12 +308,14 @@ export default function LogosConfigPage() {
 
   function openEditLogoModal(libraryId: string, logo: Logo) {
     setEditingLogo({ libraryId, logo: { ...logo } });
+    setEditingLogoFile(null);
     setShowLogoEditModal(true);
   }
 
   function closeLogoEditModal() {
     setShowLogoEditModal(false);
     setEditingLogo({ libraryId: "", logo: null });
+    setEditingLogoFile(null);
   }
 
   // Filtrer les bibliothèques selon la recherche
@@ -948,10 +952,7 @@ export default function LogosConfigPage() {
                   accept=".svg"
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null;
-                    setEditingLogo({
-                      ...editingLogo,
-                      logo: { ...editingLogo.logo, file: file as any }
-                    });
+                    setEditingLogoFile(file);
                   }}
                   style={{
                     width: '100%',
