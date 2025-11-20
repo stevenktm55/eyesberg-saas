@@ -176,21 +176,34 @@ export default function ProductBuilderPage() {
         }}>
           {/* Left: Product Name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              backgroundColor: '#8eff36',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#000000',
-              fontSize: '14px',
-              fontWeight: '600',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              dk
-            </div>
+            <button
+              onClick={() => router.push('/admin')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.8';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+            >
+              <img
+                src="/icons/logo-white.svg"
+                alt="Eyesberg"
+                style={{
+                  height: '32px',
+                  width: 'auto'
+                }}
+              />
+            </button>
             <input
               type="text"
               value={productName}
