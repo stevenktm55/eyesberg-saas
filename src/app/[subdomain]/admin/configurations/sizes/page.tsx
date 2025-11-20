@@ -336,6 +336,7 @@ export default function SizesConfigPage() {
       const patternCopy = { ...pattern };
       setEditingPattern(patternCopy);
       setIsCreating(false); // S'assurer que le modal d'édition ne s'ouvre pas
+      setShowPatternEditModal(false); // S'assurer que le modal d'édition ne s'ouvre pas
     }
     
     // Si on édite une taille existante
