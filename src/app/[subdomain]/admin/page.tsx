@@ -596,13 +596,14 @@ export default function SubdomainAdminPage() {
                           position: 'absolute',
                           top: '40px',
                           right: '12px',
-                          backgroundColor: '#ffffff',
+                          backgroundColor: '#1a1a1a',
                           borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                           zIndex: 1000,
                           minWidth: '160px',
                           padding: '8px 0',
-                          border: '1px solid #e0e0e0'
+                          border: '1px solid #2a2a2a',
+                          borderLeft: '2px solid #8eff36'
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -614,14 +615,16 @@ export default function SubdomainAdminPage() {
                             backgroundColor: 'transparent',
                             border: 'none',
                             textAlign: 'left',
-                            color: '#000000',
+                            color: '#ffffff',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
+                            fontStyle: 'italic',
+                            textTransform: 'uppercase',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            e.currentTarget.style.backgroundColor = '#2a2a2a';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
@@ -637,14 +640,16 @@ export default function SubdomainAdminPage() {
                             backgroundColor: 'transparent',
                             border: 'none',
                             textAlign: 'left',
-                            color: '#000000',
+                            color: '#ffffff',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
+                            fontStyle: 'italic',
+                            textTransform: 'uppercase',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            e.currentTarget.style.backgroundColor = '#2a2a2a';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
@@ -654,7 +659,7 @@ export default function SubdomainAdminPage() {
                         </button>
                         <div style={{
                           height: '1px',
-                          backgroundColor: '#e0e0e0',
+                          backgroundColor: '#2a2a2a',
                           margin: '4px 0'
                         }} />
                         <button
@@ -668,11 +673,13 @@ export default function SubdomainAdminPage() {
                             color: '#d97706',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
+                            fontStyle: 'italic',
+                            textTransform: 'uppercase',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#fef3c7';
+                            e.currentTarget.style.backgroundColor = '#2a2a2a';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
@@ -691,11 +698,13 @@ export default function SubdomainAdminPage() {
                             color: '#dc2626',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
+                            fontStyle: 'italic',
+                            textTransform: 'uppercase',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#fee2e2';
+                            e.currentTarget.style.backgroundColor = '#2a2a2a';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
