@@ -66,6 +66,12 @@ export async function POST(request: NextRequest) {
         );
       }
       console.log('Bucket "logos" créé avec succès');
+    } else if (checkError && !checkError.message?.includes('not found') && checkError.statusCode !== '404') {
+      console.error('Error checking bucket:', checkError);
+      return NextResponse.json(
+        { error: `Failed to check bucket: ${checkError.message}` },
+        { status: 500 }
+      );
     }
 
     // Upload du fichier
@@ -110,6 +116,12 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error inserting variant into database:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       // Supprimer le fichier si l'insertion échoue
       try {
         await supabaseAdmin.storage.from('logos').remove([fileName]);
@@ -117,7 +129,7 @@ export async function POST(request: NextRequest) {
         console.error('Error removing uploaded file:', removeError);
       }
       return NextResponse.json(
-        { error: `Failed to create variant: ${error.message}` },
+        { error: `Failed to create variant: ${error.message}`, details: error.details, hint: error.hint },
         { status: 500 }
       );
     }
@@ -125,8 +137,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(variant);
   } catch (error: any) {
     console.error('Error creating logo variant:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: error.message || 'Failed to create logo variant' },
+      { 
+        error: error.message || 'Failed to create logo variant',
+        details: error.details || error.toString()
+      },
       { status: 500 }
     );
   }
