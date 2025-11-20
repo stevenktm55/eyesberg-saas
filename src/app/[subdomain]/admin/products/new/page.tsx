@@ -1354,7 +1354,39 @@ export default function ProductBuilderPage() {
                 Delete Question
               </button>
             </div>
-          ) : null}
+          ) : (
+            <div style={{
+              width: '320px',
+              backgroundColor: '#0a0a0a',
+              borderLeft: '1px solid #1a1a1a',
+              padding: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div style={{
+                textAlign: 'center',
+                color: '#a0a0a0'
+              }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  fontFamily: 'var(--stepn-font-body)',
+                  marginBottom: '8px'
+                }}>
+                  Module settings
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  lineHeight: '1.5'
+                }}>
+                  Sélectionnez un module dans la sidebar de gauche pour voir ses réglages.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
