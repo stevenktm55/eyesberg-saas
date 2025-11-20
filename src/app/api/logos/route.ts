@@ -1,301 +1,288 @@
 // =====================================================
-// API LOGOS - VERSION SUPABASE
+// API POUR GÉRER LES LOGOS INDIVIDUELS
 // =====================================================
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
-interface LogoVariant {
-  id: string;
-  name: string;
-  file: string;
-}
-
-interface Logo {
-  id: string;
-  name: string;
-  tags?: string[];
-  variants: LogoVariant[];
-}
-
-// =====================================================
-// GET - Récupérer tous les logos
-// =====================================================
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const designId = searchParams.get('designId');
-
-    if (designId) {
-      // 1) Récupérer les bibliothèques assignées au design
-      const { data: links, error: linksErr } = await supabase
-        .from('design_logo_libraries')
-        .select('library_id')
-        .eq('design_id', designId);
-      if (linksErr) {
-        console.error('Erreur GET logos?designId - design_logo_libraries:', linksErr);
-        return NextResponse.json([]);
-      }
-      const libraryIds = (links || []).map((r: any) => r.library_id).filter(Boolean);
-      if (libraryIds.length === 0) return NextResponse.json([]);
-
-      // 2) Récupérer les logo_ids depuis les bibliothèques
-      const { data: items, error: itemsErr } = await supabase
-        .from('logo_library_items')
-        .select('logo_id')
-        .in('library_id', libraryIds);
-      if (itemsErr) {
-        console.error('Erreur GET logos?designId - logo_library_items:', itemsErr);
-        return NextResponse.json([]);
-      }
-      const logoIds = Array.from(new Set((items || []).map((r: any) => r.logo_id).filter(Boolean)));
-      if (logoIds.length === 0) return NextResponse.json([]);
-
-      // 3) Retourner logos actifs correspondant
-      const { data: filtered, error: logosErr } = await supabase
-        .from('logos')
-        .select('*')
-        .eq('active', true)
-        .in('id', logoIds)
-        .order('name', { ascending: true });
-      if (logosErr) {
-        console.error('Erreur GET logos?designId - logos:', logosErr);
-        return NextResponse.json([]);
-      }
-      return NextResponse.json(filtered || []);
-    }
-
-    const { data, error } = await supabase
-      .from('logos')
-      .select('*')
-      .eq('active', true)
-      .order('name', { ascending: true });
-
-    if (error) {
-      console.error('Erreur Supabase GET logos:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Les logos sont déjà au bon format dans Supabase
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error('Erreur GET logos:', err);
-    return NextResponse.json({ error: 'Failed to read logos' }, { status: 500 });
-  }
-}
-
-// =====================================================
-// POST - Créer un nouveau logo ou ajouter une variante
-// =====================================================
+/**
+ * POST /api/logos
+ * Crée un nouveau logo avec upload du fichier SVG
+ */
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    
-    const name = formData.get('name') as string;
-    const variantName = formData.get('variantName') as string;
-    const file = formData.get('file') as File;
-    const tags = formData.get('tags') as string;
-    const logoId = formData.get('logoId') as string | null;
-
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
     }
 
-    // Upload du fichier vers Supabase Storage
-    const filename = `${Date.now()}-${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const formData = await request.formData();
+    const logoLibraryId = formData.get('logoLibraryId') as string;
+    const name = formData.get('name') as string;
+    const file = formData.get('file') as File | null;
+
+    if (!logoLibraryId || !name) {
+      return NextResponse.json(
+        { error: 'logoLibraryId and name are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!file) {
+      return NextResponse.json(
+        { error: 'File is required' },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier le type de fichier (SVG uniquement)
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (fileExtension !== '.svg') {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only .svg files are allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier si le bucket existe, sinon le créer
+    const { data: existingBucket, error: checkError } = await supabaseAdmin.storage.getBucket('logos');
+    
+    if (!existingBucket && (checkError?.message?.includes('not found') || checkError?.statusCode === '404')) {
+      console.log('Bucket "logos" n\'existe pas, création en cours...');
+      const { error: createError } = await supabaseAdmin.storage.createBucket('logos', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024, // 5MB
+        allowedMimeTypes: ['image/svg+xml'],
+      });
+      
+      if (createError) {
+        console.error('Error creating bucket:', createError);
+        return NextResponse.json(
+          { error: `Failed to create bucket: ${createError.message}` },
+          { status: 500 }
+        );
+      }
+      console.log('Bucket "logos" créé avec succès');
+    }
+
+    // Upload du fichier
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from('logos')
-      .upload(filename, file, {
+      .upload(fileName, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
-      console.error('Erreur upload logo:', uploadError);
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      console.error('Error uploading logo file:', uploadError);
+      return NextResponse.json(
+        { error: `Failed to upload file: ${uploadError.message}` },
+        { status: 500 }
+      );
     }
 
-    // Obtenir l'URL publique
-    const { data: { publicUrl } } = supabase.storage
+    if (!uploadData) {
+      return NextResponse.json(
+        { error: 'Upload failed: no data returned' },
+        { status: 500 }
+      );
+    }
+
+    const { data: { publicUrl } } = supabaseAdmin.storage
       .from('logos')
       .getPublicUrl(uploadData.path);
 
-    if (logoId) {
-      // Ajouter une variante à un logo existant
-      const { data: logo, error: fetchError } = await supabase
-        .from('logos')
-        .select('*')
-        .eq('id', logoId)
-        .single();
+    // Créer le logo dans la base de données
+    const { data: logo, error } = await supabaseAdmin
+      .from('logos')
+      .insert({
+        logo_library_id: logoLibraryId,
+        name,
+        file_url: publicUrl,
+        file_name: file.name,
+      })
+      .select()
+      .single();
 
-      if (fetchError || !logo) {
-        return NextResponse.json({ error: 'Logo not found' }, { status: 404 });
+    if (error) {
+      console.error('Error inserting logo into database:', error);
+      // Supprimer le fichier si l'insertion échoue
+      try {
+        await supabaseAdmin.storage.from('logos').remove([fileName]);
+      } catch (removeError) {
+        console.error('Error removing uploaded file:', removeError);
       }
-
-      const variantId = `${Date.now()}`;
-      const updatedVariants = [
-        ...logo.variants,
-        {
-          id: variantId,
-          name: variantName || 'Original',
-          file: publicUrl
-        }
-      ];
-
-      const { data: updatedLogo, error: updateError } = await supabase
-        .from('logos')
-        .update({ variants: updatedVariants })
-        .eq('id', logoId)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error('Erreur update logo:', updateError);
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
-      }
-
-      // Récupérer tous les logos pour retourner la liste complète
-      const { data: allLogos } = await supabase
-        .from('logos')
-        .select('*')
-        .eq('active', true)
-        .order('name', { ascending: true });
-
-      return NextResponse.json({ success: true, logos: allLogos });
-    } else {
-      // Créer un nouveau logo
-      const variantId = `${Date.now()}-0`;
-      
-      const newLogo = {
-        name: name || 'Logo sans nom',
-        tags: tags ? tags.split(',').map(t => t.trim()) : [],
-        variants: [{
-          id: variantId,
-          name: variantName || 'Original',
-          file: publicUrl
-        }],
-        active: true
-      };
-
-      const { error: insertError } = await supabase
-        .from('logos')
-        .insert(newLogo);
-
-      if (insertError) {
-        console.error('Erreur insert logo:', insertError);
-        return NextResponse.json({ error: insertError.message }, { status: 500 });
-      }
-
-      // Récupérer tous les logos pour retourner la liste complète
-      const { data: allLogos } = await supabase
-        .from('logos')
-        .select('*')
-        .eq('active', true)
-        .order('name', { ascending: true });
-
-      return NextResponse.json({ success: true, logos: allLogos });
+      return NextResponse.json(
+        { error: `Failed to create logo: ${error.message}` },
+        { status: 500 }
+      );
     }
-  } catch (err) {
-    console.error('Erreur POST logo:', err);
-    return NextResponse.json({ error: 'Failed to upload logo' }, { status: 500 });
+
+    return NextResponse.json(logo);
+  } catch (error: any) {
+    console.error('Error creating logo:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to create logo' },
+      { status: 500 }
+    );
   }
 }
 
-// =====================================================
-// DELETE - Supprimer un logo ou une variante
-// =====================================================
-export async function DELETE(request: NextRequest) {
+/**
+ * PUT /api/logos?id=...
+ * Met à jour un logo
+ */
+export async function PUT(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const logoId = searchParams.get('logoId');
-    const variantId = searchParams.get('variantId');
-
-    if (!logoId) {
-      return NextResponse.json({ error: 'Logo ID required' }, { status: 400 });
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
     }
 
-    if (variantId) {
-      // Supprimer une variante spécifique
-      const { data: logo, error: fetchError } = await supabase
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'id is required' },
+        { status: 400 }
+      );
+    }
+
+    const formData = await request.formData();
+    const name = formData.get('name') as string | null;
+    const file = formData.get('file') as File | null;
+
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (name) updateData.name = name;
+
+    // Si un nouveau fichier est fourni, le remplacer
+    if (file) {
+      // Récupérer l'ancien logo pour supprimer l'ancien fichier
+      const { data: oldLogo } = await supabaseAdmin
         .from('logos')
-        .select('*')
-        .eq('id', logoId)
+        .select('file_url')
+        .eq('id', id)
         .single();
 
-      if (fetchError || !logo) {
-        return NextResponse.json({ error: 'Logo not found' }, { status: 404 });
-      }
-
-      const variant = logo.variants.find((v: LogoVariant) => v.id === variantId);
-      if (variant) {
-        // Supprimer le fichier du storage
-        const fileName = variant.file.split('/').pop();
-        if (fileName) {
-          await supabase.storage
-            .from('logos')
-            .remove([fileName]);
-        }
-
-        const updatedVariants = logo.variants.filter((v: LogoVariant) => v.id !== variantId);
-
-        if (updatedVariants.length === 0) {
-          // Si plus de variantes, soft delete du logo
-          await supabase
-            .from('logos')
-            .update({ active: false })
-            .eq('id', logoId);
-        } else {
-          // Mettre à jour les variantes
-          await supabase
-            .from('logos')
-            .update({ variants: updatedVariants })
-            .eq('id', logoId);
+      if (oldLogo?.file_url) {
+        const oldFileName = oldLogo.file_url.split('/').pop();
+        if (oldFileName) {
+          await supabaseAdmin.storage.from('logos').remove([oldFileName]);
         }
       }
-    } else {
-      // Supprimer tout le logo: retirer des bibliothèques, supprimer fichiers storage, puis supprimer la ligne
-      // 1) Récupérer le logo complet
-      const { data: logo, error: fetchError } = await supabase
+
+      // Upload du nouveau fichier
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from('logos')
-        .select('*')
-        .eq('id', logoId)
-        .single();
-      if (fetchError || !logo) {
-        return NextResponse.json({ error: 'Logo not found' }, { status: 404 });
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
       }
 
-      // 2) Supprimer les fichiers de toutes les variantes (si dans le même bucket public 'logos')
-      try {
-        for (const v of (logo.variants || [])) {
-          const fileName = (v.file && typeof v.file === 'string') ? v.file.split('/').pop() : null;
-          if (fileName) {
-            await supabase.storage.from('logos').remove([fileName]);
-          }
-        }
-      } catch (e) {
-        console.warn('Suppression fichiers storage (non bloquant):', e);
-      }
-
-      // 3) Nettoyer les liaisons avec les bibliothèques
-      await supabase.from('logo_library_items').delete().eq('logo_id', logoId);
-
-      // 4) Essayer soft delete (active=false), sinon hard delete si la colonne n'existe pas
-      const { error: softErr } = await supabase
+      const { data: { publicUrl } } = supabaseAdmin.storage
         .from('logos')
-        .update({ active: false })
-        .eq('id', logoId);
-      if (softErr) {
-        // Fallback suppression définitive
-        const { error: hardErr } = await supabase.from('logos').delete().eq('id', logoId);
-        if (hardErr) {
-          console.error('Erreur DELETE logo (soft+hard):', softErr, hardErr);
-          return NextResponse.json({ error: hardErr.message }, { status: 500 });
-        }
+        .getPublicUrl(uploadData.path);
+
+      updateData.file_url = publicUrl;
+      updateData.file_name = file.name;
+    }
+
+    const { data: logo, error } = await supabaseAdmin
+      .from('logos')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Logo not found' },
+          { status: 404 }
+        );
       }
+      throw error;
+    }
+
+    return NextResponse.json(logo);
+  } catch (error: any) {
+    console.error('Error updating logo:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to update logo' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/logos?id=...
+ * Supprime un logo
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'id is required' },
+        { status: 400 }
+      );
+    }
+
+    // Récupérer le logo pour supprimer le fichier
+    const { data: logo } = await supabaseAdmin
+      .from('logos')
+      .select('file_url')
+      .eq('id', id)
+      .single();
+
+    if (logo?.file_url) {
+      const fileName = logo.file_url.split('/').pop();
+      if (fileName) {
+        await supabaseAdmin.storage.from('logos').remove([fileName]);
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from('logos')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
     }
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error('Erreur DELETE logo:', err);
-    return NextResponse.json({ error: 'Failed to delete logo' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error deleting logo:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to delete logo' },
+      { status: 500 }
+    );
   }
 }
