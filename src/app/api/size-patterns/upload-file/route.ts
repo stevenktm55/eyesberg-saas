@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
     const size = formData.get('size') as string;
     const uvType = (formData.get('uvType') as string) || 'UV0';
     
+    console.log('Upload file request:', { patternId, size, uvType, fileName: file?.name, fileSize: file?.size });
+    
     if (!file || !patternId || !size) {
       return NextResponse.json(
         { error: 'file, patternId, and size are required' },
@@ -98,7 +100,15 @@ export async function POST(request: NextRequest) {
     
     // Upload vers Supabase Storage
     const fileName = `${targetPatternId}-${size}-${uvType}-${Date.now()}.svg`;
-    const svgUrl = await uploadFile('size-patterns', fileName, file);
+    console.log('Uploading file to storage:', fileName);
+    let svgUrl: string;
+    try {
+      svgUrl = await uploadFile('size-patterns', fileName, file);
+      console.log('File uploaded successfully, URL:', svgUrl);
+    } catch (uploadError: any) {
+      console.error('Error uploading to storage:', uploadError);
+      throw new Error(`Failed to upload file to storage: ${uploadError?.message || 'Unknown error'}`);
+    }
     
     // Sauvegarder ou mettre à jour le fichier dans la base de données
     const { data: existingFile } = await supabaseAdmin
@@ -142,10 +152,18 @@ export async function POST(request: NextRequest) {
       size,
       message: 'File uploaded successfully',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in upload-file:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error?.message || 'Unknown error',
+      },
       { status: 500 }
     );
   }
