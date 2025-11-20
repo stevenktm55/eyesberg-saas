@@ -16,19 +16,103 @@ type Question = {
 export default function ProductBuilderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [productId, setProductId] = useState<string | null>(null);
   const [productName, setProductName] = useState('Untitled Product');
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [showQuestionSettings, setShowQuestionSettings] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const saveTimeoutRef = useState<NodeJS.Timeout | null>(null)[0];
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
     const shop = searchParams.get('shop');
-    if (!shop) {
+    const id = searchParams.get('id');
+    
+    if (!shop && !id) {
       router.push('/admin');
+      return;
     }
+
+    // Charger le produit existant ou créer un nouveau
+    async function loadProduct() {
+      try {
+        if (id) {
+          // Charger un produit existant
+          const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}`);
+          if (res.ok) {
+            const product = await res.json();
+            setProductId(product.id);
+            setProductName(product.name || 'Untitled Product');
+            setQuestions(product.builder_data?.questions || []);
+          }
+        } else if (shop) {
+          // Créer un nouveau produit
+          const res = await fetch(`/api/product-builder?shop=${encodeURIComponent(shop)}`);
+          if (res.ok) {
+            const product = await res.json();
+            setProductId(product.id);
+            // Mettre à jour l'URL avec l'ID pour permettre le rechargement
+            router.replace(`/admin/products/new?shop=${encodeURIComponent(shop)}&id=${product.id}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+      }
+    }
+
+    loadProduct();
   }, [searchParams, router]);
+
+  // Fonction de sauvegarde automatique avec debounce
+  async function autoSave() {
+    if (!productId) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch('/api/product-builder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: productId,
+          name: productName,
+          builderData: {
+            questions: questions,
+            activeTab: activeTab,
+            settings: {}
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setLastSaved(new Date());
+      }
+    } catch (error) {
+      console.error('Error auto-saving:', error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Debounce pour la sauvegarde automatique
+  useEffect(() => {
+    if (!productId) return;
+
+    const timeout = setTimeout(() => {
+      autoSave();
+    }, 1000); // Sauvegarder 1 seconde après la dernière modification
+
+    return () => clearTimeout(timeout);
+  }, [productName, questions, activeTab, productId]);
+
+  // Sauvegarder aussi quand on change de tab
+  useEffect(() => {
+    if (productId) {
+      autoSave();
+    }
+  }, [activeTab]);
 
   function addQuestion() {
     const newQuestion: Question = {
@@ -37,9 +121,11 @@ export default function ProductBuilderPage() {
       label: 'New Question',
       required: false,
     };
-    setQuestions([...questions, newQuestion]);
+    const updatedQuestions = [...questions, newQuestion];
+    setQuestions(updatedQuestions);
     setSelectedQuestion(newQuestion);
     setShowQuestionSettings(true);
+    // La sauvegarde automatique sera déclenchée par le useEffect
   }
 
   function updateQuestion(questionId: string, updates: Partial<Question>) {
@@ -52,11 +138,13 @@ export default function ProductBuilderPage() {
   }
 
   function deleteQuestion(questionId: string) {
-    setQuestions(questions.filter(q => q.id !== questionId));
+    const updatedQuestions = questions.filter(q => q.id !== questionId);
+    setQuestions(updatedQuestions);
     if (selectedQuestion?.id === questionId) {
       setSelectedQuestion(null);
       setShowQuestionSettings(false);
     }
+    // La sauvegarde automatique sera déclenchée par le useEffect
   }
 
   return (
@@ -124,6 +212,18 @@ export default function ProductBuilderPage() {
               }}
             />
             <span style={{ color: '#a0a0a0', fontSize: '14px' }}>▼</span>
+            {/* Auto-save indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px' }}>
+              {saving ? (
+                <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                  Saving...
+                </span>
+              ) : lastSaved ? (
+                <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                  Saved {lastSaved.toLocaleTimeString()}
+                </span>
+              ) : null}
+            </div>
           </div>
 
           {/* Center: Tabs */}
