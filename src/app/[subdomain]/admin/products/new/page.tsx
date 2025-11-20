@@ -14,6 +14,14 @@ type CustomizationModule = {
   inputType: 'thumbnail' | 'dropdown' | 'radio' | 'label' | 'file-upload' | 'text-input' | 'checkbox';
   required?: boolean;
   options?: string[]; // Pour dropdown et radio
+  contentType?: 'colors' | 'logos' | 'fonts' | 'designs-2d' | 'sizes' | null; // Type de contenu à afficher
+  selectedItems?: {
+    colorPaletteId?: string;
+    logoLibraryId?: string;
+    fontGroupId?: string;
+    design2DId?: string;
+    sizePatternId?: string;
+  };
 };
 
 // Garder Question pour compatibilité avec l'ancien système
@@ -65,6 +73,10 @@ export default function ProductBuilderPage() {
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
+  const [colorPalettes, setColorPalettes] = useState<any[]>([]);
+  const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
+  const [fontGroups, setFontGroups] = useState<any[]>([]);
+  const [sizePatterns, setSizePatterns] = useState<any[]>([]);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -109,6 +121,10 @@ export default function ProductBuilderPage() {
     loadProduct();
     fetchModels3D();
     fetchDesigns2D();
+    fetchColorPalettes();
+    fetchLogoLibraries();
+    fetchFontGroups();
+    fetchSizePatterns();
   }, [searchParams, router]);
 
   async function fetchModels3D() {
@@ -132,6 +148,54 @@ export default function ProductBuilderPage() {
       }
     } catch (error) {
       console.error('Error fetching 2D designs:', error);
+    }
+  }
+
+  async function fetchColorPalettes() {
+    try {
+      const res = await fetch('/api/color-palettes');
+      if (res.ok) {
+        const data = await res.json();
+        setColorPalettes(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching color palettes:', error);
+    }
+  }
+
+  async function fetchLogoLibraries() {
+    try {
+      const res = await fetch('/api/logo-libraries');
+      if (res.ok) {
+        const data = await res.json();
+        setLogoLibraries(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching logo libraries:', error);
+    }
+  }
+
+  async function fetchFontGroups() {
+    try {
+      const res = await fetch('/api/font-groups');
+      if (res.ok) {
+        const data = await res.json();
+        setFontGroups(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching font groups:', error);
+    }
+  }
+
+  async function fetchSizePatterns() {
+    try {
+      const res = await fetch('/api/size-patterns');
+      if (res.ok) {
+        const data = await res.json();
+        setSizePatterns(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching size patterns:', error);
     }
   }
 
@@ -879,14 +943,14 @@ export default function ProductBuilderPage() {
                     alignItems: 'center',
                     gap: '12px'
                   }}>
-                    <span style={{ color: '#ffffff', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#ffffff', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px' }}>
                       {activeModule.iconUrl ? (
                         <img
                           src={activeModule.iconUrl}
                           alt={activeModule.tabName}
                           style={{
-                            width: '20px',
-                            height: '20px',
+                            width: '24px',
+                            height: '24px',
                             objectFit: 'contain'
                           }}
                         />
@@ -905,52 +969,286 @@ export default function ProductBuilderPage() {
                     overflowY: 'auto',
                     padding: '16px'
                   }}>
-                    {activeModule.inputType === 'thumbnail' && (
+                    {!activeModule.contentType ? (
                       <div>
                         <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Sélection par miniatures
+                          Configurez le module dans les settings pour afficher du contenu.
                         </p>
                       </div>
-                    )}
-                    {activeModule.inputType === 'dropdown' && (
+                    ) : activeModule.contentType === 'colors' && activeModule.selectedItems?.colorPaletteId ? (() => {
+                      const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                      if (!palette) return <p style={{ color: '#666', fontSize: '14px' }}>Palette non trouvée</p>;
+                      
+                      return (
+                        <div>
+                          {activeModule.inputType === 'thumbnail' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '12px' }}>
+                              {palette.colors?.map((color: any, idx: number) => (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #e0e0e0',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: '60px',
+                                      height: '60px',
+                                      backgroundColor: color.hex || color,
+                                      borderRadius: '4px',
+                                      border: '1px solid #e0e0e0'
+                                    }}
+                                  />
+                                  <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                                    {typeof color === 'string' ? color : color.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {activeModule.inputType === 'dropdown' && (
+                            <select style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer'
+                            }}>
+                              <option value="">Sélectionner une couleur</option>
+                              {palette.colors?.map((color: any, idx: number) => (
+                                <option key={idx} value={typeof color === 'string' ? color : color.hex}>
+                                  {typeof color === 'string' ? color : color.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                          {activeModule.inputType === 'radio' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {palette.colors?.map((color: any, idx: number) => (
+                                <label
+                                  key={idx}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #e0e0e0',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }}
+                                >
+                                  <input type="radio" name={`color-${activeModule.id}`} value={typeof color === 'string' ? color : color.hex} />
+                                  <div
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      backgroundColor: color.hex || color,
+                                      borderRadius: '4px',
+                                      border: '1px solid #e0e0e0'
+                                    }}
+                                  />
+                                  <span style={{ fontSize: '14px', color: '#333' }}>
+                                    {typeof color === 'string' ? color : color.name}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : activeModule.contentType === 'logos' && activeModule.selectedItems?.logoLibraryId ? (() => {
+                      const library = logoLibraries.find(l => l.id === activeModule.selectedItems?.logoLibraryId);
+                      if (!library) return <p style={{ color: '#666', fontSize: '14px' }}>Bibliothèque non trouvée</p>;
+                      
+                      return (
+                        <div>
+                          {activeModule.inputType === 'thumbnail' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+                              {library.logos?.map((logo: any) => (
+                                <div
+                                  key={logo.id}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #e0e0e0',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: '80px',
+                                      height: '80px',
+                                      backgroundColor: '#f0f0f0',
+                                      borderRadius: '4px',
+                                      border: '1px solid #e0e0e0',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: '8px'
+                                    }}
+                                  >
+                                    <img
+                                      src={logo.file_url}
+                                      alt={logo.name}
+                                      style={{
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain'
+                                      }}
+                                    />
+                                  </div>
+                                  <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                                    {logo.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {activeModule.inputType === 'dropdown' && (
+                            <select style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer'
+                            }}>
+                              <option value="">Sélectionner un logo</option>
+                              {library.logos?.map((logo: any) => (
+                                <option key={logo.id} value={logo.id}>
+                                  {logo.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })() : activeModule.contentType === 'fonts' && activeModule.selectedItems?.fontGroupId ? (() => {
+                      const group = fontGroups.find(g => g.id === activeModule.selectedItems?.fontGroupId);
+                      if (!group) return <p style={{ color: '#666', fontSize: '14px' }}>Groupe non trouvé</p>;
+                      
+                      return (
+                        <div>
+                          {activeModule.inputType === 'dropdown' && (
+                            <select style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer'
+                            }}>
+                              <option value="">Sélectionner une font</option>
+                              {group.fonts?.map((font: any) => (
+                                <option key={font.id} value={font.id}>
+                                  {font.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })() : activeModule.contentType === 'designs-2d' && activeModule.selectedItems?.design2DId ? (() => {
+                      const design = designs2D.find(d => d.id === activeModule.selectedItems?.design2DId);
+                      if (!design) return <p style={{ color: '#666', fontSize: '14px' }}>Design non trouvé</p>;
+                      
+                      return (
+                        <div>
+                          <div style={{
+                            padding: '16px',
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '4px',
+                            border: '1px solid #e0e0e0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minHeight: '200px'
+                          }}>
+                            <img
+                              src={design.svg_url || design.svgUrl}
+                              alt={design.name}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                objectFit: 'contain'
+                              }}
+                            />
+                          </div>
+                          <p style={{ color: '#666', fontSize: '14px', marginTop: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                            {design.name}
+                          </p>
+                        </div>
+                      );
+                    })() : activeModule.contentType === 'sizes' && activeModule.selectedItems?.sizePatternId ? (() => {
+                      const pattern = sizePatterns.find(p => p.id === activeModule.selectedItems?.sizePatternId);
+                      if (!pattern) return <p style={{ color: '#666', fontSize: '14px' }}>Groupe non trouvé</p>;
+                      
+                      return (
+                        <div>
+                          {activeModule.inputType === 'dropdown' && (
+                            <select style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer'
+                            }}>
+                              <option value="">Sélectionner une taille</option>
+                              {pattern.sizes?.map((size: any) => (
+                                <option key={size.id} value={size.id}>
+                                  {size.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })() : (
                       <div>
                         <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Menu déroulant
-                        </p>
-                      </div>
-                    )}
-                    {activeModule.inputType === 'radio' && (
-                      <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Boutons radio
-                        </p>
-                      </div>
-                    )}
-                    {activeModule.inputType === 'label' && (
-                      <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Label
-                        </p>
-                      </div>
-                    )}
-                    {activeModule.inputType === 'file-upload' && (
-                      <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Upload de fichier
-                        </p>
-                      </div>
-                    )}
-                    {activeModule.inputType === 'text-input' && (
-                      <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Champ texte
-                        </p>
-                      </div>
-                    )}
-                    {activeModule.inputType === 'checkbox' && (
-                      <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                          Case à cocher
+                          Sélectionnez un élément dans les settings du module.
                         </p>
                       </div>
                     )}
@@ -1133,35 +1431,297 @@ export default function ProductBuilderPage() {
                 </select>
               </div>
 
+              {/* Content Type Selection */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
+                  display: 'block',
                   fontSize: '12px',
                   color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer'
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
                 }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedModule.required || false}
+                  Type de contenu à afficher
+                </label>
+                <select
+                  value={selectedModule.contentType || ''}
+                  onChange={(e) => {
+                    const updated = { 
+                      ...selectedModule, 
+                      contentType: e.target.value as CustomizationModule['contentType'] || null,
+                      selectedItems: {} // Reset selected items when changing content type
+                    };
+                    setSelectedModule(updated);
+                    setCustomizationModules(customizationModules.map(m => 
+                      m.id === selectedModule.id ? updated : m
+                    ));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">Aucun</option>
+                  <option value="colors">Couleurs</option>
+                  <option value="logos">Logos</option>
+                  <option value="fonts">Fonts</option>
+                  <option value="designs-2d">Designs 2D</option>
+                  <option value="sizes">Tailles</option>
+                </select>
+              </div>
+
+              {/* Content Selection based on contentType */}
+              {selectedModule.contentType === 'colors' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Palette de couleurs
+                  </label>
+                  <select
+                    value={selectedModule.selectedItems?.colorPaletteId || ''}
                     onChange={(e) => {
-                      const updated = { ...selectedModule, required: e.target.checked };
+                      const updated = { 
+                        ...selectedModule, 
+                        selectedItems: {
+                          ...selectedModule.selectedItems,
+                          colorPaletteId: e.target.value || undefined
+                        }
+                      };
                       setSelectedModule(updated);
                       setCustomizationModules(customizationModules.map(m => 
                         m.id === selectedModule.id ? updated : m
                       ));
                     }}
                     style={{
-                      width: '16px',
-                      height: '16px',
-                      cursor: 'pointer'
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
                     }}
-                  />
-                  Requis
-                </label>
-              </div>
+                  >
+                    <option value="">Sélectionner une palette</option>
+                    {colorPalettes.map((palette) => (
+                      <option key={palette.id} value={palette.id}>
+                        {palette.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedModule.contentType === 'logos' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Bibliothèque de logos
+                  </label>
+                  <select
+                    value={selectedModule.selectedItems?.logoLibraryId || ''}
+                    onChange={(e) => {
+                      const updated = { 
+                        ...selectedModule, 
+                        selectedItems: {
+                          ...selectedModule.selectedItems,
+                          logoLibraryId: e.target.value || undefined
+                        }
+                      };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner une bibliothèque</option>
+                    {logoLibraries.map((library) => (
+                      <option key={library.id} value={library.id}>
+                        {library.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedModule.contentType === 'fonts' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Groupe de fonts
+                  </label>
+                  <select
+                    value={selectedModule.selectedItems?.fontGroupId || ''}
+                    onChange={(e) => {
+                      const updated = { 
+                        ...selectedModule, 
+                        selectedItems: {
+                          ...selectedModule.selectedItems,
+                          fontGroupId: e.target.value || undefined
+                        }
+                      };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner un groupe</option>
+                    {fontGroups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedModule.contentType === 'designs-2d' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Design 2D
+                  </label>
+                  <select
+                    value={selectedModule.selectedItems?.design2DId || ''}
+                    onChange={(e) => {
+                      const updated = { 
+                        ...selectedModule, 
+                        selectedItems: {
+                          ...selectedModule.selectedItems,
+                          design2DId: e.target.value || undefined
+                        }
+                      };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner un design</option>
+                    {designs2D.map((design) => (
+                      <option key={design.id} value={design.id}>
+                        {design.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedModule.contentType === 'sizes' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Groupe de tailles
+                  </label>
+                  <select
+                    value={selectedModule.selectedItems?.sizePatternId || ''}
+                    onChange={(e) => {
+                      const updated = { 
+                        ...selectedModule, 
+                        selectedItems: {
+                          ...selectedModule.selectedItems,
+                          sizePatternId: e.target.value || undefined
+                        }
+                      };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner un groupe</option>
+                    {sizePatterns.map((pattern) => (
+                      <option key={pattern.id} value={pattern.id}>
+                        {pattern.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <button
                 onClick={() => deleteModule(selectedModule.id)}
@@ -1572,30 +2132,6 @@ export default function ProductBuilderPage() {
                 </select>
               </div>
 
-              {/* Required */}
-              <div>
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '12px',
-                  color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={newModule.required || false}
-                    onChange={(e) => setNewModule({ ...newModule, required: e.target.checked })}
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  Requis
-                </label>
-              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
