@@ -755,7 +755,7 @@ export default function LogosConfigPage() {
                                   <div style={{
                                     width: '50px',
                                     height: '50px',
-                                    backgroundColor: '#0a0a0a',
+                                    backgroundColor: '#2a2a2a',
                                     borderRadius: '4px',
                                     border: '1px solid #2a2a2a',
                                     display: 'flex',
@@ -934,7 +934,7 @@ export default function LogosConfigPage() {
                                             <div style={{
                                               width: '40px',
                                               height: '40px',
-                                              backgroundColor: '#0a0a0a',
+                                              backgroundColor: '#2a2a2a',
                                               borderRadius: '4px',
                                               border: '1px solid #2a2a2a',
                                               display: 'flex',
@@ -1313,7 +1313,7 @@ export default function LogosConfigPage() {
               {editingLogo.logo && (
                 <div style={{
                   padding: '16px',
-                  backgroundColor: '#0a0a0a',
+                  backgroundColor: '#2a2a2a',
                   borderRadius: '6px',
                   border: '1px solid #2a2a2a',
                   display: 'flex',
@@ -1488,7 +1488,7 @@ export default function LogosConfigPage() {
               {editingVariant.variant && (
                 <div style={{
                   padding: '16px',
-                  backgroundColor: '#0a0a0a',
+                  backgroundColor: '#2a2a2a',
                   borderRadius: '6px',
                   border: '1px solid #2a2a2a',
                   display: 'flex',
