@@ -22,6 +22,15 @@ type Model3D = {
   name: string;
 };
 
+type SizeMeasurement = {
+  id: string;
+  pattern_id: string;
+  size_name: string;
+  measurement_name: string;
+  measurement_value: string;
+  display_order: number;
+};
+
 export default function SizesConfigPage() {
   const [patterns, setPatterns] = useState<SizePattern[]>([]);
   const [models, setModels] = useState<Model3D[]>([]);
@@ -57,6 +66,19 @@ export default function SizesConfigPage() {
     name: "",
     file: null,
   });
+  const [showMeasurementsModal, setShowMeasurementsModal] = useState(false);
+  const [selectedSizeForMeasurements, setSelectedSizeForMeasurements] = useState<{
+    patternId: string;
+    sizeName: string;
+  } | null>(null);
+  const [measurements, setMeasurements] = useState<SizeMeasurement[]>([]);
+  const [newMeasurement, setNewMeasurement] = useState<{
+    name: string;
+    value: string;
+  }>({
+    name: "",
+    value: "",
+  });
 
   useEffect(() => {
     fetchModels();
@@ -71,6 +93,81 @@ export default function SizesConfigPage() {
       setModels(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching models:", error);
+    }
+  }
+
+  async function fetchMeasurements(patternId: string, sizeName: string) {
+    try {
+      const res = await fetch(`/api/size-measurements?patternId=${encodeURIComponent(patternId)}&sizeName=${encodeURIComponent(sizeName)}`);
+      if (!res.ok) throw new Error("Failed to fetch measurements");
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error("Error fetching measurements:", error);
+      return [];
+    }
+  }
+
+  function openMeasurementsModal(patternId: string, sizeName: string) {
+    setSelectedSizeForMeasurements({ patternId, sizeName });
+    setShowMeasurementsModal(true);
+    setNewMeasurement({ name: "", value: "" });
+    loadMeasurements(patternId, sizeName);
+  }
+
+  async function loadMeasurements(patternId: string, sizeName: string) {
+    const data = await fetchMeasurements(patternId, sizeName);
+    setMeasurements(data);
+  }
+
+  async function saveMeasurement() {
+    if (!selectedSizeForMeasurements || !newMeasurement.name.trim() || !newMeasurement.value.trim()) {
+      alert("Veuillez remplir le nom et la valeur de la mesure");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/size-measurements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patternId: selectedSizeForMeasurements.patternId,
+          sizeName: selectedSizeForMeasurements.sizeName,
+          measurementName: newMeasurement.name.trim(),
+          measurementValue: newMeasurement.value.trim(),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save measurement");
+      await loadMeasurements(selectedSizeForMeasurements.patternId, selectedSizeForMeasurements.sizeName);
+      setNewMeasurement({ name: "", value: "" });
+    } catch (error) {
+      console.error("Error saving measurement:", error);
+      alert("Erreur lors de la sauvegarde de la mesure");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deleteMeasurement(id: string) {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette mesure ?")) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/size-measurements?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete measurement");
+      if (selectedSizeForMeasurements) {
+        await loadMeasurements(selectedSizeForMeasurements.patternId, selectedSizeForMeasurements.sizeName);
+      }
+    } catch (error) {
+      console.error("Error deleting measurement:", error);
+      alert("Erreur lors de la suppression de la mesure");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -750,6 +847,13 @@ export default function SizesConfigPage() {
                             color: '#a0a0a0',
                             fontWeight: '500',
                             fontSize: '12px'
+                          }}>Mesures</th>
+                          <th style={{
+                            textAlign: 'left',
+                            padding: '12px',
+                            color: '#a0a0a0',
+                            fontWeight: '500',
+                            fontSize: '12px'
                           }}>Actions</th>
                         </tr>
                       </thead>
@@ -792,6 +896,35 @@ export default function SizesConfigPage() {
                                   ) : (
                                     <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
                                   )}
+                                </td>
+                                
+                                {/* Measurements Column */}
+                                <td style={{ padding: '12px' }}>
+                                  <button
+                                    onClick={() => openMeasurementsModal(displayPattern.id, size)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#2a2a2a',
+                                      border: '1px solid #2a2a2a',
+                                      borderRadius: '4px',
+                                      color: '#8eff36',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#3a3a3a';
+                                      e.currentTarget.style.borderColor = '#8eff36';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#2a2a2a';
+                                      e.currentTarget.style.borderColor = '#2a2a2a';
+                                    }}
+                                    title="Gérer les mesures"
+                                  >
+                                    📏 Mesures
+                                  </button>
                                 </td>
                                 
                                 {/* Actions Column */}
@@ -1481,6 +1614,271 @@ export default function SizesConfigPage() {
                 >
                   {editingSize ? 'Remplacer' : 'Ajouter'}
                 </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Measurements Modal */}
+      {showMeasurementsModal && selectedSizeForMeasurements && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '32px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowMeasurementsModal(false);
+              setSelectedSizeForMeasurements(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '12px',
+              border: '1px solid #2a2a2a',
+              width: '100%',
+              maxWidth: '600px',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)'
+              }}>
+                Guide des tailles - {selectedSizeForMeasurements.sizeName}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowMeasurementsModal(false);
+                  setSelectedSizeForMeasurements(null);
+                }}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#a0a0a0',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  transition: 'all 0.2s',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#a0a0a0';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{
+              padding: '24px',
+              overflowY: 'auto',
+              flex: 1
+            }}>
+              {/* Add New Measurement */}
+              <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#0a0a0a', borderRadius: '8px' }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  marginBottom: '12px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Ajouter une mesure
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Nom de la mesure
+                    </label>
+                    <input
+                      type="text"
+                      value={newMeasurement.name}
+                      onChange={(e) => setNewMeasurement({ ...newMeasurement, name: e.target.value })}
+                      placeholder="Ex: Hauteur (cm)"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '6px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Valeur
+                    </label>
+                    <input
+                      type="text"
+                      value={newMeasurement.value}
+                      onChange={(e) => setNewMeasurement({ ...newMeasurement, value: e.target.value })}
+                      placeholder="Ex: 170-180"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '6px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={saveMeasurement}
+                    disabled={loading || !newMeasurement.name.trim() || !newMeasurement.value.trim()}
+                    style={{
+                      padding: '10px 16px',
+                      backgroundColor: loading || !newMeasurement.name.trim() || !newMeasurement.value.trim() ? '#4a4a4a' : '#8eff36',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: loading || !newMeasurement.name.trim() || !newMeasurement.value.trim() ? '#a0a0a0' : '#000000',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: loading || !newMeasurement.name.trim() || !newMeasurement.value.trim() ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--stepn-font-body)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {loading ? 'Enregistrement...' : 'Ajouter'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Existing Measurements */}
+              <div>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  marginBottom: '12px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Mesures existantes
+                </h3>
+                {measurements.length === 0 ? (
+                  <p style={{ color: '#a0a0a0', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                    Aucune mesure définie
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {measurements.map((measurement) => (
+                      <div
+                        key={measurement.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px',
+                          backgroundColor: '#0a0a0a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#ffffff',
+                            marginBottom: '4px',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {measurement.measurement_name}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: '#a0a0a0',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {measurement.measurement_value}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => deleteMeasurement(measurement.id)}
+                          disabled={loading}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: loading ? '#4a4a4a' : '#ff4444',
+                            border: 'none',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            fontFamily: 'var(--stepn-font-body)',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!loading) {
+                              e.currentTarget.style.opacity = '0.9';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!loading) {
+                              e.currentTarget.style.opacity = '1';
+                            }
+                          }}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
