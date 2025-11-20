@@ -32,16 +32,17 @@ export async function GET(request: NextRequest) {
     // Parser les couleurs JSON si elles sont stockées comme JSONB
     // Convertir les anciennes palettes (array de strings) en nouveau format (array d'objets)
     const formattedPalettes = (palettes || []).map((palette: any) => {
-      let colors = typeof palette.colors === 'string' 
+      const rawColors = typeof palette.colors === 'string' 
         ? JSON.parse(palette.colors) 
         : palette.colors;
       
       // Si les couleurs sont des strings, les convertir en objets
-      if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
-        colors = colors.map((hex: string) => ({
+      let colors = rawColors;
+      if (Array.isArray(rawColors) && rawColors.length > 0 && typeof rawColors[0] === 'string') {
+        colors = rawColors.map((hex: string) => ({
           name: '',
           hex: hex,
-          cmyk: '0 0 0 0' // Valeur par défaut, sera calculée côté client
+          cmyk: '0 0 0 0' // Valeur par défaut
         }));
       }
       
@@ -118,13 +119,14 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    let colors = typeof palette.colors === 'string' 
+    const rawColors = typeof palette.colors === 'string' 
       ? JSON.parse(palette.colors) 
       : palette.colors;
     
     // Convertir les anciennes palettes (array de strings) en nouveau format
-    if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
-      colors = colors.map((hex: string) => ({
+    let formattedColors = rawColors;
+    if (Array.isArray(rawColors) && rawColors.length > 0 && typeof rawColors[0] === 'string') {
+      formattedColors = rawColors.map((hex: string) => ({
         name: '',
         hex: hex,
         cmyk: '0 0 0 0'
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       id: palette.id,
       name: palette.name,
-      colors: colors || [],
+      colors: formattedColors || [],
       created_at: palette.created_at,
       updated_at: palette.updated_at,
     });
@@ -219,13 +221,14 @@ export async function PUT(request: NextRequest) {
       throw error;
     }
 
-    let colors = typeof palette.colors === 'string' 
+    const rawColors = typeof palette.colors === 'string' 
       ? JSON.parse(palette.colors) 
       : palette.colors;
     
     // Convertir les anciennes palettes (array de strings) en nouveau format
-    if (Array.isArray(colors) && colors.length > 0 && typeof colors[0] === 'string') {
-      colors = colors.map((hex: string) => ({
+    let formattedColors = rawColors;
+    if (Array.isArray(rawColors) && rawColors.length > 0 && typeof rawColors[0] === 'string') {
+      formattedColors = rawColors.map((hex: string) => ({
         name: '',
         hex: hex,
         cmyk: '0 0 0 0'
@@ -235,7 +238,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       id: palette.id,
       name: palette.name,
-      colors: colors || [],
+      colors: formattedColors || [],
       created_at: palette.created_at,
       updated_at: palette.updated_at,
     });

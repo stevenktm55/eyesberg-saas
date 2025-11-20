@@ -39,43 +39,6 @@ export default function ColorsConfigPage() {
   const [draggedColorIndex, setDraggedColorIndex] = useState<number | null>(null);
   const [dragOverColorIndex, setDragOverColorIndex] = useState<number | null>(null);
 
-  // Fonction pour convertir HEX en CMYK
-  function hexToCmyk(hex: string): string {
-    // Retirer le # si présent
-    hex = hex.replace('#', '');
-    
-    // Gérer les couleurs courtes (#FFF -> #FFFFFF)
-    if (hex.length === 3) {
-      hex = hex.split('').map(char => char + char).join('');
-    }
-    
-    // Convertir en RGB
-    const r = parseInt(hex.substring(0, 2), 16) / 255;
-    const g = parseInt(hex.substring(2, 4), 16) / 255;
-    const b = parseInt(hex.substring(4, 6), 16) / 255;
-    
-    // Calculer CMYK
-    const k = 1 - Math.max(r, g, b);
-    if (k === 1) {
-      return "0 0 0 100";
-    }
-    
-    const c = Math.round(((1 - r - k) / (1 - k)) * 100);
-    const m = Math.round(((1 - g - k) / (1 - k)) * 100);
-    const y = Math.round(((1 - b - k) / (1 - k)) * 100);
-    const kPercent = Math.round(k * 100);
-    
-    return `${c} ${m} ${y} ${kPercent}`;
-  }
-
-  // Mettre à jour CMYK quand HEX change
-  function updateNewColorHex(hex: string) {
-    setNewColor({
-      ...newColor,
-      hex,
-      cmyk: hexToCmyk(hex)
-    });
-  }
 
   useEffect(() => {
     fetchPalettes();
@@ -587,7 +550,7 @@ export default function ColorsConfigPage() {
                       <input
                         type="color"
                         value={newColor.hex}
-                        onChange={(e) => updateNewColorHex(e.target.value)}
+                        onChange={(e) => setNewColor({ ...newColor, hex: e.target.value })}
                         style={{
                           width: '50px',
                           height: '50px',
@@ -603,11 +566,7 @@ export default function ColorsConfigPage() {
                           const hex = e.target.value;
                           if (/^#?[A-Fa-f0-9]{0,6}$/.test(hex.replace('#', ''))) {
                             const fullHex = hex.startsWith('#') ? hex : `#${hex}`;
-                            if (fullHex.length === 7) {
-                              updateNewColorHex(fullHex);
-                            } else {
-                              setNewColor({ ...newColor, hex: fullHex });
-                            }
+                            setNewColor({ ...newColor, hex: fullHex });
                           }
                         }}
                         placeholder="#000000"
@@ -789,13 +748,8 @@ export default function ColorsConfigPage() {
                                 const hex = e.target.value;
                                 if (/^#?[A-Fa-f0-9]{0,6}$/.test(hex.replace('#', ''))) {
                                   const fullHex = hex.startsWith('#') ? hex : `#${hex}`;
-                                  if (fullHex.length === 7) {
-                                    const updated = { ...color, hex: fullHex, cmyk: hexToCmyk(fullHex) };
-                                    updateColorInPalette(palette.id, index, updated);
-                                  } else {
-                                    const updated = { ...color, hex: fullHex };
-                                    updateColorInPalette(palette.id, index, updated);
-                                  }
+                                  const updated = { ...color, hex: fullHex };
+                                  updateColorInPalette(palette.id, index, updated);
                                 }
                               }}
                               style={{
