@@ -52,6 +52,7 @@ export default function SubdomainAdminPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [productToDeleteName, setProductToDeleteName] = useState<string>('');
 
   useEffect(() => {
     // Récupérer le sous-domaine depuis le host
@@ -210,7 +211,9 @@ export default function SubdomainAdminPage() {
   }
 
   function openDeleteModal(id: string) {
+    const product = products.find(p => p.id === id);
     setProductToDelete(id);
+    setProductToDeleteName(product?.name || 'Untitled Product');
     setShowDeleteModal(true);
     setOpenMenuId(null);
   }
@@ -226,6 +229,7 @@ export default function SubdomainAdminPage() {
         await loadProducts();
         setShowDeleteModal(false);
         setProductToDelete(null);
+        setProductToDeleteName('');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -236,6 +240,7 @@ export default function SubdomainAdminPage() {
   function cancelDelete() {
     setShowDeleteModal(false);
     setProductToDelete(null);
+    setProductToDeleteName('');
   }
 
   async function duplicateProduct(id: string) {
@@ -865,17 +870,29 @@ export default function SubdomainAdminPage() {
               fontWeight: '600',
               color: '#ffffff',
               fontFamily: 'var(--stepn-font-body)',
-              margin: 0
+              margin: 0,
+              marginBottom: '12px'
             }}>
-              Êtes-vous sûr de vouloir supprimer ce produit ?
+              Are you sure you want to delete {productToDeleteName}?
             </h3>
             <p style={{
               fontSize: '14px',
               color: '#a0a0a0',
               fontFamily: 'var(--stepn-font-body)',
-              margin: 0
+              margin: 0,
+              marginBottom: '8px',
+              lineHeight: '1.5'
             }}>
-              Cette action est irréversible.
+              This means this product's customizer won't be available in online stores and will be deleted in your ecommerce platform.
+            </p>
+            <p style={{
+              fontSize: '14px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)',
+              margin: 0,
+              lineHeight: '1.5'
+            }}>
+              This action cannot be undone.
             </p>
             <div style={{
               display: 'flex',
