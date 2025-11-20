@@ -81,23 +81,37 @@ function Model({
         }
         
         // Trouver la partie correspondante par nom de mesh
-        // Essayer plusieurs correspondances possibles
+        // Les noms peuvent varier (ex: "Cloth_mesh001" vs "Cloth")
         const meshName = mesh.name || '';
-        let part = modelParts?.find(p => p.name === meshName);
-        
-        // Si pas de correspondance exacte, essayer de trouver par préfixe ou pattern
-        if (!part && modelParts) {
-          // Essayer de trouver une partie dont le nom est contenu dans le nom du mesh
-          part = modelParts.find(p => meshName.includes(p.name) || p.name.includes(meshName));
+        let part = modelParts?.find(p => {
+          const partName = (p.name || '').toLowerCase();
+          const meshNameLower = meshName.toLowerCase();
           
-          // Si toujours pas trouvé, essayer avec le premier mesh (sans suffixe)
-          if (!part && meshName.includes('_')) {
-            const baseName = meshName.split('_')[0];
-            part = modelParts.find(p => p.name.includes(baseName) || baseName.includes(p.name));
+          // Correspondance exacte
+          if (partName === meshNameLower) return true;
+          
+          // Le nom de la partie est contenu dans le nom du mesh
+          if (meshNameLower.includes(partName)) return true;
+          
+          // Le nom du mesh est contenu dans le nom de la partie
+          if (partName.includes(meshNameLower)) return true;
+          
+          // Correspondance par préfixe (ex: "Cloth_mesh001" -> "Cloth")
+          if (meshNameLower.includes('_')) {
+            const meshPrefix = meshNameLower.split('_')[0];
+            if (partName.includes(meshPrefix) || meshPrefix.includes(partName)) return true;
           }
-        }
+          
+          // Correspondance par mots-clés communs
+          const meshWords = meshNameLower.split(/[_\s]+/);
+          const partWords = partName.split(/[_\s]+/);
+          const commonWords = meshWords.filter(w => partWords.includes(w));
+          if (commonWords.length > 0) return true;
+          
+          return false;
+        });
         
-        console.log(`Mesh: ${meshName}, Part:`, part, 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none', 'All parts:', modelParts?.map(p => p.name));
+        console.log(`Mesh: "${meshName}", Part:`, part ? `${part.name} (id: ${part.material_map_id})` : 'none', 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none', 'All parts:', modelParts?.map(p => p.name));
         
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
           const materialMap = materialMaps[part.material_map_id];
@@ -165,13 +179,35 @@ function Model({
         }
         
         // Appliquer le design 2D comme texture si disponible
-        // Note: Les SVG ne peuvent pas être chargés directement comme texture
-        // Il faudrait les convertir en PNG/JPEG côté serveur ou utiliser un loader SVG
-        if (design2DUrl && design2DUrl.toLowerCase().endsWith('.svg')) {
-          console.log(`Design 2D is SVG, cannot load directly as texture: ${design2DUrl}`);
-          // Pour l'instant, on ne peut pas charger les SVG directement
-          // Il faudrait convertir le SVG en image raster (PNG/JPEG) côté serveur
-        } else if (design2DUrl) {
+        // Pour les SVG, on utilise un canvas pour les convertir en image
+        if (design2DUrl) {
+          if (design2DUrl.toLowerCase().endsWith('.svg')) {
+            console.log(`Design 2D is SVG, converting to image: ${design2DUrl}`);
+            // Convertir SVG en image via canvas
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width || 1024;
+              canvas.height = img.height || 1024;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0);
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+                standardMaterial.map = texture;
+                standardMaterial.map.needsUpdate = true;
+                standardMaterial.needsUpdate = true;
+                standardMaterial.transparent = false;
+                standardMaterial.opacity = 1.0;
+                console.log('Design 2D SVG converted and applied');
+              }
+            };
+            img.onerror = (error) => {
+              console.error('Error loading SVG for conversion:', error);
+            };
+            img.src = design2DUrl;
+          } else {
           console.log(`Loading design 2D: ${design2DUrl}`);
           const textureLoader = new THREE.TextureLoader();
           textureLoader.load(
