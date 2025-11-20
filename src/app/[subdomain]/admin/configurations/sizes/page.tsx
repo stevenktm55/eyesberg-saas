@@ -748,142 +748,54 @@ export default function SizesConfigPage() {
                                 
                                 {/* UV0 Column */}
                                 <td style={{ padding: '12px' }}>
-                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexDirection: 'column' }}>
-                                    {fileUV0 ? (
-                                      <a
-                                        href={fileUV0.svgUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                          color: '#8eff36',
-                                          textDecoration: 'none',
-                                          fontSize: '12px'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.textDecoration = 'underline';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.textDecoration = 'none';
-                                        }}
-                                      >
-                                        Voir SVG
-                                      </a>
-                                    ) : (
-                                      <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
-                                    )}
-                                    <input
-                                      ref={(el) => {
-                                        fileInputRefs.current[fileKeyUV0] = el;
-                                      }}
-                                      type="file"
-                                      accept=".svg"
-                                      style={{ display: 'none' }}
-                                      onChange={(e) => {
-                                        const selectedFile = e.target.files?.[0];
-                                        if (selectedFile) {
-                                          uploadFile(displayPattern.id, size, "UV0", selectedFile);
-                                        }
-                                      }}
-                                    />
-                                    <button
-                                      onClick={() => {
-                                        fileInputRefs.current[fileKeyUV0]?.click();
-                                      }}
-                                      disabled={isUploadingUV0}
+                                  {fileUV0 ? (
+                                    <a
+                                      href={fileUV0.svgUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
                                       style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: isUploadingUV0 ? '#3a3a3a' : '#2a2a2a',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        color: isUploadingUV0 ? '#8eff36' : '#ffffff',
-                                        fontSize: '12px',
-                                        cursor: isUploadingUV0 ? 'not-allowed' : 'pointer',
-                                        transition: 'all 0.2s'
+                                        color: '#8eff36',
+                                        textDecoration: 'none',
+                                        fontSize: '12px'
                                       }}
                                       onMouseEnter={(e) => {
-                                        if (!isUploadingUV0) {
-                                          e.currentTarget.style.backgroundColor = '#3a3a3a';
-                                        }
+                                        e.currentTarget.style.textDecoration = 'underline';
                                       }}
                                       onMouseLeave={(e) => {
-                                        if (!isUploadingUV0) {
-                                          e.currentTarget.style.backgroundColor = '#2a2a2a';
-                                        }
+                                        e.currentTarget.style.textDecoration = 'none';
                                       }}
                                     >
-                                      {isUploadingUV0 ? 'Upload...' : fileUV0 ? 'Remplacer' : 'Upload'}
-                                    </button>
-                                  </div>
+                                      Voir SVG
+                                    </a>
+                                  ) : (
+                                    <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
+                                  )}
                                 </td>
                                 
                                 {/* UV2 Column */}
                                 <td style={{ padding: '12px' }}>
-                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexDirection: 'column' }}>
-                                    {fileUV2 ? (
-                                      <a
-                                        href={fileUV2.svgUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                          color: '#8eff36',
-                                          textDecoration: 'none',
-                                          fontSize: '12px'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.textDecoration = 'underline';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.textDecoration = 'none';
-                                        }}
-                                      >
-                                        Voir SVG
-                                      </a>
-                                    ) : (
-                                      <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
-                                    )}
-                                    <input
-                                      ref={(el) => {
-                                        fileInputRefs.current[fileKeyUV2] = el;
-                                      }}
-                                      type="file"
-                                      accept=".svg"
-                                      style={{ display: 'none' }}
-                                      onChange={(e) => {
-                                        const selectedFile = e.target.files?.[0];
-                                        if (selectedFile) {
-                                          uploadFile(displayPattern.id, size, "UV2", selectedFile);
-                                        }
-                                      }}
-                                    />
-                                    <button
-                                      onClick={() => {
-                                        fileInputRefs.current[fileKeyUV2]?.click();
-                                      }}
-                                      disabled={isUploadingUV2}
+                                  {fileUV2 ? (
+                                    <a
+                                      href={fileUV2.svgUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
                                       style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: isUploadingUV2 ? '#3a3a3a' : '#2a2a2a',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        color: isUploadingUV2 ? '#8eff36' : '#ffffff',
-                                        fontSize: '12px',
-                                        cursor: isUploadingUV2 ? 'not-allowed' : 'pointer',
-                                        transition: 'all 0.2s'
+                                        color: '#8eff36',
+                                        textDecoration: 'none',
+                                        fontSize: '12px'
                                       }}
                                       onMouseEnter={(e) => {
-                                        if (!isUploadingUV2) {
-                                          e.currentTarget.style.backgroundColor = '#3a3a3a';
-                                        }
+                                        e.currentTarget.style.textDecoration = 'underline';
                                       }}
                                       onMouseLeave={(e) => {
-                                        if (!isUploadingUV2) {
-                                          e.currentTarget.style.backgroundColor = '#2a2a2a';
-                                        }
+                                        e.currentTarget.style.textDecoration = 'none';
                                       }}
                                     >
-                                      {isUploadingUV2 ? 'Upload...' : fileUV2 ? 'Remplacer' : 'Upload'}
-                                    </button>
-                                  </div>
+                                      Voir SVG
+                                    </a>
+                                  ) : (
+                                    <span style={{ color: '#a0a0a0', fontSize: '12px' }}>-</span>
+                                  )}
                                 </td>
                                 
                                 {/* Actions Column */}
