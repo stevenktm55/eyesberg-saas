@@ -242,10 +242,6 @@ export default function SizesConfigPage() {
       return;
     }
 
-    if (newPattern.sizes.length === 0) {
-      alert("Veuillez ajouter au moins une taille");
-      return;
-    }
 
     setLoading(true);
     try {
