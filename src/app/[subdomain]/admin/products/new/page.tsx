@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AdminSidebar from '@/components/AdminSidebar';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
@@ -67,12 +66,9 @@ export default function ProductBuilderPage() {
       display: 'flex',
       fontFamily: 'var(--stepn-font-body), sans-serif'
     }}>
-      <AdminSidebar />
-
       {/* Main Content */}
       <div style={{
         flex: 1,
-        marginLeft: '240px',
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
