@@ -648,25 +648,29 @@ export default function ColorsConfigPage() {
                       <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '8px'
+                        gap: '8px',
+                        width: '100%',
+                        overflowX: 'auto'
                       }}>
                         {/* Header */}
                         <div style={{
                           display: 'grid',
-                          gridTemplateColumns: '40px 1fr 100px 120px 80px',
+                          gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 130px 110px',
                           gap: '12px',
                           alignItems: 'center',
                           padding: '8px 12px',
                           backgroundColor: '#0a0a0a',
                           borderRadius: '6px',
                           border: '1px solid #2a2a2a',
-                          marginBottom: '4px'
+                          marginBottom: '4px',
+                          minWidth: '0'
                         }}>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}></span>
                           <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}></span>
                           <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>Nom</span>
                           <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>HEX</span>
                           <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>CMYK</span>
-                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}></span>
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', fontWeight: '500' }}>Actions</span>
                         </div>
                         {palette.colors.map((color, index) => (
                           <div
@@ -679,7 +683,7 @@ export default function ColorsConfigPage() {
                             onDrop={(e) => handleColorDrop(e, palette.id, index)}
                             style={{
                               display: 'grid',
-                              gridTemplateColumns: '40px 1fr 100px 120px 80px',
+                              gridTemplateColumns: '40px 40px minmax(150px, 1fr) 100px 130px 110px',
                               gap: '12px',
                               alignItems: 'center',
                               backgroundColor: draggedColorIndex === index ? '#2a2a2a' : '#1a1a1a',
@@ -688,7 +692,10 @@ export default function ColorsConfigPage() {
                               border: dragOverColorIndex === index ? '1px solid #8eff36' : '1px solid #2a2a2a',
                               opacity: draggedColorIndex === index ? 0.5 : 1,
                               cursor: 'move',
-                              transition: 'all 0.2s'
+                              transition: 'all 0.2s',
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              minWidth: '0'
                             }}
                           >
                             {/* Drag Handle */}
@@ -698,19 +705,21 @@ export default function ColorsConfigPage() {
                               justifyContent: 'center',
                               color: '#a0a0a0',
                               fontSize: '16px',
-                              cursor: 'grab'
+                              cursor: 'grab',
+                              alignSelf: 'center'
                             }}>
                               ⋮⋮
                             </div>
                             {/* Color Preview */}
                             <div
                               style={{
-                                width: '40px',
-                                height: '40px',
+                                width: '30px',
+                                height: '30px',
                                 backgroundColor: color.hex,
                                 borderRadius: '4px',
                                 border: '1px solid #2a2a2a',
-                                flexShrink: 0
+                                flexShrink: 0,
+                                alignSelf: 'center'
                               }}
                             />
                             {/* Name */}
@@ -730,7 +739,10 @@ export default function ColorsConfigPage() {
                                 fontSize: '14px',
                                 fontFamily: 'var(--stepn-font-body)',
                                 outline: 'none',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                height: '38px'
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.style.borderColor = '#8eff36';
@@ -761,7 +773,10 @@ export default function ColorsConfigPage() {
                                 fontSize: '14px',
                                 fontFamily: 'var(--stepn-font-body)',
                                 outline: 'none',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                height: '38px'
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.style.borderColor = '#8eff36';
@@ -788,7 +803,10 @@ export default function ColorsConfigPage() {
                                 fontSize: '14px',
                                 fontFamily: 'var(--stepn-font-body)',
                                 outline: 'none',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                height: '38px'
                               }}
                               onFocus={(e) => {
                                 e.currentTarget.style.borderColor = '#8eff36';
@@ -798,7 +816,7 @@ export default function ColorsConfigPage() {
                               }}
                               onClick={(e) => e.stopPropagation()}
                             />
-                            {/* Delete Button */}
+                            {/* Delete Button - Column 6 */}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -806,16 +824,26 @@ export default function ColorsConfigPage() {
                               }}
                               disabled={loading}
                               style={{
-                                padding: '6px 12px',
+                                gridColumn: '6',
+                                padding: '8px 12px',
                                 backgroundColor: loading ? '#4a4a4a' : '#ff4444',
                                 border: 'none',
                                 borderRadius: '4px',
                                 color: '#ffffff',
                                 fontSize: '12px',
-                                fontWeight: '500',
+                                fontWeight: '600',
                                 cursor: loading ? 'not-allowed' : 'pointer',
                                 fontFamily: 'var(--stepn-font-body)',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap',
+                                textTransform: 'uppercase',
+                                height: '38px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                alignSelf: 'center',
+                                width: '100%',
+                                boxSizing: 'border-box'
                               }}
                               onMouseEnter={(e) => {
                                 if (!loading) {
@@ -828,7 +856,7 @@ export default function ColorsConfigPage() {
                                 }
                               }}
                             >
-                              Supprimer
+                              SUPPRIMER
                             </button>
                           </div>
                         ))}
