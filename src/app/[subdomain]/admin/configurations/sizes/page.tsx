@@ -907,7 +907,7 @@ export default function SizesConfigPage() {
                                       backgroundColor: '#2a2a2a',
                                       border: '1px solid #2a2a2a',
                                       borderRadius: '4px',
-                                      color: '#8eff36',
+                                      color: '#ffffff',
                                       cursor: 'pointer',
                                       fontSize: '12px',
                                       fontFamily: 'var(--stepn-font-body)',
@@ -923,7 +923,7 @@ export default function SizesConfigPage() {
                                     }}
                                     title="Gérer les mesures"
                                   >
-                                    📏 Mesures
+                                    Mesures
                                   </button>
                                 </td>
                                 
