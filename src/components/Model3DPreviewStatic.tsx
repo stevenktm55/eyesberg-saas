@@ -208,24 +208,25 @@ function Model({
             };
             img.src = design2DUrl;
           } else {
-          console.log(`Loading design 2D: ${design2DUrl}`);
-          const textureLoader = new THREE.TextureLoader();
-          textureLoader.load(
-            design2DUrl,
-            (texture) => {
-              console.log('Design 2D texture loaded');
-              // Utiliser le design 2D comme texture de base ou overlay
-              standardMaterial.map = texture;
-              standardMaterial.map.needsUpdate = true;
-              standardMaterial.needsUpdate = true;
-              standardMaterial.transparent = false;
-              standardMaterial.opacity = 1.0;
-            },
-            undefined,
-            (error) => {
-              console.error('Error loading design 2D texture:', error);
-            }
-          );
+            console.log(`Loading design 2D: ${design2DUrl}`);
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(
+              design2DUrl,
+              (texture) => {
+                console.log('Design 2D texture loaded');
+                // Utiliser le design 2D comme texture de base ou overlay
+                standardMaterial.map = texture;
+                standardMaterial.map.needsUpdate = true;
+                standardMaterial.needsUpdate = true;
+                standardMaterial.transparent = false;
+                standardMaterial.opacity = 1.0;
+              },
+              undefined,
+              (error) => {
+                console.error('Error loading design 2D texture:', error);
+              }
+            );
+          }
         }
       }
     });
