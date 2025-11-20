@@ -98,12 +98,30 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Upload vers Supabase Storage
+    // Upload vers Supabase Storage en utilisant supabaseAdmin pour les permissions
     const fileName = `${targetPatternId}-${size}-${uvType}-${Date.now()}.svg`;
     console.log('Uploading file to storage:', fileName);
     let svgUrl: string;
     try {
-      svgUrl = await uploadFile('size-patterns', fileName, file);
+      // Utiliser supabaseAdmin pour l'upload côté serveur
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('size-patterns')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Error uploading to storage:', uploadError);
+        throw new Error(`Failed to upload file to storage: ${uploadError.message}`);
+      }
+
+      // Obtenir l'URL publique
+      const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('size-patterns')
+        .getPublicUrl(uploadData.path);
+      
+      svgUrl = publicUrl;
       console.log('File uploaded successfully, URL:', svgUrl);
     } catch (uploadError: any) {
       console.error('Error uploading to storage:', uploadError);
