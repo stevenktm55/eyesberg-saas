@@ -1747,7 +1747,7 @@ export default function ProductBuilderPage() {
                                   >
                                     <div style={{
                                       width: '100%',
-                                      padding: '12px',
+                                      padding: '8px',
                                       backgroundColor: '#f5f5f5',
                                       borderRadius: '4px',
                                       display: 'flex',
@@ -1763,9 +1763,9 @@ export default function ProductBuilderPage() {
                                           src={design.preview_url}
                                           alt={design.name}
                                           style={{
-                                            maxWidth: '100%',
-                                            maxHeight: '100%',
-                                            objectFit: 'contain'
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
                                           }}
                                           onError={(e) => {
                                             // Fallback to SVG if preview fails to load
