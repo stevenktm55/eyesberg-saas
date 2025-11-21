@@ -14,6 +14,8 @@ interface Model3DPreviewWithControlsProps {
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
   zoomSpeed?: number;
   rotateSpeed?: number;
+  minZoom?: number;
+  maxZoom?: number;
 }
 
 function Model({ 
@@ -85,6 +87,8 @@ export function Model3DPreviewWithControls({
   modelParts,
   zoomSpeed = 1,
   rotateSpeed = 1,
+  minZoom = 1,
+  maxZoom = 10,
   className,
   style 
 }: Model3DPreviewWithControlsProps) {
@@ -140,8 +144,8 @@ export function Model3DPreviewWithControls({
           enableRotate={true}
           zoomSpeed={zoomSpeed}
           rotateSpeed={rotateSpeed}
-          minDistance={1}
-          maxDistance={10}
+          minDistance={minZoom}
+          maxDistance={maxZoom}
         />
         <Environment preset="city" />
       </Canvas>

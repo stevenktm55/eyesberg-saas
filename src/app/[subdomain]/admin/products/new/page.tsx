@@ -82,6 +82,8 @@ export default function ProductBuilderPage() {
   const [show3DSettings, setShow3DSettings] = useState(false);
   const [zoomSpeed, setZoomSpeed] = useState(1);
   const [rotateSpeed, setRotateSpeed] = useState(1);
+  const [minZoom, setMinZoom] = useState(1);
+  const [maxZoom, setMaxZoom] = useState(10);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -679,161 +681,260 @@ export default function ProductBuilderPage() {
               </button>
             </div>
 
-            {/* 3D Viewer Settings Panel */}
-            {show3DSettings && (
-              <div style={{
-                padding: '16px',
-                borderBottom: '1px solid #1a1a1a',
-                backgroundColor: '#0a0a0a'
-              }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  fontWeight: '600'
-                }}>
-                  3D Viewer Settings
-                </div>
-                
-                {/* Zoom Speed */}
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <label style={{
-                      fontSize: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#a0a0a0'
-                    }}>
-                      Zoom Speed
-                    </label>
-                    <span style={{
-                      fontSize: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#8eff36',
-                      fontWeight: '600'
-                    }}>
-                      {zoomSpeed.toFixed(1)}x
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="3"
-                    step="0.1"
-                    value={zoomSpeed}
-                    onChange={(e) => setZoomSpeed(parseFloat(e.target.value))}
-                    style={{
-                      width: '100%',
-                      height: '6px',
-                      backgroundColor: '#1a1a1a',
-                      borderRadius: '3px',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      WebkitAppearance: 'none',
-                      appearance: 'none',
-                      background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
-                    }}
-                  />
-                  <style dangerouslySetInnerHTML={{__html: `
-                    input[type="range"]::-webkit-slider-thumb {
-                      -webkit-appearance: none;
-                      appearance: none;
-                      width: 16px;
-                      height: 16px;
-                      border-radius: 50%;
-                      background: #8eff36;
-                      cursor: pointer;
-                      border: 2px solid #0a0a0a;
-                    }
-                    input[type="range"]::-moz-range-thumb {
-                      width: 16px;
-                      height: 16px;
-                      border-radius: 50%;
-                      background: #8eff36;
-                      cursor: pointer;
-                      border: 2px solid #0a0a0a;
-                    }
-                  `}} />
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '10px',
-                    color: '#666',
-                    marginTop: '4px'
-                  }}>
-                    <span>Slow</span>
-                    <span>Fast</span>
-                  </div>
-                </div>
-
-                {/* Rotate Speed */}
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <label style={{
-                      fontSize: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#a0a0a0'
-                    }}>
-                      Rotate Speed
-                    </label>
-                    <span style={{
-                      fontSize: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#8eff36',
-                      fontWeight: '600'
-                    }}>
-                      {rotateSpeed.toFixed(1)}x
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="3"
-                    step="0.1"
-                    value={rotateSpeed}
-                    onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
-                    style={{
-                      width: '100%',
-                      height: '6px',
-                      backgroundColor: '#1a1a1a',
-                      borderRadius: '3px',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      WebkitAppearance: 'none',
-                      appearance: 'none',
-                      background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
-                    }}
-                  />
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '10px',
-                    color: '#666',
-                    marginTop: '4px'
-                  }}>
-                    <span>Slow</span>
-                    <span>Fast</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Modules/Questions List */}
             <div style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '16px'
+              padding: '16px',
+              position: 'relative'
             }}>
+              {/* 3D Viewer Settings Overlay */}
+              {show3DSettings && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: '#0a0a0a',
+                  zIndex: 10,
+                  padding: '16px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    color: '#ffffff',
+                    marginBottom: '20px',
+                    fontWeight: '600'
+                  }}>
+                    3D Viewer Settings
+                  </div>
+                  
+                  {/* Zoom Speed */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Zoom Speed
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {zoomSpeed.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="3"
+                      step="0.1"
+                      value={zoomSpeed}
+                      onChange={(e) => setZoomSpeed(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>Slow</span>
+                      <span>Fast</span>
+                    </div>
+                  </div>
+
+                  {/* Rotate Speed */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Rotate Speed
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {rotateSpeed.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="3"
+                      step="0.1"
+                      value={rotateSpeed}
+                      onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>Slow</span>
+                      <span>Fast</span>
+                    </div>
+                  </div>
+
+                  {/* Min Zoom */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Min Zoom Distance
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {minZoom.toFixed(1)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="5"
+                      step="0.1"
+                      value={minZoom}
+                      onChange={(e) => setMinZoom(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(minZoom - 0.5) / (5 - 0.5) * 100}%, #1a1a1a ${(minZoom - 0.5) / (5 - 0.5) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>0.5</span>
+                      <span>5.0</span>
+                    </div>
+                  </div>
+
+                  {/* Max Zoom */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Max Zoom Distance
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {maxZoom.toFixed(1)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="20"
+                      step="0.5"
+                      value={maxZoom}
+                      onChange={(e) => setMaxZoom(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 5) / (20 - 5) * 100}%, #1a1a1a ${(maxZoom - 5) / (20 - 5) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>5.0</span>
+                      <span>20.0</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Questions/Modules Content (hidden when settings are open) */}
+              {!show3DSettings && (
               {customizationModules.length === 0 && questions.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
@@ -1532,6 +1633,8 @@ export default function ProductBuilderPage() {
                             modelParts={parts}
                             zoomSpeed={zoomSpeed}
                             rotateSpeed={rotateSpeed}
+                            minZoom={minZoom}
+                            maxZoom={maxZoom}
                             style={{
                               width: '100%',
                               height: '100%',
