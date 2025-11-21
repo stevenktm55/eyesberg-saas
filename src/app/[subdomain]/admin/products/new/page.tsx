@@ -1766,14 +1766,18 @@ export default function ProductBuilderPage() {
                                         }}
                                       />
                                     </div>
-                                    <p style={{
-                                      color: '#000000',
-                                      fontSize: '12px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      fontWeight: isSelected ? '600' : '400',
-                                      textAlign: 'center',
-                                      margin: 0
-                                    }}>
+                                    <p 
+                                      className="customizer-tab-name"
+                                      style={{
+                                        color: '#000000',
+                                        fontSize: '12px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontWeight: isSelected ? '600' : '400',
+                                        textAlign: 'center',
+                                        margin: 0,
+                                        WebkitTextFillColor: '#000000'
+                                      } as React.CSSProperties}
+                                    >
                                       {design.name}
                                     </p>
                                   </div>
