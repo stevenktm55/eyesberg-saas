@@ -82,7 +82,7 @@ function Model({
   return <primitive object={scene} />;
 }
 
-// Composant pour gérer le recentrage progressif lors du dézoom
+// Composant pour gérer le recentrage progressif lors du dézoom et maintenir la rotation autour du centre
 function ZoomController({ 
   controlsRef, 
   cameraRef, 
@@ -95,7 +95,35 @@ function ZoomController({
   maxZoom: number;
 }) {
   const lastZoomDistanceRef = useRef(initialZoom);
-  const isZoomingOutRef = useRef(false);
+  const isRotatingRef = useRef(false);
+  const center = new THREE.Vector3(0, 0, 0);
+
+  // Détecter si l'utilisateur est en train de faire tourner
+  React.useEffect(() => {
+    if (!controlsRef.current) return;
+
+    const controls = controlsRef.current;
+    
+    const handleStart = () => {
+      isRotatingRef.current = true;
+    };
+    
+    const handleEnd = () => {
+      isRotatingRef.current = false;
+    };
+
+    // Écouter les événements de rotation
+    const domElement = controls.domElement;
+    domElement.addEventListener('mousedown', handleStart);
+    domElement.addEventListener('mouseup', handleEnd);
+    domElement.addEventListener('mouseleave', handleEnd);
+
+    return () => {
+      domElement.removeEventListener('mousedown', handleStart);
+      domElement.removeEventListener('mouseup', handleEnd);
+      domElement.removeEventListener('mouseleave', handleEnd);
+    };
+  }, [controlsRef]);
 
   useFrame(() => {
     if (!controlsRef.current || !cameraRef.current) return;
@@ -103,18 +131,22 @@ function ZoomController({
     const controls = controlsRef.current;
     const camera = cameraRef.current;
     const currentDistance = camera.position.distanceTo(controls.target);
-    const center = new THREE.Vector3(0, 0, 0);
     const centerDistance = controls.target.distanceTo(center);
+    
+    // Si l'utilisateur est en train de faire tourner, maintenir le target au centre
+    if (isRotatingRef.current && centerDistance > 0.001) {
+      controls.target.copy(center);
+      controls.update();
+    }
     
     // Détecter si on dézoome (distance augmente)
     const isZoomingOut = currentDistance > lastZoomDistanceRef.current;
-    isZoomingOutRef.current = isZoomingOut;
     
-    // Si on dézoome et qu'on n'est pas déjà au centre
-    if (isZoomingOut && centerDistance > 0.001) {
+    // Si on dézoome et qu'on n'est pas en train de tourner, recentrer progressivement
+    if (isZoomingOut && !isRotatingRef.current && centerDistance > 0.001) {
       // Calculer un facteur de lerp basé sur la distance de zoom
       // Plus on est proche du zoom max, plus on recentre rapidement
-      const zoomProgress = (currentDistance - initialZoom) / (maxZoom - initialZoom);
+      const zoomProgress = Math.max(0, (currentDistance - initialZoom) / (maxZoom - initialZoom));
       const lerpFactor = Math.min(0.02 + zoomProgress * 0.08, 0.1); // Entre 0.02 et 0.1
       
       // Recentrer progressivement vers le centre
