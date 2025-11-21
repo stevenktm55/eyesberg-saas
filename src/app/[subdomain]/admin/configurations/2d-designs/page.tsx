@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Design2DPreviewStatic } from "@/components/Design2DPreviewStatic";
+import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type Design2D = {
@@ -12,6 +13,23 @@ type Design2D = {
   format?: string;
   createdAt?: string;
   created_at?: string;
+  model3d_id?: string | null;
+  color_mappings?: Record<string, string>; // class -> color_id
+  preview_url?: string | null;
+};
+
+type Model3D = {
+  id: string;
+  name: string;
+  glb_url?: string;
+  glbUrl?: string;
+  model_parts?: Array<{ name: string; material_map_id?: string | null }>;
+};
+
+type ColorPalette = {
+  id: string;
+  name: string;
+  colors?: Array<{ id: string; name: string; hex: string }>;
 };
 
 export default function Designs2DConfigPage() {
@@ -24,10 +42,32 @@ export default function Designs2DConfigPage() {
   const [newDesignName, setNewDesignName] = useState("");
   const [newDesignFile, setNewDesignFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Nouvelles states pour les fonctionnalités
+  const [models3D, setModels3D] = useState<Model3D[]>([]);
+  const [colorPalettes, setColorPalettes] = useState<ColorPalette[]>([]);
+  const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
+  const [detectedColorClasses, setDetectedColorClasses] = useState<string[]>([]);
+  const [colorMappings, setColorMappings] = useState<Record<string, string>>({}); // class -> color_id
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDesigns();
+    fetchModels3D();
+    fetchColorPalettes();
   }, []);
+  
+  useEffect(() => {
+    if (selectedDesign) {
+      setSelectedModel3DId(selectedDesign.model3d_id || null);
+      setColorMappings(selectedDesign.color_mappings || {});
+      setPreviewUrl(selectedDesign.preview_url || null);
+      // Détecter les classes de couleurs dans le SVG
+      if (selectedDesign.svg_url || selectedDesign.svgUrl) {
+        detectColorClasses(selectedDesign.svg_url || selectedDesign.svgUrl || '');
+      }
+    }
+  }, [selectedDesign]);
 
   async function fetchDesigns() {
     try {
@@ -37,6 +77,85 @@ export default function Designs2DConfigPage() {
       setDesigns(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching designs:", error);
+    }
+  }
+  
+  async function fetchModels3D() {
+    try {
+      const res = await fetch("/api/models-3d");
+      if (res.ok) {
+        const data = await res.json();
+        setModels3D(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching models 3D:", error);
+    }
+  }
+  
+  async function fetchColorPalettes() {
+    try {
+      const res = await fetch("/api/color-palettes");
+      if (res.ok) {
+        const data = await res.json();
+        setColorPalettes(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching color palettes:", error);
+    }
+  }
+  
+  // Détecter les classes de couleurs dans le SVG
+  async function detectColorClasses(svgUrl: string) {
+    try {
+      const response = await fetch(svgUrl);
+      const svgText = await response.text();
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+      
+      // Trouver toutes les classes CSS dans le SVG
+      const classes = new Set<string>();
+      
+      // Chercher dans les attributs class
+      const allElements = svgDoc.querySelectorAll('*');
+      allElements.forEach((element) => {
+        const classAttr = element.getAttribute('class');
+        if (classAttr) {
+          classAttr.split(/\s+/).forEach((cls) => {
+            // Détecter les classes de couleurs communes (primary, secondary, tertiary, etc.)
+            const colorClassPattern = /^(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?$/i;
+            if (colorClassPattern.test(cls.trim())) {
+              classes.add(cls.trim().toLowerCase());
+            }
+          });
+        }
+      });
+      
+      // Chercher aussi dans les styles inline et les variables CSS
+      const styleElements = svgDoc.querySelectorAll('style');
+      styleElements.forEach((style) => {
+        const styleText = style.textContent || '';
+        // Chercher les variables CSS --primary, --secondary, etc.
+        const varMatches = styleText.match(/--(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?/gi);
+        if (varMatches) {
+          varMatches.forEach((match) => {
+            const className = match.replace('--', '').toLowerCase();
+            classes.add(className);
+          });
+        }
+        // Chercher les classes CSS définies
+        const classMatches = styleText.match(/\.(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?/gi);
+        if (classMatches) {
+          classMatches.forEach((match) => {
+            const className = match.replace('.', '').toLowerCase();
+            classes.add(className);
+          });
+        }
+      });
+      
+      setDetectedColorClasses(Array.from(classes));
+    } catch (error) {
+      console.error("Error detecting color classes:", error);
+      setDetectedColorClasses([]);
     }
   }
 
@@ -57,6 +176,44 @@ export default function Designs2DConfigPage() {
     setIsCreating(false);
     setNewDesignName("");
     setNewDesignFile(null);
+    setSelectedModel3DId(null);
+    setDetectedColorClasses([]);
+    setColorMappings({});
+    setPreviewUrl(null);
+  }
+  
+  async function saveDesignSettings() {
+    if (!selectedDesign) return;
+    
+    setLoading(true);
+    try {
+      // TODO: Générer le preview static et l'uploader
+      // Pour l'instant, on sauvegarde juste les settings
+      
+      const res = await fetch(`/api/designs-2d?id=${encodeURIComponent(selectedDesign.id)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model3d_id: selectedModel3DId,
+          color_mappings: colorMappings,
+          preview_url: previewUrl // Sera généré plus tard
+        }),
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to save design settings');
+      }
+      
+      await fetchDesigns();
+      alert('Paramètres sauvegardés avec succès');
+    } catch (error: any) {
+      console.error('Error saving design settings:', error);
+      alert(`Erreur lors de la sauvegarde: ${error.message || 'Erreur inconnue'}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function createDesign() {
@@ -458,6 +615,7 @@ export default function Designs2DConfigPage() {
                 </div>
               ) : selectedDesign ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Preview 2D */}
                   <div style={{
                     width: '100%',
                     aspectRatio: '1',
@@ -471,6 +629,181 @@ export default function Designs2DConfigPage() {
                       style={{ width: '100%', height: '100%' }}
                     />
                   </div>
+                  
+                  {/* Sélection du modèle 3D */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      color: '#ffffff',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Modèle 3D pour le preview
+                    </label>
+                    <select
+                      value={selectedModel3DId || ''}
+                      onChange={(e) => setSelectedModel3DId(e.target.value || null)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        backgroundColor: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="">Sélectionner un modèle 3D</option>
+                      {models3D.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Preview 3D Static */}
+                  {selectedModel3DId && (() => {
+                    const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                    if (!selectedModel) return null;
+                    const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
+                    const designUrl = (selectedDesign as any).svg_url || (selectedDesign as any).svgUrl || null;
+                    const parts = (selectedModel as any).model_parts || [];
+                    
+                    return (
+                      <div style={{
+                        width: '100%',
+                        aspectRatio: '1',
+                        backgroundColor: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        minHeight: '400px'
+                      }}>
+                        <Model3DPreviewStatic
+                          url={modelUrl}
+                          design2DUrl={designUrl}
+                          modelParts={parts}
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Sélection des couleurs pour les classes détectées */}
+                  {detectedColorClasses.length > 0 && (
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        marginBottom: '12px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Couleurs détectées dans le SVG
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {detectedColorClasses.map((colorClass) => {
+                          const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
+                          colorPalettes.forEach((palette) => {
+                            if (palette.colors) {
+                              palette.colors.forEach((color) => {
+                                allColors.push({
+                                  ...color,
+                                  paletteName: palette.name
+                                });
+                              });
+                            }
+                          });
+                          
+                          return (
+                            <div key={colorClass} style={{
+                              padding: '12px',
+                              backgroundColor: '#0a0a0a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '8px'
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px'
+                              }}>
+                                <span style={{
+                                  fontSize: '12px',
+                                  color: '#ffffff',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontWeight: '500',
+                                  textTransform: 'capitalize'
+                                }}>
+                                  {colorClass}
+                                </span>
+                                {colorMappings[colorClass] && (() => {
+                                  const selectedColor = allColors.find(c => c.id === colorMappings[colorClass]);
+                                  return selectedColor ? (
+                                    <div style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px'
+                                    }}>
+                                      <div style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: selectedColor.hex,
+                                        borderRadius: '4px',
+                                        border: '1px solid #2a2a2a'
+                                      }} />
+                                      <span style={{
+                                        fontSize: '11px',
+                                        color: '#a0a0a0',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        {selectedColor.name}
+                                      </span>
+                                    </div>
+                                  ) : null;
+                                })()}
+                              </div>
+                              <select
+                                value={colorMappings[colorClass] || ''}
+                                onChange={(e) => {
+                                  setColorMappings({
+                                    ...colorMappings,
+                                    [colorClass]: e.target.value || undefined
+                                  });
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#1a1a1a',
+                                  border: '1px solid #2a2a2a',
+                                  borderRadius: '4px',
+                                  color: '#ffffff',
+                                  fontSize: '12px',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  cursor: 'pointer',
+                                  outline: 'none'
+                                }}
+                              >
+                                <option value="">Sélectionner une couleur</option>
+                                {allColors.map((color) => (
+                                  <option key={color.id} value={color.id}>
+                                    {color.paletteName} - {color.name} ({color.hex})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Informations du design */}
                   <div>
                     <label style={{
                       display: 'block',
@@ -621,6 +954,36 @@ export default function Designs2DConfigPage() {
                 >
                   Annuler
                 </button>
+                {selectedDesign && (
+                  <button
+                    onClick={saveDesignSettings}
+                    disabled={loading}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: loading ? '#4a4a4a' : '#8eff36',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: loading ? '#a0a0a0' : '#000000',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--stepn-font-body)',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loading) {
+                        e.currentTarget.style.opacity = '0.9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!loading) {
+                        e.currentTarget.style.opacity = '1';
+                      }
+                    }}
+                  >
+                    {loading ? 'Sauvegarde...' : 'Sauvegarder'}
+                  </button>
+                )}
                 {isCreating && (
                   <button
                     onClick={createDesign}

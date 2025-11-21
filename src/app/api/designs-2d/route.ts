@@ -118,6 +118,71 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PATCH - Mettre à jour un Design 2D
+export async function PATCH(request: NextRequest) {
+  try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const { model3d_id, color_mappings, preview_url } = body;
+
+    // Vérifier que le design appartient au sous-domaine
+    const { data: existingDesign, error: fetchError } = await supabaseAdmin
+      .from('designs_2d')
+      .select('id')
+      .eq('id', id)
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (fetchError || !existingDesign) {
+      return NextResponse.json(
+        { error: 'Design not found or access denied' },
+        { status: 404 }
+      );
+    }
+
+    // Mettre à jour le design
+    const updateData: any = {};
+    if (model3d_id !== undefined) updateData.model3d_id = model3d_id;
+    if (color_mappings !== undefined) updateData.color_mappings = color_mappings;
+    if (preview_url !== undefined) updateData.preview_url = preview_url;
+
+    const { data: design, error } = await supabaseAdmin
+      .from('designs_2d')
+      .update(updateData)
+      .eq('id', id)
+      .eq('subdomain', subdomain)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(design);
+  } catch (error: any) {
+    console.error('Error updating design 2D:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to update design' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE - Supprimer un Design 2D
 export async function DELETE(request: NextRequest) {
   try {
