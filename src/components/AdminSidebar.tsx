@@ -45,7 +45,7 @@ export default function AdminSidebar() {
             src="/eyesberg.svg"
             alt="Eyesberg"
             style={{
-              height: '32px',
+          height: '32px',
               width: 'auto',
               cursor: 'pointer',
               transition: 'opacity 0.2s'
