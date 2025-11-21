@@ -655,7 +655,7 @@ export default function ProductBuilderPage() {
               borderBottom: '1px solid #1a1a1a',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'flex-start'
+              justifyContent: 'space-between'
             }}>
               <button
                 onClick={() => setShow3DSettings(!show3DSettings)}
