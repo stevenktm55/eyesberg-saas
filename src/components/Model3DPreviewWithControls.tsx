@@ -623,12 +623,17 @@ export function Model3DPreviewWithControls({
         <OrbitControls
           ref={controlsRef}
           enableZoom={true}
-          enablePan={true}
+          enablePan={false}
           enableRotate={true}
           zoomSpeed={zoomSpeed}
           rotateSpeed={rotateSpeed}
           minDistance={minZoom}
           maxDistance={maxZoom}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: null // Désactiver le clic droit
+          }}
         />
         <Environment preset="city" />
       </Canvas>
