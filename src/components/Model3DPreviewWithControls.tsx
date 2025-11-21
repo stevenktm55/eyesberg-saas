@@ -243,7 +243,6 @@ function Model({
                 textureLoader.load(
                   fileUrl,
                   (texture) => {
-                    console.log(`Texture loaded: ${mapType}, size: ${texture.image?.width}x${texture.image?.height}`);
                     // Optimiser les textures pour les performances
                     texture.generateMipmaps = true;
                     texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -264,7 +263,6 @@ function Model({
                         ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
                         texture.image = canvas;
                         texture.needsUpdate = true;
-                        console.log(`Texture resized to ${canvas.width}x${canvas.height} for performance`);
                       }
                     }
                     
@@ -334,7 +332,6 @@ function Model({
               textureLoader.load(
                 fileUrl,
                 (texture) => {
-                  console.log(`Texture loaded: ${mapType}, size: ${texture.image?.width}x${texture.image?.height}`);
                   // Optimiser les textures pour les performances
                   texture.generateMipmaps = true;
                   texture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -355,7 +352,6 @@ function Model({
                       ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
                       texture.image = canvas;
                       texture.needsUpdate = true;
-                      console.log(`Texture resized to ${canvas.width}x${canvas.height} for performance`);
                     }
                   }
                   
