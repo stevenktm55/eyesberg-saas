@@ -1735,7 +1735,7 @@ export default function ProductBuilderPage() {
                                       padding: '12px',
                                       backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
                                       borderRadius: '4px',
-                                      border: isSelected ? '2px solid #8eff36' : '1px solid #e0e0e0',
+                                      border: isSelected ? '2px solid #333333' : '1px solid #e0e0e0',
                                       cursor: 'pointer',
                                       transition: 'all 0.2s',
                                       display: 'flex',
@@ -1767,7 +1767,7 @@ export default function ProductBuilderPage() {
                                       />
                                     </div>
                                     <p style={{
-                                      color: isSelected ? '#000000' : '#666',
+                                      color: '#000000',
                                       fontSize: '12px',
                                       fontFamily: 'var(--stepn-font-body)',
                                       fontWeight: isSelected ? '600' : '400',
