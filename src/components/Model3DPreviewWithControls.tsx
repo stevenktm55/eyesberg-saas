@@ -98,6 +98,10 @@ export function Model3DPreviewWithControls({
 }: Model3DPreviewWithControlsProps) {
   const controlsRef = useRef<any>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const isZoomingRef = useRef(false);
+  const lastZoomDistanceRef = useRef(initialZoom);
 
   // Mettre à jour la vitesse de rotation
   React.useEffect(() => {
@@ -105,6 +109,38 @@ export function Model3DPreviewWithControls({
       controlsRef.current.rotateSpeed = rotateSpeed;
     }
   }, [rotateSpeed]);
+
+  // Activer le zoom vers le curseur
+  React.useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.dollyToCursor = true;
+      controlsRef.current.screenSpacePanning = false;
+    }
+  }, []);
+
+  // Gérer le recentrage progressif lors du dézoom
+  useFrame(() => {
+    if (!controlsRef.current || !cameraRef.current) return;
+    
+    const controls = controlsRef.current;
+    const camera = cameraRef.current;
+    const currentDistance = camera.position.distanceTo(controls.target);
+    
+    // Détecter si on dézoome (distance augmente)
+    if (currentDistance > lastZoomDistanceRef.current) {
+      // Calculer la distance du centre
+      const centerDistance = controls.target.distanceTo(new THREE.Vector3(0, 0, 0));
+      
+      // Si on est loin du centre, recentrer progressivement
+      if (centerDistance > 0.01) {
+        const lerpFactor = 0.05; // Vitesse de recentrage (plus petit = plus lent)
+        controls.target.lerp(new THREE.Vector3(0, 0, 0), lerpFactor);
+        controls.update();
+      }
+    }
+    
+    lastZoomDistanceRef.current = currentDistance;
+  });
 
   // Appliquer le zoom initial et l'angle de rotation
   React.useEffect(() => {
@@ -145,7 +181,7 @@ export function Model3DPreviewWithControls({
   }
 
   return (
-    <div className={className} style={style}>
+    <div ref={containerRef} className={className} style={style}>
       <Canvas
         camera={{ position: [0, 0, initialZoom], fov: 50 }}
         style={{ width: '100%', height: '100%', backgroundColor: style?.backgroundColor || '#e8e8e8' }}
@@ -159,6 +195,7 @@ export function Model3DPreviewWithControls({
           // Garder une hauteur Y raisonnable pour éviter la vue du dessus
           const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
           camera.position.set(x, y, z);
+          lastZoomDistanceRef.current = initialZoom;
         }}
       >
         <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />
