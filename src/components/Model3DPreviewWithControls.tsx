@@ -94,9 +94,8 @@ function Model({
           
           standardMaterial.transparent = false;
           standardMaterial.opacity = 1.0;
-          if (standardMaterial.color.getHex() === 0x000000) {
-            standardMaterial.color.setHex(0xffffff);
-          }
+          // Toujours s'assurer que la couleur est blanche par défaut
+          standardMaterial.color.setHex(0xffffff);
           
           // Trouver le material map correspondant par nom du matériau
           // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
