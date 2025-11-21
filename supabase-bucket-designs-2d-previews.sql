@@ -1,0 +1,44 @@
+-- =====================================================
+-- CRÉATION DU BUCKET 'designs-2d-previews' DANS SUPABASE
+-- =====================================================
+-- Ce bucket est utilisé pour stocker les previews statiques 3D des designs 2D
+-- 
+-- IMPORTANT: Ce script doit être exécuté dans le SQL Editor de Supabase
+-- ou via l'API Supabase Storage (pas via SQL direct)
+--
+-- Pour créer le bucket via l'interface Supabase:
+-- 1. Allez dans Storage > Buckets
+-- 2. Cliquez sur "New bucket"
+-- 3. Nom: designs-2d-previews
+-- 4. Public: OUI (pour que les images soient accessibles publiquement)
+-- 5. File size limit: 10485760 (10 MB en bytes)
+-- 6. Allowed MIME types: image/png,image/jpeg,image/jpg,image/webp
+--
+-- =====================================================
+-- CONFIGURATION RECOMMANDÉE:
+-- =====================================================
+-- Nom du bucket: designs-2d-previews
+-- Public: OUI (true)
+-- File size limit: 10485760 bytes (10 MB)
+-- Allowed MIME types:
+--   - image/png
+--   - image/jpeg
+--   - image/jpg
+--   - image/webp
+--
+-- =====================================================
+-- VIA L'API SUPABASE (si vous préférez utiliser du code):
+-- =====================================================
+-- const { data, error } = await supabaseAdmin.storage.createBucket('designs-2d-previews', {
+--   public: true,
+--   fileSizeLimit: 10485760, // 10 MB
+--   allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
+-- });
+--
+-- =====================================================
+-- VÉRIFICATION QUE LE BUCKET EXISTE:
+-- =====================================================
+-- SELECT * FROM storage.buckets WHERE name = 'designs-2d-previews';
+--
+-- =====================================================
+

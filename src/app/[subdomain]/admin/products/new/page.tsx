@@ -60,6 +60,7 @@ type Design2D = {
   name: string;
   svg_url?: string;
   svgUrl?: string;
+  preview_url?: string | null;
 };
 
 export default function ProductBuilderPage() {
@@ -1756,15 +1757,35 @@ export default function ProductBuilderPage() {
                                       maxHeight: '120px',
                                       overflow: 'hidden'
                                     }}>
-                                      <img
-                                        src={design.svg_url || design.svgUrl}
-                                        alt={design.name}
-                                        style={{
-                                          maxWidth: '100%',
-                                          maxHeight: '100%',
-                                          objectFit: 'contain'
-                                        }}
-                                      />
+                                      {(design.preview_url && design.preview_url.trim() !== '') ? (
+                                        <img
+                                          key={design.preview_url}
+                                          src={design.preview_url}
+                                          alt={design.name}
+                                          style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '100%',
+                                            objectFit: 'contain'
+                                          }}
+                                          onError={(e) => {
+                                            // Fallback to SVG if preview fails to load
+                                            const svgUrl = design.svg_url || design.svgUrl;
+                                            if (svgUrl) {
+                                              e.currentTarget.src = svgUrl;
+                                            }
+                                          }}
+                                        />
+                                      ) : (
+                                        <img
+                                          src={design.svg_url || design.svgUrl}
+                                          alt={design.name}
+                                          style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '100%',
+                                            objectFit: 'contain'
+                                          }}
+                                        />
+                                      )}
                                     </div>
                                     <p 
                                       className="customizer-tab-name"
