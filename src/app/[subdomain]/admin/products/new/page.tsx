@@ -1376,11 +1376,13 @@ export default function ProductBuilderPage() {
                           height: '100%',
                           minHeight: '600px'
                         }}>
-                          <Model3DPreviewStatic
+                          <Model3DPreviewWithControls
                             url={modelUrl}
                             materialMaps={materialMapsForModel}
                             design2DUrl={designUrl}
                             modelParts={parts}
+                            zoomSpeed={zoomSpeed}
+                            rotateSpeed={rotateSpeed}
                             style={{
                               width: '100%',
                               height: '100%',
