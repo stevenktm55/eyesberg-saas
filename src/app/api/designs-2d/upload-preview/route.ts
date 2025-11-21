@@ -22,15 +22,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convertir le fichier en ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Vérifier si le bucket existe et a les bons types MIME
+    const { data: existingBucket, error: checkError } = await supabaseAdmin.storage.getBucket('designs-2d');
+    
+    if (!existingBucket && (checkError?.message?.includes('not found') || checkError?.statusCode === '404')) {
+      console.log('Bucket "designs-2d" n\'existe pas, création en cours...');
+      const { error: createError } = await supabaseAdmin.storage.createBucket('designs-2d', {
+        public: true,
+        fileSizeLimit: 10 * 1024 * 1024, // 10MB
+        allowedMimeTypes: ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'],
+      });
+      
+      if (createError) {
+        console.error('Error creating bucket:', createError);
+      } else {
+        console.log('Bucket "designs-2d" créé avec succès');
+      }
+    }
 
-    // Uploader vers Supabase Storage dans le bucket 'designs-2d'
+    // Uploader directement le File vers Supabase Storage (Supabase détectera automatiquement le type MIME)
+    const fileName = `preview-${Date.now()}-${file.name}`;
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from('designs-2d')
-      .upload(file.name, buffer, {
-        contentType: 'image/png',
+      .upload(fileName, file, {
         cacheControl: '3600',
         upsert: true,
       });
