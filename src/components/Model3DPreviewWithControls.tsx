@@ -171,11 +171,11 @@ function Model({
         let materialDiffuseTexture: THREE.Texture | null = null;
         
          // Fonction pour combiner le design 2D avec la texture diffuse existante
-         // Utiliser 512x512 pour améliorer les performances (au lieu de 1024x1024)
+         // Utiliser 4096x4096 pour le design 2D pour une meilleure qualité
          const combineDesignWithMaterial = (designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
            const canvas = document.createElement('canvas');
-           canvas.width = 512; // Réduit à 512 pour améliorer les performances lors des rotations
-           canvas.height = 512;
+           canvas.width = 4096; // 4096px pour une meilleure qualité du design 2D
+           canvas.height = 4096;
           const ctx = canvas.getContext('2d');
           if (!ctx) return null;
           
