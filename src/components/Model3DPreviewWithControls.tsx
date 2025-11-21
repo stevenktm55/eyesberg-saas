@@ -242,6 +242,13 @@ function Model({
           return; // Ne pas continuer pour les meshes BACK
         }
         
+        // Ensure uv2 exists for AO (comme dans ModelViewer ligne 787-788)
+        const g = object.geometry as THREE.BufferGeometry;
+        if (!g.getAttribute('uv2')) { 
+          const uv = g.getAttribute('uv'); 
+          if (uv) g.setAttribute('uv2', uv); 
+        }
+        
         // Créer un nouveau matériau avec le design intégré (comme dans ModelViewer ligne 789)
         const newMaterial = new THREE.MeshStandardMaterial({ 
           map: designTexture || undefined, 
@@ -256,8 +263,17 @@ function Model({
           console.log('✅ Design 2D applied as base map texture (UV0) to material:', (newMaterial as any).name);
         }
         
+        // Stocker une référence à la texture du design pour s'assurer qu'elle ne soit pas écrasée
+        const designTexRef = designTexture;
+        
         // Appliquer les material maps (normal, roughness, etc.) en plus
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
+          // Always use UV2 for PBR maps if available: remap uv <- uv2 to guarantee alignment (comme dans ModelViewer ligne 794-799)
+          const g2 = object.geometry as THREE.BufferGeometry;
+          const uv2Attr = g2.getAttribute('uv2');
+          if (uv2Attr) {
+            g2.setAttribute('uv', uv2Attr);
+          }
           const materialMap = materialMaps[part.material_map_id];
           const files = materialMap.material_map_files || [];
           
@@ -333,10 +349,12 @@ function Model({
                     break;
                 }
                 
-                // S'assurer que la map du design n'est pas écrasée
-                if (!newMaterial.map && designTexture) {
-                  newMaterial.map = designTexture;
+                // S'assurer que la map du design n'est JAMAIS écrasée
+                // Toujours restaurer la map du design après avoir appliqué les material maps
+                if (designTexRef && (!newMaterial.map || newMaterial.map !== designTexRef)) {
+                  newMaterial.map = designTexRef;
                   newMaterial.map.needsUpdate = true;
+                  console.log('🔄 Restored design texture to material after applying', mapType);
                 }
                 
                 newMaterial.needsUpdate = true;
