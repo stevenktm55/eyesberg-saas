@@ -372,8 +372,9 @@ function Model({
             console.log('No material maps, design 2D already applied');
           }
         });
+        }); // Fin du forEach materials
       }
-    });
+    }); // Fin du traverse
   }, [clonedScene, materialMaps, design2DUrl, modelParts]);
 
   return <primitive ref={groupRef} object={clonedScene} />;
