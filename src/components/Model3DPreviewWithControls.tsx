@@ -86,13 +86,16 @@ function Model({
 function ZoomController({ 
   controlsRef, 
   cameraRef, 
-  initialZoom 
+  initialZoom,
+  maxZoom
 }: { 
   controlsRef: React.MutableRefObject<any>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
   initialZoom: number;
+  maxZoom: number;
 }) {
   const lastZoomDistanceRef = useRef(initialZoom);
+  const isZoomingOutRef = useRef(false);
 
   useFrame(() => {
     if (!controlsRef.current || !cameraRef.current) return;
@@ -100,18 +103,23 @@ function ZoomController({
     const controls = controlsRef.current;
     const camera = cameraRef.current;
     const currentDistance = camera.position.distanceTo(controls.target);
+    const center = new THREE.Vector3(0, 0, 0);
+    const centerDistance = controls.target.distanceTo(center);
     
     // Détecter si on dézoome (distance augmente)
-    if (currentDistance > lastZoomDistanceRef.current) {
-      // Calculer la distance du centre
-      const centerDistance = controls.target.distanceTo(new THREE.Vector3(0, 0, 0));
+    const isZoomingOut = currentDistance > lastZoomDistanceRef.current;
+    isZoomingOutRef.current = isZoomingOut;
+    
+    // Si on dézoome et qu'on n'est pas déjà au centre
+    if (isZoomingOut && centerDistance > 0.001) {
+      // Calculer un facteur de lerp basé sur la distance de zoom
+      // Plus on est proche du zoom max, plus on recentre rapidement
+      const zoomProgress = (currentDistance - initialZoom) / (maxZoom - initialZoom);
+      const lerpFactor = Math.min(0.02 + zoomProgress * 0.08, 0.1); // Entre 0.02 et 0.1
       
-      // Si on est loin du centre, recentrer progressivement
-      if (centerDistance > 0.01) {
-        const lerpFactor = 0.05; // Vitesse de recentrage (plus petit = plus lent)
-        controls.target.lerp(new THREE.Vector3(0, 0, 0), lerpFactor);
-        controls.update();
-      }
+      // Recentrer progressivement vers le centre
+      controls.target.lerp(center, lerpFactor);
+      controls.update();
     }
     
     lastZoomDistanceRef.current = currentDistance;
@@ -234,7 +242,8 @@ export function Model3DPreviewWithControls({
         <ZoomController 
           controlsRef={controlsRef} 
           cameraRef={cameraRef} 
-          initialZoom={initialZoom} 
+          initialZoom={initialZoom}
+          maxZoom={maxZoom}
         />
         <Environment preset="city" />
       </Canvas>
