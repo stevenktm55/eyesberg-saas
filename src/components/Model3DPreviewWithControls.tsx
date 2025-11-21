@@ -171,10 +171,11 @@ function Model({
         let materialDiffuseTexture: THREE.Texture | null = null;
         
         // Fonction pour combiner le design 2D avec la texture diffuse existante
+        // Utiliser 1024x1024 pour améliorer les performances (au lieu de 2048x2048)
         const combineDesignWithMaterial = (designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
           const canvas = document.createElement('canvas');
-          canvas.width = 2048;
-          canvas.height = 2048;
+          canvas.width = 1024; // Réduit de 2048 à 1024 pour améliorer les performances
+          canvas.height = 1024;
           const ctx = canvas.getContext('2d');
           if (!ctx) return null;
           
@@ -234,10 +235,30 @@ function Model({
               textureLoader.load(
                 fileUrl,
                 (texture) => {
-                  console.log(`Texture loaded: ${mapType}`);
+                  console.log(`Texture loaded: ${mapType}, size: ${texture.image?.width}x${texture.image?.height}`);
+                  // Optimiser les textures pour les performances
+                  texture.generateMipmaps = true;
+                  texture.minFilter = THREE.LinearMipmapLinearFilter;
+                  texture.magFilter = THREE.LinearFilter;
                   texture.wrapS = THREE.RepeatWrapping;
                   texture.wrapT = THREE.RepeatWrapping;
                   texture.repeat.set(scale, scale);
+                  
+                  // Si la texture est trop grande (> 2048), la redimensionner pour améliorer les performances
+                  if (texture.image && (texture.image.width > 2048 || texture.image.height > 2048)) {
+                    const maxSize = 1024; // Limiter à 1024 pour le preview
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                      const ratio = Math.min(maxSize / texture.image.width, maxSize / texture.image.height);
+                      canvas.width = texture.image.width * ratio;
+                      canvas.height = texture.image.height * ratio;
+                      ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
+                      texture.image = canvas;
+                      texture.needsUpdate = true;
+                      console.log(`Texture resized to ${canvas.width}x${canvas.height} for performance`);
+                    }
+                  }
                   
                   switch (mapType) {
                     case 'diffuse':
