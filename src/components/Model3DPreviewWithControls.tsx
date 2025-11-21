@@ -118,7 +118,8 @@ export function Model3DPreviewWithControls({
       // Positionner la caméra selon l'angle de rotation (autour de l'axe Y)
       const x = Math.sin(angleRad) * initialZoom;
       const z = Math.cos(angleRad) * initialZoom;
-      const y = camera.position.y; // Garder la hauteur actuelle
+      // Garder une hauteur Y raisonnable pour éviter la vue du dessus
+      const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
       
       camera.position.set(x, y, z);
       controls.update();
@@ -155,7 +156,9 @@ export function Model3DPreviewWithControls({
           const angleRad = (initialRotation * Math.PI) / 180;
           const x = Math.sin(angleRad) * initialZoom;
           const z = Math.cos(angleRad) * initialZoom;
-          camera.position.set(x, 0, z);
+          // Garder une hauteur Y raisonnable pour éviter la vue du dessus
+          const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
+          camera.position.set(x, y, z);
         }}
       >
         <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />

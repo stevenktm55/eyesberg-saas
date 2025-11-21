@@ -111,6 +111,14 @@ export default function ProductBuilderPage() {
             setCustomizationModules(product.builder_data?.customizationModules || []);
             setSelectedModel3DId(product.builder_data?.model3DId || null);
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
+            // Charger les réglages 3D
+            const settings = product.builder_data?.settings || {};
+            if (settings.zoomSpeed !== undefined) setZoomSpeed(settings.zoomSpeed);
+            if (settings.rotateSpeed !== undefined) setRotateSpeed(settings.rotateSpeed);
+            if (settings.minZoom !== undefined) setMinZoom(settings.minZoom);
+            if (settings.maxZoom !== undefined) setMaxZoom(settings.maxZoom);
+            if (settings.initialZoom !== undefined) setInitialZoom(settings.initialZoom);
+            if (settings.initialRotation !== undefined) setInitialRotation(settings.initialRotation);
           }
         } else if (shop) {
           // Créer un nouveau produit
@@ -268,7 +276,14 @@ export default function ProductBuilderPage() {
             activeTab: activeTab,
             model3DId: selectedModel3DId,
             design2DId: selectedDesign2DId,
-            settings: {}
+            settings: {
+              zoomSpeed,
+              rotateSpeed,
+              minZoom,
+              maxZoom,
+              initialZoom,
+              initialRotation
+            }
           },
         }),
       });
@@ -302,7 +317,7 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, autoSave]);
+  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, autoSave]);
 
   function addQuestion() {
     // Ouvrir le modal de création de module
@@ -904,7 +919,7 @@ export default function ProductBuilderPage() {
                     </div>
                     <input
                       type="range"
-                      min="5"
+                      min="3"
                       max="20"
                       step="0.5"
                       value={maxZoom}
@@ -918,7 +933,7 @@ export default function ProductBuilderPage() {
                         cursor: 'pointer',
                         WebkitAppearance: 'none',
                         appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 5) / (20 - 5) * 100}%, #1a1a1a ${(maxZoom - 5) / (20 - 5) * 100}%, #1a1a1a 100%)`
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 3) / (20 - 3) * 100}%, #1a1a1a ${(maxZoom - 3) / (20 - 3) * 100}%, #1a1a1a 100%)`
                       }}
                     />
                     <div style={{
@@ -928,7 +943,7 @@ export default function ProductBuilderPage() {
                       color: '#666',
                       marginTop: '4px'
                     }}>
-                      <span>5.0</span>
+                      <span>3.0</span>
                       <span>20.0</span>
                     </div>
                   </div>
