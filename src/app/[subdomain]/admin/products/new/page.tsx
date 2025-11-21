@@ -1748,6 +1748,8 @@ export default function ProductBuilderPage() {
                             rotateSpeed={rotateSpeed}
                             minZoom={minZoom}
                             maxZoom={maxZoom}
+                            initialZoom={initialZoom}
+                            initialRotation={initialRotation}
                             style={{
                               width: '100%',
                               height: '100%',
