@@ -208,9 +208,9 @@ function Model({
         };
         
         // Fonction pour charger le design 2D et l'appliquer
-        const loadDesign2D = (onLoaded: (texture: THREE.Texture | null) => void) => {
+        const loadDesign2D = (onLoaded: (texture: THREE.Texture | null, designImage: HTMLImageElement | null) => void) => {
           if (!design2DUrl) {
-            onLoaded(null);
+            onLoaded(null, null);
             return;
           }
           
@@ -223,14 +223,14 @@ function Model({
                 const texture = new THREE.CanvasTexture(canvas);
                 texture.needsUpdate = true;
                 console.log('Design 2D loaded as base (UV0)');
-                onLoaded(texture);
+                onLoaded(texture, img);
               } else {
-                onLoaded(null);
+                onLoaded(null, null);
               }
             };
             img.onerror = (error) => {
               console.error('Error loading SVG for conversion:', error);
-              onLoaded(null);
+              onLoaded(null, null);
             };
             img.src = design2DUrl;
           } else {
@@ -238,25 +238,39 @@ function Model({
             designLoader.load(
               design2DUrl,
               (texture) => {
-                console.log('Design 2D loaded as base (UV0)');
-                onLoaded(texture);
+                // Convertir la texture en image pour pouvoir la combiner
+                if (texture.image && texture.image instanceof HTMLImageElement) {
+                  const canvas = combineDesignWithMaterial(texture.image, null);
+                  if (canvas) {
+                    const canvasTexture = new THREE.CanvasTexture(canvas);
+                    canvasTexture.needsUpdate = true;
+                    console.log('Design 2D loaded as base (UV0)');
+                    onLoaded(canvasTexture, texture.image);
+                  } else {
+                    onLoaded(null, null);
+                  }
+                } else {
+                  console.log('Design 2D loaded as base (UV0)');
+                  onLoaded(texture, null);
+                }
               },
               undefined,
               (error) => {
                 console.error('Error loading design 2D texture:', error);
-                onLoaded(null);
+                onLoaded(null, null);
               }
             );
           }
         };
         
         // Charger le design 2D d'abord, puis appliquer les material maps par-dessus
-        loadDesign2D((designTexture) => {
+        loadDesign2D((designTexture, designImage) => {
           // Appliquer le design 2D comme base
           if (designTexture) {
             standardMaterial.map = designTexture;
             standardMaterial.map.needsUpdate = true;
             standardMaterial.needsUpdate = true;
+            console.log('Design 2D applied as base texture');
           }
           
           // Ensuite, appliquer les material maps par-dessus
@@ -314,40 +328,15 @@ function Model({
                       texture.colorSpace = THREE.SRGBColorSpace;
                       
                       // Si on a un design 2D, combiner les deux (design 2D en dessous, material map par-dessus)
-                      if (design2DUrl && designTexture) {
-                        if (design2DUrl.toLowerCase().endsWith('.svg')) {
-                          const img = new Image();
-                          img.crossOrigin = 'anonymous';
-                          img.onload = () => {
-                            const canvas = combineDesignWithMaterial(img, texture);
-                            if (canvas) {
-                              const combinedTexture = new THREE.CanvasTexture(canvas);
-                              combinedTexture.needsUpdate = true;
-                              standardMaterial.map = combinedTexture;
-                              standardMaterial.map.needsUpdate = true;
-                              standardMaterial.needsUpdate = true;
-                              console.log('Combined texture applied (design 2D base + material map diffuse on top)');
-                            }
-                          };
-                          img.src = design2DUrl;
-                        } else {
-                          const designLoader = new THREE.TextureLoader();
-                          designLoader.load(
-                            design2DUrl,
-                            (designTex) => {
-                              if (designTex.image && designTex.image instanceof HTMLImageElement) {
-                                const canvas = combineDesignWithMaterial(designTex.image, texture);
-                                if (canvas) {
-                                  const combinedTexture = new THREE.CanvasTexture(canvas);
-                                  combinedTexture.needsUpdate = true;
-                                  standardMaterial.map = combinedTexture;
-                                  standardMaterial.map.needsUpdate = true;
-                                  standardMaterial.needsUpdate = true;
-                                  console.log('Combined texture applied (design 2D base + material map diffuse on top)');
-                                }
-                              }
-                            }
-                          );
+                      if (designImage) {
+                        const canvas = combineDesignWithMaterial(designImage, texture);
+                        if (canvas) {
+                          const combinedTexture = new THREE.CanvasTexture(canvas);
+                          combinedTexture.needsUpdate = true;
+                          standardMaterial.map = combinedTexture;
+                          standardMaterial.map.needsUpdate = true;
+                          standardMaterial.needsUpdate = true;
+                          console.log('Combined texture applied (design 2D base + material map diffuse on top)');
                         }
                       } else {
                         // Pas de design 2D, appliquer juste la texture diffuse
