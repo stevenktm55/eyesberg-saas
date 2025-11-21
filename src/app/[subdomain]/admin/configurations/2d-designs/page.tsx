@@ -50,6 +50,7 @@ export default function Designs2DConfigPage() {
   const [detectedColorClasses, setDetectedColorClasses] = useState<string[]>([]);
   const [colorMappings, setColorMappings] = useState<Record<string, string>>({}); // class -> color_id
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     fetchDesigns();
@@ -183,6 +184,7 @@ export default function Designs2DConfigPage() {
     setDetectedColorClasses([]);
     setColorMappings({});
     setPreviewUrl(null);
+    previewCanvasRef.current = null; // Reset canvas ref
   }
   
   async function saveDesignSettings() {
@@ -190,9 +192,45 @@ export default function Designs2DConfigPage() {
     
     setLoading(true);
     try {
-      // TODO: Générer le preview static et l'uploader
-      // Pour l'instant, on sauvegarde juste les settings
+      let finalPreviewUrl = previewUrl;
       
+      // Si un modèle 3D est sélectionné et qu'on a un canvas, capturer et uploader le preview
+      if (selectedModel3DId && previewCanvasRef.current) {
+        try {
+          // Convertir le canvas en blob
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            previewCanvasRef.current?.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to convert canvas to blob'));
+              }
+            }, 'image/png');
+          });
+          
+          // Uploader vers Supabase Storage
+          const fileName = `preview-${selectedDesign.id}-${Date.now()}.png`;
+          const formData = new FormData();
+          formData.append('file', blob, fileName);
+          
+          const uploadRes = await fetch('/api/designs-2d/upload-preview', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!uploadRes.ok) {
+            throw new Error('Failed to upload preview');
+          }
+          
+          const uploadData = await uploadRes.json();
+          finalPreviewUrl = uploadData.url;
+        } catch (uploadError: any) {
+          console.error('Error uploading preview:', uploadError);
+          // Continuer même si l'upload échoue
+        }
+      }
+      
+      // Sauvegarder les settings
       const res = await fetch(`/api/designs-2d?id=${encodeURIComponent(selectedDesign.id)}`, {
         method: 'PATCH',
         headers: {
@@ -201,7 +239,7 @@ export default function Designs2DConfigPage() {
         body: JSON.stringify({
           model3d_id: selectedModel3DId,
           color_mappings: colorMappings,
-          preview_url: previewUrl // Sera généré plus tard
+          preview_url: finalPreviewUrl
         }),
       });
       
@@ -210,7 +248,7 @@ export default function Designs2DConfigPage() {
       }
       
       await fetchDesigns();
-      alert('Paramètres sauvegardés avec succès');
+      closeModal(); // Fermer le modal sans alerte
     } catch (error: any) {
       console.error('Error saving design settings:', error);
       alert(`Erreur lors de la sauvegarde: ${error.message || 'Erreur inconnue'}`);
@@ -421,7 +459,7 @@ export default function Designs2DConfigPage() {
             }}
             onClick={() => openModal(design)}
           >
-            {/* Preview 2D Static */}
+            {/* Preview: 3D Static si disponible, sinon 2D SVG */}
             <div style={{
               width: '100%',
               aspectRatio: '1',
@@ -430,10 +468,22 @@ export default function Designs2DConfigPage() {
               position: 'relative',
               overflow: 'hidden'
             }}>
-              <Design2DPreviewStatic 
-                url={(design as any).svg_url || (design as any).svgUrl} 
-                style={{ width: '100%', height: '100%' }}
-              />
+              {design.preview_url ? (
+                <img
+                  src={design.preview_url}
+                  alt={design.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              ) : (
+                <Design2DPreviewStatic 
+                  url={(design as any).svg_url || (design as any).svgUrl} 
+                  style={{ width: '100%', height: '100%' }}
+                />
+              )}
             </div>
           
             {/* Info */}
@@ -681,6 +731,9 @@ export default function Designs2DConfigPage() {
                           modelParts={parts}
                           materialMaps={materialMapsForModel}
                           style={{ width: '100%', height: '100%' }}
+                          onCanvasReady={(canvas) => {
+                            previewCanvasRef.current = canvas;
+                          }}
                         />
                       </div>
                     );

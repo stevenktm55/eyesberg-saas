@@ -12,6 +12,7 @@ interface Model3DPreviewStaticProps {
   materialMaps?: Record<string, any>; // material_map_id -> material map with files
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+  onCanvasReady?: (canvas: HTMLCanvasElement) => void; // Callback when canvas is ready
 }
 
 function Model({ 
@@ -374,7 +375,8 @@ export function Model3DPreviewStatic({
   style, 
   materialMaps, 
   design2DUrl, 
-  modelParts 
+  modelParts,
+  onCanvasReady
 }: Model3DPreviewStaticProps) {
   if (!url) {
     return (
@@ -426,9 +428,18 @@ export function Model3DPreviewStatic({
           antialias: true,
           alpha: false,
           outputColorSpace: THREE.SRGBColorSpace,
+          preserveDrawingBuffer: true, // Permet de capturer le canvas
         }}
         onCreated={({ gl }) => {
           gl.setClearColor(bgColor, 1);
+          // Exposer le canvas via le callback
+          if (onCanvasReady) {
+            const canvas = gl.domElement as HTMLCanvasElement;
+            // Attendre un peu pour que le rendu soit terminé
+            setTimeout(() => {
+              onCanvasReady(canvas);
+            }, 2000);
+          }
         }}
         style={{ width: '100%', height: '100%' }}
       >
