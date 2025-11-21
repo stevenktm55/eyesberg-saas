@@ -173,7 +173,7 @@ function Model({
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => {
-            // Créer un canvas et dessiner le design dessus (comme dans ModelViewer)
+            // Créer un canvas et dessiner le design dessus (comme dans ModelViewer ligne 690-696)
             const size = 512; // 512x512 pour les performances
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
@@ -184,23 +184,8 @@ function Model({
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, size, size);
             
-            // Dessiner le design centré
-            const imgAspect = img.width / img.height;
-            const canvasAspect = size / size;
-            let drawWidth = size;
-            let drawHeight = size;
-            let drawX = 0;
-            let drawY = 0;
-            
-            if (imgAspect > canvasAspect) {
-              drawHeight = size / imgAspect;
-              drawY = (size - drawHeight) / 2;
-            } else {
-              drawWidth = size * imgAspect;
-              drawX = (size - drawWidth) / 2;
-            }
-            
-            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            // Dessiner le design directement (comme dans ModelViewer ligne 696)
+            ctx.drawImage(img, 0, 0, size, size);
             
             const tex = new THREE.CanvasTexture(canvas);
             tex.colorSpace = THREE.SRGBColorSpace;
