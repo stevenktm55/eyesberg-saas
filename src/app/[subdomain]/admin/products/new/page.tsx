@@ -1695,35 +1695,92 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : activeModule.contentType === 'designs-2d' && activeModule.selectedItems?.design2DId ? (() => {
-                      const design = designs2D.find(d => d.id === activeModule.selectedItems?.design2DId);
-                      if (!design) return <p style={{ color: '#666', fontSize: '14px' }}>Design non trouvé</p>;
+                    })() : activeModule.contentType === 'designs-2d' ? (() => {
+                      // Afficher tous les designs disponibles dans une grille de 2 colonnes
+                      const selectedDesignId = activeModule.selectedItems?.design2DId;
                       
                       return (
                         <div>
-                          <div style={{
-                            padding: '16px',
-                            backgroundColor: '#f5f5f5',
-                            borderRadius: '4px',
-                            border: '1px solid #e0e0e0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: '200px'
-                          }}>
-                            <img
-                              src={design.svg_url || design.svgUrl}
-                              alt={design.name}
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '200px',
-                                objectFit: 'contain'
-                              }}
-                            />
-                          </div>
-                          <p style={{ color: '#666', fontSize: '14px', marginTop: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                            {design.name}
-                          </p>
+                          {designs2D.length === 0 ? (
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              Aucun design disponible. Sélectionnez un design dans les settings.
+                            </p>
+                          ) : (
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(2, 1fr)',
+                              gap: '12px'
+                            }}>
+                              {designs2D.map((design) => {
+                                const isSelected = design.id === selectedDesignId;
+                                return (
+                                  <div
+                                    key={design.id}
+                                    onClick={() => {
+                                      const updated = {
+                                        ...activeModule,
+                                        selectedItems: {
+                                          ...activeModule.selectedItems,
+                                          design2DId: design.id
+                                        }
+                                      };
+                                      setCustomizationModules(customizationModules.map(m =>
+                                        m.id === activeModule.id ? updated : m
+                                      ));
+                                      if (selectedModule?.id === activeModule.id) {
+                                        setSelectedModule(updated);
+                                      }
+                                    }}
+                                    style={{
+                                      padding: '12px',
+                                      backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                      borderRadius: '4px',
+                                      border: isSelected ? '2px solid #8eff36' : '1px solid #e0e0e0',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      gap: '8px'
+                                    }}
+                                  >
+                                    <div style={{
+                                      width: '100%',
+                                      padding: '12px',
+                                      backgroundColor: '#f5f5f5',
+                                      borderRadius: '4px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      minHeight: '120px',
+                                      maxHeight: '120px',
+                                      overflow: 'hidden'
+                                    }}>
+                                      <img
+                                        src={design.svg_url || design.svgUrl}
+                                        alt={design.name}
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain'
+                                        }}
+                                      />
+                                    </div>
+                                    <p style={{
+                                      color: isSelected ? '#000000' : '#666',
+                                      fontSize: '12px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontWeight: isSelected ? '600' : '400',
+                                      textAlign: 'center',
+                                      margin: 0
+                                    }}>
+                                      {design.name}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     })() : activeModule.contentType === 'sizes' && activeModule.selectedItems?.sizePatternId ? (() => {
