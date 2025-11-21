@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Model3DPreviewStatic } from '@/components/Model3DPreviewStatic';
+import { Model3DPreviewWithControls } from '@/components/Model3DPreviewWithControls';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
@@ -79,6 +79,9 @@ export default function ProductBuilderPage() {
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
   const [materialMaps, setMaterialMaps] = useState<any[]>([]);
   const [modelMaterialMaps, setModelMaterialMaps] = useState<Record<string, any>>({}); // material_map_id -> material map avec fichiers
+  const [show3DSettings, setShow3DSettings] = useState(false);
+  const [zoomSpeed, setZoomSpeed] = useState(1);
+  const [rotateSpeed, setRotateSpeed] = useState(1);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -636,7 +639,24 @@ export default function ProductBuilderPage() {
               justifyContent: 'space-between'
             }}>
               <span style={{ color: '#a0a0a0', fontSize: '12px' }}>☰</span>
-              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>⚙</span>
+              <button
+                onClick={() => setShow3DSettings(!show3DSettings)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: show3DSettings ? '#8eff36' : '#a0a0a0',
+                  fontSize: '18px',
+                  transition: 'color 0.2s'
+                }}
+                title="3D Viewer Settings"
+              >
+                ⚙
+              </button>
               <button
                 onClick={addQuestion}
                 style={{

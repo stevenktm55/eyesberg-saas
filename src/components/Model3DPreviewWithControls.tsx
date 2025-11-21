@@ -1,0 +1,151 @@
+"use client";
+
+import React, { Suspense, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
+import * as THREE from "three";
+
+interface Model3DPreviewWithControlsProps {
+  url: string | null;
+  className?: string;
+  style?: React.CSSProperties;
+  materialMaps?: Record<string, any>;
+  design2DUrl?: string | null;
+  modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+  zoomSpeed?: number;
+  rotateSpeed?: number;
+}
+
+function Model({ 
+  url, 
+  materialMaps, 
+  design2DUrl, 
+  modelParts 
+}: { 
+  url: string;
+  materialMaps?: Record<string, any>;
+  design2DUrl?: string | null;
+  modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+}) {
+  const { scene } = useGLTF(url);
+  
+  // Auto-fit le modèle dans la scène
+  const box = new THREE.Box3().setFromObject(scene);
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+  
+  const maxDim = Math.max(size.x, size.y, size.z);
+  if (maxDim > 0) {
+    const scale = 1.5 / maxDim;
+    scene.scale.multiplyScalar(scale);
+    scene.position.sub(center.multiplyScalar(scale));
+  }
+
+  // Appliquer les material maps et le design 2D (simplifié pour l'instant)
+  React.useEffect(() => {
+    if (!scene) return;
+
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const mesh = child as THREE.Mesh;
+        let material = mesh.material;
+        
+        // Convertir en MeshStandardMaterial si nécessaire
+        let standardMaterial: THREE.MeshStandardMaterial;
+        if (material instanceof THREE.MeshStandardMaterial) {
+          standardMaterial = material;
+        } else {
+          standardMaterial = new THREE.MeshStandardMaterial();
+          if (material instanceof THREE.MeshBasicMaterial) {
+            standardMaterial.color.copy(material.color);
+          } else {
+            standardMaterial.color.setHex(0xffffff);
+          }
+          mesh.material = standardMaterial;
+        }
+        
+        standardMaterial.transparent = false;
+        standardMaterial.opacity = 1.0;
+        if (standardMaterial.color.getHex() === 0x000000) {
+          standardMaterial.color.setHex(0xffffff);
+        }
+      }
+    });
+  }, [scene, materialMaps, design2DUrl, modelParts]);
+
+  return <primitive object={scene} />;
+}
+
+export function Model3DPreviewWithControls({ 
+  url, 
+  materialMaps, 
+  design2DUrl, 
+  modelParts,
+  zoomSpeed = 1,
+  rotateSpeed = 1,
+  className,
+  style 
+}: Model3DPreviewWithControlsProps) {
+  const controlsRef = useRef<any>(null);
+
+  // Mettre à jour la vitesse de rotation
+  React.useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.rotateSpeed = rotateSpeed;
+    }
+  }, [rotateSpeed]);
+
+  if (!url) {
+    return (
+      <div 
+        className={className}
+        style={{
+          ...style,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#1a1a1a',
+          color: '#a0a0a0'
+        }}
+      >
+        No 3D model selected
+      </div>
+    );
+  }
+
+  return (
+    <div className={className} style={style}>
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 50 }}
+        style={{ width: '100%', height: '100%', backgroundColor: style?.backgroundColor || '#e8e8e8' }}
+        gl={{ antialias: true }}
+      >
+        <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+        <Suspense fallback={null}>
+          <Model 
+            url={url} 
+            materialMaps={materialMaps}
+            design2DUrl={design2DUrl}
+            modelParts={modelParts}
+          />
+        </Suspense>
+        <OrbitControls
+          ref={controlsRef}
+          enableZoom={true}
+          enablePan={true}
+          enableRotate={true}
+          zoomSpeed={zoomSpeed}
+          rotateSpeed={rotateSpeed}
+          minDistance={1}
+          maxDistance={10}
+        />
+        <Environment preset="city" />
+      </Canvas>
+    </div>
+  );
+}
+
