@@ -166,8 +166,32 @@ function Model({
             materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
           });
         
+        // Vérifier si c'est un mesh BACK (ne pas appliquer le design sur les BACK)
+        const isBack = /back/i.test(materialName) || /back/i.test(objectName) || /back/i.test(nodeName);
+        
+        if (isBack) {
+          // Forcer les meshes BACK en blanc sans texture (comme dans ModelViewer)
+          const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+          (whiteMat as any).map = null;
+          (whiteMat as any).normalMap = null;
+          (whiteMat as any).roughnessMap = null;
+          (whiteMat as any).metalnessMap = null;
+          (whiteMat as any).aoMap = null;
+          (whiteMat as any).name = materialName || (objectName ? `${objectName}_BACK_WHITE` : 'BACK_WHITE');
+          if (Array.isArray(object.material)) {
+            object.material[index] = whiteMat;
+          } else {
+            object.material = whiteMat;
+          }
+          console.log('⬜ Back mesh forced white:', objectName || '(unnamed)', '| Material:', (whiteMat as any).name);
+          return; // Ne pas continuer pour les meshes BACK
+        }
+        
         // Appliquer le design 2D directement comme texture map (comme dans ModelViewer qui fonctionne)
         // Le design 2D est la texture de base, les material maps sont appliqués en plus
+        // Stocker une référence au matériau pour éviter qu'il soit écrasé
+        const materialRef = standardMaterial;
+        
         if (design2DUrl) {
           console.log('🎨 Loading design 2D from:', design2DUrl);
           const img = new Image();
@@ -206,13 +230,15 @@ function Model({
             tex.needsUpdate = true;
             
             // Appliquer le design directement comme map (base texture)
-            standardMaterial.map = tex;
-            standardMaterial.color.setHex(0xffffff); // S'assurer que la couleur est blanche
-            standardMaterial.map.needsUpdate = true;
-            standardMaterial.needsUpdate = true;
-            console.log('✅ Design 2D applied as base map texture (UV0) to material:', standardMaterial.name || 'unnamed');
+            // Utiliser materialRef pour s'assurer qu'on modifie le bon matériau
+            materialRef.map = tex;
+            materialRef.color.setHex(0xffffff); // S'assurer que la couleur est blanche
+            materialRef.map.needsUpdate = true;
+            materialRef.needsUpdate = true;
+            console.log('✅ Design 2D applied as base map texture (UV0) to material:', materialRef.name || 'unnamed');
             
             // Ensuite, appliquer les material maps (normal, roughness, etc.) en plus
+            // S'assurer de ne pas écraser la map du design
             if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
               const materialMap = materialMaps[part.material_map_id];
               const files = materialMap.material_map_files || [];
@@ -268,28 +294,34 @@ function Model({
                     
                     switch (mapType) {
                       case 'normal':
-                        standardMaterial.normalMap = texture;
-                        standardMaterial.normalScale = new THREE.Vector2(intensity, intensity);
-                        standardMaterial.normalMap.needsUpdate = true;
+                        materialRef.normalMap = texture;
+                        materialRef.normalScale = new THREE.Vector2(intensity, intensity);
+                        materialRef.normalMap.needsUpdate = true;
                         break;
                       case 'roughness':
-                        standardMaterial.roughnessMap = texture;
-                        standardMaterial.roughness = intensity;
-                        standardMaterial.roughnessMap.needsUpdate = true;
+                        materialRef.roughnessMap = texture;
+                        materialRef.roughness = intensity;
+                        materialRef.roughnessMap.needsUpdate = true;
                         break;
                       case 'metallic':
-                        standardMaterial.metalnessMap = texture;
-                        standardMaterial.metalness = intensity;
-                        standardMaterial.metalnessMap.needsUpdate = true;
+                        materialRef.metalnessMap = texture;
+                        materialRef.metalness = intensity;
+                        materialRef.metalnessMap.needsUpdate = true;
                         break;
                       case 'ao':
-                        standardMaterial.aoMap = texture;
-                        standardMaterial.aoMapIntensity = intensity;
-                        standardMaterial.aoMap.needsUpdate = true;
+                        materialRef.aoMap = texture;
+                        materialRef.aoMapIntensity = intensity;
+                        materialRef.aoMap.needsUpdate = true;
                         break;
                     }
                     
-                    standardMaterial.needsUpdate = true;
+                    // S'assurer que la map du design n'est pas écrasée
+                    if (!materialRef.map) {
+                      materialRef.map = tex;
+                      materialRef.map.needsUpdate = true;
+                    }
+                    
+                    materialRef.needsUpdate = true;
                   },
                   undefined,
                   (error) => {
