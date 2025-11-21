@@ -84,6 +84,8 @@ export default function ProductBuilderPage() {
   const [rotateSpeed, setRotateSpeed] = useState(1);
   const [minZoom, setMinZoom] = useState(1);
   const [maxZoom, setMaxZoom] = useState(10);
+  const [initialZoom, setInitialZoom] = useState(5);
+  const [initialRotation, setInitialRotation] = useState(0);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -877,7 +879,7 @@ export default function ProductBuilderPage() {
                   </div>
 
                   {/* Max Zoom */}
-                  <div>
+                  <div style={{ marginBottom: '24px' }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -928,6 +930,116 @@ export default function ProductBuilderPage() {
                     }}>
                       <span>5.0</span>
                       <span>20.0</span>
+                    </div>
+                  </div>
+
+                  {/* Initial Zoom */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Initial Zoom Distance
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {initialZoom.toFixed(1)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="15"
+                      step="0.1"
+                      value={initialZoom}
+                      onChange={(e) => setInitialZoom(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(initialZoom - 1) / (15 - 1) * 100}%, #1a1a1a ${(initialZoom - 1) / (15 - 1) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>1.0</span>
+                      <span>15.0</span>
+                    </div>
+                  </div>
+
+                  {/* Initial Rotation */}
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <label style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#a0a0a0'
+                      }}>
+                        Initial Rotation Angle
+                      </label>
+                      <span style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#8eff36',
+                        fontWeight: '600'
+                      }}>
+                        {initialRotation}°
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="1"
+                      value={initialRotation}
+                      onChange={(e) => setInitialRotation(parseInt(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#1a1a1a',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(initialRotation / 360) * 100}%, #1a1a1a ${(initialRotation / 360) * 100}%, #1a1a1a 100%)`
+                      }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '10px',
+                      color: '#666',
+                      marginTop: '4px'
+                    }}>
+                      <span>0°</span>
+                      <span>360°</span>
                     </div>
                   </div>
                 </div>

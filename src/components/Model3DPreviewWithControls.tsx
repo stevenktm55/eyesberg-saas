@@ -16,6 +16,8 @@ interface Model3DPreviewWithControlsProps {
   rotateSpeed?: number;
   minZoom?: number;
   maxZoom?: number;
+  initialZoom?: number;
+  initialRotation?: number;
 }
 
 function Model({ 
@@ -89,10 +91,13 @@ export function Model3DPreviewWithControls({
   rotateSpeed = 1,
   minZoom = 1,
   maxZoom = 10,
+  initialZoom = 5,
+  initialRotation = 0,
   className,
   style 
 }: Model3DPreviewWithControlsProps) {
   const controlsRef = useRef<any>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   // Mettre à jour la vitesse de rotation
   React.useEffect(() => {
@@ -100,6 +105,25 @@ export function Model3DPreviewWithControls({
       controlsRef.current.rotateSpeed = rotateSpeed;
     }
   }, [rotateSpeed]);
+
+  // Appliquer le zoom initial et l'angle de rotation
+  React.useEffect(() => {
+    if (controlsRef.current && cameraRef.current) {
+      const camera = cameraRef.current;
+      const controls = controlsRef.current;
+      
+      // Convertir l'angle de rotation en radians
+      const angleRad = (initialRotation * Math.PI) / 180;
+      
+      // Positionner la caméra selon l'angle de rotation (autour de l'axe Y)
+      const x = Math.sin(angleRad) * initialZoom;
+      const z = Math.cos(angleRad) * initialZoom;
+      const y = camera.position.y; // Garder la hauteur actuelle
+      
+      camera.position.set(x, y, z);
+      controls.update();
+    }
+  }, [initialZoom, initialRotation]);
 
   if (!url) {
     return (
@@ -122,9 +146,17 @@ export function Model3DPreviewWithControls({
   return (
     <div className={className} style={style}>
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
+        camera={{ position: [0, 0, initialZoom], fov: 50 }}
         style={{ width: '100%', height: '100%', backgroundColor: style?.backgroundColor || '#e8e8e8' }}
         gl={{ antialias: true }}
+        onCreated={({ camera }) => {
+          cameraRef.current = camera as THREE.PerspectiveCamera;
+          // Appliquer l'angle de rotation initial
+          const angleRad = (initialRotation * Math.PI) / 180;
+          const x = Math.sin(angleRad) * initialZoom;
+          const z = Math.cos(angleRad) * initialZoom;
+          camera.position.set(x, 0, z);
+        }}
       >
         <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />
         <ambientLight intensity={0.5} />
