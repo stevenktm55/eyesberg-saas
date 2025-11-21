@@ -133,9 +133,11 @@ function ZoomController({
     const currentDistance = camera.position.distanceTo(controls.target);
     const centerDistance = controls.target.distanceTo(center);
     
-    // Si l'utilisateur est en train de faire tourner, maintenir le target au centre
-    if (isRotatingRef.current && centerDistance > 0.001) {
-      controls.target.copy(center);
+    // Si l'utilisateur est en train de faire tourner, recentrer doucement vers le centre
+    if (isRotatingRef.current && centerDistance > 0.01) {
+      // Lerp doux vers le centre pendant la rotation pour éviter les mouvements brusques
+      const lerpFactor = 0.15;
+      controls.target.lerp(center, lerpFactor);
       controls.update();
     }
     
