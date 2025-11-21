@@ -261,12 +261,16 @@ function Model({
         
         // Charger le design 2D d'abord, puis appliquer les material maps par-dessus
         loadDesign2D((designTexture, designImage) => {
+          console.log('loadDesign2D callback - designTexture:', designTexture ? 'loaded' : 'null', 'designImage:', designImage ? 'loaded' : 'null');
+          
           // Appliquer le design 2D comme base
           if (designTexture) {
             standardMaterial.map = designTexture;
             standardMaterial.map.needsUpdate = true;
             standardMaterial.needsUpdate = true;
-            console.log('Design 2D applied as base texture');
+            console.log('Design 2D applied as base texture to material:', standardMaterial.name || 'unnamed');
+          } else if (design2DUrl) {
+            console.warn('Design 2D URL provided but texture failed to load:', design2DUrl);
           }
           
           // Ensuite, appliquer les material maps par-dessus
