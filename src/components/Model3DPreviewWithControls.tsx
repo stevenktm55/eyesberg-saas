@@ -206,7 +206,6 @@ export function Model3DPreviewWithControls({
           // Garder une hauteur Y raisonnable pour éviter la vue du dessus
           const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
           camera.position.set(x, y, z);
-          lastZoomDistanceRef.current = initialZoom;
         }}
       >
         <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />
