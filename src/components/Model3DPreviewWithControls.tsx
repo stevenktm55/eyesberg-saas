@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -31,7 +31,8 @@ function Model({
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
 }) {
-  const { scene, gl } = useGLTF(url);
+  const { scene } = useGLTF(url);
+  const { gl } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   
   // Clone la scène pour éviter les mutations
