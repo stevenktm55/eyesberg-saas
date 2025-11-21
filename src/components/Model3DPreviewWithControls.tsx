@@ -169,15 +169,20 @@ function Model({
         // Appliquer le design 2D directement comme texture map (comme dans ModelViewer qui fonctionne)
         // Le design 2D est la texture de base, les material maps sont appliqués en plus
         if (design2DUrl) {
+          console.log('🎨 Loading design 2D from:', design2DUrl);
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => {
+            console.log('✅ Design 2D image loaded, size:', img.width, 'x', img.height);
             // Créer un canvas et dessiner le design dessus (comme dans ModelViewer ligne 690-696)
             const size = 512; // 512x512 pour les performances
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
             const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+            if (!ctx) {
+              console.error('❌ Failed to get canvas context');
+              return;
+            }
             
             // Fond blanc d'abord (comme dans ModelViewer)
             ctx.fillStyle = '#FFFFFF';
@@ -185,6 +190,7 @@ function Model({
             
             // Dessiner le design directement (comme dans ModelViewer ligne 696)
             ctx.drawImage(img, 0, 0, size, size);
+            console.log('✅ Design drawn on canvas');
             
             const tex = new THREE.CanvasTexture(canvas);
             tex.colorSpace = THREE.SRGBColorSpace;
@@ -204,7 +210,7 @@ function Model({
             standardMaterial.color.setHex(0xffffff); // S'assurer que la couleur est blanche
             standardMaterial.map.needsUpdate = true;
             standardMaterial.needsUpdate = true;
-            console.log('Design 2D applied as base map texture (UV0)');
+            console.log('✅ Design 2D applied as base map texture (UV0) to material:', standardMaterial.name || 'unnamed');
             
             // Ensuite, appliquer les material maps (normal, roughness, etc.) en plus
             if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
