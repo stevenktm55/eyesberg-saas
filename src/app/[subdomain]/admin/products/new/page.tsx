@@ -1844,7 +1844,21 @@ export default function ProductBuilderPage() {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                     if (selectedModel) {
                       const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
-                      const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
+                      
+                      // Prioriser le design sélectionné dans l'onglet actif, sinon utiliser le design de base
+                      let designIdToUse: string | null = null;
+                      if (activeCustomizerTab) {
+                        const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+                        if (activeModule?.contentType === 'designs-2d' && activeModule.selectedItems?.design2DId) {
+                          designIdToUse = activeModule.selectedItems.design2DId;
+                        }
+                      }
+                      // Si aucun design dans l'onglet, utiliser le design de base
+                      if (!designIdToUse) {
+                        designIdToUse = selectedDesign2DId;
+                      }
+                      
+                      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
                       const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
                       
                       // Préparer les material maps pour chaque partie du modèle
