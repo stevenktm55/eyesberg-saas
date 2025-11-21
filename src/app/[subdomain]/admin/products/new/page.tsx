@@ -4,6 +4,21 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Model3DPreviewWithControls } from '@/components/Model3DPreviewWithControls';
 
+// Style global pour forcer le texte en noir dans le Tab Header
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    .customizer-tab-name {
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+    }
+  `;
+  if (!document.getElementById('customizer-tab-style')) {
+    style.id = 'customizer-tab-style';
+    document.head.appendChild(style);
+  }
+}
+
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
 type CustomizationModule = {
@@ -1441,14 +1456,17 @@ export default function ProductBuilderPage() {
                         </span>
                       )}
                     </div>
-                    <span style={{ 
-                      color: '#000000', 
-                      fontSize: '14px', 
-                      fontFamily: 'var(--stepn-font-body)', 
-                      fontWeight: '500',
-                      display: 'block',
-                      lineHeight: '1.2'
-                    }}>
+                    <span 
+                      style={{ 
+                        color: '#000000',
+                        fontSize: '14px', 
+                        fontFamily: 'var(--stepn-font-body)', 
+                        fontWeight: '500',
+                        display: 'block',
+                        lineHeight: '1.2'
+                      }}
+                      className="customizer-tab-name"
+                    >
                       {activeModule.tabName}
                     </span>
                   </div>
