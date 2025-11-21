@@ -1349,14 +1349,14 @@ export default function ProductBuilderPage() {
                     style={{
                       width: '48px',
                       height: '48px',
-                      backgroundColor: activeCustomizerTab === module.id ? '#000000' : 'transparent',
-                      border: activeCustomizerTab === module.id ? '1px solid #000000' : '1px solid #e0e0e0',
+                      backgroundColor: activeCustomizerTab === module.id ? '#f5f5f5' : 'transparent',
+                      border: activeCustomizerTab === module.id ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
                       borderRadius: '4px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      color: activeCustomizerTab === module.id ? '#ffffff' : '#666666',
+                      color: activeCustomizerTab === module.id ? '#000000' : '#666666',
                       fontSize: '20px',
                       transition: 'all 0.2s',
                       overflow: 'hidden'
@@ -1373,8 +1373,7 @@ export default function ProductBuilderPage() {
                           maxWidth: '32px',
                           maxHeight: '32px',
                           objectFit: 'contain',
-                          display: 'block',
-                          filter: activeCustomizerTab === module.id ? 'invert(1) brightness(1)' : 'none'
+                          display: 'block'
                         }}
                       />
                     ) : (
