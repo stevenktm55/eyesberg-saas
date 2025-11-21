@@ -71,7 +71,37 @@ function Model({
 
     clonedScene.traverse((object) => {
       if (object instanceof THREE.Mesh && object.material) {
+        const objectName = (object as any).name || '';
+        const nodeName = (object.parent as any)?.name || '';
         const materials = Array.isArray(object.material) ? object.material : [object.material];
+        
+        // Vérifier si c'est un mesh "back" AVANT de traiter les matériaux
+        let isBackMesh = false;
+        materials.forEach((material) => {
+          const materialName = (material as any).name || '';
+          if (/back/i.test(materialName) || /back/i.test(objectName) || /back/i.test(nodeName)) {
+            isBackMesh = true;
+          }
+        });
+        
+        // Si c'est un mesh "back", forcer blanc et ignorer le reste
+        if (isBackMesh) {
+          const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+          whiteMat.map = null;
+          whiteMat.normalMap = null;
+          whiteMat.roughnessMap = null;
+          whiteMat.metalnessMap = null;
+          whiteMat.aoMap = null;
+          whiteMat.transparent = false;
+          whiteMat.opacity = 1.0;
+          if (Array.isArray(object.material)) {
+            object.material = object.material.map(() => whiteMat);
+          } else {
+            object.material = whiteMat;
+          }
+          console.log('⬜ Back mesh forced white:', objectName || '(unnamed)');
+          return; // Ne pas appliquer de material maps ni design 2D
+        }
         
         materials.forEach((material, index) => {
           // Convertir en MeshStandardMaterial si nécessaire
@@ -101,28 +131,6 @@ function Model({
           // Trouver le material map correspondant par nom du matériau
           // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
           const materialName = (material as any).name || '';
-          const objectName = (object as any).name || '';
-          const nodeName = (object.parent as any)?.name || '';
-          
-          // Vérifier si c'est un mesh "back" - forcer blanc et ignorer le design 2D
-          const isBackMesh = /back/i.test(materialName) || /back/i.test(objectName) || /back/i.test(nodeName);
-          if (isBackMesh) {
-            const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            whiteMat.map = null;
-            whiteMat.normalMap = null;
-            whiteMat.roughnessMap = null;
-            whiteMat.metalnessMap = null;
-            whiteMat.aoMap = null;
-            whiteMat.transparent = false;
-            whiteMat.opacity = 1.0;
-            if (Array.isArray(object.material)) {
-              object.material[index] = whiteMat;
-            } else {
-              object.material = whiteMat;
-            }
-            console.log('⬜ Back mesh forced white:', objectName || '(unnamed)', '| Material:', materialName || '(no name)');
-            return; // Ne pas appliquer de material maps ni design 2D
-          }
           
           let part: { name: string; material_map_id?: string | null } | undefined;
           
