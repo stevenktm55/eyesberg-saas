@@ -148,7 +148,8 @@ export function Model3DPreviewWithControls({
   // Activer le zoom vers le curseur
   React.useEffect(() => {
     if (controlsRef.current) {
-      controlsRef.current.dollyToCursor = true;
+      // Activer le zoom vers le curseur
+      controlsRef.current.zoomToCursor = true;
       controlsRef.current.screenSpacePanning = false;
     }
   }, []);
@@ -228,6 +229,7 @@ export function Model3DPreviewWithControls({
           rotateSpeed={rotateSpeed}
           minDistance={minZoom}
           maxDistance={maxZoom}
+          zoomToCursor={true}
         />
         <ZoomController 
           controlsRef={controlsRef} 
