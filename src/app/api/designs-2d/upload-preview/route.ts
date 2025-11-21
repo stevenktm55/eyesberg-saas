@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
+const BUCKET_NAME = 'designs-2d-previews';
+
 export async function POST(request: NextRequest) {
   try {
     const subdomain = await getSubdomain(request);
@@ -22,28 +24,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier si le bucket existe et a les bons types MIME
-    const { data: existingBucket, error: checkError } = await supabaseAdmin.storage.getBucket('designs-2d');
+    // Vérifier si le bucket existe, sinon le créer
+    const { data: existingBucket, error: checkError } = await supabaseAdmin.storage.getBucket(BUCKET_NAME);
     
     if (!existingBucket && (checkError?.message?.includes('not found') || checkError?.statusCode === '404')) {
-      console.log('Bucket "designs-2d" n\'existe pas, création en cours...');
-      const { error: createError } = await supabaseAdmin.storage.createBucket('designs-2d', {
+      console.log(`Bucket "${BUCKET_NAME}" n'existe pas, création en cours...`);
+      const { error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
         public: true,
         fileSizeLimit: 10 * 1024 * 1024, // 10MB
-        allowedMimeTypes: ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'],
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'],
       });
       
       if (createError) {
         console.error('Error creating bucket:', createError);
+        // Continuer quand même, le bucket existe peut-être déjà
       } else {
-        console.log('Bucket "designs-2d" créé avec succès');
+        console.log(`Bucket "${BUCKET_NAME}" créé avec succès`);
       }
+    } else if (checkError && !checkError.message?.includes('not found') && checkError.statusCode !== '404') {
+      console.error('Error checking bucket:', checkError);
     }
 
-    // Uploader directement le File vers Supabase Storage (Supabase détectera automatiquement le type MIME)
+    // Uploader directement le File vers Supabase Storage
     const fileName = `preview-${Date.now()}-${file.name}`;
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from('designs-2d')
+      .from(BUCKET_NAME)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: true,
@@ -59,8 +64,10 @@ export async function POST(request: NextRequest) {
 
     // Obtenir l'URL publique
     const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('designs-2d')
+      .from(BUCKET_NAME)
       .getPublicUrl(uploadData.path);
+
+    console.log('Preview uploaded successfully:', publicUrl);
 
     return NextResponse.json({
       success: true,
