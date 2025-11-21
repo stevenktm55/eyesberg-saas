@@ -1052,6 +1052,7 @@ export default function ProductBuilderPage() {
                     </div>
                   ))}
                 </div>
+                )
               )}
             </div>
 
