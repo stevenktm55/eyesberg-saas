@@ -372,7 +372,6 @@ function Model({
             console.log('No material maps, design 2D already applied');
           }
         });
-        });
       }
     });
   }, [clonedScene, materialMaps, design2DUrl, modelParts]);
