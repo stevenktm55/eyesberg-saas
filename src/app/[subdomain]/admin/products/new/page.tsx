@@ -919,7 +919,7 @@ export default function ProductBuilderPage() {
                     </div>
                     <input
                       type="range"
-                      min="3"
+                      min="1"
                       max="20"
                       step="0.5"
                       value={maxZoom}
@@ -933,7 +933,7 @@ export default function ProductBuilderPage() {
                         cursor: 'pointer',
                         WebkitAppearance: 'none',
                         appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 3) / (20 - 3) * 100}%, #1a1a1a ${(maxZoom - 3) / (20 - 3) * 100}%, #1a1a1a 100%)`
+                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 1) / (20 - 1) * 100}%, #1a1a1a ${(maxZoom - 1) / (20 - 1) * 100}%, #1a1a1a 100%)`
                       }}
                     />
                     <div style={{
@@ -943,7 +943,7 @@ export default function ProductBuilderPage() {
                       color: '#666',
                       marginTop: '4px'
                     }}>
-                      <span>3.0</span>
+                      <span>1.0</span>
                       <span>20.0</span>
                     </div>
                   </div>
