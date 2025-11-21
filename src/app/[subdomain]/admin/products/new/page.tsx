@@ -61,7 +61,8 @@ export default function ProductBuilderPage() {
   const [newModule, setNewModule] = useState<Partial<CustomizationModule>>({
     tabName: '',
     icon: '🎨',
-    inputType: 'thumbnail'
+    inputType: 'thumbnail', // Par défaut, sera toujours 'thumbnail' pour la V1
+    contentType: null
   });
   const [newModuleIconFile, setNewModuleIconFile] = useState<File | null>(null);
   const [selectedModule, setSelectedModule] = useState<CustomizationModule | null>(null);
@@ -324,13 +325,14 @@ export default function ProductBuilderPage() {
     setNewModule({
       tabName: '',
       icon: '🎨',
-      inputType: 'thumbnail'
+      inputType: 'thumbnail', // Toujours 'thumbnail' pour la V1
+      contentType: null
     });
     setShowCreateModuleModal(true);
   }
 
   async function createModule() {
-    if (!newModule.tabName || !newModule.icon || !newModule.inputType) {
+    if (!newModule.tabName || !newModule.icon || !newModule.contentType) {
       alert('Veuillez remplir tous les champs');
       return;
     }
@@ -362,19 +364,20 @@ export default function ProductBuilderPage() {
 
     const module: CustomizationModule = {
       id: `module-${Date.now()}`,
-      tabName: newModule.tabName,
-      icon: newModule.icon,
+      tabName: newModule.tabName!,
+      icon: newModule.icon!,
       iconUrl: iconUrl,
-      inputType: newModule.inputType as CustomizationModule['inputType'],
+      inputType: 'thumbnail', // Toujours 'thumbnail' pour la V1
       required: newModule.required || false,
-      options: (newModule.inputType === 'dropdown' || newModule.inputType === 'radio') ? [] : undefined
+      contentType: newModule.contentType as CustomizationModule['contentType']
     };
 
     setCustomizationModules([...customizationModules, module]);
     setNewModule({
       tabName: '',
       icon: '🎨',
-      inputType: 'thumbnail'
+      inputType: 'thumbnail',
+      contentType: null
     });
     setNewModuleIconFile(null);
     setShowCreateModuleModal(false);
@@ -2565,7 +2568,7 @@ export default function ProductBuilderPage() {
                 </p>
               </div>
 
-              {/* Input Type */}
+              {/* Module Type (Content Type) */}
               <div>
                 <label style={{
                   display: 'block',
@@ -2574,11 +2577,11 @@ export default function ProductBuilderPage() {
                   marginBottom: '8px',
                   fontFamily: 'var(--stepn-font-body)'
                 }}>
-                  Type d'input
+                  Type de module
                 </label>
                 <select
-                  value={newModule.inputType || 'thumbnail'}
-                  onChange={(e) => setNewModule({ ...newModule, inputType: e.target.value as CustomizationModule['inputType'] })}
+                  value={newModule.contentType || ''}
+                  onChange={(e) => setNewModule({ ...newModule, contentType: e.target.value as CustomizationModule['contentType'] || null })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -2599,13 +2602,12 @@ export default function ProductBuilderPage() {
                     e.currentTarget.style.borderColor = '#2a2a2a';
                   }}
                 >
-                  <option value="thumbnail">Thumbnail (Miniatures)</option>
-                  <option value="dropdown">Dropdown (Menu déroulant)</option>
-                  <option value="radio">Radio Button (Boutons radio)</option>
-                  <option value="label">Label (Étiquette)</option>
-                  <option value="file-upload">File Upload (Upload fichier)</option>
-                  <option value="text-input">Text Input (Champ texte)</option>
-                  <option value="checkbox">Checkbox (Case à cocher)</option>
+                  <option value="">Sélectionner un type...</option>
+                  <option value="colors">Couleurs (Color Palettes)</option>
+                  <option value="logos">Logos (Logo Libraries)</option>
+                  <option value="fonts">Polices (Font Groups)</option>
+                  <option value="designs-2d">Designs 2D</option>
+                  <option value="sizes">Tailles (Size Patterns)</option>
                 </select>
               </div>
 
@@ -2618,7 +2620,8 @@ export default function ProductBuilderPage() {
                   setNewModule({
                     tabName: '',
                     icon: '🎨',
-                    inputType: 'thumbnail'
+                    inputType: 'thumbnail',
+                    contentType: null
                   });
                   setNewModuleIconFile(null);
                 }}
@@ -2639,16 +2642,16 @@ export default function ProductBuilderPage() {
               </button>
               <button
                 onClick={createModule}
-                disabled={!newModule.tabName || !newModule.icon || !newModule.inputType}
+                disabled={!newModule.tabName || !newModule.icon || !newModule.contentType}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? '#4a4a4a' : '#8eff36',
+                  backgroundColor: (!newModule.tabName || !newModule.icon || !newModule.contentType) ? '#4a4a4a' : '#8eff36',
                   border: 'none',
                   borderRadius: '6px',
-                  color: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? '#a0a0a0' : '#000000',
+                  color: (!newModule.tabName || !newModule.icon || !newModule.contentType) ? '#a0a0a0' : '#000000',
                   fontSize: '14px',
                   fontWeight: '500',
-                  cursor: (!newModule.tabName || !newModule.icon || !newModule.inputType) ? 'not-allowed' : 'pointer',
+                  cursor: (!newModule.tabName || !newModule.icon || !newModule.contentType) ? 'not-allowed' : 'pointer',
                   fontFamily: 'var(--stepn-font-body)',
                   transition: 'all 0.2s'
                 }}
