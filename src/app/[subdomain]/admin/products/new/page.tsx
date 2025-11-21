@@ -296,7 +296,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId]);
+  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
