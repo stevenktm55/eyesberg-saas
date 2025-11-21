@@ -435,10 +435,11 @@ export function Model3DPreviewStatic({
           // Exposer le canvas via le callback
           if (onCanvasReady) {
             const canvas = gl.domElement as HTMLCanvasElement;
-            // Attendre un peu pour que le rendu soit terminé
+            // Attendre que le rendu soit terminé (textures chargées, matériaux appliqués)
+            // On attend plus longtemps pour s'assurer que tout est chargé
             setTimeout(() => {
               onCanvasReady(canvas);
-            }, 2000);
+            }, 3000);
           }
         }}
         style={{ width: '100%', height: '100%' }}

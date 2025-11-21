@@ -75,7 +75,9 @@ export default function Designs2DConfigPage() {
       const res = await fetch("/api/designs-2d");
       if (!res.ok) throw new Error("Failed to fetch designs");
       const data = await res.json();
-      setDesigns(Array.isArray(data) ? data : []);
+      const designsArray = Array.isArray(data) ? data : [];
+      console.log('Fetched designs:', designsArray.map(d => ({ id: d.id, name: d.name, preview_url: d.preview_url })));
+      setDesigns(designsArray);
     } catch (error) {
       console.error("Error fetching designs:", error);
     }
@@ -194,39 +196,64 @@ export default function Designs2DConfigPage() {
     try {
       let finalPreviewUrl = previewUrl;
       
-      // Si un modèle 3D est sélectionné et qu'on a un canvas, capturer et uploader le preview
-      if (selectedModel3DId && previewCanvasRef.current) {
-        try {
-          // Convertir le canvas en blob
-          const blob = await new Promise<Blob>((resolve, reject) => {
-            previewCanvasRef.current?.toBlob((blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error('Failed to convert canvas to blob'));
-              }
-            }, 'image/png');
-          });
-          
-          // Uploader vers Supabase Storage
-          const fileName = `preview-${selectedDesign.id}-${Date.now()}.png`;
-          const formData = new FormData();
-          formData.append('file', blob, fileName);
-          
-          const uploadRes = await fetch('/api/designs-2d/upload-preview', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (!uploadRes.ok) {
-            throw new Error('Failed to upload preview');
+      // Si un modèle 3D est sélectionné, capturer et uploader le preview
+      if (selectedModel3DId) {
+        // Attendre un peu pour s'assurer que le canvas est prêt
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Chercher le canvas dans le DOM si le ref n'est pas encore défini
+        let canvas = previewCanvasRef.current;
+        if (!canvas) {
+          // Essayer de trouver le canvas dans le DOM
+          const canvasElement = document.querySelector('canvas') as HTMLCanvasElement;
+          if (canvasElement) {
+            canvas = canvasElement;
+            previewCanvasRef.current = canvas;
           }
-          
-          const uploadData = await uploadRes.json();
-          finalPreviewUrl = uploadData.url;
-        } catch (uploadError: any) {
-          console.error('Error uploading preview:', uploadError);
-          // Continuer même si l'upload échoue
+        }
+        
+        if (canvas) {
+          try {
+            console.log('Capturing canvas for preview, size:', canvas.width, 'x', canvas.height);
+            
+            // Convertir le canvas en blob
+            const blob = await new Promise<Blob>((resolve, reject) => {
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  console.log('Canvas converted to blob, size:', blob.size);
+                  resolve(blob);
+                } else {
+                  reject(new Error('Failed to convert canvas to blob'));
+                }
+              }, 'image/png', 0.95);
+            });
+            
+            // Uploader vers Supabase Storage
+            const fileName = `preview-${selectedDesign.id}-${Date.now()}.png`;
+            const formData = new FormData();
+            formData.append('file', blob, fileName);
+            
+            console.log('Uploading preview to Supabase...');
+            const uploadRes = await fetch('/api/designs-2d/upload-preview', {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (!uploadRes.ok) {
+              const errorText = await uploadRes.text();
+              console.error('Upload failed:', errorText);
+              throw new Error('Failed to upload preview');
+            }
+            
+            const uploadData = await uploadRes.json();
+            finalPreviewUrl = uploadData.url;
+            console.log('Preview uploaded successfully:', finalPreviewUrl);
+          } catch (uploadError: any) {
+            console.error('Error uploading preview:', uploadError);
+            // Continuer même si l'upload échoue
+          }
+        } else {
+          console.warn('No canvas found for preview capture');
         }
       }
       
@@ -247,6 +274,8 @@ export default function Designs2DConfigPage() {
         throw new Error('Failed to save design settings');
       }
       
+      const updatedDesign = await res.json();
+      console.log('Design updated with preview_url:', updatedDesign.preview_url);
       await fetchDesigns();
       closeModal(); // Fermer le modal sans alerte
     } catch (error: any) {
@@ -438,53 +467,64 @@ export default function Designs2DConfigPage() {
         </div>
 
         {/* Existing Designs */}
-        {filteredDesigns.map((design) => (
-          <div
-            key={design.id}
-            style={{
-              backgroundColor: '#1a1a1a',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              transition: 'all 0.2s',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#8eff36';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#2a2a2a';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-            onClick={() => openModal(design)}
-          >
-            {/* Preview: 3D Static si disponible, sinon 2D SVG */}
-            <div style={{
-              width: '100%',
-              aspectRatio: '1',
-              backgroundColor: '#0a0a0a',
-              borderBottom: '1px solid #2a2a2a',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              {design.preview_url ? (
-                <img
-                  src={design.preview_url}
-                  alt={design.name}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
-                />
-              ) : (
-                <Design2DPreviewStatic 
-                  url={(design as any).svg_url || (design as any).svgUrl} 
-                  style={{ width: '100%', height: '100%' }}
-                />
-              )}
-            </div>
+        {filteredDesigns.map((design) => {
+          const hasPreview = design.preview_url && design.preview_url.trim() !== '';
+          console.log(`Design ${design.name}: preview_url = ${design.preview_url}, hasPreview = ${hasPreview}`);
+          
+          return (
+            <div
+              key={design.id}
+              style={{
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                transition: 'all 0.2s',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#8eff36';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#2a2a2a';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+              onClick={() => openModal(design)}
+            >
+              {/* Preview: 3D Static si disponible, sinon 2D SVG */}
+              <div style={{
+                width: '100%',
+                aspectRatio: '1',
+                backgroundColor: '#0a0a0a',
+                borderBottom: '1px solid #2a2a2a',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {hasPreview ? (
+                  <img
+                    key={design.preview_url} // Force re-render when preview_url changes
+                    src={design.preview_url}
+                    alt={design.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      backgroundColor: '#0a0a0a'
+                    }}
+                    onError={(e) => {
+                      console.error('Error loading preview image:', design.preview_url);
+                      // Fallback to SVG if preview fails to load
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <Design2DPreviewStatic 
+                    url={(design as any).svg_url || (design as any).svgUrl} 
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                )}
+              </div>
           
             {/* Info */}
             <div style={{ padding: '16px' }}>
@@ -509,7 +549,8 @@ export default function Designs2DConfigPage() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal */}
