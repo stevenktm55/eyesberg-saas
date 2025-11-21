@@ -220,7 +220,7 @@ function Model({
               if (ctx) {
                 // Si on a déjà une texture diffuse (des material maps), on la dessine d'abord
                 // Sinon, on met un fond blanc
-                if (standardMaterial.map && standardMaterial.map.image) {
+                if (standardMaterial.map && standardMaterial.map.image && standardMaterial.map.image instanceof HTMLImageElement) {
                   // Dessiner la texture existante en arrière-plan
                   ctx.drawImage(standardMaterial.map.image, 0, 0, canvas.width, canvas.height);
                 } else {
