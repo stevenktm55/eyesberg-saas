@@ -82,43 +82,18 @@ function Model({
   return <primitive object={scene} />;
 }
 
-export function Model3DPreviewWithControls({ 
-  url, 
-  materialMaps, 
-  design2DUrl, 
-  modelParts,
-  zoomSpeed = 1,
-  rotateSpeed = 1,
-  minZoom = 1,
-  maxZoom = 10,
-  initialZoom = 5,
-  initialRotation = 0,
-  className,
-  style 
-}: Model3DPreviewWithControlsProps) {
-  const controlsRef = useRef<any>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const targetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
-  const isZoomingRef = useRef(false);
+// Composant pour gérer le recentrage progressif lors du dézoom
+function ZoomController({ 
+  controlsRef, 
+  cameraRef, 
+  initialZoom 
+}: { 
+  controlsRef: React.MutableRefObject<any>;
+  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
+  initialZoom: number;
+}) {
   const lastZoomDistanceRef = useRef(initialZoom);
 
-  // Mettre à jour la vitesse de rotation
-  React.useEffect(() => {
-    if (controlsRef.current) {
-      controlsRef.current.rotateSpeed = rotateSpeed;
-    }
-  }, [rotateSpeed]);
-
-  // Activer le zoom vers le curseur
-  React.useEffect(() => {
-    if (controlsRef.current) {
-      controlsRef.current.dollyToCursor = true;
-      controlsRef.current.screenSpacePanning = false;
-    }
-  }, []);
-
-  // Gérer le recentrage progressif lors du dézoom
   useFrame(() => {
     if (!controlsRef.current || !cameraRef.current) return;
     
@@ -141,6 +116,42 @@ export function Model3DPreviewWithControls({
     
     lastZoomDistanceRef.current = currentDistance;
   });
+
+  return null;
+}
+
+export function Model3DPreviewWithControls({ 
+  url, 
+  materialMaps, 
+  design2DUrl, 
+  modelParts,
+  zoomSpeed = 1,
+  rotateSpeed = 1,
+  minZoom = 1,
+  maxZoom = 10,
+  initialZoom = 5,
+  initialRotation = 0,
+  className,
+  style 
+}: Model3DPreviewWithControlsProps) {
+  const controlsRef = useRef<any>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Mettre à jour la vitesse de rotation
+  React.useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.rotateSpeed = rotateSpeed;
+    }
+  }, [rotateSpeed]);
+
+  // Activer le zoom vers le curseur
+  React.useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.dollyToCursor = true;
+      controlsRef.current.screenSpacePanning = false;
+    }
+  }, []);
 
   // Appliquer le zoom initial et l'angle de rotation
   React.useEffect(() => {
@@ -218,6 +229,11 @@ export function Model3DPreviewWithControls({
           rotateSpeed={rotateSpeed}
           minDistance={minZoom}
           maxDistance={maxZoom}
+        />
+        <ZoomController 
+          controlsRef={controlsRef} 
+          cameraRef={cameraRef} 
+          initialZoom={initialZoom} 
         />
         <Environment preset="city" />
       </Canvas>
