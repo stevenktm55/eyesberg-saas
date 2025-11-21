@@ -281,15 +281,22 @@ function Model({
                             const img = new Image();
                             img.crossOrigin = 'anonymous';
                             img.onload = () => {
-                              const canvas = combineDesignWithMaterial(img, texture);
-                              if (canvas) {
-                                const combinedTexture = new THREE.CanvasTexture(canvas);
-                                combinedTexture.needsUpdate = true;
-                                standardMaterial.map = combinedTexture;
-                                standardMaterial.map.needsUpdate = true;
-                                standardMaterial.needsUpdate = true;
-                                console.log('Combined texture applied (material map + design 2D)');
-                              }
+                            const canvas = combineDesignWithMaterial(img, texture);
+                            if (canvas) {
+                              const combinedTexture = new THREE.CanvasTexture(canvas);
+                              combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                              // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                              combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                              combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                              combinedTexture.repeat.set(1, 1);
+                              combinedTexture.offset.set(0, 0);
+                              combinedTexture.flipY = false;
+                              combinedTexture.needsUpdate = true;
+                              standardMaterial.map = combinedTexture;
+                              standardMaterial.map.needsUpdate = true;
+                              standardMaterial.needsUpdate = true;
+                              console.log('Combined texture applied (material map + design 2D)');
+                            }
                               resolve();
                             };
                             img.onerror = () => reject(new Error('Failed to load SVG'));
@@ -305,6 +312,13 @@ function Model({
                                   const canvas = combineDesignWithMaterial(designTexture.image, texture);
                                   if (canvas) {
                                     const combinedTexture = new THREE.CanvasTexture(canvas);
+                                    combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                                    // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                                    combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                                    combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                                    combinedTexture.repeat.set(1, 1);
+                                    combinedTexture.offset.set(0, 0);
+                                    combinedTexture.flipY = false;
                                     combinedTexture.needsUpdate = true;
                                     standardMaterial.map = combinedTexture;
                                     standardMaterial.map.needsUpdate = true;
@@ -377,6 +391,13 @@ function Model({
                     const canvas = combineDesignWithMaterial(img, null);
                     if (canvas) {
                       const texture = new THREE.CanvasTexture(canvas);
+                      texture.colorSpace = THREE.SRGBColorSpace;
+                      // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                      texture.wrapS = THREE.ClampToEdgeWrapping;
+                      texture.wrapT = THREE.ClampToEdgeWrapping;
+                      texture.repeat.set(1, 1);
+                      texture.offset.set(0, 0);
+                      texture.flipY = false;
                       texture.needsUpdate = true;
                       standardMaterial.map = texture;
                       standardMaterial.map.needsUpdate = true;
@@ -397,6 +418,13 @@ function Model({
                         const canvas = combineDesignWithMaterial(designTexture.image, null);
                         if (canvas) {
                           const texture = new THREE.CanvasTexture(canvas);
+                          texture.colorSpace = THREE.SRGBColorSpace;
+                          // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                          texture.wrapS = THREE.ClampToEdgeWrapping;
+                          texture.wrapT = THREE.ClampToEdgeWrapping;
+                          texture.repeat.set(1, 1);
+                          texture.offset.set(0, 0);
+                          texture.flipY = false;
                           texture.needsUpdate = true;
                           standardMaterial.map = texture;
                           standardMaterial.map.needsUpdate = true;
@@ -426,6 +454,13 @@ function Model({
                 const canvas = combineDesignWithMaterial(img, null);
                 if (canvas) {
                   const texture = new THREE.CanvasTexture(canvas);
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                  texture.wrapS = THREE.ClampToEdgeWrapping;
+                  texture.wrapT = THREE.ClampToEdgeWrapping;
+                  texture.repeat.set(1, 1);
+                  texture.offset.set(0, 0);
+                  texture.flipY = false;
                   texture.needsUpdate = true;
                   standardMaterial.map = texture;
                   standardMaterial.map.needsUpdate = true;
@@ -442,6 +477,13 @@ function Model({
               textureLoader.load(
                 design2DUrl,
                 (texture) => {
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                  texture.wrapS = THREE.ClampToEdgeWrapping;
+                  texture.wrapT = THREE.ClampToEdgeWrapping;
+                  texture.repeat.set(1, 1);
+                  texture.offset.set(0, 0);
+                  texture.flipY = false;
                   standardMaterial.map = texture;
                   standardMaterial.map.needsUpdate = true;
                   standardMaterial.needsUpdate = true;
