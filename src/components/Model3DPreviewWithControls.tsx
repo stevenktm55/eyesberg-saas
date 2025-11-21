@@ -167,115 +167,136 @@ function Model({
             materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
           });
         
-        // Fonction pour combiner le design 2D (en dessous) avec la texture diffuse des material maps (par-dessus)
-        // Le design 2D doit être sur UV0 en dessous des material maps
-        const combineDesignWithMaterial = (designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
-          const canvas = document.createElement('canvas');
-          canvas.width = 512; // Réduit à 512x512 pour de meilleures performances
-          canvas.height = 512;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return null;
-          
-          // 1. D'abord, dessiner le design 2D (base sur UV0)
-          const imgAspect = designImg.width / designImg.height;
-          const canvasAspect = canvas.width / canvas.height;
-          let drawWidth = canvas.width;
-          let drawHeight = canvas.height;
-          let drawX = 0;
-          let drawY = 0;
-          
-          if (imgAspect > canvasAspect) {
-            drawHeight = canvas.width / imgAspect;
-            drawY = (canvas.height - drawHeight) / 2;
-          } else {
-            drawWidth = canvas.height * imgAspect;
-            drawX = (canvas.width - drawWidth) / 2;
-          }
-          
-          // Fond blanc d'abord
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          // Dessiner le design 2D
-          ctx.drawImage(designImg, drawX, drawY, drawWidth, drawHeight);
-          
-          // 2. Ensuite, dessiner la texture diffuse des material maps par-dessus (si elle existe)
-          // Utiliser un mode de fusion overlay pour que le design 2D reste visible en dessous
-          if (materialTex && materialTex.image) {
-            ctx.globalCompositeOperation = 'overlay'; // Mode overlay pour mélanger le design avec la texture
-            ctx.globalAlpha = 0.7; // Réduire légèrement l'opacité pour que le design reste visible
-            ctx.drawImage(materialTex.image as CanvasImageSource, 0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0; // Remettre l'opacité par défaut
-            ctx.globalCompositeOperation = 'source-over'; // Remettre le mode par défaut
-          }
-          
-          return canvas;
-        };
-        
-        // Fonction pour charger le design 2D et l'appliquer
-        const loadDesign2D = (onLoaded: (texture: THREE.Texture | null, designImage: HTMLImageElement | null) => void) => {
-          if (!design2DUrl) {
-            onLoaded(null, null);
-            return;
-          }
-          
-          if (design2DUrl.toLowerCase().endsWith('.svg')) {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              const canvas = combineDesignWithMaterial(img, null);
-              if (canvas) {
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                console.log('Design 2D loaded as base (UV0)');
-                onLoaded(texture, img);
-              } else {
-                onLoaded(null, null);
-              }
-            };
-            img.onerror = (error) => {
-              console.error('Error loading SVG for conversion:', error);
-              onLoaded(null, null);
-            };
-            img.src = design2DUrl;
-          } else {
-            // Pour les images non-SVG, charger d'abord comme Image pour avoir l'élément HTMLImageElement
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              const canvas = combineDesignWithMaterial(img, null);
-              if (canvas) {
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                console.log('Design 2D loaded as base (UV0)');
-                onLoaded(texture, img);
-              } else {
-                onLoaded(null, null);
-              }
-            };
-            img.onerror = (error) => {
-              console.error('Error loading design 2D image:', error);
-              onLoaded(null, null);
-            };
-            img.src = design2DUrl;
-          }
-        };
-        
-        // Charger le design 2D d'abord, puis appliquer les material maps par-dessus
-        loadDesign2D((designTexture, designImage) => {
-          console.log('loadDesign2D callback - designTexture:', designTexture ? 'loaded' : 'null', 'designImage:', designImage ? 'loaded' : 'null');
-          
-          // Appliquer le design 2D comme base
-          if (designTexture) {
-            standardMaterial.map = designTexture;
+        // Appliquer le design 2D directement comme texture map (comme dans ModelViewer qui fonctionne)
+        // Le design 2D est la texture de base, les material maps sont appliqués en plus
+        if (design2DUrl) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            // Créer un canvas et dessiner le design dessus (comme dans ModelViewer)
+            const size = 512; // 512x512 pour les performances
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            
+            ctx.clearRect(0, 0, size, size);
+            ctx.drawImage(img, 0, 0, size, size);
+            
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 8;
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.generateMipmaps = true;
+            tex.flipY = false;
+            tex.wrapS = THREE.ClampToEdgeWrapping;
+            tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.offset.set(0, 0);
+            tex.repeat.set(1, 1);
+            tex.needsUpdate = true;
+            
+            // Appliquer le design directement comme map (base texture)
+            standardMaterial.map = tex;
             standardMaterial.map.needsUpdate = true;
             standardMaterial.needsUpdate = true;
-            console.log('Design 2D applied as base texture to material:', standardMaterial.name || 'unnamed');
-          } else if (design2DUrl) {
-            console.warn('Design 2D URL provided but texture failed to load:', design2DUrl);
-          }
-          
-          // Ensuite, appliquer les material maps par-dessus
+            console.log('Design 2D applied as base map texture (UV0)');
+            
+            // Ensuite, appliquer les material maps (normal, roughness, etc.) en plus
+            if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
+              const materialMap = materialMaps[part.material_map_id];
+              const files = materialMap.material_map_files || [];
+              
+              console.log(`Applying material maps to ${objectName}:`, files);
+              
+              const textureLoader = new THREE.TextureLoader();
+              
+              files.forEach((file: any) => {
+                const mapType = file.map_type;
+                const fileUrl = file.file_url;
+                const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+                const scale = file.scale !== undefined ? file.scale : 1;
+                
+                if (!fileUrl) {
+                  console.warn(`No file URL for ${mapType}`);
+                  return;
+                }
+                
+                // Ne PAS appliquer la texture diffuse des material maps - le design 2D est déjà la map
+                if (mapType === 'diffuse') {
+                  console.log('Skipping material map diffuse - design 2D is already the map');
+                  return;
+                }
+                
+                console.log(`Loading texture: ${mapType} from ${fileUrl}`);
+                
+                textureLoader.load(
+                  fileUrl,
+                  (texture) => {
+                    console.log(`Texture loaded: ${mapType}, size: ${texture.image?.width}x${texture.image?.height}`);
+                    // Optimiser les textures pour les performances
+                    texture.generateMipmaps = true;
+                    texture.minFilter = THREE.LinearMipmapLinearFilter;
+                    texture.magFilter = THREE.LinearFilter;
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    texture.repeat.set(scale, scale);
+                    
+                    // Redimensionner toutes les textures à 512x512 max pour améliorer les performances lors des rotations
+                    if (texture.image && (texture.image.width > 512 || texture.image.height > 512)) {
+                      const maxSize = 512;
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                        const ratio = Math.min(maxSize / texture.image.width, maxSize / texture.image.height);
+                        canvas.width = texture.image.width * ratio;
+                        canvas.height = texture.image.height * ratio;
+                        ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
+                        texture.image = canvas;
+                        texture.needsUpdate = true;
+                        console.log(`Texture resized to ${canvas.width}x${canvas.height} for performance`);
+                      }
+                    }
+                    
+                    switch (mapType) {
+                      case 'normal':
+                        standardMaterial.normalMap = texture;
+                        standardMaterial.normalScale = new THREE.Vector2(intensity, intensity);
+                        standardMaterial.normalMap.needsUpdate = true;
+                        break;
+                      case 'roughness':
+                        standardMaterial.roughnessMap = texture;
+                        standardMaterial.roughness = intensity;
+                        standardMaterial.roughnessMap.needsUpdate = true;
+                        break;
+                      case 'metallic':
+                        standardMaterial.metalnessMap = texture;
+                        standardMaterial.metalness = intensity;
+                        standardMaterial.metalnessMap.needsUpdate = true;
+                        break;
+                      case 'ao':
+                        standardMaterial.aoMap = texture;
+                        standardMaterial.aoMapIntensity = intensity;
+                        standardMaterial.aoMap.needsUpdate = true;
+                        break;
+                    }
+                    
+                    standardMaterial.needsUpdate = true;
+                  },
+                  undefined,
+                  (error) => {
+                    console.error(`Error loading texture ${mapType}:`, error);
+                  }
+                );
+              });
+            }
+          };
+          img.onerror = (error) => {
+            console.error('Error loading design 2D:', error);
+          };
+          img.src = design2DUrl;
+        } else {
+          // Pas de design 2D, appliquer les material maps normalement
           if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
             const materialMap = materialMaps[part.material_map_id];
             const files = materialMap.material_map_files || [];
@@ -328,23 +349,8 @@ function Model({
                   switch (mapType) {
                     case 'diffuse':
                       texture.colorSpace = THREE.SRGBColorSpace;
-                      
-                      // Si on a un design 2D, combiner les deux (design 2D en dessous, material map par-dessus)
-                      if (designImage) {
-                        const canvas = combineDesignWithMaterial(designImage, texture);
-                        if (canvas) {
-                          const combinedTexture = new THREE.CanvasTexture(canvas);
-                          combinedTexture.needsUpdate = true;
-                          standardMaterial.map = combinedTexture;
-                          standardMaterial.map.needsUpdate = true;
-                          standardMaterial.needsUpdate = true;
-                          console.log('Combined texture applied (design 2D base + material map diffuse on top)');
-                        }
-                      } else {
-                        // Pas de design 2D, appliquer juste la texture diffuse
-                        standardMaterial.map = texture;
-                        standardMaterial.map.needsUpdate = true;
-                      }
+                      standardMaterial.map = texture;
+                      standardMaterial.map.needsUpdate = true;
                       break;
                     case 'normal':
                       standardMaterial.normalMap = texture;
@@ -376,11 +382,8 @@ function Model({
                 }
               );
             });
-          } else {
-            // Pas de material maps, mais on a un design 2D - il est déjà appliqué au début
-            console.log('No material maps, design 2D already applied');
           }
-        });
+        }
         }); // Fin du forEach materials
       }
     }); // Fin du traverse
