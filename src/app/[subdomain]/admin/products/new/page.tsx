@@ -729,15 +729,35 @@ export default function ProductBuilderPage() {
                     onChange={(e) => setZoomSpeed(parseFloat(e.target.value))}
                     style={{
                       width: '100%',
-                      height: '4px',
+                      height: '6px',
                       backgroundColor: '#1a1a1a',
-                      borderRadius: '2px',
+                      borderRadius: '3px',
                       outline: 'none',
                       cursor: 'pointer',
                       WebkitAppearance: 'none',
                       appearance: 'none'
                     }}
+                    className="slider"
                   />
+                  <style jsx>{`
+                    .slider::-webkit-slider-thumb {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      width: 16px;
+                      height: 16px;
+                      border-radius: 50%;
+                      background: #8eff36;
+                      cursor: pointer;
+                    }
+                    .slider::-moz-range-thumb {
+                      width: 16px;
+                      height: 16px;
+                      border-radius: 50%;
+                      background: #8eff36;
+                      cursor: pointer;
+                      border: none;
+                    }
+                  `}</style>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -783,14 +803,15 @@ export default function ProductBuilderPage() {
                     onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
                     style={{
                       width: '100%',
-                      height: '4px',
+                      height: '6px',
                       backgroundColor: '#1a1a1a',
-                      borderRadius: '2px',
+                      borderRadius: '3px',
                       outline: 'none',
                       cursor: 'pointer',
                       WebkitAppearance: 'none',
                       appearance: 'none'
                     }}
+                    className="slider"
                   />
                   <div style={{
                     display: 'flex',
