@@ -209,6 +209,10 @@ function Model({
           return canvas;
         };
         
+          // Variable pour suivre si on a une texture diffuse
+          let hasDiffuseTexture = false;
+          let diffuseTexture: THREE.Texture | null = null;
+          
           // Appliquer les material maps (par-dessus le design 2D)
           if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
             const materialMap = materialMaps[part.material_map_id];
@@ -264,6 +268,8 @@ function Model({
                     case 'diffuse':
                       // Appliquer la texture diffuse directement (comme dans Model3DPreview)
                       texture.colorSpace = THREE.SRGBColorSpace;
+                      hasDiffuseTexture = true;
+                      diffuseTexture = texture;
                       standardMaterial.map = texture;
                       standardMaterial.map.needsUpdate = true;
                       
@@ -338,8 +344,8 @@ function Model({
             });
           }
           
-          // Si pas de material maps mais qu'on a un design 2D, appliquer le design 2D seul
-          if (!part && design2DUrl) {
+          // Si on a un design 2D mais pas de texture diffuse (ou pas de material maps), appliquer le design 2D
+          if (design2DUrl && (!hasDiffuseTexture || !part)) {
             if (design2DUrl.toLowerCase().endsWith('.svg')) {
               const img = new Image();
               img.crossOrigin = 'anonymous';
