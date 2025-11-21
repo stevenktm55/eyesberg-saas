@@ -935,7 +935,7 @@ export default function ProductBuilderPage() {
               
               {/* Questions/Modules Content (hidden when settings are open) */}
               {!show3DSettings && (
-              {customizationModules.length === 0 && questions.length === 0 ? (
+                customizationModules.length === 0 && questions.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
                   padding: '32px 16px',
