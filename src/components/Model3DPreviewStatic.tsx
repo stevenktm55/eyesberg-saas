@@ -76,8 +76,10 @@ function Model({
         // S'assurer que le matériau n'est pas transparent et a une couleur de base
         standardMaterial.transparent = false;
         standardMaterial.opacity = 1.0;
-        if (standardMaterial.color.getHex() === 0x000000) {
-          standardMaterial.color.setHex(0xffffff); // Blanc par défaut si noir
+        // Ne pas forcer le blanc si on a des material maps qui vont être appliqués
+        // On ne met du blanc que si vraiment nécessaire (pas de texture et couleur noire)
+        if (!standardMaterial.map && standardMaterial.color.getHex() === 0x000000) {
+          standardMaterial.color.setHex(0xffffff); // Blanc par défaut si noir et pas de texture
         }
         
         // Trouver la partie correspondante par nom de mesh
@@ -200,8 +202,9 @@ function Model({
           });
         }
         
-        // Appliquer le design 2D comme texture si disponible
-        // Pour les SVG, on utilise un canvas pour les convertir en image
+        // Appliquer le design 2D comme texture overlay si disponible
+        // Le design 2D est appliqué APRÈS les material maps pour ne pas les écraser
+        // On l'utilise comme overlay en combinant avec la texture diffuse existante
         if (design2DUrl) {
           if (design2DUrl.toLowerCase().endsWith('.svg')) {
             console.log(`Design 2D is SVG, converting to image: ${design2DUrl}`);
@@ -215,9 +218,16 @@ function Model({
               canvas.height = 2048;
               const ctx = canvas.getContext('2d');
               if (ctx) {
-                // Remplir le canvas avec un fond blanc pour éviter la transparence
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Si on a déjà une texture diffuse (des material maps), on la dessine d'abord
+                // Sinon, on met un fond blanc
+                if (standardMaterial.map && standardMaterial.map.image) {
+                  // Dessiner la texture existante en arrière-plan
+                  ctx.drawImage(standardMaterial.map.image, 0, 0, canvas.width, canvas.height);
+                } else {
+                  // Pas de texture existante, mettre un fond blanc
+                  ctx.fillStyle = '#FFFFFF';
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
                 
                 // Calculer les dimensions pour centrer et adapter le SVG
                 const imgAspect = img.width / img.height;
@@ -237,31 +247,23 @@ function Model({
                   drawX = (canvas.width - drawWidth) / 2;
                 }
                 
+                // Dessiner le design 2D par-dessus (comme overlay)
                 ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
                 
                 const texture = new THREE.CanvasTexture(canvas);
                 texture.needsUpdate = true;
                 
-                // Appliquer le design 2D comme texture diffuse
-                // S'assurer qu'on a toujours une couleur de base
-                if (standardMaterial.color.getHex() === 0x000000) {
-                  standardMaterial.color.setHex(0xffffff);
-                }
-                
+                // Appliquer la texture combinée
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
                 standardMaterial.needsUpdate = true;
                 standardMaterial.transparent = false;
                 standardMaterial.opacity = 1.0;
-                console.log('Design 2D SVG converted and applied');
+                console.log('Design 2D SVG converted and applied as overlay');
               }
             };
             img.onerror = (error) => {
               console.error('Error loading SVG for conversion:', error);
-              // En cas d'erreur, s'assurer qu'on garde la couleur de base
-              if (standardMaterial.color.getHex() === 0x000000) {
-                standardMaterial.color.setHex(0xffffff);
-              }
             };
             img.src = design2DUrl;
           } else {
@@ -271,11 +273,9 @@ function Model({
               design2DUrl,
               (texture) => {
                 console.log('Design 2D texture loaded');
-                // Utiliser le design 2D comme texture de base ou overlay
-                // S'assurer qu'on a toujours une couleur de base
-                if (standardMaterial.color.getHex() === 0x000000) {
-                  standardMaterial.color.setHex(0xffffff);
-                }
+                // Si on a déjà une texture diffuse, on doit la combiner
+                // Pour l'instant, on remplace (le design 2D a la priorité)
+                // TODO: Implémenter un vrai blending si nécessaire
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
                 standardMaterial.needsUpdate = true;
@@ -285,10 +285,6 @@ function Model({
               undefined,
               (error) => {
                 console.error('Error loading design 2D texture:', error);
-                // En cas d'erreur, s'assurer qu'on garde la couleur de base
-                if (standardMaterial.color.getHex() === 0x000000) {
-                  standardMaterial.color.setHex(0xffffff);
-                }
               }
             );
           }
