@@ -1747,7 +1747,7 @@ export default function ProductBuilderPage() {
                                   >
                                     <div style={{
                                       width: '100%',
-                                      padding: '8px',
+                                      padding: '0',
                                       backgroundColor: '#f5f5f5',
                                       borderRadius: '4px',
                                       display: 'flex',
