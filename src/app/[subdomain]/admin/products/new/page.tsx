@@ -679,6 +679,133 @@ export default function ProductBuilderPage() {
               </button>
             </div>
 
+            {/* 3D Viewer Settings Panel */}
+            {show3DSettings && (
+              <div style={{
+                padding: '16px',
+                borderBottom: '1px solid #1a1a1a',
+                backgroundColor: '#0a0a0a'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#ffffff',
+                  marginBottom: '16px',
+                  fontWeight: '600'
+                }}>
+                  3D Viewer Settings
+                </div>
+                
+                {/* Zoom Speed */}
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px'
+                  }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#a0a0a0'
+                    }}>
+                      Zoom Speed
+                    </label>
+                    <span style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#8eff36',
+                      fontWeight: '600'
+                    }}>
+                      {zoomSpeed.toFixed(1)}x
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="3"
+                    step="0.1"
+                    value={zoomSpeed}
+                    onChange={(e) => setZoomSpeed(parseFloat(e.target.value))}
+                    style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '2px',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      WebkitAppearance: 'none',
+                      appearance: 'none'
+                    }}
+                  />
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '10px',
+                    color: '#666',
+                    marginTop: '4px'
+                  }}>
+                    <span>Slow</span>
+                    <span>Fast</span>
+                  </div>
+                </div>
+
+                {/* Rotate Speed */}
+                <div>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px'
+                  }}>
+                    <label style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#a0a0a0'
+                    }}>
+                      Rotate Speed
+                    </label>
+                    <span style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#8eff36',
+                      fontWeight: '600'
+                    }}>
+                      {rotateSpeed.toFixed(1)}x
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="3"
+                    step="0.1"
+                    value={rotateSpeed}
+                    onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
+                    style={{
+                      width: '100%',
+                      height: '4px',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '2px',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      WebkitAppearance: 'none',
+                      appearance: 'none'
+                    }}
+                  />
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '10px',
+                    color: '#666',
+                    marginTop: '4px'
+                  }}>
+                    <span>Slow</span>
+                    <span>Fast</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Modules/Questions List */}
             <div style={{
               flex: 1,
