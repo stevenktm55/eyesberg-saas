@@ -107,6 +107,7 @@ export default function Designs2DConfigPage() {
   // Détecter les classes de couleurs dans le SVG
   async function detectColorClasses(svgUrl: string) {
     try {
+      console.log('Detecting color classes from SVG:', svgUrl);
       const response = await fetch(svgUrl);
       const svgText = await response.text();
       const parser = new DOMParser();
@@ -152,7 +153,9 @@ export default function Designs2DConfigPage() {
         }
       });
       
-      setDetectedColorClasses(Array.from(classes));
+      const detectedClasses = Array.from(classes);
+      console.log('Detected color classes:', detectedClasses);
+      setDetectedColorClasses(detectedClasses);
     } catch (error) {
       console.error("Error detecting color classes:", error);
       setDetectedColorClasses([]);
