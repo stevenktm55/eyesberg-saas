@@ -191,6 +191,7 @@ function Model({
         // Le design 2D est la texture de base, les material maps sont appliqués en plus
         // Stocker une référence au matériau pour éviter qu'il soit écrasé
         const materialRef = standardMaterial;
+        let designTextureRef: THREE.CanvasTexture | null = null; // Stocker la texture du design
         
         if (design2DUrl) {
           console.log('🎨 Loading design 2D from:', design2DUrl);
@@ -228,6 +229,9 @@ function Model({
             tex.offset.set(0, 0);
             tex.repeat.set(1, 1);
             tex.needsUpdate = true;
+            
+            // Stocker la texture du design pour pouvoir la réutiliser
+            designTextureRef = tex;
             
             // Appliquer le design directement comme map (base texture)
             // Utiliser materialRef pour s'assurer qu'on modifie le bon matériau
@@ -316,8 +320,8 @@ function Model({
                     }
                     
                     // S'assurer que la map du design n'est pas écrasée
-                    if (!materialRef.map) {
-                      materialRef.map = tex;
+                    if (!materialRef.map && designTextureRef) {
+                      materialRef.map = designTextureRef;
                       materialRef.map.needsUpdate = true;
                     }
                     
