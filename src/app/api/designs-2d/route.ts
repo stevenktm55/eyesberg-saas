@@ -163,6 +163,17 @@ export async function PATCH(request: NextRequest) {
     if (color_mappings !== undefined) updateData.color_mappings = color_mappings;
     if (preview_url !== undefined) updateData.preview_url = preview_url;
 
+    // Si aucune donnée à mettre à jour, retourner le design existant
+    if (Object.keys(updateData).length === 0) {
+      const { data: design } = await supabaseAdmin
+        .from('designs_2d')
+        .select('*')
+        .eq('id', id)
+        .eq('subdomain', subdomain)
+        .single();
+      return NextResponse.json(design);
+    }
+
     const { data: design, error } = await supabaseAdmin
       .from('designs_2d')
       .update(updateData)
@@ -171,7 +182,55 @@ export async function PATCH(request: NextRequest) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      // Si l'erreur est due à des colonnes manquantes, essayer de mettre à jour seulement les colonnes existantes
+      if (error.code === '42703' || error.message?.includes('column')) {
+        // Colonne n'existe pas, essayer de mettre à jour seulement les colonnes qui existent
+        const safeUpdateData: any = {};
+        if (updateData.model3d_id !== undefined) {
+          // Essayer model3d_id, sinon essayer model_3d_id
+          try {
+            const testUpdate = await supabaseAdmin
+              .from('designs_2d')
+              .update({ model_3d_id: updateData.model3d_id })
+              .eq('id', id)
+              .eq('subdomain', subdomain);
+            if (!testUpdate.error) {
+              safeUpdateData.model_3d_id = updateData.model3d_id;
+            }
+          } catch (e) {
+            console.log('model3d_id column does not exist, skipping');
+          }
+        }
+        if (updateData.color_mappings !== undefined) {
+          safeUpdateData.color_mappings = updateData.color_mappings;
+        }
+        if (updateData.preview_url !== undefined) {
+          safeUpdateData.preview_url = updateData.preview_url;
+        }
+        
+        if (Object.keys(safeUpdateData).length > 0) {
+          const { data: design, error: retryError } = await supabaseAdmin
+            .from('designs_2d')
+            .update(safeUpdateData)
+            .eq('id', id)
+            .eq('subdomain', subdomain)
+            .select()
+            .single();
+          
+          if (retryError) throw retryError;
+          return NextResponse.json(design);
+        }
+      }
+      throw error;
+    }
 
     return NextResponse.json(design);
   } catch (error: any) {

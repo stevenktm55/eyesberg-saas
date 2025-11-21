@@ -140,10 +140,11 @@ function Model({
         let materialDiffuseTexture: THREE.Texture | null = null;
         
         // Fonction pour combiner le design 2D avec la texture diffuse existante
+        // Utiliser 4096x4096 pour le design 2D pour une meilleure qualité
         const combineDesignWithMaterial = (designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
           const canvas = document.createElement('canvas');
-          canvas.width = 2048;
-          canvas.height = 2048;
+          canvas.width = 4096; // 4096px pour une meilleure qualité du design 2D
+          canvas.height = 4096;
           const ctx = canvas.getContext('2d');
           if (!ctx) return null;
           
@@ -225,6 +226,13 @@ function Model({
                           const canvas = combineDesignWithMaterial(img, texture);
                           if (canvas) {
                             const combinedTexture = new THREE.CanvasTexture(canvas);
+                            combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                            // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                            combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                            combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                            combinedTexture.repeat.set(1, 1);
+                            combinedTexture.offset.set(0, 0);
+                            combinedTexture.flipY = false;
                             combinedTexture.needsUpdate = true;
                             standardMaterial.map = combinedTexture;
                             standardMaterial.map.needsUpdate = true;
@@ -243,6 +251,13 @@ function Model({
                               const canvas = combineDesignWithMaterial(designTexture.image, texture);
                               if (canvas) {
                                 const combinedTexture = new THREE.CanvasTexture(canvas);
+                                combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                                // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                                combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                                combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                                combinedTexture.repeat.set(1, 1);
+                                combinedTexture.offset.set(0, 0);
+                                combinedTexture.flipY = false;
                                 combinedTexture.needsUpdate = true;
                                 standardMaterial.map = combinedTexture;
                                 standardMaterial.map.needsUpdate = true;
@@ -286,7 +301,8 @@ function Model({
         }
         
         // Si pas de material maps mais qu'on a un design 2D, appliquer le design 2D seul
-        if (!part && design2DUrl) {
+        // Appliquer le design 2D à TOUS les meshes, pas seulement ceux sans material maps
+        if (design2DUrl && !materialDiffuseTexture) {
           if (design2DUrl.toLowerCase().endsWith('.svg')) {
             const img = new Image();
             img.crossOrigin = 'anonymous';
@@ -294,6 +310,13 @@ function Model({
               const canvas = combineDesignWithMaterial(img, null);
               if (canvas) {
                 const texture = new THREE.CanvasTexture(canvas);
+                texture.colorSpace = THREE.SRGBColorSpace;
+                // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.repeat.set(1, 1);
+                texture.offset.set(0, 0);
+                texture.flipY = false;
                 texture.needsUpdate = true;
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
@@ -310,6 +333,13 @@ function Model({
             textureLoader.load(
               design2DUrl,
               (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+                // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                texture.wrapS = THREE.ClampToEdgeWrapping;
+                texture.wrapT = THREE.ClampToEdgeWrapping;
+                texture.repeat.set(1, 1);
+                texture.offset.set(0, 0);
+                texture.flipY = false;
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
                 standardMaterial.needsUpdate = true;

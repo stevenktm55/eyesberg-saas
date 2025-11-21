@@ -618,21 +618,6 @@ export default function Designs2DConfigPage() {
                 </div>
               ) : selectedDesign ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {/* Preview 2D */}
-                  <div style={{
-                    width: '100%',
-                    aspectRatio: '1',
-                    backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }}>
-                    <Design2DPreviewStatic 
-                      url={(selectedDesign as any).svg_url || (selectedDesign as any).svgUrl} 
-                      style={{ width: '100%', height: '100%' }}
-                    />
-                  </div>
-                  
                   {/* Sélection du modèle 3D */}
                   <div>
                     <label style={{
@@ -669,13 +654,16 @@ export default function Designs2DConfigPage() {
                     </select>
                   </div>
                   
-                  {/* Preview 3D Static */}
-                  {selectedModel3DId && (() => {
+                  {/* Preview 3D Static (remplace le preview SVG) */}
+                  {selectedModel3DId ? (() => {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                     if (!selectedModel) return null;
                     const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
                     const designUrl = (selectedDesign as any).svg_url || (selectedDesign as any).svgUrl || null;
                     const parts = (selectedModel as any).model_parts || [];
+                    
+                    // Préparer les material maps si nécessaire
+                    const materialMapsForModel: Record<string, any> = {};
                     
                     return (
                       <div style={{
@@ -691,11 +679,27 @@ export default function Designs2DConfigPage() {
                           url={modelUrl}
                           design2DUrl={designUrl}
                           modelParts={parts}
+                          materialMaps={materialMapsForModel}
                           style={{ width: '100%', height: '100%' }}
                         />
                       </div>
                     );
-                  })()}
+                  })() : (
+                    // Si pas de modèle sélectionné, afficher le preview 2D
+                    <div style={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '8px',
+                      overflow: 'hidden'
+                    }}>
+                      <Design2DPreviewStatic 
+                        url={(selectedDesign as any).svg_url || (selectedDesign as any).svgUrl} 
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    </div>
+                  )}
                   
                   {/* Sélection des couleurs pour les classes détectées */}
                   {detectedColorClasses.length > 0 && (
