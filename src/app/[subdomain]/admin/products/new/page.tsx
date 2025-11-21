@@ -735,12 +735,12 @@ export default function ProductBuilderPage() {
                       outline: 'none',
                       cursor: 'pointer',
                       WebkitAppearance: 'none',
-                      appearance: 'none'
+                      appearance: 'none',
+                      background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
                     }}
-                    className="slider"
                   />
-                  <style jsx>{`
-                    .slider::-webkit-slider-thumb {
+                  <style dangerouslySetInnerHTML={{__html: `
+                    input[type="range"]::-webkit-slider-thumb {
                       -webkit-appearance: none;
                       appearance: none;
                       width: 16px;
@@ -748,16 +748,17 @@ export default function ProductBuilderPage() {
                       border-radius: 50%;
                       background: #8eff36;
                       cursor: pointer;
+                      border: 2px solid #0a0a0a;
                     }
-                    .slider::-moz-range-thumb {
+                    input[type="range"]::-moz-range-thumb {
                       width: 16px;
                       height: 16px;
                       border-radius: 50%;
                       background: #8eff36;
                       cursor: pointer;
-                      border: none;
+                      border: 2px solid #0a0a0a;
                     }
-                  `}</style>
+                  `}} />
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -809,9 +810,9 @@ export default function ProductBuilderPage() {
                       outline: 'none',
                       cursor: 'pointer',
                       WebkitAppearance: 'none',
-                      appearance: 'none'
+                      appearance: 'none',
+                      background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
                     }}
-                    className="slider"
                   />
                   <div style={{
                     display: 'flex',
