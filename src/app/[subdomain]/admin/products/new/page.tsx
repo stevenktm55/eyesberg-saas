@@ -655,9 +655,8 @@ export default function ProductBuilderPage() {
               borderBottom: '1px solid #1a1a1a',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'flex-start'
             }}>
-              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>☰</span>
               <button
                 onClick={() => setShow3DSettings(!show3DSettings)}
                 style={{
@@ -669,7 +668,7 @@ export default function ProductBuilderPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: show3DSettings ? '#8eff36' : '#a0a0a0',
-                  fontSize: '18px',
+                  fontSize: '22px',
                   transition: 'color 0.2s'
                 }}
                 title="3D Viewer Settings"
