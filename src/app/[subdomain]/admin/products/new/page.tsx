@@ -1408,7 +1408,8 @@ export default function ProductBuilderPage() {
                     backgroundColor: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px'
+                    gap: '12px',
+                    color: '#000000' // Force la couleur noire sur le conteneur parent
                   }}>
                     <div style={{ 
                       display: 'flex', 
@@ -1418,7 +1419,8 @@ export default function ProductBuilderPage() {
                       height: '28px',
                       flexShrink: 0,
                       minWidth: '28px',
-                      minHeight: '28px'
+                      minHeight: '28px',
+                      color: '#000000'
                     }}>
                       {activeModule.iconUrl ? (
                         <img
@@ -1439,7 +1441,14 @@ export default function ProductBuilderPage() {
                         </span>
                       )}
                     </div>
-                    <span style={{ color: '#000000', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
+                    <span style={{ 
+                      color: '#000000', 
+                      fontSize: '14px', 
+                      fontFamily: 'var(--stepn-font-body)', 
+                      fontWeight: '500',
+                      display: 'block',
+                      lineHeight: '1.2'
+                    }}>
                       {activeModule.tabName}
                     </span>
                   </div>
