@@ -227,23 +227,65 @@ function Model({
         const loader = new THREE.TextureLoader();
         loader.load(url, (tex2) => { applyTransform(tex2, mm); mat[prop] = tex2; mat.needsUpdate = true; }, undefined, () => {});
       };
+      // Trouver le material map en utilisant modelParts pour faire la correspondance nom -> material_map_id
       const resolveMaterialConfig = (matName: string, meshName?: string) => {
         const maps: any = materialMaps as any;
-        if (!maps) return null;
-        const normalize = (name?: string) => (name || '').trim();
+        if (!maps || !modelParts || modelParts.length === 0) return null;
+        
+        // Normaliser les noms pour la correspondance
+        const normalize = (name?: string) => {
+          return (name || '').toLowerCase()
+            .replace(/_\d+\.\d+/g, '') // Enlever les numéros comme "_2917.001"
+            .replace(/[_\s-]/g, '') // Enlever underscores, espaces, tirets
+            .trim();
+        };
+        
+        // Chercher dans modelParts pour trouver le material_map_id correspondant
+        let foundPart: { name: string; material_map_id?: string | null } | undefined;
+        
+        // 1. Chercher une correspondance exacte d'abord
+        foundPart = modelParts.find(p => {
+          const partNameNorm = normalize(p.name);
+          const matNameNorm = normalize(matName);
+          const meshNameNorm = normalize(meshName);
+          return partNameNorm === matNameNorm || partNameNorm === meshNameNorm;
+        });
+        
+        // 2. Si pas de correspondance exacte, essayer avec correspondance partielle
+        if (!foundPart) {
+          foundPart = modelParts.find(p => {
+            const partNameLower = normalize(p.name);
+            const matNameLower = normalize(matName);
+            const meshNameLower = normalize(meshName);
+            return (
+              matNameLower.includes(partNameLower) ||
+              partNameLower.includes(matNameLower) ||
+              meshNameLower.includes(partNameLower) ||
+              partNameLower.includes(meshNameLower)
+            );
+          });
+        }
+        
+        // 3. Si on a trouvé un part avec un material_map_id, chercher dans materialMaps
+        if (foundPart?.material_map_id && maps[foundPart.material_map_id]) {
+          return maps[foundPart.material_map_id];
+        }
+        
+        // 4. Fallback: chercher directement par nom dans les clés (comme avant)
+        const normalizeForKey = (name?: string) => (name || '').trim();
         const mirrorFrontBack = (name: string) => (/back/i.test(name) ? name.replace(/back/i, 'FRONT') : name);
         const stripSuffixes = (name: string) => { let n = name.replace(/_[0-9]+(?:\.[0-9]+)?$/i, ''); n = n.replace(/(\.|_)[0-9]{2,}$/i, ''); return n; };
         const candidates = Array.from(new Set([
-          normalize(matName),
-          normalize(matName).toLowerCase(),
-          normalize(matName).toUpperCase(),
-          stripSuffixes(normalize(matName)),
-          stripSuffixes(normalize(matName)).toLowerCase(),
-          stripSuffixes(normalize(matName)).toUpperCase(),
-          mirrorFrontBack(normalize(matName)),
-          mirrorFrontBack(stripSuffixes(normalize(matName))),
-          normalize(meshName || ''),
-          stripSuffixes(normalize(meshName || ''))
+          normalizeForKey(matName),
+          normalizeForKey(matName).toLowerCase(),
+          normalizeForKey(matName).toUpperCase(),
+          stripSuffixes(normalizeForKey(matName)),
+          stripSuffixes(normalizeForKey(matName)).toLowerCase(),
+          stripSuffixes(normalizeForKey(matName)).toUpperCase(),
+          mirrorFrontBack(normalizeForKey(matName)),
+          mirrorFrontBack(stripSuffixes(normalizeForKey(matName))),
+          normalizeForKey(meshName || ''),
+          stripSuffixes(normalizeForKey(meshName || ''))
         ].filter(Boolean)));
         for (const key of candidates) { if ((maps as any)[key]) return (maps as any)[key]; }
         const values: any[] = Object.values(maps);
@@ -282,35 +324,83 @@ function Model({
             if (uv2Attr) {
               g2.setAttribute('uv', uv2Attr);
             }
-            const orm = mm.ormMap || mm.occlusionRoughnessMetalnessMap || mm.occlusionRoughnessMetallicMap || mm.occlusion_roughness_metalness;
-            const n = mm.normalMap || mm.normal || mm.normalTexture;
-            const r = mm.roughnessMap || mm.roughness || mm.roughnessTexture || (orm ? orm : undefined);
-            const me = mm.metalnessMap || mm.metallicMap || mm.metalness || mm.metalnessTexture || (orm ? orm : undefined);
-            const ao = mm.aoMap || mm.ambientOcclusionMap || mm.occlusionMap || (orm ? orm : undefined);
+            
+            // Support both structures: direct properties (ModelViewer style) and material_map_files (builder style)
+            let n: string | undefined, r: string | undefined, me: string | undefined, ao: string | undefined;
+            let normalIntensity = 1, roughnessIntensity = 1, metalnessIntensity = 1, aoIntensity = 1;
+            let normalScale = 1, roughnessValue = 0.6, metalnessValue = 0.0;
+            
+            if (mm.material_map_files && Array.isArray(mm.material_map_files)) {
+              // Builder style: material_map_files array
+              mm.material_map_files.forEach((file: any) => {
+                const mapType = file.map_type;
+                const fileUrl = file.file_url;
+                const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+                const scale = file.scale !== undefined ? file.scale : 1;
+                
+                if (!fileUrl) return;
+                
+                switch (mapType) {
+                  case 'normal':
+                    n = fileUrl;
+                    normalIntensity = intensity;
+                    normalScale = scale;
+                    break;
+                  case 'roughness':
+                    r = fileUrl;
+                    roughnessIntensity = intensity;
+                    roughnessValue = intensity;
+                    break;
+                  case 'metallic':
+                    me = fileUrl;
+                    metalnessIntensity = intensity;
+                    metalnessValue = intensity;
+                    break;
+                  case 'ao':
+                    ao = fileUrl;
+                    aoIntensity = intensity;
+                    break;
+                }
+              });
+            } else {
+              // ModelViewer style: direct properties
+              const orm = mm.ormMap || mm.occlusionRoughnessMetalnessMap || mm.occlusionRoughnessMetallicMap || mm.occlusion_roughness_metalness;
+              n = mm.normalMap || mm.normal || mm.normalTexture;
+              r = mm.roughnessMap || mm.roughness || mm.roughnessTexture || (orm ? orm : undefined);
+              me = mm.metalnessMap || mm.metallicMap || mm.metalness || mm.metalnessTexture || (orm ? orm : undefined);
+              ao = mm.aoMap || mm.ambientOcclusionMap || mm.occlusionMap || (orm ? orm : undefined);
+              const _rough = (typeof mm.roughness === 'number' ? mm.roughness : (typeof mm.roughnessFactor === 'number' ? mm.roughnessFactor : undefined));
+              const _metal = (typeof mm.metalness === 'number' ? mm.metalness : (typeof mm.metalnessFactor === 'number' ? mm.metalnessFactor : (typeof mm.metallic === 'number' ? mm.metallic : undefined)));
+              const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
+              const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+              const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+              normalScale = _nScaleX;
+              if (typeof _metal === 'number') metalnessValue = _metal;
+              if (typeof _rough === 'number') roughnessValue = _rough;
+              if (typeof _aoInt === 'number') aoIntensity = _aoInt;
+            }
+            
             setMap(newMaterial as any, 'normalMap', n, mm);
             setMap(newMaterial as any, 'roughnessMap', r, mm);
             setMap(newMaterial as any, 'metalnessMap', me, mm);
             setMap(newMaterial as any, 'aoMap', ao, mm);
-            // Intensities/scalars
-            const _rough = (typeof mm.roughness === 'number' ? mm.roughness : (typeof mm.roughnessFactor === 'number' ? mm.roughnessFactor : undefined));
-            const _metal = (typeof mm.metalness === 'number' ? mm.metalness : (typeof mm.metalnessFactor === 'number' ? mm.metalnessFactor : (typeof mm.metallic === 'number' ? mm.metallic : undefined)));
-            const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
-            const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
-            const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
-            const _envInt = (typeof mm.envMapIntensity === 'number' ? mm.envMapIntensity : (typeof mm.environmentIntensity === 'number' ? mm.environmentIntensity : undefined));
-            (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
-            if (typeof _metal === 'number') {
-              (newMaterial as any).metalness = _metal;
-            } else if (me) {
-              (newMaterial as any).metalness = 0.3;
-            }
-            if (r) (newMaterial as any).roughness = (typeof _rough === 'number' ? _rough : 1.0);
-            if (typeof _aoInt === 'number') (newMaterial as any).aoMapIntensity = _aoInt;
-            if (typeof _envInt === 'number') {
-              (newMaterial as any).envMapIntensity = _envInt;
+            
+            // Apply intensities/scalars
+            (newMaterial as any).normalScale = new THREE.Vector2(normalScale, normalScale);
+            if (me) {
+              (newMaterial as any).metalness = metalnessValue;
             } else {
-              (newMaterial as any).envMapIntensity = 0.3;
+              (newMaterial as any).metalness = 0.0;
             }
+            if (r) {
+              (newMaterial as any).roughness = roughnessValue;
+            } else {
+              (newMaterial as any).roughness = 0.6;
+            }
+            if (ao) {
+              (newMaterial as any).aoMapIntensity = aoIntensity;
+            }
+            (newMaterial as any).envMapIntensity = 0.3;
             console.log('🗺️ Admin maps applied for', (newMaterial as any).name, { normal: !!n, roughness: !!r, metalness: !!me, ao: !!ao });
           } else {
             console.log('ℹ️ No admin maps matched for material:', (newMaterial as any).name);
