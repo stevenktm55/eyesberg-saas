@@ -127,6 +127,8 @@ function Model({
           // Trouver le material map correspondant par nom du matériau
           // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
           const materialName = (material as any).name || '';
+          const objectName = (object as any).name || '';
+          const nodeName = (object.parent as any)?.name || '';
           
           let part: { name: string; material_map_id?: string | null } | undefined;
           
