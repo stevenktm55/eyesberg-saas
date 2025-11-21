@@ -234,32 +234,25 @@ function Model({
             };
             img.src = design2DUrl;
           } else {
-            const designLoader = new THREE.TextureLoader();
-            designLoader.load(
-              design2DUrl,
-              (texture) => {
-                // Convertir la texture en image pour pouvoir la combiner
-                if (texture.image && texture.image instanceof HTMLImageElement) {
-                  const canvas = combineDesignWithMaterial(texture.image, null);
-                  if (canvas) {
-                    const canvasTexture = new THREE.CanvasTexture(canvas);
-                    canvasTexture.needsUpdate = true;
-                    console.log('Design 2D loaded as base (UV0)');
-                    onLoaded(canvasTexture, texture.image);
-                  } else {
-                    onLoaded(null, null);
-                  }
-                } else {
-                  console.log('Design 2D loaded as base (UV0)');
-                  onLoaded(texture, null);
-                }
-              },
-              undefined,
-              (error) => {
-                console.error('Error loading design 2D texture:', error);
+            // Pour les images non-SVG, charger d'abord comme Image pour avoir l'élément HTMLImageElement
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const canvas = combineDesignWithMaterial(img, null);
+              if (canvas) {
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+                console.log('Design 2D loaded as base (UV0)');
+                onLoaded(texture, img);
+              } else {
                 onLoaded(null, null);
               }
-            );
+            };
+            img.onerror = (error) => {
+              console.error('Error loading design 2D image:', error);
+              onLoaded(null, null);
+            };
+            img.src = design2DUrl;
           }
         };
         
@@ -374,6 +367,9 @@ function Model({
                 }
               );
             });
+          } else {
+            // Pas de material maps, mais on a un design 2D - il est déjà appliqué au début
+            console.log('No material maps, design 2D already applied');
           }
         });
         });
