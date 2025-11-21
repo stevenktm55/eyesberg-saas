@@ -164,13 +164,18 @@ function Model({
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
+      console.log('✅ SVG image loaded, size:', img.width, 'x', img.height);
       const size = 4096; // Utiliser 4096 comme ModelViewer (ligne 690)
       const c = document.createElement('canvas');
       c.width = c.height = size;
       const ctx = c.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {
+        console.error('❌ Failed to get canvas context');
+        return;
+      }
       ctx.clearRect(0, 0, size, size);
       ctx.drawImage(img, 0, 0, size, size);
+      console.log('✅ Design drawn on canvas 4096x4096');
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace as any;
       tex.anisotropy = gl.capabilities.getMaxAnisotropy?.() || 8;
@@ -183,9 +188,11 @@ function Model({
       tex.wrapS = THREE.ClampToEdgeWrapping;
       tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.offset.set(0, 0);
+      console.log('✅ Design texture created, applying to meshes...');
       
       const meshes: THREE.Mesh[] = [];
       clonedScene.traverse((o: any) => { if (o.isMesh) meshes.push(o as THREE.Mesh); });
+      console.log('📦 Found', meshes.length, 'meshes to apply design to');
       const isBack = (m: THREE.Mesh) => {
         const matName = ((m.material as any)?.name) || (m as any)?.userData?.materialName || '';
         return /back/i.test(matName) || /back/i.test(m.name || '');
@@ -265,6 +272,7 @@ function Model({
           if (!g.getAttribute('uv2')) { const uv = g.getAttribute('uv'); if (uv) g.setAttribute('uv2', uv); }
           const newMaterial = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.6, metalness: 0.0, transparent: false });
           (newMaterial as any).name = ((m.material as any)?.name) || (m as any)?.userData?.materialName || (m.name ? `${m.name}_FRONT` : 'FRONT');
+          console.log('✅ Design texture applied to material:', (newMaterial as any).name, 'map:', newMaterial.map ? 'YES' : 'NO');
           // Apply admin maps if any
           const mm = resolveMaterialConfig(((m.material as any)?.name) || (m as any)?.userData?.materialName || '', m.name || '');
           if (mm) {
