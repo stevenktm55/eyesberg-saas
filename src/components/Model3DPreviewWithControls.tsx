@@ -180,8 +180,27 @@ function Model({
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
             
-            ctx.clearRect(0, 0, size, size);
-            ctx.drawImage(img, 0, 0, size, size);
+            // Fond blanc d'abord (comme dans ModelViewer)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Dessiner le design centré
+            const imgAspect = img.width / img.height;
+            const canvasAspect = size / size;
+            let drawWidth = size;
+            let drawHeight = size;
+            let drawX = 0;
+            let drawY = 0;
+            
+            if (imgAspect > canvasAspect) {
+              drawHeight = size / imgAspect;
+              drawY = (size - drawHeight) / 2;
+            } else {
+              drawWidth = size * imgAspect;
+              drawX = (size - drawWidth) / 2;
+            }
+            
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
             
             const tex = new THREE.CanvasTexture(canvas);
             tex.colorSpace = THREE.SRGBColorSpace;
@@ -198,6 +217,7 @@ function Model({
             
             // Appliquer le design directement comme map (base texture)
             standardMaterial.map = tex;
+            standardMaterial.color.setHex(0xffffff); // S'assurer que la couleur est blanche
             standardMaterial.map.needsUpdate = true;
             standardMaterial.needsUpdate = true;
             console.log('Design 2D applied as base map texture (UV0)');
@@ -293,6 +313,9 @@ function Model({
           };
           img.onerror = (error) => {
             console.error('Error loading design 2D:', error);
+            // En cas d'erreur, s'assurer qu'on a au moins une couleur blanche
+            standardMaterial.color.setHex(0xffffff);
+            standardMaterial.needsUpdate = true;
           };
           img.src = design2DUrl;
         } else {
