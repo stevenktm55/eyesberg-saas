@@ -76,10 +76,9 @@ function Model({
         // S'assurer que le matériau n'est pas transparent et a une couleur de base
         standardMaterial.transparent = false;
         standardMaterial.opacity = 1.0;
-        // Ne pas forcer le blanc si on a des material maps qui vont être appliqués
-        // On ne met du blanc que si vraiment nécessaire (pas de texture et couleur noire)
-        if (!standardMaterial.map && standardMaterial.color.getHex() === 0x000000) {
-          standardMaterial.color.setHex(0xffffff); // Blanc par défaut si noir et pas de texture
+        // Toujours avoir une couleur de base blanche pour éviter le noir
+        if (standardMaterial.color.getHex() === 0x000000) {
+          standardMaterial.color.setHex(0xffffff);
         }
         
         // Trouver la partie correspondante par nom de mesh
