@@ -200,8 +200,11 @@ function Model({
           ctx.drawImage(designImg, drawX, drawY, drawWidth, drawHeight);
           
           // 2. Ensuite, dessiner la texture diffuse des material maps par-dessus (si elle existe)
+          // Utiliser un mode de fusion pour que le design 2D reste visible en dessous
           if (materialTex && materialTex.image) {
+            ctx.globalCompositeOperation = 'multiply'; // Mode multiply pour que le design reste visible
             ctx.drawImage(materialTex.image as CanvasImageSource, 0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'source-over'; // Remettre le mode par défaut
           }
           
           return canvas;
