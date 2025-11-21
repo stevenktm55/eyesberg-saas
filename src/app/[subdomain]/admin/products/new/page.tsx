@@ -1405,7 +1405,7 @@ export default function ProductBuilderPage() {
                   <div style={{
                     padding: '16px',
                     borderBottom: '1px solid #e0e0e0',
-                    backgroundColor: '#000000',
+                    backgroundColor: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px'
@@ -1434,12 +1434,12 @@ export default function ProductBuilderPage() {
                           }}
                         />
                       ) : (
-                        <span style={{ color: '#ffffff', fontSize: '20px', lineHeight: '1' }}>
+                        <span style={{ color: '#000000', fontSize: '20px', lineHeight: '1' }}>
                           {activeModule.icon}
                         </span>
                       )}
                     </div>
-                    <span style={{ color: '#ffffff', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
+                    <span style={{ color: '#000000', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', fontWeight: '500' }}>
                       {activeModule.tabName}
                     </span>
                   </div>
