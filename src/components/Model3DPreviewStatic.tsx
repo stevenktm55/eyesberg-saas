@@ -81,37 +81,59 @@ function Model({
         }
         
         // Trouver la partie correspondante par nom de mesh
-        // Les noms peuvent varier (ex: "Cloth_mesh001" vs "Cloth")
+        // Les noms peuvent varier (ex: "Cloth_mesh001" vs "Cloth" ou "Front")
         const meshName = mesh.name || '';
-        let part = modelParts?.find(p => {
-          const partName = (p.name || '').toLowerCase();
-          const meshNameLower = meshName.toLowerCase();
+        let part: { name: string; material_map_id?: string | null } | undefined;
+        
+        if (modelParts && modelParts.length > 0) {
+          // 1. Essayer correspondance exacte
+          part = modelParts.find(p => {
+            const partName = (p.name || '').toLowerCase();
+            const meshNameLower = meshName.toLowerCase();
+            return partName === meshNameLower;
+          });
           
-          // Correspondance exacte
-          if (partName === meshNameLower) return true;
-          
-          // Le nom de la partie est contenu dans le nom du mesh
-          if (meshNameLower.includes(partName)) return true;
-          
-          // Le nom du mesh est contenu dans le nom de la partie
-          if (partName.includes(meshNameLower)) return true;
-          
-          // Correspondance par préfixe (ex: "Cloth_mesh001" -> "Cloth")
-          if (meshNameLower.includes('_')) {
-            const meshPrefix = meshNameLower.split('_')[0];
-            if (partName.includes(meshPrefix) || meshPrefix.includes(partName)) return true;
+          // 2. Si pas trouvé, essayer correspondance partielle
+          if (!part) {
+            part = modelParts.find(p => {
+              const partName = (p.name || '').toLowerCase();
+              const meshNameLower = meshName.toLowerCase();
+              
+              // Le nom de la partie est contenu dans le nom du mesh
+              if (meshNameLower.includes(partName) && partName.length > 2) return true;
+              
+              // Le nom du mesh est contenu dans le nom de la partie
+              if (partName.includes(meshNameLower) && meshNameLower.length > 2) return true;
+              
+              // Correspondance par préfixe (ex: "Cloth_mesh001" -> "Cloth")
+              if (meshNameLower.includes('_')) {
+                const meshPrefix = meshNameLower.split('_')[0];
+                if (partName.includes(meshPrefix) || meshPrefix.includes(partName)) return true;
+              }
+              
+              // Correspondance par mots-clés communs (ignorer les mots trop courts)
+              const meshWords = meshNameLower.split(/[_\s]+/).filter(w => w.length > 2);
+              const partWords = partName.split(/[_\s]+/).filter(w => w.length > 2);
+              const commonWords = meshWords.filter(w => partWords.includes(w));
+              if (commonWords.length > 0) return true;
+              
+              return false;
+            });
           }
           
-          // Correspondance par mots-clés communs
-          const meshWords = meshNameLower.split(/[_\s]+/);
-          const partWords = partName.split(/[_\s]+/);
-          const commonWords = meshWords.filter(w => partWords.includes(w));
-          if (commonWords.length > 0) return true;
-          
-          return false;
-        });
+          // 3. Si toujours pas trouvé et qu'on a le même nombre de meshes que de parties,
+          // utiliser l'index (mais seulement si c'est le dernier recours)
+          // On ne fait pas ça automatiquement car l'ordre peut être différent
+        }
         
-        console.log(`Mesh: "${meshName}", Part:`, part ? `${part.name} (id: ${part.material_map_id})` : 'none', 'MaterialMap:', part?.material_map_id ? materialMaps?.[part.material_map_id] : 'none', 'All parts:', modelParts?.map(p => p.name));
+        // Log détaillé pour debug
+        const partNames = modelParts?.map(p => `${p.name} (map_id: ${p.material_map_id || 'none'})`) || [];
+        console.log(`Mesh: "${meshName}"`, {
+          foundPart: part ? `${part.name} (id: ${part.material_map_id})` : 'none',
+          hasMaterialMap: part?.material_map_id ? 'yes' : 'no',
+          allParts: partNames,
+          materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
+        });
         
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
           const materialMap = materialMaps[part.material_map_id];

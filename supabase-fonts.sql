@@ -75,3 +75,4 @@ CREATE POLICY "Public delete access for fonts" ON fonts
   FOR DELETE TO public
   USING (true);
 
+
