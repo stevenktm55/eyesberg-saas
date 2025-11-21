@@ -171,11 +171,11 @@ function Model({
         let materialDiffuseTexture: THREE.Texture | null = null;
         
         // Fonction pour combiner le design 2D avec la texture diffuse existante
-        // Utiliser 1024x1024 pour améliorer les performances (au lieu de 2048x2048)
+        // Utiliser 512x512 pour améliorer les performances lors des rotations
         const combineDesignWithMaterial = (designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
           const canvas = document.createElement('canvas');
-          canvas.width = 1024; // Réduit de 2048 à 1024 pour améliorer les performances
-          canvas.height = 1024;
+          canvas.width = 512; // Réduit à 512x512 pour de meilleures performances
+          canvas.height = 512;
           const ctx = canvas.getContext('2d');
           if (!ctx) return null;
           
@@ -244,9 +244,9 @@ function Model({
                   texture.wrapT = THREE.RepeatWrapping;
                   texture.repeat.set(scale, scale);
                   
-                  // Si la texture est trop grande (> 2048), la redimensionner pour améliorer les performances
-                  if (texture.image && (texture.image.width > 2048 || texture.image.height > 2048)) {
-                    const maxSize = 1024; // Limiter à 1024 pour le preview
+                  // Redimensionner toutes les textures à 512x512 max pour améliorer les performances lors des rotations
+                  if (texture.image && (texture.image.width > 512 || texture.image.height > 512)) {
+                    const maxSize = 512; // Limiter à 512x512 pour le preview (meilleures performances)
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     if (ctx) {
