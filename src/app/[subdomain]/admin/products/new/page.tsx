@@ -1125,23 +1125,42 @@ export default function ProductBuilderPage() {
                         border: selectedModule?.id === module.id ? '1px solid #8eff36' : '1px solid #1a1a1a',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
                       }}
                     >
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        fontSize: '20px'
+                      }}>
+                        {module.iconUrl ? (
+                          <img
+                            src={module.iconUrl}
+                            alt={module.tabName}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        ) : (
+                          module.icon
+                        )}
+                      </div>
                       <div style={{
                         fontSize: '14px',
                         fontFamily: 'var(--stepn-font-body)',
                         color: '#ffffff',
-                        marginBottom: '4px'
+                        flex: 1
                       }}>
                         {module.tabName}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        {module.inputType}
                       </div>
                     </div>
                   ))}
@@ -1867,48 +1886,6 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 />
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '12px',
-                  color: '#a0a0a0',
-                  marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
-                }}>
-                  Type d'input
-                </label>
-                <select
-                  value={selectedModule.inputType}
-                  onChange={(e) => {
-                    const updated = { ...selectedModule, inputType: e.target.value as CustomizationModule['inputType'] };
-                    setSelectedModule(updated);
-                    setCustomizationModules(customizationModules.map(m => 
-                      m.id === selectedModule.id ? updated : m
-                    ));
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '4px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
-                >
-                  <option value="thumbnail">Thumbnail (Miniatures)</option>
-                  <option value="dropdown">Dropdown (Menu déroulant)</option>
-                  <option value="radio">Radio Button (Boutons radio)</option>
-                  <option value="label">Label (Étiquette)</option>
-                  <option value="file-upload">File Upload (Upload fichier)</option>
-                  <option value="text-input">Text Input (Champ texte)</option>
-                  <option value="checkbox">Checkbox (Case à cocher)</option>
-                </select>
               </div>
 
               {/* Content Type Selection */}
