@@ -137,6 +137,99 @@ function Model({
           materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
         });
         
+        // Fonction pour créer une texture combinée (design 2D en arrière-plan, material maps par-dessus)
+        const createCombinedTexture = (designTexture: HTMLImageElement | null, materialTexture: HTMLImageElement | null) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 2048;
+          canvas.height = 2048;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return null;
+          
+          // 1. D'abord, dessiner le design 2D (en arrière-plan)
+          if (designTexture) {
+            const imgAspect = designTexture.width / designTexture.height;
+            const canvasAspect = canvas.width / canvas.height;
+            let drawWidth = canvas.width;
+            let drawHeight = canvas.height;
+            let drawX = 0;
+            let drawY = 0;
+            
+            if (imgAspect > canvasAspect) {
+              drawHeight = canvas.width / imgAspect;
+              drawY = (canvas.height - drawHeight) / 2;
+            } else {
+              drawWidth = canvas.height * imgAspect;
+              drawX = (canvas.width - drawWidth) / 2;
+            }
+            
+            ctx.drawImage(designTexture, drawX, drawY, drawWidth, drawHeight);
+          } else {
+            // Pas de design 2D, mettre un fond blanc
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          
+          // 2. Ensuite, dessiner la texture diffuse des material maps par-dessus
+          if (materialTexture) {
+            ctx.drawImage(materialTexture, 0, 0, canvas.width, canvas.height);
+          }
+          
+          return canvas;
+        };
+        
+        // Variables pour stocker les textures chargées
+        let design2DImage: HTMLImageElement | null = null;
+        let materialDiffuseImage: HTMLImageElement | null = null;
+        
+        // Fonction pour appliquer la texture combinée finale
+        const applyCombinedTexture = () => {
+          if (design2DImage || materialDiffuseImage) {
+            const canvas = createCombinedTexture(design2DImage, materialDiffuseImage);
+            if (canvas) {
+              const texture = new THREE.CanvasTexture(canvas);
+              texture.needsUpdate = true;
+              standardMaterial.map = texture;
+              standardMaterial.map.needsUpdate = true;
+              standardMaterial.needsUpdate = true;
+              console.log('Combined texture applied (design 2D + material maps)');
+            }
+          }
+        };
+        
+        // Charger le design 2D en premier (en arrière-plan)
+        if (design2DUrl) {
+          if (design2DUrl.toLowerCase().endsWith('.svg')) {
+            console.log(`Design 2D is SVG, converting to image: ${design2DUrl}`);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              design2DImage = img;
+              applyCombinedTexture();
+            };
+            img.onerror = (error) => {
+              console.error('Error loading SVG for conversion:', error);
+            };
+            img.src = design2DUrl;
+          } else {
+            console.log(`Loading design 2D: ${design2DUrl}`);
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(
+              design2DUrl,
+              (texture) => {
+                if (texture.image && texture.image instanceof HTMLImageElement) {
+                  design2DImage = texture.image;
+                  applyCombinedTexture();
+                }
+              },
+              undefined,
+              (error) => {
+                console.error('Error loading design 2D texture:', error);
+              }
+            );
+          }
+        }
+        
+        // Appliquer les material maps (par-dessus le design 2D)
         if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
           const materialMap = materialMaps[part.material_map_id];
           const files = materialMap.material_map_files || [];
@@ -169,8 +262,15 @@ function Model({
                 
                 switch (mapType) {
                   case 'diffuse':
-                    standardMaterial.map = texture;
-                    standardMaterial.map.needsUpdate = true;
+                    // Pour la texture diffuse, on la combine avec le design 2D
+                    if (texture.image && texture.image instanceof HTMLImageElement) {
+                      materialDiffuseImage = texture.image;
+                      applyCombinedTexture();
+                    } else {
+                      // Si ce n'est pas une HTMLImageElement, appliquer directement
+                      standardMaterial.map = texture;
+                      standardMaterial.map.needsUpdate = true;
+                    }
                     break;
                   case 'normal':
                     standardMaterial.normalMap = texture;
@@ -200,93 +300,10 @@ function Model({
               }
             );
           });
-        }
-        
-        // Appliquer le design 2D comme texture overlay si disponible
-        // Le design 2D est appliqué APRÈS les material maps pour ne pas les écraser
-        // On l'utilise comme overlay en combinant avec la texture diffuse existante
-        if (design2DUrl) {
-          if (design2DUrl.toLowerCase().endsWith('.svg')) {
-            console.log(`Design 2D is SVG, converting to image: ${design2DUrl}`);
-            // Convertir SVG en image via canvas
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              // Utiliser une taille fixe pour éviter les problèmes de dimensions
-              canvas.width = 2048;
-              canvas.height = 2048;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                // Si on a déjà une texture diffuse (des material maps), on la dessine d'abord
-                // Sinon, on met un fond blanc
-                if (standardMaterial.map && standardMaterial.map.image && standardMaterial.map.image instanceof HTMLImageElement) {
-                  // Dessiner la texture existante en arrière-plan
-                  ctx.drawImage(standardMaterial.map.image, 0, 0, canvas.width, canvas.height);
-                } else {
-                  // Pas de texture existante, mettre un fond blanc
-                  ctx.fillStyle = '#FFFFFF';
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-                
-                // Calculer les dimensions pour centrer et adapter le SVG
-                const imgAspect = img.width / img.height;
-                const canvasAspect = canvas.width / canvas.height;
-                let drawWidth = canvas.width;
-                let drawHeight = canvas.height;
-                let drawX = 0;
-                let drawY = 0;
-                
-                if (imgAspect > canvasAspect) {
-                  // L'image est plus large
-                  drawHeight = canvas.width / imgAspect;
-                  drawY = (canvas.height - drawHeight) / 2;
-                } else {
-                  // L'image est plus haute
-                  drawWidth = canvas.height * imgAspect;
-                  drawX = (canvas.width - drawWidth) / 2;
-                }
-                
-                // Dessiner le design 2D par-dessus (comme overlay)
-                ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-                
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                
-                // Appliquer la texture combinée
-                standardMaterial.map = texture;
-                standardMaterial.map.needsUpdate = true;
-                standardMaterial.needsUpdate = true;
-                standardMaterial.transparent = false;
-                standardMaterial.opacity = 1.0;
-                console.log('Design 2D SVG converted and applied as overlay');
-              }
-            };
-            img.onerror = (error) => {
-              console.error('Error loading SVG for conversion:', error);
-            };
-            img.src = design2DUrl;
-          } else {
-            console.log(`Loading design 2D: ${design2DUrl}`);
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load(
-              design2DUrl,
-              (texture) => {
-                console.log('Design 2D texture loaded');
-                // Si on a déjà une texture diffuse, on doit la combiner
-                // Pour l'instant, on remplace (le design 2D a la priorité)
-                // TODO: Implémenter un vrai blending si nécessaire
-                standardMaterial.map = texture;
-                standardMaterial.map.needsUpdate = true;
-                standardMaterial.needsUpdate = true;
-                standardMaterial.transparent = false;
-                standardMaterial.opacity = 1.0;
-              },
-              undefined,
-              (error) => {
-                console.error('Error loading design 2D texture:', error);
-              }
-            );
+        } else if (!design2DUrl) {
+          // Pas de design 2D et pas de material maps, s'assurer qu'on a une couleur de base
+          if (standardMaterial.color.getHex() === 0x000000) {
+            standardMaterial.color.setHex(0xffffff);
           }
         }
       }
