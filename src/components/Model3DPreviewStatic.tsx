@@ -210,13 +210,44 @@ function Model({
             img.crossOrigin = 'anonymous';
             img.onload = () => {
               const canvas = document.createElement('canvas');
-              canvas.width = img.width || 1024;
-              canvas.height = img.height || 1024;
+              // Utiliser une taille fixe pour éviter les problèmes de dimensions
+              canvas.width = 2048;
+              canvas.height = 2048;
               const ctx = canvas.getContext('2d');
               if (ctx) {
-                ctx.drawImage(img, 0, 0);
+                // Remplir le canvas avec un fond blanc pour éviter la transparence
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Calculer les dimensions pour centrer et adapter le SVG
+                const imgAspect = img.width / img.height;
+                const canvasAspect = canvas.width / canvas.height;
+                let drawWidth = canvas.width;
+                let drawHeight = canvas.height;
+                let drawX = 0;
+                let drawY = 0;
+                
+                if (imgAspect > canvasAspect) {
+                  // L'image est plus large
+                  drawHeight = canvas.width / imgAspect;
+                  drawY = (canvas.height - drawHeight) / 2;
+                } else {
+                  // L'image est plus haute
+                  drawWidth = canvas.height * imgAspect;
+                  drawX = (canvas.width - drawWidth) / 2;
+                }
+                
+                ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                
                 const texture = new THREE.CanvasTexture(canvas);
                 texture.needsUpdate = true;
+                
+                // Appliquer le design 2D comme texture diffuse
+                // S'assurer qu'on a toujours une couleur de base
+                if (standardMaterial.color.getHex() === 0x000000) {
+                  standardMaterial.color.setHex(0xffffff);
+                }
+                
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
                 standardMaterial.needsUpdate = true;
@@ -227,6 +258,10 @@ function Model({
             };
             img.onerror = (error) => {
               console.error('Error loading SVG for conversion:', error);
+              // En cas d'erreur, s'assurer qu'on garde la couleur de base
+              if (standardMaterial.color.getHex() === 0x000000) {
+                standardMaterial.color.setHex(0xffffff);
+              }
             };
             img.src = design2DUrl;
           } else {
@@ -237,6 +272,10 @@ function Model({
               (texture) => {
                 console.log('Design 2D texture loaded');
                 // Utiliser le design 2D comme texture de base ou overlay
+                // S'assurer qu'on a toujours une couleur de base
+                if (standardMaterial.color.getHex() === 0x000000) {
+                  standardMaterial.color.setHex(0xffffff);
+                }
                 standardMaterial.map = texture;
                 standardMaterial.map.needsUpdate = true;
                 standardMaterial.needsUpdate = true;
@@ -246,6 +285,10 @@ function Model({
               undefined,
               (error) => {
                 console.error('Error loading design 2D texture:', error);
+                // En cas d'erreur, s'assurer qu'on garde la couleur de base
+                if (standardMaterial.color.getHex() === 0x000000) {
+                  standardMaterial.color.setHex(0xffffff);
+                }
               }
             );
           }
