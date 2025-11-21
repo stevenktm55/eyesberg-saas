@@ -98,6 +98,26 @@ function Model({
             standardMaterial.color.setHex(0xffffff);
           }
           
+          // Vérifier si c'est un mesh "back" - forcer blanc et ignorer le design 2D
+          const isBackMesh = /back/i.test(materialName) || /back/i.test(objectName) || /back/i.test(nodeName);
+          if (isBackMesh) {
+            const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            whiteMat.map = null;
+            whiteMat.normalMap = null;
+            whiteMat.roughnessMap = null;
+            whiteMat.metalnessMap = null;
+            whiteMat.aoMap = null;
+            whiteMat.transparent = false;
+            whiteMat.opacity = 1.0;
+            if (Array.isArray(object.material)) {
+              object.material[index] = whiteMat;
+            } else {
+              object.material = whiteMat;
+            }
+            console.log('⬜ Back mesh forced white:', objectName || '(unnamed)', '| Material:', materialName || '(no name)');
+            return; // Ne pas appliquer de material maps ni design 2D
+          }
+          
           // Trouver le material map correspondant par nom du matériau
           // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
           const materialName = (material as any).name || '';
