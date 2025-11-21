@@ -32,111 +32,140 @@ function Model({
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
 }) {
   const { scene } = useGLTF(url);
+  const groupRef = useRef<THREE.Group>(null);
   
-  // Auto-fit le modèle dans la scène
-  const box = new THREE.Box3().setFromObject(scene);
-  const center = new THREE.Vector3();
-  const size = new THREE.Vector3();
-  box.getCenter(center);
-  box.getSize(size);
-  
-  const maxDim = Math.max(size.x, size.y, size.z);
-  if (maxDim > 0) {
-    const scale = 1.5 / maxDim;
-    scene.scale.multiplyScalar(scale);
-    scene.position.sub(center.multiplyScalar(scale));
-  }
+  // Clone la scène pour éviter les mutations
+  const clonedScene = React.useMemo(() => {
+    const cloned = scene.clone();
+    
+    // Auto-fit le modèle dans la scène
+    const box = new THREE.Box3().setFromObject(cloned);
+    const center = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    box.getCenter(center);
+    box.getSize(size);
+    
+    const maxDim = Math.max(size.x, size.y, size.z);
+    if (maxDim > 0) {
+      const scale = 1.5 / maxDim;
+      cloned.scale.multiplyScalar(scale);
+      cloned.position.sub(center.multiplyScalar(scale));
+    }
+    
+    return cloned;
+  }, [scene]);
 
   // Appliquer les material maps et le design 2D
   React.useEffect(() => {
-    if (!scene) return;
+    if (!clonedScene) return;
 
     console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl);
 
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material) {
-        const mesh = child as THREE.Mesh;
-        let material = mesh.material;
+    // Normaliser les noms pour la correspondance (enlever les numéros, underscores, etc.)
+    const normalizeName = (name: string) => {
+      return name.toLowerCase()
+        .replace(/_\d+\.\d+/g, '') // Enlever les numéros comme "_2917.001"
+        .replace(/[_\s-]/g, '') // Enlever underscores, espaces, tirets
+        .trim();
+    };
+
+    clonedScene.traverse((object) => {
+      if (object instanceof THREE.Mesh && object.material) {
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
         
-        // Si c'est un tableau de matériaux, traiter chaque matériau
-        if (Array.isArray(material)) {
-          material = material[0];
-          mesh.material = material;
-        }
-        
-        // Créer un nouveau matériau MeshStandardMaterial si nécessaire
-        let standardMaterial: THREE.MeshStandardMaterial;
-        if (material instanceof THREE.MeshStandardMaterial) {
-          standardMaterial = material;
-        } else {
-          standardMaterial = new THREE.MeshStandardMaterial();
-          if (material instanceof THREE.MeshBasicMaterial) {
-            standardMaterial.color.copy(material.color);
+        materials.forEach((material, index) => {
+          // Convertir en MeshStandardMaterial si nécessaire
+          let standardMaterial: THREE.MeshStandardMaterial;
+          if (material instanceof THREE.MeshStandardMaterial) {
+            standardMaterial = material;
           } else {
-            // Couleur par défaut si pas de couleur
+            standardMaterial = new THREE.MeshStandardMaterial();
+            if (material instanceof THREE.MeshBasicMaterial) {
+              standardMaterial.color.copy(material.color);
+            } else {
+              standardMaterial.color.setHex(0xffffff);
+            }
+            if (Array.isArray(object.material)) {
+              object.material[index] = standardMaterial;
+            } else {
+              object.material = standardMaterial;
+            }
+          }
+          
+          standardMaterial.transparent = false;
+          standardMaterial.opacity = 1.0;
+          if (standardMaterial.color.getHex() === 0x000000) {
             standardMaterial.color.setHex(0xffffff);
           }
-          mesh.material = standardMaterial;
-        }
-        
-        // S'assurer que le matériau n'est pas transparent et a une couleur de base
-        standardMaterial.transparent = false;
-        standardMaterial.opacity = 1.0;
-        // Toujours avoir une couleur de base blanche pour éviter le noir
-        if (standardMaterial.color.getHex() === 0x000000) {
-          standardMaterial.color.setHex(0xffffff);
-        }
-        
-        // Trouver la partie correspondante par nom de mesh
-        // Les noms peuvent varier (ex: "Cloth_mesh001" vs "Cloth" ou "Front")
-        const meshName = mesh.name || '';
-        let part: { name: string; material_map_id?: string | null } | undefined;
-        
-        if (modelParts && modelParts.length > 0) {
-          // 1. Essayer correspondance exacte
-          part = modelParts.find(p => {
-            const partName = (p.name || '').toLowerCase();
-            const meshNameLower = meshName.toLowerCase();
-            return partName === meshNameLower;
-          });
           
-          // 2. Si pas trouvé, essayer correspondance partielle
-          if (!part) {
-            part = modelParts.find(p => {
-              const partName = (p.name || '').toLowerCase();
-              const meshNameLower = meshName.toLowerCase();
+          // Trouver le material map correspondant par nom du matériau
+          // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
+          const materialName = (material as any).name || '';
+          const objectName = (object as any).name || '';
+          const nodeName = (object.parent as any)?.name || '';
+          
+          let part: { name: string; material_map_id?: string | null } | undefined;
+          
+          if (modelParts && modelParts.length > 0) {
+            // 1. Chercher une correspondance exacte d'abord (sans normalisation)
+            part = modelParts.find(p => 
+              p.name === materialName || 
+              p.name === objectName ||
+              p.name === nodeName
+            );
+            
+            // 2. Si pas de correspondance exacte, essayer avec normalisation
+            if (!part) {
+              const materialNameNorm = normalizeName(materialName);
+              const objectNameNorm = normalizeName(objectName);
+              const nodeNameNorm = normalizeName(nodeName);
               
-              // Le nom de la partie est contenu dans le nom du mesh
-              if (meshNameLower.includes(partName) && partName.length > 2) return true;
+              part = modelParts.find(p => {
+                const partNameNorm = normalizeName(p.name);
+                return (
+                  partNameNorm === materialNameNorm ||
+                  partNameNorm === objectNameNorm ||
+                  partNameNorm === nodeNameNorm
+                );
+              });
+            }
+            
+            // 3. Si toujours pas de correspondance, essayer une correspondance partielle
+            if (!part) {
+              const materialNameLower = materialName.toLowerCase();
+              const objectNameLower = objectName.toLowerCase();
               
-              // Le nom du mesh est contenu dans le nom de la partie
-              if (partName.includes(meshNameLower) && meshNameLower.length > 2) return true;
-              
-              // Correspondance par préfixe (ex: "Cloth_mesh001" -> "Cloth")
-              if (meshNameLower.includes('_')) {
-                const meshPrefix = meshNameLower.split('_')[0];
-                if (partName.includes(meshPrefix) || meshPrefix.includes(partName)) return true;
+              part = modelParts.find(p => {
+                const partNameLower = p.name.toLowerCase();
+                const partNameWithoutNumbers = partNameLower.replace(/_\d+\.\d+/g, '');
+                const materialNameWithoutNumbers = materialNameLower.replace(/_\d+\.\d+/g, '');
+                
+                return (
+                  materialNameWithoutNumbers.includes(partNameWithoutNumbers) ||
+                  partNameWithoutNumbers.includes(materialNameWithoutNumbers) ||
+                  objectNameLower.includes(partNameWithoutNumbers) ||
+                  partNameWithoutNumbers.includes(objectNameLower)
+                );
+              });
+            }
+            
+            // 4. Si pas de correspondance, essayer par index (si on a le même nombre de matériaux)
+            if (!part && modelParts.length > 0) {
+              const materialIndex = Array.isArray(object.material) ? index : 0;
+              if (materialIndex < modelParts.length) {
+                part = modelParts[materialIndex];
               }
-              
-              // Correspondance par mots-clés communs (ignorer les mots trop courts)
-              const meshWords = meshNameLower.split(/[_\s]+/).filter(w => w.length > 2);
-              const partWords = partName.split(/[_\s]+/).filter(w => w.length > 2);
-              const commonWords = meshWords.filter(w => partWords.includes(w));
-              if (commonWords.length > 0) return true;
-              
-              return false;
-            });
+            }
           }
-        }
-        
-        // Log détaillé pour debug
-        const partNames = modelParts?.map(p => `${p.name} (map_id: ${p.material_map_id || 'none'})`) || [];
-        console.log(`Mesh: "${meshName}"`, {
-          foundPart: part ? `${part.name} (id: ${part.material_map_id})` : 'none',
-          hasMaterialMap: part?.material_map_id ? 'yes' : 'no',
-          allParts: partNames,
-          materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
-        });
+          
+          // Log détaillé pour debug
+          const partNames = modelParts?.map(p => `${p.name} (map_id: ${p.material_map_id || 'none'})`) || [];
+          console.log(`Mesh: "${objectName}", Material: "${materialName}", Parent: "${nodeName}"`, {
+            foundPart: part ? `${part.name} (id: ${part.material_map_id})` : 'none',
+            hasMaterialMap: part?.material_map_id ? 'yes' : 'no',
+            allParts: partNames,
+            materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
+          });
         
         // Variable pour stocker la texture diffuse des material maps
         let materialDiffuseTexture: THREE.Texture | null = null;
@@ -179,165 +208,158 @@ function Model({
           return canvas;
         };
         
-        // Appliquer les material maps (par-dessus le design 2D)
-        if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
-          const materialMap = materialMaps[part.material_map_id];
-          const files = materialMap.material_map_files || [];
-          
-          console.log(`Applying material map to ${meshName}:`, files);
-          
-          // Appliquer les textures
-          const textureLoader = new THREE.TextureLoader();
-          
-          files.forEach((file: any) => {
-            const mapType = file.map_type;
-            const fileUrl = file.file_url;
-            const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
-            const scale = file.scale !== undefined ? file.scale : 1;
+          // Appliquer les material maps (par-dessus le design 2D)
+          if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
+            const materialMap = materialMaps[part.material_map_id];
+            const files = materialMap.material_map_files || [];
             
-            if (!fileUrl) {
-              console.warn(`No file URL for ${mapType}`);
-              return;
-            }
+            console.log(`Applying material map to ${objectName}:`, files);
             
-            console.log(`Loading texture: ${mapType} from ${fileUrl}`);
+            // Appliquer les textures
+            const textureLoader = new THREE.TextureLoader();
             
-            textureLoader.load(
-              fileUrl,
-              (texture) => {
-                console.log(`Texture loaded: ${mapType}`);
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(scale, scale);
-                
-                switch (mapType) {
-                  case 'diffuse':
-                    // Appliquer la texture diffuse directement (comme dans Model3DPreview)
-                    texture.colorSpace = THREE.SRGBColorSpace;
-                    materialDiffuseTexture = texture;
-                    standardMaterial.map = texture;
-                    standardMaterial.map.needsUpdate = true;
-                    
-                    // Si on a un design 2D, le combiner avec cette texture
-                    if (design2DUrl) {
-                      if (design2DUrl.toLowerCase().endsWith('.svg')) {
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        img.onload = () => {
-                          const canvas = combineDesignWithMaterial(img, texture);
-                          if (canvas) {
-                            const combinedTexture = new THREE.CanvasTexture(canvas);
-                            combinedTexture.needsUpdate = true;
-                            standardMaterial.map = combinedTexture;
-                            standardMaterial.map.needsUpdate = true;
-                            standardMaterial.needsUpdate = true;
-                            console.log('Combined texture applied (material map + design 2D)');
-                          }
-                        };
-                        img.src = design2DUrl;
-                      } else {
-                        // Design 2D non-SVG, charger et combiner
-                        const designLoader = new THREE.TextureLoader();
-                        designLoader.load(
-                          design2DUrl,
-                          (designTexture) => {
-                            if (designTexture.image && designTexture.image instanceof HTMLImageElement) {
-                              const canvas = combineDesignWithMaterial(designTexture.image, texture);
-                              if (canvas) {
-                                const combinedTexture = new THREE.CanvasTexture(canvas);
-                                combinedTexture.needsUpdate = true;
-                                standardMaterial.map = combinedTexture;
-                                standardMaterial.map.needsUpdate = true;
-                                standardMaterial.needsUpdate = true;
-                                console.log('Combined texture applied (material map + design 2D)');
+            files.forEach((file: any) => {
+              const mapType = file.map_type;
+              const fileUrl = file.file_url;
+              const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+              const scale = file.scale !== undefined ? file.scale : 1;
+              
+              if (!fileUrl) {
+                console.warn(`No file URL for ${mapType}`);
+                return;
+              }
+              
+              console.log(`Loading texture: ${mapType} from ${fileUrl}`);
+              
+              textureLoader.load(
+                fileUrl,
+                (texture) => {
+                  console.log(`Texture loaded: ${mapType}`);
+                  texture.wrapS = THREE.RepeatWrapping;
+                  texture.wrapT = THREE.RepeatWrapping;
+                  texture.repeat.set(scale, scale);
+                  
+                  switch (mapType) {
+                    case 'diffuse':
+                      // Appliquer la texture diffuse directement (comme dans Model3DPreview)
+                      texture.colorSpace = THREE.SRGBColorSpace;
+                      standardMaterial.map = texture;
+                      standardMaterial.map.needsUpdate = true;
+                      
+                      // Si on a un design 2D, le combiner avec cette texture
+                      if (design2DUrl) {
+                        if (design2DUrl.toLowerCase().endsWith('.svg')) {
+                          const img = new Image();
+                          img.crossOrigin = 'anonymous';
+                          img.onload = () => {
+                            const canvas = combineDesignWithMaterial(img, texture);
+                            if (canvas) {
+                              const combinedTexture = new THREE.CanvasTexture(canvas);
+                              combinedTexture.needsUpdate = true;
+                              standardMaterial.map = combinedTexture;
+                              standardMaterial.map.needsUpdate = true;
+                              standardMaterial.needsUpdate = true;
+                              console.log('Combined texture applied (material map + design 2D)');
+                            }
+                          };
+                          img.src = design2DUrl;
+                        } else {
+                          // Design 2D non-SVG, charger et combiner
+                          const designLoader = new THREE.TextureLoader();
+                          designLoader.load(
+                            design2DUrl,
+                            (designTexture) => {
+                              if (designTexture.image && designTexture.image instanceof HTMLImageElement) {
+                                const canvas = combineDesignWithMaterial(designTexture.image, texture);
+                                if (canvas) {
+                                  const combinedTexture = new THREE.CanvasTexture(canvas);
+                                  combinedTexture.needsUpdate = true;
+                                  standardMaterial.map = combinedTexture;
+                                  standardMaterial.map.needsUpdate = true;
+                                  standardMaterial.needsUpdate = true;
+                                  console.log('Combined texture applied (material map + design 2D)');
+                                }
                               }
                             }
-                          }
-                        );
+                          );
+                        }
                       }
-                    }
-                    break;
-                  case 'normal':
-                    standardMaterial.normalMap = texture;
-                    standardMaterial.normalScale.set(intensity, intensity);
-                    standardMaterial.normalMap.needsUpdate = true;
-                    break;
-                  case 'roughness':
-                    standardMaterial.roughnessMap = texture;
-                    standardMaterial.roughnessMap.needsUpdate = true;
-                    break;
-                  case 'metallic':
-                    standardMaterial.metalnessMap = texture;
-                    standardMaterial.metalnessMap.needsUpdate = true;
-                    break;
-                  case 'ao':
-                    standardMaterial.aoMap = texture;
-                    standardMaterial.aoMapIntensity = intensity;
-                    standardMaterial.aoMap.needsUpdate = true;
-                    break;
+                      break;
+                    case 'normal':
+                      standardMaterial.normalMap = texture;
+                      standardMaterial.normalScale = new THREE.Vector2(intensity, intensity);
+                      standardMaterial.normalMap.needsUpdate = true;
+                      break;
+                    case 'roughness':
+                      standardMaterial.roughnessMap = texture;
+                      standardMaterial.roughness = intensity;
+                      standardMaterial.roughnessMap.needsUpdate = true;
+                      break;
+                    case 'metallic':
+                      standardMaterial.metalnessMap = texture;
+                      standardMaterial.metalness = intensity;
+                      standardMaterial.metalnessMap.needsUpdate = true;
+                      break;
+                    case 'ao':
+                      standardMaterial.aoMap = texture;
+                      standardMaterial.aoMapIntensity = intensity;
+                      standardMaterial.aoMap.needsUpdate = true;
+                      break;
+                  }
+                  
+                  standardMaterial.needsUpdate = true;
+                },
+                undefined,
+                (error) => {
+                  console.error(`Error loading texture ${mapType}:`, error);
                 }
-                
-                standardMaterial.needsUpdate = true;
-              },
-              undefined,
-              (error) => {
-                console.error(`Error loading texture ${mapType}:`, error);
-              }
-            );
-          });
-        }
-        
-        // Si pas de material maps mais qu'on a un design 2D, appliquer le design 2D seul
-        if (!part && design2DUrl) {
-          if (design2DUrl.toLowerCase().endsWith('.svg')) {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              const canvas = combineDesignWithMaterial(img, null);
-              if (canvas) {
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                standardMaterial.map = texture;
-                standardMaterial.map.needsUpdate = true;
-                standardMaterial.needsUpdate = true;
-                console.log('Design 2D applied alone (no material maps)');
-              }
-            };
-            img.onerror = (error) => {
-              console.error('Error loading SVG for conversion:', error);
-            };
-            img.src = design2DUrl;
-          } else {
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load(
-              design2DUrl,
-              (texture) => {
-                standardMaterial.map = texture;
-                standardMaterial.map.needsUpdate = true;
-                standardMaterial.needsUpdate = true;
-                console.log('Design 2D applied alone (no material maps)');
-              },
-              undefined,
-              (error) => {
-                console.error('Error loading design 2D texture:', error);
-              }
-            );
+              );
+            });
           }
-        }
-        
-        // Si pas de material maps ET pas de design 2D, s'assurer qu'on a une couleur de base
-        if (!part && !design2DUrl) {
-          // Pas de correspondance de partie et pas de design 2D
-          // Le matériau devrait déjà avoir une couleur blanche de base
-          if (standardMaterial.color.getHex() === 0x000000) {
-            standardMaterial.color.setHex(0xffffff);
+          
+          // Si pas de material maps mais qu'on a un design 2D, appliquer le design 2D seul
+          if (!part && design2DUrl) {
+            if (design2DUrl.toLowerCase().endsWith('.svg')) {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                const canvas = combineDesignWithMaterial(img, null);
+                if (canvas) {
+                  const texture = new THREE.CanvasTexture(canvas);
+                  texture.needsUpdate = true;
+                  standardMaterial.map = texture;
+                  standardMaterial.map.needsUpdate = true;
+                  standardMaterial.needsUpdate = true;
+                  console.log('Design 2D applied alone (no material maps)');
+                }
+              };
+              img.onerror = (error) => {
+                console.error('Error loading SVG for conversion:', error);
+              };
+              img.src = design2DUrl;
+            } else {
+              const textureLoader = new THREE.TextureLoader();
+              textureLoader.load(
+                design2DUrl,
+                (texture) => {
+                  standardMaterial.map = texture;
+                  standardMaterial.map.needsUpdate = true;
+                  standardMaterial.needsUpdate = true;
+                  console.log('Design 2D applied alone (no material maps)');
+                },
+                undefined,
+                (error) => {
+                  console.error('Error loading design 2D texture:', error);
+                }
+              );
+            }
           }
-        }
+        });
       }
     });
-  }, [scene, materialMaps, design2DUrl, modelParts]);
+  }, [clonedScene, materialMaps, design2DUrl, modelParts]);
 
-  return <primitive object={scene} />;
+  return <primitive ref={groupRef} object={clonedScene} />;
 }
 
 export function Model3DPreviewWithControls({ 
