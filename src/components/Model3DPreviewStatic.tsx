@@ -137,6 +137,11 @@ function Model({
           materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
         });
         
+        // Variables pour stocker les textures chargées
+        let design2DImage: HTMLImageElement | null = null;
+        let materialDiffuseImage: HTMLImageElement | null = null;
+        let hasDesign2D = !!design2DUrl;
+        
         // Fonction pour créer une texture combinée (design 2D en arrière-plan, material maps par-dessus)
         const createCombinedTexture = (designTexture: HTMLImageElement | null, materialTexture: HTMLImageElement | null) => {
           const canvas = document.createElement('canvas');
@@ -177,13 +182,11 @@ function Model({
           return canvas;
         };
         
-        // Variables pour stocker les textures chargées
-        let design2DImage: HTMLImageElement | null = null;
-        let materialDiffuseImage: HTMLImageElement | null = null;
-        
         // Fonction pour appliquer la texture combinée finale
         const applyCombinedTexture = () => {
-          if (design2DImage || materialDiffuseImage) {
+          // Ne créer le canvas combiné que si on a un design 2D ET une texture diffuse
+          // Sinon, appliquer directement les textures
+          if (hasDesign2D && (design2DImage || materialDiffuseImage)) {
             const canvas = createCombinedTexture(design2DImage, materialDiffuseImage);
             if (canvas) {
               const texture = new THREE.CanvasTexture(canvas);
@@ -192,6 +195,26 @@ function Model({
               standardMaterial.map.needsUpdate = true;
               standardMaterial.needsUpdate = true;
               console.log('Combined texture applied (design 2D + material maps)');
+            }
+          } else if (materialDiffuseImage && !hasDesign2D) {
+            // Pas de design 2D, appliquer directement la texture diffuse
+            const texture = new THREE.TextureLoader().load(
+              materialDiffuseImage.src,
+              (tex) => {
+                standardMaterial.map = tex;
+                standardMaterial.map.needsUpdate = true;
+                standardMaterial.needsUpdate = true;
+              }
+            );
+          } else if (design2DImage && !materialDiffuseImage) {
+            // Pas de material maps, appliquer seulement le design 2D
+            const canvas = createCombinedTexture(design2DImage, null);
+            if (canvas) {
+              const texture = new THREE.CanvasTexture(canvas);
+              texture.needsUpdate = true;
+              standardMaterial.map = texture;
+              standardMaterial.map.needsUpdate = true;
+              standardMaterial.needsUpdate = true;
             }
           }
         };
@@ -300,8 +323,12 @@ function Model({
               }
             );
           });
-        } else if (!design2DUrl) {
-          // Pas de design 2D et pas de material maps, s'assurer qu'on a une couleur de base
+        }
+        
+        // Si pas de material maps ET pas de design 2D, s'assurer qu'on a une couleur de base
+        if (!part && !design2DUrl) {
+          // Pas de correspondance de partie et pas de design 2D
+          // Le matériau devrait déjà avoir une couleur blanche de base
           if (standardMaterial.color.getHex() === 0x000000) {
             standardMaterial.color.setHex(0xffffff);
           }
