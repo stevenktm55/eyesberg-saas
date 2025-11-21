@@ -31,7 +31,7 @@ function Model({
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
 }) {
-  const { scene } = useGLTF(url);
+  const { scene, gl } = useGLTF(url);
   const groupRef = useRef<THREE.Group>(null);
   
   // Clone la scène pour éviter les mutations
@@ -55,332 +55,276 @@ function Model({
     return cloned;
   }, [scene]);
 
-  // Charger le design 2D d'abord (comme dans ModelViewer)
-  const [designTexture, setDesignTexture] = React.useState<THREE.CanvasTexture | null>(null);
-  
-  React.useEffect(() => {
-    if (!design2DUrl) {
-      setDesignTexture(null);
-      return;
-    }
-    
-    console.log('🎨 Loading design 2D from:', design2DUrl);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      console.log('✅ Design 2D image loaded, size:', img.width, 'x', img.height);
-      const size = 512; // 512x512 pour les performances
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('❌ Failed to get canvas context');
-        return;
-      }
-      
-      // Fond blanc d'abord (comme dans ModelViewer)
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, size, size);
-      
-      // Dessiner le design directement (comme dans ModelViewer ligne 696)
-      ctx.drawImage(img, 0, 0, size, size);
-      console.log('✅ Design drawn on canvas');
-      
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 8;
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.generateMipmaps = true;
-      tex.flipY = false;
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.offset.set(0, 0);
-      tex.repeat.set(1, 1);
-      tex.needsUpdate = true;
-      
-      setDesignTexture(tex);
-      console.log('✅ Design texture created');
-    };
-    img.onerror = (error) => {
-      console.error('Error loading design 2D:', error);
-      setDesignTexture(null);
-    };
-    img.src = design2DUrl;
-  }, [design2DUrl]);
+  // Refs pour stocker le SVG original et suivre les versions (comme dans ModelViewer)
+  const originalSvgRef = React.useRef<string | null>(null);
+  const appliedSvgRef = React.useRef<string | null>(null);
+  const [svgBaseVersion, setSvgBaseVersion] = React.useState(0);
 
-  // Appliquer les material maps et le design 2D (comme dans ModelViewer - créer un nouveau matériau avec le design)
+  // Setup meshes and load design texture (UV0) - runs when design2DUrl changes (comme ModelViewer ligne 390-651)
   React.useEffect(() => {
     if (!clonedScene) return;
-    if (design2DUrl && !designTexture) return; // Attendre que le design soit chargé
+    if (!design2DUrl) return; // aucun design à charger
+    
+    console.log('🎨 Loading design texture from:', design2DUrl);
 
-    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl, 'designTexture:', designTexture ? 'loaded' : 'null');
+    const meshes: THREE.Mesh[] = [];
+    clonedScene.traverse((o: any) => { if (o.isMesh) meshes.push(o as THREE.Mesh); });
+    if (meshes.length === 0) return;
+    
+    console.log('🎨 Found', meshes.length, 'meshes');
 
-    // Normaliser les noms pour la correspondance (enlever les numéros, underscores, etc.)
-    const normalizeName = (name: string) => {
-      return name.toLowerCase()
-        .replace(/_\d+\.\d+/g, '') // Enlever les numéros comme "_2917.001"
-        .replace(/[_\s-]/g, '') // Enlever underscores, espaces, tirets
-        .trim();
-    };
-
-    clonedScene.traverse((object) => {
-      if (object instanceof THREE.Mesh && object.material) {
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        
-        materials.forEach((material, index) => {
-          // Convertir en MeshStandardMaterial si nécessaire
-          let standardMaterial: THREE.MeshStandardMaterial;
-          if (material instanceof THREE.MeshStandardMaterial) {
-            standardMaterial = material;
-          } else {
-            standardMaterial = new THREE.MeshStandardMaterial();
-            if (material instanceof THREE.MeshBasicMaterial) {
-              standardMaterial.color.copy(material.color);
-            } else {
-              standardMaterial.color.setHex(0xffffff);
-            }
-            if (Array.isArray(object.material)) {
-              object.material[index] = standardMaterial;
-            } else {
-              object.material = standardMaterial;
-            }
-          }
-          
-          standardMaterial.transparent = false;
-          standardMaterial.opacity = 1.0;
-          // Toujours s'assurer que la couleur est blanche par défaut
-          standardMaterial.color.setHex(0xffffff);
-          
-          // Trouver le material map correspondant par nom du matériau
-          // Essayer plusieurs stratégies de correspondance (comme dans Model3DPreview)
-          const materialName = (material as any).name || '';
-          const objectName = (object as any).name || '';
-          const nodeName = (object.parent as any)?.name || '';
-          
-          let part: { name: string; material_map_id?: string | null } | undefined;
-          
-          if (modelParts && modelParts.length > 0) {
-            // 1. Chercher une correspondance exacte d'abord (sans normalisation)
-            part = modelParts.find(p => 
-              p.name === materialName || 
-              p.name === objectName ||
-              p.name === nodeName
-            );
-            
-            // 2. Si pas de correspondance exacte, essayer avec normalisation
-            if (!part) {
-              const materialNameNorm = normalizeName(materialName);
-              const objectNameNorm = normalizeName(objectName);
-              const nodeNameNorm = normalizeName(nodeName);
-              
-              part = modelParts.find(p => {
-                const partNameNorm = normalizeName(p.name);
-                return (
-                  partNameNorm === materialNameNorm ||
-                  partNameNorm === objectNameNorm ||
-                  partNameNorm === nodeNameNorm
-                );
-              });
-            }
-            
-            // 3. Si toujours pas de correspondance, essayer une correspondance partielle
-            if (!part) {
-              const materialNameLower = materialName.toLowerCase();
-              const objectNameLower = objectName.toLowerCase();
-              
-              part = modelParts.find(p => {
-                const partNameLower = p.name.toLowerCase();
-                const partNameWithoutNumbers = partNameLower.replace(/_\d+\.\d+/g, '');
-                const materialNameWithoutNumbers = materialNameLower.replace(/_\d+\.\d+/g, '');
-                
-                return (
-                  materialNameWithoutNumbers.includes(partNameWithoutNumbers) ||
-                  partNameWithoutNumbers.includes(materialNameWithoutNumbers) ||
-                  objectNameLower.includes(partNameWithoutNumbers) ||
-                  partNameWithoutNumbers.includes(objectNameLower)
-                );
-              });
-            }
-            
-            // 4. Si pas de correspondance, essayer par index (si on a le même nombre de matériaux)
-            if (!part && modelParts.length > 0) {
-              const materialIndex = Array.isArray(object.material) ? index : 0;
-              if (materialIndex < modelParts.length) {
-                part = modelParts[materialIndex];
-              }
-            }
-          }
-          
-          // Log détaillé pour debug
-          const partNames = modelParts?.map(p => `${p.name} (map_id: ${p.material_map_id || 'none'})`) || [];
-          console.log(`Mesh: "${objectName}", Material: "${materialName}", Parent: "${nodeName}"`, {
-            foundPart: part ? `${part.name} (id: ${part.material_map_id})` : 'none',
-            hasMaterialMap: part?.material_map_id ? 'yes' : 'no',
-            allParts: partNames,
-            materialMapsKeys: materialMaps ? Object.keys(materialMaps) : []
-          });
-        
-        // Vérifier si c'est un mesh BACK (ne pas appliquer le design sur les BACK)
-        const isBack = /back/i.test(materialName) || /back/i.test(objectName) || /back/i.test(nodeName);
-        
-        if (isBack) {
-          // Forcer les meshes BACK en blanc sans texture (comme dans ModelViewer)
+    // Split meshes into back/front; prepare backs immediately (comme ModelViewer ligne 418-459)
+    const frontMeshes: THREE.Mesh[] = [];
+    const backMeshes: THREE.Mesh[] = [];
+    meshes.forEach((m) => {
+      const materialNameInit = ((m.material as any)?.name) || (m as any)?.userData?.materialName || '';
+      const isBackInit = /back/i.test(materialNameInit) || /back/i.test(m.name || '');
+      if (isBackInit) {
+        try {
           const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
           (whiteMat as any).map = null;
           (whiteMat as any).normalMap = null;
           (whiteMat as any).roughnessMap = null;
           (whiteMat as any).metalnessMap = null;
           (whiteMat as any).aoMap = null;
-          (whiteMat as any).name = materialName || (objectName ? `${objectName}_BACK_WHITE` : 'BACK_WHITE');
-          if (Array.isArray(object.material)) {
-            object.material[index] = whiteMat;
-          } else {
-            object.material = whiteMat;
-          }
-          console.log('⬜ Back mesh forced white:', objectName || '(unnamed)', '| Material:', (whiteMat as any).name);
-          return; // Ne pas continuer pour les meshes BACK
+          (whiteMat as any).alphaMap = null;
+          (whiteMat as any).name = materialNameInit || (m.name ? `${m.name}_BACK_WHITE` : 'BACK_WHITE');
+          m.material = whiteMat as any;
+          (m as any).castShadow = true;
+          (m as any).receiveShadow = true;
+          console.log('⬜ Back mesh forced white:', m.name || '(unnamed)', '| Material:', (whiteMat as any).name);
+        } catch {}
+        backMeshes.push(m);
+      } else {
+        // Ensure existing map is clamped (avoid tiling) and create placeholder material if needed
+        const oldTexture = (m.material as any)?.map;
+        if (oldTexture) {
+          oldTexture.wrapS = THREE.ClampToEdgeWrapping;
+          oldTexture.wrapT = THREE.ClampToEdgeWrapping;
+          oldTexture.repeat.set(1, 1);
+          oldTexture.offset.set(0, 0);
+          oldTexture.needsUpdate = true;
         }
-        
-        // Ensure uv2 exists for AO (comme dans ModelViewer ligne 787-788)
-        const g = object.geometry as THREE.BufferGeometry;
-        if (!g.getAttribute('uv2')) { 
-          const uv = g.getAttribute('uv'); 
-          if (uv) g.setAttribute('uv2', uv); 
+        if (!m.material) {
+          const ph = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+          (ph as any).name = materialNameInit || (m.name ? `${m.name}_FRONT_PLACEHOLDER` : 'FRONT_PLACEHOLDER');
+          m.material = ph as any;
         }
-        
-        // Créer un nouveau matériau avec le design intégré (comme dans ModelViewer ligne 789)
-        const newMaterial = new THREE.MeshStandardMaterial({ 
-          map: designTexture || undefined, 
-          color: 0xffffff, 
-          roughness: 0.6, 
-          metalness: 0.0, 
-          transparent: false 
-        });
-        (newMaterial as any).name = materialName || (objectName ? `${objectName}_FRONT` : 'FRONT');
-        
-        if (designTexture) {
-          console.log('✅ Design 2D applied as base map texture (UV0) to material:', (newMaterial as any).name);
-        }
-        
-        // Stocker une référence à la texture du design pour s'assurer qu'elle ne soit pas écrasée
-        const designTexRef = designTexture;
-        
-        // Appliquer les material maps (normal, roughness, etc.) en plus
-        if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
-          // Always use UV2 for PBR maps if available: remap uv <- uv2 to guarantee alignment (comme dans ModelViewer ligne 794-799)
-          const g2 = object.geometry as THREE.BufferGeometry;
-          const uv2Attr = g2.getAttribute('uv2');
-          if (uv2Attr) {
-            g2.setAttribute('uv', uv2Attr);
-          }
-          const materialMap = materialMaps[part.material_map_id];
-          const files = materialMap.material_map_files || [];
-          
-          console.log(`Applying material maps to ${objectName}:`, files);
-          
-          const textureLoader = new THREE.TextureLoader();
-          
-          files.forEach((file: any) => {
-            const mapType = file.map_type;
-            const fileUrl = file.file_url;
-            const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
-            const scale = file.scale !== undefined ? file.scale : 1;
-            
-            if (!fileUrl) {
-              console.warn(`No file URL for ${mapType}`);
-              return;
-            }
-            
-            // Ne PAS appliquer la texture diffuse des material maps - le design 2D est déjà la map
-            if (mapType === 'diffuse') {
-              console.log('Skipping material map diffuse - design 2D is already the map');
-              return;
-            }
-            
-            console.log(`Loading texture: ${mapType} from ${fileUrl}`);
-            
-            textureLoader.load(
-              fileUrl,
-              (texture) => {
-                // Optimiser les textures pour les performances
-                texture.generateMipmaps = true;
-                texture.minFilter = THREE.LinearMipmapLinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(scale, scale);
-                
-                // Redimensionner toutes les textures à 512x512 max pour améliorer les performances lors des rotations
-                if (texture.image && (texture.image.width > 512 || texture.image.height > 512)) {
-                  const maxSize = 512;
-                  const canvas = document.createElement('canvas');
-                  const ctx = canvas.getContext('2d');
-                  if (ctx) {
-                    const ratio = Math.min(maxSize / texture.image.width, maxSize / texture.image.height);
-                    canvas.width = texture.image.width * ratio;
-                    canvas.height = texture.image.height * ratio;
-                    ctx.drawImage(texture.image, 0, 0, canvas.width, canvas.height);
-                    texture.image = canvas;
-                    texture.needsUpdate = true;
-                  }
-                }
-                
-                switch (mapType) {
-                  case 'normal':
-                    newMaterial.normalMap = texture;
-                    newMaterial.normalScale = new THREE.Vector2(intensity, intensity);
-                    newMaterial.normalMap.needsUpdate = true;
-                    break;
-                  case 'roughness':
-                    newMaterial.roughnessMap = texture;
-                    newMaterial.roughness = intensity;
-                    newMaterial.roughnessMap.needsUpdate = true;
-                    break;
-                  case 'metallic':
-                    newMaterial.metalnessMap = texture;
-                    newMaterial.metalness = intensity;
-                    newMaterial.metalnessMap.needsUpdate = true;
-                    break;
-                  case 'ao':
-                    newMaterial.aoMap = texture;
-                    newMaterial.aoMapIntensity = intensity;
-                    newMaterial.aoMap.needsUpdate = true;
-                    break;
-                }
-                
-                // S'assurer que la map du design n'est JAMAIS écrasée
-                // Toujours restaurer la map du design après avoir appliqué les material maps
-                if (designTexRef && (!newMaterial.map || newMaterial.map !== designTexRef)) {
-                  newMaterial.map = designTexRef;
-                  newMaterial.map.needsUpdate = true;
-                  console.log('🔄 Restored design texture to material after applying', mapType);
-                }
-                
-                newMaterial.needsUpdate = true;
-              },
-              undefined,
-              (error) => {
-                console.error(`Error loading texture ${mapType}:`, error);
-              }
-            );
-          });
-        }
-        
-        // Appliquer le nouveau matériau au mesh
-        newMaterial.needsUpdate = true;
-        if (Array.isArray(object.material)) {
-          object.material[index] = newMaterial;
-        } else {
-          object.material = newMaterial;
-        }
-        (object as any).castShadow = true;
-        (object as any).receiveShadow = true;
-        console.log('🎯 Applied material to mesh:', objectName || '(unnamed)', '→', (newMaterial as any).name);
-        }); // Fin du forEach materials
+        frontMeshes.push(m);
       }
-    }); // Fin du traverse
-  }, [clonedScene, materialMaps, designTexture, modelParts]);
+      const g = m.geometry as THREE.BufferGeometry;
+      if (!g.getAttribute('uv2')) { const uv = g.getAttribute('uv'); if (uv) g.setAttribute('uv2', uv); }
+    });
+
+    // Load and process SVG ONCE (comme ModelViewer ligne 462-543)
+    const loadAndProcessSVGOnce = async () => {
+      try {
+        console.log('🔄 Loading SVG:', design2DUrl);
+        let svgText = originalSvgRef.current;
+        if (!svgText) {
+          const srcToFetch = design2DUrl ? `${design2DUrl}${design2DUrl.includes('?') ? '&' : '?'}v=${Date.now()}` : '';
+          const response = await fetch(srcToFetch || '');
+          if (!response.ok) {
+            console.error('❌ SVG fetch failed:', response.status, response.statusText);
+            throw new Error(`Failed to fetch SVG: ${response.status} ${response.statusText}`);
+          }
+          svgText = await response.text();
+          originalSvgRef.current = svgText;
+          setSvgBaseVersion(v => v + 1);
+        }
+        if (!svgText || svgText.trim().length === 0) {
+          console.error('❌ SVG is empty');
+          throw new Error('SVG content is empty');
+        }
+        let finalSvg = svgText;
+        // On s'arrête ici: l'application de texture se fait dans l'effet de recolor uniquement
+        return;
+      } catch (error) {
+        console.error('❌ Error loading SVG:', error);
+      }
+    };
+
+    loadAndProcessSVGOnce();
+  }, [clonedScene, design2DUrl]);
+
+  // Recolor pass: rebuild texture from cached original SVG and apply to front meshes (comme ModelViewer ligne 653-873)
+  React.useEffect(() => {
+    if (!clonedScene) return;
+    if (!originalSvgRef.current) return;
+    
+    let finalSvg = originalSvgRef.current;
+    const alreadyApplied = appliedSvgRef.current === finalSvg;
+    if (alreadyApplied) {
+      console.log('ℹ️ SVG identical to last applied, skipping reapply');
+      return;
+    }
+    
+    // Apply to front meshes only using a data URL Image (comme ModelViewer ligne 686-872)
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const size = 4096; // Utiliser 4096 comme ModelViewer (ligne 690)
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
+      ctx.clearRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace as any;
+      tex.anisotropy = gl.capabilities.getMaxAnisotropy?.() || 8;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = true;
+      tex.flipY = false;
+      tex.center.set(0.5, 0.5);
+      tex.rotation = 0;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.offset.set(0, 0);
+      
+      const meshes: THREE.Mesh[] = [];
+      clonedScene.traverse((o: any) => { if (o.isMesh) meshes.push(o as THREE.Mesh); });
+      const isBack = (m: THREE.Mesh) => {
+        const matName = ((m.material as any)?.name) || (m as any)?.userData?.materialName || '';
+        return /back/i.test(matName) || /back/i.test(m.name || '');
+      };
+      const maxAniso = gl.capabilities.getMaxAnisotropy?.() || 8;
+      const applyTransform = (tex: THREE.Texture, mm?: any) => {
+        const getNum = (v: any, d: number) => (typeof v === 'number' && isFinite(v) ? v : d);
+        const rep = (mm && mm.repeat && Array.isArray(mm.repeat)) ? mm.repeat : undefined;
+        const repStr = (mm && typeof mm.repeat === 'string') ? (mm.repeat as string).split(',') : undefined;
+        const repeatX = getNum(mm?.repeatX ?? mm?.scaleX ?? mm?.tilingX ?? (rep?.[0]) ?? (repStr ? parseFloat(repStr[0]) : undefined), 1);
+        const repeatY = getNum(mm?.repeatY ?? mm?.scaleY ?? mm?.tilingY ?? (rep?.[1]) ?? (repStr ? parseFloat(repStr[1]) : undefined), 1);
+        const off = (mm && mm.offset && Array.isArray(mm.offset)) ? mm.offset : undefined;
+        const offStr = (mm && typeof mm.offset === 'string') ? (mm.offset as string).split(',') : undefined;
+        const offsetX = getNum(mm?.offsetX ?? (off?.[0]) ?? (offStr ? parseFloat(offStr[0]) : undefined), 0);
+        const offsetY = getNum(mm?.offsetY ?? (off?.[1]) ?? (offStr ? parseFloat(offStr[1]) : undefined), 0);
+        if (repeatX !== 1 || repeatY !== 1) {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+        } else {
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+        }
+        tex.repeat.set(repeatX, repeatY);
+        tex.offset.set(offsetX, offsetY);
+        (tex as any).colorSpace = THREE.NoColorSpace as any;
+        tex.flipY = false;
+        (tex as any).anisotropy = maxAniso;
+        tex.needsUpdate = true;
+      };
+      const setMap = (mat: any, prop: string, url?: string, mm?: any) => {
+        if (!url) return;
+        const loader = new THREE.TextureLoader();
+        loader.load(url, (tex2) => { applyTransform(tex2, mm); mat[prop] = tex2; mat.needsUpdate = true; }, undefined, () => {});
+      };
+      const resolveMaterialConfig = (matName: string, meshName?: string) => {
+        const maps: any = materialMaps as any;
+        if (!maps) return null;
+        const normalize = (name?: string) => (name || '').trim();
+        const mirrorFrontBack = (name: string) => (/back/i.test(name) ? name.replace(/back/i, 'FRONT') : name);
+        const stripSuffixes = (name: string) => { let n = name.replace(/_[0-9]+(?:\.[0-9]+)?$/i, ''); n = n.replace(/(\.|_)[0-9]{2,}$/i, ''); return n; };
+        const candidates = Array.from(new Set([
+          normalize(matName),
+          normalize(matName).toLowerCase(),
+          normalize(matName).toUpperCase(),
+          stripSuffixes(normalize(matName)),
+          stripSuffixes(normalize(matName)).toLowerCase(),
+          stripSuffixes(normalize(matName)).toUpperCase(),
+          mirrorFrontBack(normalize(matName)),
+          mirrorFrontBack(stripSuffixes(normalize(matName))),
+          normalize(meshName || ''),
+          stripSuffixes(normalize(meshName || ''))
+        ].filter(Boolean)));
+        for (const key of candidates) { if ((maps as any)[key]) return (maps as any)[key]; }
+        const values: any[] = Object.values(maps);
+        for (const c2 of candidates) {
+          const hit = values.find((v: any) => (v?.materialName || '').toLowerCase() === c2.toLowerCase());
+          if (hit) return hit;
+        }
+        return null;
+      };
+      
+      meshes.forEach((m) => {
+        if (isBack(m)) {
+          const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+          (whiteMat as any).map = null;
+          (whiteMat as any).normalMap = null;
+          (whiteMat as any).roughnessMap = null;
+          (whiteMat as any).metalnessMap = null;
+          (whiteMat as any).aoMap = null;
+          (whiteMat as any).alphaMap = null;
+          (whiteMat as any).name = ((m.material as any)?.name) || (m as any)?.userData?.materialName || (m.name ? `${m.name}_BACK_WHITE` : 'BACK_WHITE');
+          m.material = whiteMat as any;
+          console.log('⬜ Back mesh forced white (recolor):', m.name || '(unnamed)', '| Material:', (whiteMat as any).name);
+        } else {
+          // Ensure uv2 exists for AO
+          const g = m.geometry as THREE.BufferGeometry;
+          if (!g.getAttribute('uv2')) { const uv = g.getAttribute('uv'); if (uv) g.setAttribute('uv2', uv); }
+          const newMaterial = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.6, metalness: 0.0, transparent: false });
+          (newMaterial as any).name = ((m.material as any)?.name) || (m as any)?.userData?.materialName || (m.name ? `${m.name}_FRONT` : 'FRONT');
+          // Apply admin maps if any
+          const mm = resolveMaterialConfig(((m.material as any)?.name) || (m as any)?.userData?.materialName || '', m.name || '');
+          if (mm) {
+            // Always use UV2 for PBR maps if available: remap uv <- uv2 to guarantee alignment
+            const g2 = m.geometry as THREE.BufferGeometry;
+            const uv2Attr = g2.getAttribute('uv2');
+            if (uv2Attr) {
+              g2.setAttribute('uv', uv2Attr);
+            }
+            const orm = mm.ormMap || mm.occlusionRoughnessMetalnessMap || mm.occlusionRoughnessMetallicMap || mm.occlusion_roughness_metalness;
+            const n = mm.normalMap || mm.normal || mm.normalTexture;
+            const r = mm.roughnessMap || mm.roughness || mm.roughnessTexture || (orm ? orm : undefined);
+            const me = mm.metalnessMap || mm.metallicMap || mm.metalness || mm.metalnessTexture || (orm ? orm : undefined);
+            const ao = mm.aoMap || mm.ambientOcclusionMap || mm.occlusionMap || (orm ? orm : undefined);
+            setMap(newMaterial as any, 'normalMap', n, mm);
+            setMap(newMaterial as any, 'roughnessMap', r, mm);
+            setMap(newMaterial as any, 'metalnessMap', me, mm);
+            setMap(newMaterial as any, 'aoMap', ao, mm);
+            // Intensities/scalars
+            const _rough = (typeof mm.roughness === 'number' ? mm.roughness : (typeof mm.roughnessFactor === 'number' ? mm.roughnessFactor : undefined));
+            const _metal = (typeof mm.metalness === 'number' ? mm.metalness : (typeof mm.metalnessFactor === 'number' ? mm.metalnessFactor : (typeof mm.metallic === 'number' ? mm.metallic : undefined)));
+            const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
+            const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+            const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+            const _envInt = (typeof mm.envMapIntensity === 'number' ? mm.envMapIntensity : (typeof mm.environmentIntensity === 'number' ? mm.environmentIntensity : undefined));
+            (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
+            if (typeof _metal === 'number') {
+              (newMaterial as any).metalness = _metal;
+            } else if (me) {
+              (newMaterial as any).metalness = 0.3;
+            }
+            if (r) (newMaterial as any).roughness = (typeof _rough === 'number' ? _rough : 1.0);
+            if (typeof _aoInt === 'number') (newMaterial as any).aoMapIntensity = _aoInt;
+            if (typeof _envInt === 'number') {
+              (newMaterial as any).envMapIntensity = _envInt;
+            } else {
+              (newMaterial as any).envMapIntensity = 0.3;
+            }
+            console.log('🗺️ Admin maps applied for', (newMaterial as any).name, { normal: !!n, roughness: !!r, metalness: !!me, ao: !!ao });
+          } else {
+            console.log('ℹ️ No admin maps matched for material:', (newMaterial as any).name);
+            (newMaterial as any).envMapIntensity = 0.3;
+            (newMaterial as any).roughness = 0.9;
+            (newMaterial as any).metalness = 0.0;
+          }
+          newMaterial.needsUpdate = true;
+          m.material = newMaterial as any;
+        }
+        (m as any).castShadow = true;
+        (m as any).receiveShadow = true;
+        console.log('🎯 Applied material to mesh:', m.name || '(unnamed)', '→', ((m.material as any)?.name) || '(no name)');
+      });
+      tex.needsUpdate = true;
+      console.log('✅ Texture fully updated after recolor');
+      appliedSvgRef.current = finalSvg;
+    };
+    img.onerror = (error) => {
+      console.error('❌ Failed to load SVG image', error);
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(finalSvg);
+  }, [clonedScene, svgBaseVersion, materialMaps]);
 
   return <primitive ref={groupRef} object={clonedScene} />;
 }
@@ -409,64 +353,35 @@ export function Model3DPreviewWithControls({
     }
   }, [rotateSpeed]);
 
-  // Appliquer le zoom initial et l'angle de rotation
-  React.useEffect(() => {
-    if (controlsRef.current && cameraRef.current) {
-      const camera = cameraRef.current;
-      const controls = controlsRef.current;
-      
-      // Convertir l'angle de rotation en radians
-      const angleRad = (initialRotation * Math.PI) / 180;
-      
-      // Positionner la caméra selon l'angle de rotation (autour de l'axe Y)
-      const x = Math.sin(angleRad) * initialZoom;
-      const z = Math.cos(angleRad) * initialZoom;
-      // Garder une hauteur Y raisonnable pour éviter la vue du dessus
-      const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
-      
-      camera.position.set(x, y, z);
-      controls.update();
-    }
-  }, [initialZoom, initialRotation]);
-
   if (!url) {
     return (
-      <div 
-        className={className}
-        style={{
-          ...style,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#1a1a1a',
-          color: '#a0a0a0'
-        }}
-      >
-        No 3D model selected
+      <div style={{ 
+        width: '100%', 
+        height: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: style?.backgroundColor || '#e8e8e8',
+        ...style 
+      }}>
+        <p style={{ color: '#666', fontFamily: 'var(--stepn-font-body)' }}>No model URL provided</p>
       </div>
     );
   }
 
   return (
-    <div className={className} style={style}>
+    <div 
+      className={className}
+      style={{ width: '100%', height: '100%', backgroundColor: style?.backgroundColor || '#e8e8e8' }}
+    >
       <Canvas
         camera={{ position: [0, 0, initialZoom], fov: 50 }}
         style={{ width: '100%', height: '100%', backgroundColor: style?.backgroundColor || '#e8e8e8' }}
-        gl={{ antialias: true }}
-        onCreated={({ camera }) => {
-          cameraRef.current = camera as THREE.PerspectiveCamera;
-          // Appliquer l'angle de rotation initial
-          const angleRad = (initialRotation * Math.PI) / 180;
-          const x = Math.sin(angleRad) * initialZoom;
-          const z = Math.cos(angleRad) * initialZoom;
-          // Garder une hauteur Y raisonnable pour éviter la vue du dessus
-          const y = Math.max(0.5, initialZoom * 0.3); // Au moins 0.5, ou 30% du zoom
-          camera.position.set(x, y, z);
-        }}
+        gl={{ antialias: true, alpha: false }}
+        shadows
       >
         <color attach="background" args={[style?.backgroundColor || '#e8e8e8']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        
         <Suspense fallback={null}>
           <Model 
             url={url} 
@@ -475,19 +390,23 @@ export function Model3DPreviewWithControls({
             modelParts={modelParts}
           />
         </Suspense>
+
         <OrbitControls
           ref={controlsRef}
-          enableZoom={true}
           enablePan={true}
+          enableZoom={true}
           enableRotate={true}
-          zoomSpeed={zoomSpeed}
-          rotateSpeed={rotateSpeed}
           minDistance={minZoom}
           maxDistance={maxZoom}
+          zoomSpeed={zoomSpeed}
+          rotateSpeed={rotateSpeed}
+          target={[0, 0, 0]}
         />
+
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
         <Environment preset="city" />
       </Canvas>
     </div>
   );
 }
-
