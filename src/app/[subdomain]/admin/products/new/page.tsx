@@ -1368,14 +1368,19 @@ export default function ProductBuilderPage() {
                         src={module.iconUrl}
                         alt={module.tabName}
                         style={{
-                          width: '100%',
-                          height: '100%',
+                          width: '32px',
+                          height: '32px',
+                          maxWidth: '32px',
+                          maxHeight: '32px',
                           objectFit: 'contain',
-                          padding: '4px'
+                          display: 'block',
+                          filter: activeCustomizerTab === module.id ? 'invert(1) brightness(1)' : 'none'
                         }}
                       />
                     ) : (
-                      module.icon
+                      <span style={{ fontSize: '24px', lineHeight: '1' }}>
+                        {module.icon}
+                      </span>
                     )}
                   </button>
                 ))}
