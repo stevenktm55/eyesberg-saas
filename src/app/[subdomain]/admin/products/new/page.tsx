@@ -1197,30 +1197,14 @@ export default function ProductBuilderPage() {
                         const draggedId = draggedModuleId || e.dataTransfer.getData('text/plain');
                         const targetIndex = index;
                         
-                        console.log('onDrop triggered:', { 
-                          draggedId, 
-                          moduleId: module.id,
-                          targetIndex,
-                          draggedModuleId
-                        });
-                        
                         if (draggedId && draggedId !== module.id) {
                           const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
-                          
-                          console.log('Drag & Drop:', { 
-                            draggedId, 
-                            draggedIndex, 
-                            targetIndex, 
-                            moduleId: module.id,
-                            currentOrder: customizationModules.map(m => m.tabName)
-                          });
                           
                           if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
                             // Créer un nouveau tableau avec l'ordre modifié
                             const newModules = [...customizationModules];
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
-                            console.log('New order:', newModules.map(m => m.tabName));
                             // Mettre à jour l'état avec le nouveau tableau
                             setCustomizationModules([...newModules]);
                           }
