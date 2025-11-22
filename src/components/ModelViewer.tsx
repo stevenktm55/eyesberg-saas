@@ -987,7 +987,10 @@ function SimpleViewer({
     
     // Exposer le canvas via callback si fourni
     if (onCanvasReady) {
+      console.log('📤 Exposing canvas via onCanvasReady callback');
       onCanvasReady(canvas);
+    } else {
+      console.log('⚠️ onCanvasReady callback not provided');
     }
     
     // No background - transparent canvas to see logos

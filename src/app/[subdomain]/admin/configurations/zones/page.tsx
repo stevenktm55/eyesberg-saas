@@ -81,7 +81,8 @@ function UV2Preview({ canvas }: { canvas: HTMLCanvasElement }) {
         justifyContent: 'center',
         backgroundColor: '#0a0a0a',
         borderRadius: '4px',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative'
       }}>
         <canvas
           ref={previewCanvasRef}
@@ -89,7 +90,8 @@ function UV2Preview({ canvas }: { canvas: HTMLCanvasElement }) {
             width: '100%',
             height: '100%',
             objectFit: 'contain',
-            imageRendering: 'pixelated'
+            imageRendering: 'pixelated',
+            display: 'block'
           }}
         />
       </div>
@@ -568,6 +570,7 @@ export default function ZonesConfigPage() {
                         // Mode zones : afficher des rectangles noirs au lieu de texte
                         renderZonesAsRectangles={true}
                         onCanvasReady={(canvas) => {
+                          console.log('📥 Received canvas from ModelViewer:', canvas);
                           setUv2Canvas(canvas);
                         }}
                       />
@@ -584,7 +587,43 @@ export default function ZonesConfigPage() {
                   </div>
                   
                   {/* Preview UV2 */}
-                  {uv2Canvas && <UV2Preview canvas={uv2Canvas} />}
+                  <div style={{
+                    width: '300px',
+                    height: '300px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#ffffff',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Preview UV2 {uv2Canvas ? '(Ready)' : '(Waiting...)'}
+                    </div>
+                    {uv2Canvas ? (
+                      <UV2Preview canvas={uv2Canvas} />
+                    ) : (
+                      <div style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#0a0a0a',
+                        borderRadius: '4px',
+                        color: '#666',
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Canvas not ready yet...
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
