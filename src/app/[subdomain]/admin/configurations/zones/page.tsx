@@ -79,7 +79,7 @@ function UV2Preview({ canvas }: { canvas: HTMLCanvasElement }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#ffffff',
         borderRadius: '4px',
         overflow: 'hidden',
         position: 'relative'
@@ -614,7 +614,7 @@ export default function ZonesConfigPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#0a0a0a',
+                        backgroundColor: '#ffffff',
                         borderRadius: '4px',
                         color: '#666',
                         fontSize: '12px',
