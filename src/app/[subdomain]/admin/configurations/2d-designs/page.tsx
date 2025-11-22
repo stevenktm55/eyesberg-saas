@@ -126,40 +126,40 @@ export default function Designs2DConfigPage() {
       // Trouver toutes les classes CSS dans le SVG
       const classes = new Set<string>();
       
-      // Chercher dans les attributs class
+      // 1. Chercher dans les attributs class de tous les éléments
       const allElements = svgDoc.querySelectorAll('*');
       allElements.forEach((element) => {
         const classAttr = element.getAttribute('class');
         if (classAttr) {
           classAttr.split(/\s+/).forEach((cls) => {
-            const trimmedClass = cls.trim().toLowerCase();
-            // Détecter les classes de couleurs communes (primary, secondary, tertiary, etc.)
-            const colorClassPattern = /^(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?$/i;
-            if (colorClassPattern.test(trimmedClass)) {
+            const trimmedClass = cls.trim();
+            if (trimmedClass) {
               // Extraire le nom de base (sans -light, -dark, etc.)
-              const baseClass = trimmedClass.replace(/-light|-dark|-lighten|-darken$/i, '');
+              const baseClass = trimmedClass.replace(/-light|-dark|-lighten|-darken$/i, '').toLowerCase();
               classes.add(baseClass);
             }
           });
         }
       });
       
-      // Chercher aussi dans les styles inline et les variables CSS
+      // 2. Chercher toutes les variables CSS (--variable-name) dans les balises <style>
       const styleElements = svgDoc.querySelectorAll('style');
       styleElements.forEach((style) => {
         const styleText = style.textContent || '';
-        // Chercher les variables CSS --primary, --secondary, etc.
-        const varMatches = styleText.match(/--(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?/gi);
+        
+        // Chercher toutes les variables CSS --variable-name
+        const varMatches = styleText.match(/--([a-zA-Z][a-zA-Z0-9_-]*)/g);
         if (varMatches) {
           varMatches.forEach((match) => {
-            const className = match.replace('--', '').toLowerCase();
+            const varName = match.replace('--', '').toLowerCase();
             // Extraire le nom de base (sans -light, -dark, etc.)
-            const baseClass = className.replace(/-light|-dark|-lighten|-darken$/i, '');
+            const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
             classes.add(baseClass);
           });
         }
-        // Chercher les classes CSS définies
-        const classMatches = styleText.match(/\.(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?/gi);
+        
+        // Chercher toutes les classes CSS définies (.class-name)
+        const classMatches = styleText.match(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g);
         if (classMatches) {
           classMatches.forEach((match) => {
             const className = match.replace('.', '').toLowerCase();
@@ -168,10 +168,50 @@ export default function Designs2DConfigPage() {
             classes.add(baseClass);
           });
         }
+        
+        // Chercher les références à var(--variable-name) pour trouver les variables utilisées
+        const varUsageMatches = styleText.match(/var\(--([a-zA-Z][a-zA-Z0-9_-]*)\)/g);
+        if (varUsageMatches) {
+          varUsageMatches.forEach((match) => {
+            const varName = match.replace(/var\(--/, '').replace(/\)/, '').toLowerCase();
+            const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
+            classes.add(baseClass);
+          });
+        }
       });
       
-      const detectedClasses = Array.from(classes);
-      console.log('Detected color classes:', detectedClasses);
+      // 3. Chercher dans les attributs fill et stroke qui utilisent var()
+      allElements.forEach((element) => {
+        const fill = element.getAttribute('fill');
+        const stroke = element.getAttribute('stroke');
+        
+        [fill, stroke].forEach((attr) => {
+          if (attr && attr.includes('var(--')) {
+            const varMatches = attr.match(/var\(--([a-zA-Z][a-zA-Z0-9_-]*)\)/g);
+            if (varMatches) {
+              varMatches.forEach((match) => {
+                const varName = match.replace(/var\(--/, '').replace(/\)/, '').toLowerCase();
+                const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
+                classes.add(baseClass);
+              });
+            }
+          }
+        });
+      });
+      
+      // Filtrer les classes pour ne garder que celles qui semblent être des couleurs
+      // On garde toutes les classes trouvées, mais on peut filtrer celles qui sont trop génériques
+      const detectedClasses = Array.from(classes).filter(cls => {
+        // Exclure les classes trop courtes ou trop génériques
+        if (cls.length < 2) return false;
+        // Exclure les classes qui sont clairement des classes de layout/structure
+        const excludePatterns = ['svg', 'path', 'g', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan', 'defs', 'use', 'mask', 'clip', 'pattern', 'linear', 'radial', 'stop', 'filter', 'fe'];
+        if (excludePatterns.includes(cls)) return false;
+        return true;
+      }).sort(); // Trier par ordre alphabétique
+      
+      console.log('All classes found:', Array.from(classes));
+      console.log('Detected color classes (filtered):', detectedClasses);
       setDetectedColorClasses(detectedClasses);
     } catch (error) {
       console.error("Error detecting color classes:", error);
@@ -518,8 +558,8 @@ export default function Designs2DConfigPage() {
               }}>
                 {hasPreview ? (
                   <img
-                    key={design.preview_url} // Force re-render when preview_url changes
-                    src={design.preview_url}
+                    key={design.preview_url || undefined} // Force re-render when preview_url changes
+                    src={design.preview_url || undefined}
                     alt={design.name}
                     style={{
                       width: '100%',
@@ -945,10 +985,13 @@ export default function Designs2DConfigPage() {
                               <select
                                 value={colorMappings[colorClass] || ''}
                                 onChange={(e) => {
-                                  setColorMappings({
-                                    ...colorMappings,
-                                    [colorClass]: e.target.value || undefined
-                                  });
+                                  const newMappings = { ...colorMappings };
+                                  if (e.target.value) {
+                                    newMappings[colorClass] = e.target.value;
+                                  } else {
+                                    delete newMappings[colorClass];
+                                  }
+                                  setColorMappings(newMappings);
                                 }}
                                 style={{
                                   width: '100%',
@@ -1058,10 +1101,13 @@ export default function Designs2DConfigPage() {
                               <select
                                 value={colorMappings[colorClass] || ''}
                                 onChange={(e) => {
-                                  setColorMappings({
-                                    ...colorMappings,
-                                    [colorClass]: e.target.value || undefined
-                                  });
+                                  const newMappings = { ...colorMappings };
+                                  if (e.target.value) {
+                                    newMappings[colorClass] = e.target.value;
+                                  } else {
+                                    delete newMappings[colorClass];
+                                  }
+                                  setColorMappings(newMappings);
                                 }}
                                 style={{
                                   width: '100%',
