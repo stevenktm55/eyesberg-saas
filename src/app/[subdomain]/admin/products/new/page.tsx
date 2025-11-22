@@ -1551,118 +1551,159 @@ export default function ProductBuilderPage() {
                         
                         const selectedColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
                         
+                        const currentColorHex = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.hex : null;
+                        const currentColorName = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.name : '';
+                        
                         return (
-                          <div>
-                            <button
-                              onClick={() => setSelectedColorClass(null)}
-                              style={{
+                          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            {/* Header avec bouton retour et couleur actuelle */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '16px',
+                              borderBottom: '1px solid #e5e7eb'
+                            }}>
+                              <button
+                                onClick={() => setSelectedColorClass(null)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  transition: 'color 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.color = '#1f2937';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.color = '#111827';
+                                }}
+                              >
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Retour</span>
+                              </button>
+                              
+                              <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
-                                padding: '8px 12px',
-                                marginBottom: '16px',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#666',
-                                fontFamily: 'var(--stepn-font-body)'
-                              }}
-                            >
-                              <span>←</span>
-                              <span>Retour</span>
-                            </button>
+                                gap: '12px'
+                              }}>
+                                <span style={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  {currentColorName || activeModule.colorClassLabels?.[selectedColorClass] || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
+                                </span>
+                                <div 
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    border: '2px solid #d1d5db',
+                                    backgroundColor: currentColorHex || 'transparent'
+                                  }}
+                                />
+                              </div>
+                            </div>
                             
-                            <h3 style={{
-                              fontSize: '16px',
-                              fontWeight: '600',
-                              marginBottom: '16px',
-                              color: '#000',
-                              fontFamily: 'var(--stepn-font-body)',
-                              textTransform: 'capitalize'
+                            {/* Grille de couleurs */}
+                            <div style={{
+                              flex: 1,
+                              padding: '16px',
+                              overflowY: 'auto'
                             }}>
-                              {selectedColorClass}
-                            </h3>
-                            
-                            <div style={{ 
-                              display: 'grid', 
-                              gridTemplateColumns: 'repeat(6, 1fr)', 
-                              gap: '12px' 
-                            }}>
-                              {allColors.map((color) => {
-                                const isSelected = color.id === selectedColorId;
-                                return (
-                                  <div
-                                    key={color.id}
-                                    onClick={() => {
-                                      const newDesignColors = { ...designColors };
-                                      newDesignColors[selectedColorClass] = color.id;
-                                      setDesignColors(newDesignColors);
-                                      
-                                      if (selectedDesign) {
-                                        const updatedMappings = {
-                                          ...(selectedDesign.color_mappings || {}),
-                                          [selectedColorClass]: color.id
-                                        };
+                              <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(6, 1fr)', 
+                                gap: '12px' 
+                              }}>
+                                {allColors.map((color) => {
+                                  const isSelected = color.id === selectedColorId;
+                                  return (
+                                    <button
+                                      key={color.id}
+                                      onClick={() => {
+                                        const newDesignColors = { ...designColors };
+                                        newDesignColors[selectedColorClass] = color.id;
+                                        setDesignColors(newDesignColors);
                                         
-                                        fetch(`/api/designs-2d?id=${selectedDesign.id}`, {
-                                          method: 'PATCH',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({ color_mappings: updatedMappings })
-                                        }).catch(err => console.error('Error updating color mappings:', err));
-                                        
-                                        setDesigns2D(designs2D.map(d => 
-                                          d.id === selectedDesign.id 
-                                            ? { ...d, color_mappings: updatedMappings }
-                                            : d
-                                        ));
-                                      }
-                                    }}
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      cursor: 'pointer',
-                                      padding: '8px',
-                                      borderRadius: '8px',
-                                      border: isSelected ? '2px solid #333' : '1px solid #e0e0e0',
-                                      backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
-                                      transition: 'all 0.2s'
-                                    }}
-                                  >
-                                    <div
+                                        if (selectedDesign) {
+                                          const updatedMappings = {
+                                            ...(selectedDesign.color_mappings || {}),
+                                            [selectedColorClass]: color.id
+                                          };
+                                          
+                                          fetch(`/api/designs-2d?id=${selectedDesign.id}`, {
+                                            method: 'PATCH',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ color_mappings: updatedMappings })
+                                          }).catch(err => console.error('Error updating color mappings:', err));
+                                          
+                                          setDesigns2D(designs2D.map(d => 
+                                            d.id === selectedDesign.id 
+                                              ? { ...d, color_mappings: updatedMappings }
+                                              : d
+                                          ));
+                                        }
+                                      }}
                                       style={{
-                                        width: '100%',
+                                        position: 'relative',
                                         aspectRatio: '1',
-                                        backgroundColor: color.hex,
                                         borderRadius: '50%',
-                                        border: '1px solid #e0e0e0',
-                                        position: 'relative'
+                                        border: '2px solid #e5e7eb',
+                                        backgroundColor: color.hex,
+                                        cursor: 'pointer',
+                                        transition: 'border-color 0.2s',
+                                        overflow: 'hidden',
+                                        padding: 0
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = '#d1d5db';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = '#e5e7eb';
                                       }}
                                     >
+                                      {/* Coche si couleur sélectionnée */}
                                       {isSelected && (
                                         <div style={{
                                           position: 'absolute',
-                                          top: '50%',
-                                          left: '50%',
-                                          transform: 'translate(-50%, -50%)',
-                                          width: '24px',
-                                          height: '24px',
-                                          borderRadius: '50%',
-                                          border: '2px solid white',
-                                          backgroundColor: 'transparent',
+                                          inset: 0,
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center'
                                         }}>
-                                          <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                          <div style={{
+                                            width: '24px',
+                                            height: '24px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                          }}>
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                          </div>
                                         </div>
                                       )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
                         );
