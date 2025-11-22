@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
 
 type Zone = {
@@ -427,10 +428,13 @@ export default function ZonesConfigPage() {
                 }}>
                   <Canvas
                     camera={{ position: [0, 0, 5], fov: 50 }}
+                    gl={{ preserveDrawingBuffer: true }}
                     style={{ width: '100%', height: '100%' }}
                   >
-                    <ambientLight intensity={0.5} />
-                    <directionalLight position={[10, 10, 5]} intensity={1} />
+                    <ambientLight intensity={0.4} color="#f5f5f5" />
+                    <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+                    <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+                    <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
                     <Suspense fallback={null}>
                       <ModelViewer
                         url={modelUrl}
@@ -483,6 +487,14 @@ export default function ZonesConfigPage() {
                         renderZonesAsRectangles={true}
                       />
                     </Suspense>
+                    <OrbitControls
+                      enablePan={false}
+                      enableZoom={!isPlacingZone && !selectedZoneId}
+                      enableRotate={!isPlacingZone && !selectedZoneId}
+                      enabled={!isDraggingZone && !isRotatingZone && !isResizingZone && !isPlacingZone}
+                      minDistance={1}
+                      maxDistance={10}
+                    />
                   </Canvas>
                 </div>
               )}
