@@ -28,3 +28,4 @@ CREATE INDEX IF NOT EXISTS idx_designs_2d_model3d_id ON designs_2d(model3d_id);
 -- Optionnel: Ajouter un index GIN sur color_mappings pour les recherches JSONB
 CREATE INDEX IF NOT EXISTS idx_designs_2d_color_mappings ON designs_2d USING GIN(color_mappings);
 
+

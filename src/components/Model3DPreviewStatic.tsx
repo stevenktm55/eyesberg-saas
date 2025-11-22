@@ -13,18 +13,123 @@ interface Model3DPreviewStaticProps {
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
   onCanvasReady?: (canvas: HTMLCanvasElement) => void; // Callback when canvas is ready
+  colorMappings?: Record<string, string>; // class -> color_id
+  colors?: Record<string, { hex: string; name: string }>; // color_id -> { hex, name }
+}
+
+// Fonction pour appliquer les couleurs au SVG en remplaçant les variables CSS
+async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, string>, colors?: Record<string, { hex: string; name: string }>): Promise<string> {
+  if (!colorMappings || !colors || Object.keys(colorMappings).length === 0) {
+    return svgUrl; // Pas de couleurs à appliquer, retourner l'URL originale
+  }
+
+  try {
+    const response = await fetch(svgUrl);
+    const svgText = await response.text();
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    
+    // Fonction pour générer les variantes de couleur (light et dark)
+    const generateColorVariants = (hex: string) => {
+      // Convertir hex en RGB
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      
+      // Générer la version light (30% plus claire)
+      const lightR = Math.min(255, Math.round(r + (255 - r) * 0.3));
+      const lightG = Math.min(255, Math.round(g + (255 - g) * 0.3));
+      const lightB = Math.min(255, Math.round(b + (255 - b) * 0.3));
+      const lightHex = `#${lightR.toString(16).padStart(2, '0')}${lightG.toString(16).padStart(2, '0')}${lightB.toString(16).padStart(2, '0')}`;
+      
+      // Générer la version dark (30% plus foncée)
+      const darkR = Math.max(0, Math.round(r * 0.7));
+      const darkG = Math.max(0, Math.round(g * 0.7));
+      const darkB = Math.max(0, Math.round(b * 0.7));
+      const darkHex = `#${darkR.toString(16).padStart(2, '0')}${darkG.toString(16).padStart(2, '0')}${darkB.toString(16).padStart(2, '0')}`;
+      
+      return { light: lightHex, dark: darkHex };
+    };
+    
+    // Trouver ou créer l'élément <style>
+    let styleElement = svgDoc.querySelector('style');
+    if (!styleElement) {
+      styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
+      const defs = svgDoc.querySelector('defs') || svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      if (!svgDoc.querySelector('defs')) {
+        svgDoc.documentElement.insertBefore(defs, svgDoc.documentElement.firstChild);
+      }
+      defs.appendChild(styleElement);
+    }
+    
+    // Construire le CSS avec les variables de couleurs
+    let cssText = styleElement.textContent || '';
+    
+    // Construire les définitions de variables CSS
+    const colorVars: string[] = [];
+    Object.entries(colorMappings).forEach(([colorClass, colorId]) => {
+      const color = colors[colorId];
+      if (!color) return;
+      
+      const variants = generateColorVariants(color.hex);
+      
+      // Remplacer ou ajouter les variables CSS
+      const baseVar = `--${colorClass}`;
+      const lightVar = `--${colorClass}-light`;
+      const darkVar = `--${colorClass}-dark`;
+      
+      // Supprimer les anciennes définitions si elles existent (chercher dans :root et svg)
+      cssText = cssText.replace(new RegExp(`(:root|svg)\\s*\\{[^}]*${baseVar}[^}]*\\}`, 'g'), '');
+      cssText = cssText.replace(new RegExp(`${baseVar}\\s*:[^;]+;`, 'g'), '');
+      cssText = cssText.replace(new RegExp(`${lightVar}\\s*:[^;]+;`, 'g'), '');
+      cssText = cssText.replace(new RegExp(`${darkVar}\\s*:[^;]+;`, 'g'), '');
+      
+      // Ajouter les nouvelles définitions
+      colorVars.push(`${baseVar}: ${color.hex}; ${lightVar}: ${variants.light}; ${darkVar}: ${variants.dark};`);
+    });
+    
+    // Ajouter les variables CSS dans svg (standard pour SVG) ou :root
+    if (colorVars.length > 0) {
+      const varsText = colorVars.join(' ');
+      if (cssText.includes('svg {') || cssText.includes('svg{')) {
+        // Insérer dans svg existant
+        cssText = cssText.replace(/(svg\s*\{)/, `$1 ${varsText}`);
+      } else if (cssText.includes(':root {') || cssText.includes(':root{')) {
+        // Insérer dans :root existant
+        cssText = cssText.replace(/(:root\s*\{)/, `$1 ${varsText}`);
+      } else {
+        // Créer un nouveau bloc svg
+        cssText = `svg { ${varsText} } ${cssText}`;
+      }
+    }
+    
+    styleElement.textContent = cssText;
+    
+    // Convertir le SVG modifié en blob URL
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svgDoc);
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error applying colors to SVG:', error);
+    return svgUrl; // En cas d'erreur, retourner l'URL originale
+  }
 }
 
 function Model({ 
   url, 
   materialMaps, 
   design2DUrl, 
-  modelParts 
+  modelParts,
+  colorMappings,
+  colors
 }: { 
   url: string;
   materialMaps?: Record<string, any>;
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+  colorMappings?: Record<string, string>;
+  colors?: Record<string, { hex: string; name: string }>;
 }) {
   const { scene } = useGLTF(url);
   
@@ -221,27 +326,41 @@ function Model({
                     // Si on a un design 2D, le combiner avec cette texture
                     if (design2DUrl) {
                       if (design2DUrl.toLowerCase().endsWith('.svg')) {
-                        const img = new Image();
-                        img.crossOrigin = 'anonymous';
-                        img.onload = () => {
-                          const canvas = combineDesignWithMaterial(img, texture);
-                          if (canvas) {
-                            const combinedTexture = new THREE.CanvasTexture(canvas);
-                            combinedTexture.colorSpace = THREE.SRGBColorSpace;
-                            // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
-                            combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
-                            combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
-                            combinedTexture.repeat.set(1, 1);
-                            combinedTexture.offset.set(0, 0);
-                            combinedTexture.flipY = false;
-                            combinedTexture.needsUpdate = true;
-                            standardMaterial.map = combinedTexture;
-                            standardMaterial.map.needsUpdate = true;
-                            standardMaterial.needsUpdate = true;
-                            console.log('Combined texture applied (material map + design 2D)');
-                          }
-                        };
-                        img.src = design2DUrl;
+                        // Appliquer les couleurs au SVG si nécessaire
+                        applyColorsToSVG(design2DUrl, colorMappings, colors).then((coloredSvgUrl) => {
+                          const img = new Image();
+                          img.crossOrigin = 'anonymous';
+                          img.onload = () => {
+                            const canvas = combineDesignWithMaterial(img, texture);
+                            if (canvas) {
+                              const combinedTexture = new THREE.CanvasTexture(canvas);
+                              combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                              // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                              combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                              combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                              combinedTexture.repeat.set(1, 1);
+                              combinedTexture.offset.set(0, 0);
+                              combinedTexture.flipY = false;
+                              combinedTexture.needsUpdate = true;
+                              standardMaterial.map = combinedTexture;
+                              standardMaterial.map.needsUpdate = true;
+                              standardMaterial.needsUpdate = true;
+                              console.log('Combined texture applied (material map + design 2D)');
+                            }
+                            // Nettoyer le blob URL si c'était un blob créé
+                            if (coloredSvgUrl.startsWith('blob:')) {
+                              URL.revokeObjectURL(coloredSvgUrl);
+                            }
+                          };
+                          img.onerror = (error) => {
+                            console.error('Error loading colored SVG:', error);
+                            // Nettoyer le blob URL en cas d'erreur
+                            if (coloredSvgUrl.startsWith('blob:')) {
+                              URL.revokeObjectURL(coloredSvgUrl);
+                            }
+                          };
+                          img.src = coloredSvgUrl;
+                        });
                       } else {
                         // Design 2D non-SVG, charger et combiner
                         const designLoader = new THREE.TextureLoader();
@@ -305,30 +424,41 @@ function Model({
         // Appliquer le design 2D à TOUS les meshes, pas seulement ceux sans material maps
         if (design2DUrl && !materialDiffuseTexture) {
           if (design2DUrl.toLowerCase().endsWith('.svg')) {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              const canvas = combineDesignWithMaterial(img, null);
-              if (canvas) {
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.colorSpace = THREE.SRGBColorSpace;
-                // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
-                texture.wrapS = THREE.ClampToEdgeWrapping;
-                texture.wrapT = THREE.ClampToEdgeWrapping;
-                texture.repeat.set(1, 1);
-                texture.offset.set(0, 0);
-                texture.flipY = false;
-                texture.needsUpdate = true;
-                standardMaterial.map = texture;
-                standardMaterial.map.needsUpdate = true;
-                standardMaterial.needsUpdate = true;
-                console.log('Design 2D applied alone (no material maps)');
-              }
-            };
-            img.onerror = (error) => {
-              console.error('Error loading SVG for conversion:', error);
-            };
-            img.src = design2DUrl;
+            // Appliquer les couleurs au SVG si nécessaire
+            applyColorsToSVG(design2DUrl, colorMappings, colors).then((coloredSvgUrl) => {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                const canvas = combineDesignWithMaterial(img, null);
+                if (canvas) {
+                  const texture = new THREE.CanvasTexture(canvas);
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                  texture.wrapS = THREE.ClampToEdgeWrapping;
+                  texture.wrapT = THREE.ClampToEdgeWrapping;
+                  texture.repeat.set(1, 1);
+                  texture.offset.set(0, 0);
+                  texture.flipY = false;
+                  texture.needsUpdate = true;
+                  standardMaterial.map = texture;
+                  standardMaterial.map.needsUpdate = true;
+                  standardMaterial.needsUpdate = true;
+                  console.log('Design 2D applied alone (no material maps)');
+                }
+                // Nettoyer le blob URL si c'était un blob créé
+                if (coloredSvgUrl.startsWith('blob:')) {
+                  URL.revokeObjectURL(coloredSvgUrl);
+                }
+              };
+              img.onerror = (error) => {
+                console.error('Error loading colored SVG for conversion:', error);
+                // Nettoyer le blob URL en cas d'erreur
+                if (coloredSvgUrl.startsWith('blob:')) {
+                  URL.revokeObjectURL(coloredSvgUrl);
+                }
+              };
+              img.src = coloredSvgUrl;
+            });
           } else {
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load(
@@ -364,7 +494,7 @@ function Model({
         }
       }
     });
-  }, [scene, materialMaps, design2DUrl, modelParts]);
+  }, [scene, materialMaps, design2DUrl, modelParts, colorMappings, colors]);
 
   return <primitive object={scene} />;
 }
@@ -376,7 +506,9 @@ export function Model3DPreviewStatic({
   materialMaps, 
   design2DUrl, 
   modelParts,
-  onCanvasReady
+  onCanvasReady,
+  colorMappings,
+  colors
 }: Model3DPreviewStaticProps) {
   if (!url) {
     return (
@@ -454,6 +586,8 @@ export function Model3DPreviewStatic({
             materialMaps={materialMaps}
             design2DUrl={design2DUrl}
             modelParts={modelParts}
+            colorMappings={colorMappings}
+            colors={colors}
           />
           <Environment preset="city" />
         </Suspense>

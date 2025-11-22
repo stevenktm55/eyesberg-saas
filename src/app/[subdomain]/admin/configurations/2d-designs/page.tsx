@@ -756,6 +756,19 @@ export default function Designs2DConfigPage() {
                     // Préparer les material maps si nécessaire
                     const materialMapsForModel: Record<string, any> = {};
                     
+                    // Préparer l'objet colors indexé par color_id
+                    const colorsMap: Record<string, { hex: string; name: string }> = {};
+                    colorPalettes.forEach((palette) => {
+                      if (palette.colors) {
+                        palette.colors.forEach((color) => {
+                          colorsMap[color.id] = {
+                            hex: color.hex,
+                            name: color.name
+                          };
+                        });
+                      }
+                    });
+                    
                     return (
                       <div style={{
                         width: '100%',
@@ -775,6 +788,8 @@ export default function Designs2DConfigPage() {
                           onCanvasReady={(canvas) => {
                             previewCanvasRef.current = canvas;
                           }}
+                          colorMappings={colorMappings}
+                          colors={colorsMap}
                         />
                       </div>
                     );
