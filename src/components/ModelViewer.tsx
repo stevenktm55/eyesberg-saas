@@ -1779,6 +1779,8 @@ function SimpleViewer({
           const width = text.fontSize || 200; // Largeur par défaut
           const height = text.fontSize || 200; // Hauteur par défaut
           
+          console.log('🎨 Drawing zone rectangle:', { id: text.id, u, v, x, y, width, height, rotation: text.rotation });
+          
           ctx.save();
           ctx.translate(x, y);
           ctx.rotate(text.rotation);
@@ -1790,6 +1792,11 @@ function SimpleViewer({
           
           ctx.restore();
           drawnCount++;
+          
+          // Forcer la mise à jour de la texture
+          if (overlayTex) {
+            overlayTex.needsUpdate = true;
+          }
           return;
         }
         
