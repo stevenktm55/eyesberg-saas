@@ -35,7 +35,8 @@ type CustomizationModule = {
   inputType: 'thumbnail' | 'dropdown' | 'radio' | 'label' | 'file-upload' | 'text-input' | 'checkbox';
   required?: boolean;
   options?: string[]; // Pour dropdown et radio
-  contentType?: 'colors' | 'logos' | 'fonts' | 'designs-2d' | 'sizes' | null; // Type de contenu à afficher
+  contentType?: 'colors' | 'logos' | 'fonts' | 'designs-2d' | 'sizes' | 'text' | null; // Type de contenu à afficher
+  addTextButtonLabel?: string; // Texte du bouton "Ajouter un texte" (par défaut: "Ajouter un texte")
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
@@ -2128,7 +2129,37 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : (
+                    })() : activeModule.contentType === 'text' ? (
+                      <div>
+                        <button
+                          onClick={() => {
+                            // TODO: Ouvrir le modal d'ajout de texte
+                            console.log('Ajouter un texte');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            color: '#000000',
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ffffff';
+                          }}
+                        >
+                          {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                        </button>
+                      </div>
+                    ) : (
                       <div>
                         <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
                           Sélectionnez un élément dans les settings du module.
@@ -2512,6 +2543,7 @@ export default function ProductBuilderPage() {
                   <option value="fonts">Fonts</option>
                   <option value="designs-2d">Designs 2D</option>
                   <option value="sizes">Tailles</option>
+                  <option value="text">Texte</option>
                 </select>
               </div>
 
@@ -2847,6 +2879,46 @@ export default function ProductBuilderPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {selectedModule.contentType === 'text' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Texte du bouton
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedModule.addTextButtonLabel || 'Ajouter un texte'}
+                    onChange={(e) => {
+                      const updated = { 
+                        ...selectedModule, 
+                        addTextButtonLabel: e.target.value || undefined
+                      };
+                      setSelectedModule(updated);
+                      setCustomizationModules(customizationModules.map(m => 
+                        m.id === selectedModule.id ? updated : m
+                      ));
+                    }}
+                    placeholder="Ajouter un texte"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none'
+                    }}
+                  />
                 </div>
               )}
 
