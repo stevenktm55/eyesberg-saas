@@ -2257,10 +2257,14 @@ export default function ProductBuilderPage() {
                       <div>
                         <button
                           onClick={() => {
-                            // Activer le mode placement - l'utilisateur devra cliquer sur le modèle pour placer le texte
-                            setIsPlacingText('nom');
+                            if (isPlacingText) {
+                              // Si déjà en mode placement, annuler le mode
+                              setIsPlacingText(null);
+                            } else {
+                              // Activer le mode placement - l'utilisateur devra cliquer sur le modèle pour placer le texte
+                              setIsPlacingText('nom');
+                            }
                           }}
-                          disabled={isPlacingText !== null}
                           style={{
                             width: '100%',
                             padding: '12px 16px',
@@ -2269,23 +2273,19 @@ export default function ProductBuilderPage() {
                             borderRadius: '4px',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
-                            color: isPlacingText ? '#000000' : '#000000',
-                            cursor: isPlacingText ? 'not-allowed' : 'pointer',
+                            color: '#000000',
+                            cursor: 'pointer',
                             fontWeight: '500',
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            if (!isPlacingText) {
-                              e.currentTarget.style.backgroundColor = '#f5f5f5';
-                            }
+                            e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
                           }}
                           onMouseLeave={(e) => {
-                            if (!isPlacingText) {
-                              e.currentTarget.style.backgroundColor = '#ffffff';
-                            }
+                            e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
                           }}
                         >
-                          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                         </button>
                       </div>
                     ) : (
