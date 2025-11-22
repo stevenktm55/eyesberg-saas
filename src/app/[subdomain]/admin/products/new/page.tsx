@@ -1696,39 +1696,41 @@ export default function ProductBuilderPage() {
                                     key={colorClass}
                                     onClick={() => setSelectedColorClass(colorClass)}
                                     style={{
-                                      padding: '20px',
+                                      padding: '16px',
                                       backgroundColor: '#ffffff',
-                                      borderRadius: '12px',
-                                      border: '1px solid #e0e0e0',
+                                      borderRadius: '8px',
+                                      border: '1px solid #e5e7eb',
                                       cursor: 'pointer',
                                       transition: 'all 0.2s',
                                       display: 'flex',
                                       flexDirection: 'column',
                                       alignItems: 'center',
-                                      gap: '16px',
-                                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                      gap: '8px'
                                     }}
                                     onMouseEnter={(e) => {
-                                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                                      e.currentTarget.style.backgroundColor = '#f9fafb';
                                     }}
                                     onMouseLeave={(e) => {
-                                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                                      e.currentTarget.style.backgroundColor = '#ffffff';
                                     }}
                                   >
                                     <div
                                       style={{
-                                        width: '64px',
-                                        height: '64px',
-                                        backgroundColor: currentColorHex,
+                                        width: '32px',
+                                        height: '32px',
+                                        backgroundColor: currentColorHex && currentColorHex !== '#cccccc' && currentColorHex !== '#ffffff' && currentColorHex !== '#FFFFFF'
+                                          ? currentColorHex
+                                          : 'transparent',
                                         borderRadius: '50%',
-                                        border: 'none',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                        border: currentColorHex && currentColorHex !== '#cccccc' && currentColorHex !== '#ffffff' && currentColorHex !== '#FFFFFF'
+                                          ? '2px solid #d1d5db'
+                                          : '2px solid #9ca3af'
                                       }}
                                     />
                                     <span style={{
                                       fontSize: '14px',
-                                      fontWeight: '400',
-                                      color: '#000000',
+                                      fontWeight: '500',
+                                      color: '#111827',
                                       fontFamily: 'var(--stepn-font-body)',
                                       textAlign: 'center'
                                     }}>
