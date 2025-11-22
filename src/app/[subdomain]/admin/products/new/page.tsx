@@ -92,6 +92,8 @@ export default function ProductBuilderPage() {
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
+  const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
+  const [designColors, setDesignColors] = useState<Record<string, string>>({}); // Stocker les couleurs sélectionnées pour le design
   const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
@@ -1485,7 +1487,253 @@ export default function ProductBuilderPage() {
                           Configurez le module dans les settings pour afficher du contenu.
                         </p>
                       </div>
-                    ) : activeModule.contentType === 'colors' && activeModule.selectedItems?.colorPaletteId ? (() => {
+                    ) : activeModule.contentType === 'colors' ? (() => {
+                      // Détecter automatiquement les couleurs disponibles à modifier
+                      const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
+                      
+                      // Trouver le design 2D sélectionné pour détecter les couleurs
+                      let availableColorClasses: string[] = [];
+                      let designIdToUse: string | null = null;
+                      if (activeCustomizerTab) {
+                        const designModule = customizationModules.find(m => 
+                          m.contentType === 'designs-2d' && m.selectedItems?.design2DId
+                        );
+                        if (designModule?.selectedItems?.design2DId) {
+                          designIdToUse = designModule.selectedItems.design2DId;
+                        }
+                      }
+                      if (!designIdToUse) {
+                        designIdToUse = selectedDesign2DId;
+                      }
+                      
+                      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+                      if (selectedDesign?.color_mappings) {
+                        availableColorClasses = Object.keys(selectedDesign.color_mappings);
+                      } else {
+                        availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                      }
+                      
+                      availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
+                      if (availableColorClasses.length === 0) {
+                        availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                      }
+                      
+                      // Si on a sélectionné une classe de couleur, afficher la grille de couleurs
+                      if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
+                        const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                        if (!palette) return <p style={{ color: '#666', fontSize: '14px' }}>Palette non trouvée</p>;
+                        
+                        const allColors: Array<{ id: string; name: string; hex: string }> = [];
+                        if (palette.colors) {
+                          palette.colors.forEach((color: any, index: number) => {
+                            const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                            allColors.push({
+                              id: colorId,
+                              name: color.name || '',
+                              hex: color.hex || '#000000'
+                            });
+                          });
+                        }
+                        
+                        const selectedColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
+                        
+                        return (
+                          <div>
+                            <button
+                              onClick={() => setSelectedColorClass(null)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 12px',
+                                marginBottom: '16px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                color: '#666',
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}
+                            >
+                              <span>←</span>
+                              <span>Retour</span>
+                            </button>
+                            
+                            <h3 style={{
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              marginBottom: '16px',
+                              color: '#000',
+                              fontFamily: 'var(--stepn-font-body)',
+                              textTransform: 'capitalize'
+                            }}>
+                              {selectedColorClass}
+                            </h3>
+                            
+                            <div style={{ 
+                              display: 'grid', 
+                              gridTemplateColumns: 'repeat(6, 1fr)', 
+                              gap: '12px' 
+                            }}>
+                              {allColors.map((color) => {
+                                const isSelected = color.id === selectedColorId;
+                                return (
+                                  <div
+                                    key={color.id}
+                                    onClick={() => {
+                                      const newDesignColors = { ...designColors };
+                                      newDesignColors[selectedColorClass] = color.id;
+                                      setDesignColors(newDesignColors);
+                                      
+                                      if (selectedDesign) {
+                                        const updatedMappings = {
+                                          ...(selectedDesign.color_mappings || {}),
+                                          [selectedColorClass]: color.id
+                                        };
+                                        
+                                        fetch(`/api/designs-2d?id=${selectedDesign.id}`, {
+                                          method: 'PATCH',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ color_mappings: updatedMappings })
+                                        }).catch(err => console.error('Error updating color mappings:', err));
+                                        
+                                        setDesigns2D(designs2D.map(d => 
+                                          d.id === selectedDesign.id 
+                                            ? { ...d, color_mappings: updatedMappings }
+                                            : d
+                                        ));
+                                      }
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      cursor: 'pointer',
+                                      padding: '8px',
+                                      borderRadius: '8px',
+                                      border: isSelected ? '2px solid #333' : '1px solid #e0e0e0',
+                                      backgroundColor: isSelected ? '#f5f5f5' : 'transparent',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        aspectRatio: '1',
+                                        backgroundColor: color.hex,
+                                        borderRadius: '50%',
+                                        border: '1px solid #e0e0e0',
+                                        position: 'relative'
+                                      }}
+                                    >
+                                      {isSelected && (
+                                        <div style={{
+                                          position: 'absolute',
+                                          top: '50%',
+                                          left: '50%',
+                                          transform: 'translate(-50%, -50%)',
+                                          width: '24px',
+                                          height: '24px',
+                                          borderRadius: '50%',
+                                          border: '2px solid white',
+                                          backgroundColor: 'transparent',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center'
+                                        }}>
+                                          <span style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      // Afficher les cartes de sélection de classe de couleur
+                      return (
+                        <div>
+                          {!activeModule.selectedItems?.colorPaletteId ? (
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              Veuillez sélectionner une palette dans les paramètres du module.
+                            </p>
+                          ) : (
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(3, 1fr)',
+                              gap: '16px'
+                            }}>
+                              {availableColorClasses.map((colorClass) => {
+                                const currentColorId = selectedDesign?.color_mappings?.[colorClass];
+                                let currentColorHex = '#cccccc';
+                                
+                                if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
+                                  const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                                  if (palette?.colors) {
+                                    palette.colors.forEach((color: any, index: number) => {
+                                      const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                                      if (colorId === currentColorId) {
+                                        currentColorHex = color.hex || '#cccccc';
+                                      }
+                                    });
+                                  }
+                                }
+                                
+                                return (
+                                  <div
+                                    key={colorClass}
+                                    onClick={() => setSelectedColorClass(colorClass)}
+                                    style={{
+                                      padding: '16px',
+                                      backgroundColor: '#ffffff',
+                                      borderRadius: '12px',
+                                      border: '1px solid #e0e0e0',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      gap: '12px',
+                                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: '60px',
+                                        height: '60px',
+                                        backgroundColor: currentColorHex,
+                                        borderRadius: '50%',
+                                        border: '2px solid #e0e0e0'
+                                      }}
+                                    />
+                                    <span style={{
+                                      fontSize: '14px',
+                                      fontWeight: '500',
+                                      color: '#000',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      textTransform: 'capitalize',
+                                      textAlign: 'center'
+                                    }}>
+                                      {colorClass}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : activeModule.contentType === 'colors' && activeModule.selectedItems?.colorPaletteId ? (() => {
                       const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
                       if (!palette) return <p style={{ color: '#666', fontSize: '14px' }}>Palette non trouvée</p>;
                       
