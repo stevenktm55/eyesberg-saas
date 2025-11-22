@@ -102,6 +102,7 @@ export default function ProductBuilderPage() {
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
   const [designColors, setDesignColors] = useState<Record<string, string>>({}); // Stocker les couleurs sélectionnées pour le design
   const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null); // Pour le drag & drop des modules dans la sidebar gauche
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null); // Index de l'élément survolé pendant le drag
   const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
@@ -1154,18 +1155,23 @@ export default function ProductBuilderPage() {
                         e.preventDefault();
                         e.stopPropagation();
                         e.dataTransfer.dropEffect = 'move';
+                        setDragOverIndex(index);
                       }}
                       onDragEnter={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        setDragOverIndex(index);
+                      }}
+                      onDragLeave={(e) => {
+                        // Ne pas réinitialiser dragOverIndex ici pour éviter les flickers
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        const draggedId = draggedModuleId || e.dataTransfer.getData('text/html');
-                        if (draggedId && draggedId !== module.id) {
+                        const draggedId = draggedModuleId;
+                        if (draggedId && draggedId !== module.id && dragOverIndex !== null) {
                           const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
-                          const targetIndex = index;
+                          const targetIndex = dragOverIndex;
                           
                           console.log('Drag & Drop:', { 
                             draggedId, 
@@ -1177,7 +1183,7 @@ export default function ProductBuilderPage() {
                           
                           if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
                             // Créer un nouveau tableau avec l'ordre modifié
-                            const newModules = Array.from(customizationModules);
+                            const newModules = [...customizationModules];
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
                             console.log('New order:', newModules.map(m => m.tabName));
@@ -1186,9 +1192,11 @@ export default function ProductBuilderPage() {
                           }
                         }
                         setDraggedModuleId(null);
+                        setDragOverIndex(null);
                       }}
                       onDragEnd={(e) => {
                         setDraggedModuleId(null);
+                        setDragOverIndex(null);
                         if (e.currentTarget.style) {
                           e.currentTarget.style.cursor = 'grab';
                         }
@@ -1208,7 +1216,8 @@ export default function ProductBuilderPage() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px',
-                        opacity: draggedModuleId === module.id ? 0.5 : 1
+                        opacity: draggedModuleId === module.id ? 0.5 : 1,
+                        backgroundColor: dragOverIndex === index && draggedModuleId !== module.id ? '#1a1a1a' : (selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a')
                       }}
                     >
                       <div style={{
