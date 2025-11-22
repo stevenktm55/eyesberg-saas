@@ -177,6 +177,8 @@ function SimpleViewer({
   const classHexRef = useRef<Record<string, string>>({});
   // Load sequencing: ignore late results if a newer load started
   const loadSeqRef = useRef<number>(0);
+  // Ref for isPlacingText to ensure closure has latest value
+  const isPlacingTextRef = useRef<'nom' | 'numero' | null | undefined>(isPlacingText);
   // Signal that a fresh original SVG is available
   const [svgBaseVersion, setSvgBaseVersion] = useState(0);
 
@@ -2582,8 +2584,8 @@ function SimpleViewer({
       
       // Check if we're in text placement mode - doit être vérifié AVANT la vérification de uv
       // Utiliser une ref pour s'assurer que la valeur est à jour dans la closure
-      const currentIsPlacingText = isPlacingText;
-      console.log('🔍 Checking text placement mode - isPlacingText:', currentIsPlacingText, 'type:', typeof currentIsPlacingText);
+      const currentIsPlacingText = isPlacingTextRef.current;
+      console.log('🔍 Checking text placement mode - isPlacingText:', currentIsPlacingText, 'type:', typeof currentIsPlacingText, 'from ref:', isPlacingTextRef.current);
       if (currentIsPlacingText) {
         console.log('📍 Text placement mode active, isPlacingText:', currentIsPlacingText, 'uv:', uv);
         e.preventDefault();
