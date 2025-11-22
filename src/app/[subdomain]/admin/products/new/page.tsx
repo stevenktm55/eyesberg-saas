@@ -2385,7 +2385,7 @@ export default function ProductBuilderPage() {
                                 url={modelUrl}
                                 designTexture={designUrl || undefined}
                                 materialMaps={materialMapsForModel}
-                                colors={Object.keys(colorsMap).length > 0 ? colorsMap : undefined}
+                                colors={Object.keys(colorsMap).length > 0 ? Object.fromEntries(Object.entries(colorsMap).map(([k, v]) => [k, v.hex])) : undefined}
                                 selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
                                 texts={texts}
                                 updateTextPosition={updateTextPosition}
