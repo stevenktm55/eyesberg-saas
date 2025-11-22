@@ -1152,7 +1152,12 @@ export default function ProductBuilderPage() {
                       }}
                       onDragOver={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         e.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
