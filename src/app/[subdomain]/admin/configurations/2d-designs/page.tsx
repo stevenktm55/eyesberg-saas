@@ -1098,11 +1098,24 @@ export default function Designs2DConfigPage() {
                                   return currentValue;
                                 })()}
                                 onChange={(e) => {
+                                  const selectedValue = e.target.value;
+                                  console.log('Select onChange:', { 
+                                    colorClass, 
+                                    selectedValue, 
+                                    selectedOption: e.target.selectedOptions[0]?.text,
+                                    allColorIds: allColors.map(c => c.id)
+                                  });
+                                  
                                   const newMappings = { ...colorMappings };
-                                  if (e.target.value) {
-                                    // S'assurer qu'on sauvegarde bien l'ID, pas le texte
-                                    newMappings[colorClass] = e.target.value;
-                                    console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
+                                  if (selectedValue) {
+                                    // Vérifier que la valeur est bien un ID (pas du texte)
+                                    const foundColor = allColors.find(c => c.id === selectedValue);
+                                    if (foundColor) {
+                                      newMappings[colorClass] = selectedValue;
+                                      console.log('Color mapping updated with ID:', { colorClass, colorId: selectedValue, color: foundColor });
+                                    } else {
+                                      console.error('Selected value is not a valid color ID:', selectedValue);
+                                    }
                                   } else {
                                     delete newMappings[colorClass];
                                   }
@@ -1261,11 +1274,24 @@ export default function Designs2DConfigPage() {
                                   return currentValue;
                                 })()}
                                 onChange={(e) => {
+                                  const selectedValue = e.target.value;
+                                  console.log('Select onChange:', { 
+                                    colorClass, 
+                                    selectedValue, 
+                                    selectedOption: e.target.selectedOptions[0]?.text,
+                                    allColorIds: allColors.map(c => c.id)
+                                  });
+                                  
                                   const newMappings = { ...colorMappings };
-                                  if (e.target.value) {
-                                    // S'assurer qu'on sauvegarde bien l'ID, pas le texte
-                                    newMappings[colorClass] = e.target.value;
-                                    console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
+                                  if (selectedValue) {
+                                    // Vérifier que la valeur est bien un ID (pas du texte)
+                                    const foundColor = allColors.find(c => c.id === selectedValue);
+                                    if (foundColor) {
+                                      newMappings[colorClass] = selectedValue;
+                                      console.log('Color mapping updated with ID:', { colorClass, colorId: selectedValue, color: foundColor });
+                                    } else {
+                                      console.error('Selected value is not a valid color ID:', selectedValue);
+                                    }
                                   } else {
                                     delete newMappings[colorClass];
                                   }
