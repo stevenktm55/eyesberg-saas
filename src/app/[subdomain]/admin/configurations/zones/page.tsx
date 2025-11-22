@@ -434,7 +434,23 @@ export default function ZonesConfigPage() {
                     <Suspense fallback={null}>
                       <ModelViewer
                         url={modelUrl}
-                        textZones={textZonesForViewer}
+                        color="#ffffff"
+                        // Pas de design 2D ni de material maps en mode zones
+                        designTexture={undefined}
+                        materialMaps={undefined}
+                        // Utiliser les zones comme textes pour le système de placement
+                        texts={editingZones.map(zone => ({
+                          id: zone.id,
+                          content: '', // Pas de texte, juste un rectangle
+                          position: zone.position,
+                          rotation: zone.rotation,
+                          fontSize: zone.width * 2048, // Utiliser width comme base pour fontSize
+                          fontFamily: undefined,
+                          category: 'nom' as const,
+                          locked: false,
+                          zoneCategory: 'text'
+                        }))}
+                        textZones={[]}
                         isPlacingText={isPlacingZone ? 'nom' : null}
                         onTextPlaced={(category, position) => {
                           if (isPlacingZone) {
@@ -459,10 +475,12 @@ export default function ZonesConfigPage() {
                           // Convertir size en scale
                           const zone = editingZones.find(z => z.id === id);
                           if (zone) {
-                            const newScale = size / (zone.width * 4096); // Assuming base width in pixels
+                            const newScale = size / (zone.width * 2048);
                             handleUpdateZoneScale(id, newScale);
                           }
                         }}
+                        // Mode zones : afficher des rectangles noirs au lieu de texte
+                        renderZonesAsRectangles={true}
                       />
                     </Suspense>
                   </Canvas>

@@ -33,7 +33,8 @@ function SimpleViewer({
   setIsDraggingText,
   fonts = [],
   selectedDesign,
-  materialMaps
+  materialMaps,
+  renderZonesAsRectangles = false
 }: { 
   url: string, 
   designSrc?: string, 
@@ -399,7 +400,7 @@ function SimpleViewer({
   // Setup meshes and load design texture (UV0) - runs when designSrc changes
   useEffect(() => {
     if (!gltf?.scene) return;
-    if (!designSrc) return; // aucun design à charger
+    if (!designSrc || renderZonesAsRectangles) return; // aucun design à charger ou mode zones
     
     if (lastLoadedDesignSrcRef.current !== designSrc) {
       appliedSvgRef.current = null;
@@ -755,7 +756,7 @@ function SimpleViewer({
       };
             const resolveMaterialConfig = (matName: string, meshName?: string) => {
               const maps: any = materialMaps as any;
-              if (!maps) return null;
+              if (!maps || renderZonesAsRectangles) return null; // Pas de material maps en mode zones
               const normalize = (name?: string) => (name || '').trim();
         const mirrorFrontBack = (name: string) => (/back/i.test(name) ? name.replace(/back/i, 'FRONT') : name);
         const stripSuffixes = (name: string) => { let n = name.replace(/_[0-9]+(?:\.[0-9]+)?$/i, ''); n = n.replace(/(\.|_)[0-9]{2,}$/i, ''); return n; };
@@ -3780,6 +3781,7 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     onSvgProcessed={onSvgProcessed}
     selectedDesign={selectedDesign}
     materialMaps={materialMaps}
+    renderZonesAsRectangles={(props as any).renderZonesAsRectangles || false}
     placedLogos={logosToDisplay}
     updateLogoPosition={handleUpdateLogoPosition}
     updateLogoScale={handleUpdateLogoScale}
