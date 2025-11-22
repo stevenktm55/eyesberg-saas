@@ -37,6 +37,7 @@ type CustomizationModule = {
     design2DId?: string;
     sizePatternId?: string;
   };
+  colorClassLabels?: Record<string, string>; // Labels personnalisés pour les classes de couleurs (ex: { primary: 'Principal', secondary: 'Secondaire' })
 };
 
 // Garder Question pour compatibilité avec l'ancien système
@@ -1695,7 +1696,7 @@ export default function ProductBuilderPage() {
                                     key={colorClass}
                                     onClick={() => setSelectedColorClass(colorClass)}
                                     style={{
-                                      padding: '16px',
+                                      padding: '20px',
                                       backgroundColor: '#ffffff',
                                       borderRadius: '12px',
                                       border: '1px solid #e0e0e0',
@@ -1704,7 +1705,7 @@ export default function ProductBuilderPage() {
                                       display: 'flex',
                                       flexDirection: 'column',
                                       alignItems: 'center',
-                                      gap: '12px',
+                                      gap: '16px',
                                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                     }}
                                     onMouseEnter={(e) => {
@@ -1716,22 +1717,22 @@ export default function ProductBuilderPage() {
                                   >
                                     <div
                                       style={{
-                                        width: '60px',
-                                        height: '60px',
+                                        width: '64px',
+                                        height: '64px',
                                         backgroundColor: currentColorHex,
                                         borderRadius: '50%',
-                                        border: '2px solid #e0e0e0'
+                                        border: 'none',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                       }}
                                     />
                                     <span style={{
                                       fontSize: '14px',
-                                      fontWeight: '500',
-                                      color: '#000',
+                                      fontWeight: '400',
+                                      color: '#000000',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'capitalize',
                                       textAlign: 'center'
                                     }}>
-                                      {colorClass}
+                                      {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
                                     </span>
                                   </div>
                                 );
@@ -2234,54 +2235,143 @@ export default function ProductBuilderPage() {
               </div>
 
               {/* Content Selection based on contentType */}
-              {selectedModule.contentType === 'colors' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#a0a0a0',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Palette de couleurs
-                  </label>
-                  <select
-                    value={selectedModule.selectedItems?.colorPaletteId || ''}
-                    onChange={(e) => {
-                      const updated = { 
-                        ...selectedModule, 
-                        selectedItems: {
-                          ...selectedModule.selectedItems,
-                          colorPaletteId: e.target.value || undefined
-                        }
-                      };
-                      setSelectedModule(updated);
-                      setCustomizationModules(customizationModules.map(m => 
-                        m.id === selectedModule.id ? updated : m
-                      ));
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="">Sélectionner une palette</option>
-                    {colorPalettes.map((palette) => (
-                      <option key={palette.id} value={palette.id}>
-                        {palette.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {selectedModule.contentType === 'colors' && (() => {
+                // Détecter les classes de couleurs disponibles
+                const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
+                let availableColorClasses: string[] = [];
+                let designIdToUse: string | null = null;
+                
+                // Trouver le design 2D sélectionné
+                const designModule = customizationModules.find(m => 
+                  m.contentType === 'designs-2d' && m.selectedItems?.design2DId
+                );
+                if (designModule?.selectedItems?.design2DId) {
+                  designIdToUse = designModule.selectedItems.design2DId;
+                }
+                if (!designIdToUse) {
+                  designIdToUse = selectedDesign2DId;
+                }
+                
+                const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+                if (selectedDesign?.color_mappings) {
+                  availableColorClasses = Object.keys(selectedDesign.color_mappings);
+                } else {
+                  availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                }
+                
+                availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
+                if (availableColorClasses.length === 0) {
+                  availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                }
+                
+                return (
+                  <>
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Palette de couleurs
+                      </label>
+                      <select
+                        value={selectedModule.selectedItems?.colorPaletteId || ''}
+                        onChange={(e) => {
+                          const updated = { 
+                            ...selectedModule, 
+                            selectedItems: {
+                              ...selectedModule.selectedItems,
+                              colorPaletteId: e.target.value || undefined
+                            }
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m => 
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Sélectionner une palette</option>
+                        {colorPalettes.map((palette) => (
+                          <option key={palette.id} value={palette.id}>
+                            {palette.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '12px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Noms des classes de couleurs
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {availableColorClasses.map((colorClass) => (
+                          <div key={colorClass}>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '11px',
+                              color: '#888',
+                              marginBottom: '4px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              textTransform: 'capitalize'
+                            }}>
+                              {colorClass}
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedModule.colorClassLabels?.[colorClass] || ''}
+                              placeholder={colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
+                              onChange={(e) => {
+                                const updated = {
+                                  ...selectedModule,
+                                  colorClassLabels: {
+                                    ...(selectedModule.colorClassLabels || {}),
+                                    [colorClass]: e.target.value
+                                  }
+                                };
+                                setSelectedModule(updated);
+                                setCustomizationModules(customizationModules.map(m => 
+                                  m.id === selectedModule.id ? updated : m
+                                ));
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                backgroundColor: '#1a1a1a',
+                                border: '1px solid #2a2a2a',
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                fontSize: '14px',
+                                fontFamily: 'var(--stepn-font-body)',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               {selectedModule.contentType === 'logos' && (
                 <div style={{ marginBottom: '20px' }}>
