@@ -101,6 +101,7 @@ export default function ProductBuilderPage() {
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
   const [designColors, setDesignColors] = useState<Record<string, string>>({}); // Stocker les couleurs sélectionnées pour le design
+  const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null); // Pour le drag & drop des onglets
   const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
@@ -1368,9 +1369,38 @@ export default function ProductBuilderPage() {
                 padding: '16px 0',
                 gap: '8px'
               }}>
-                {customizationModules.map((module) => (
+                {customizationModules.map((module, index) => (
                   <button
                     key={module.id}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedModuleId(module.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/html', module.id);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const draggedId = e.dataTransfer.getData('text/html');
+                      if (draggedId && draggedId !== module.id) {
+                        const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
+                        const targetIndex = index;
+                        
+                        if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
+                          const newModules = [...customizationModules];
+                          const [removed] = newModules.splice(draggedIndex, 1);
+                          newModules.splice(targetIndex, 0, removed);
+                          setCustomizationModules(newModules);
+                        }
+                      }
+                      setDraggedModuleId(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedModuleId(null);
+                    }}
                     onClick={() => {
                       // Ne pas fermer la sidebar, toujours ouvrir l'onglet
                       const newTab = module.id;
@@ -1383,17 +1413,18 @@ export default function ProductBuilderPage() {
                     style={{
                       width: '48px',
                       height: '48px',
-                      backgroundColor: activeCustomizerTab === module.id ? '#f5f5f5' : 'transparent',
+                      backgroundColor: activeCustomizerTab === module.id ? '#f5f5f5' : draggedModuleId === module.id ? '#e5e7eb' : 'transparent',
                       border: activeCustomizerTab === module.id ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
                       borderRadius: '4px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      cursor: 'pointer',
+                      cursor: 'grab',
                       color: activeCustomizerTab === module.id ? '#000000' : '#666666',
                       fontSize: '20px',
                       transition: 'all 0.2s',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      opacity: draggedModuleId === module.id ? 0.5 : 1
                     }}
                     title={module.tabName}
                   >
