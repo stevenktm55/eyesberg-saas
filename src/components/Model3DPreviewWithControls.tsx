@@ -138,7 +138,7 @@ function Model({
   React.useEffect(() => {
     if (!clonedScene) return;
 
-    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl);
+    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl, 'colorMappings:', colorMappings);
 
     // Normaliser les noms pour la correspondance (enlever les numéros, underscores, etc.)
     const normalizeName = (name: string) => {
@@ -706,7 +706,7 @@ function Model({
         });
       }
     });
-  }, [clonedScene, materialMaps, design2DUrl, modelParts]);
+  }, [clonedScene, materialMaps, design2DUrl, modelParts, colorMappings, colors]);
 
   return <primitive ref={groupRef} object={clonedScene} />;
 }
@@ -723,7 +723,9 @@ export function Model3DPreviewWithControls({
   initialZoom = 5,
   initialRotation = 0,
   className,
-  style 
+  style,
+  colorMappings,
+  colors
 }: Model3DPreviewWithControlsProps) {
   const controlsRef = useRef<any>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -794,11 +796,13 @@ export function Model3DPreviewWithControls({
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Suspense fallback={null}>
-          <Model 
+          <Model
             url={url} 
             materialMaps={materialMaps}
             design2DUrl={design2DUrl}
             modelParts={modelParts}
+            colorMappings={colorMappings}
+            colors={colors}
           />
         </Suspense>
         <OrbitControls
