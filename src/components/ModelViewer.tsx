@@ -2583,6 +2583,7 @@ function SimpleViewer({
       // Check if we're in text placement mode - doit être vérifié AVANT la vérification de uv
       // Utiliser une ref pour s'assurer que la valeur est à jour dans la closure
       const currentIsPlacingText = isPlacingText;
+      console.log('🔍 Checking text placement mode - isPlacingText:', currentIsPlacingText, 'type:', typeof currentIsPlacingText);
       if (currentIsPlacingText) {
         console.log('📍 Text placement mode active, isPlacingText:', currentIsPlacingText, 'uv:', uv);
         e.preventDefault();

@@ -538,16 +538,12 @@ export default function ProductBuilderPage() {
 
   const handleTextPlaced = (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
     console.log('📍 handleTextPlaced called:', { category, position, zoneCategory, rotation, isPlacingText });
-    if (isPlacingText) {
-      // Utiliser la catégorie du mode placement si elle est définie, sinon utiliser celle passée en paramètre
-      const textCategory = isPlacingText || category;
-      console.log('✅ Adding text with category:', textCategory, 'at position:', position);
-      addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
-      // Désactiver le mode placement après ajout
-      setIsPlacingText(null);
-    } else {
-      console.log('⚠️ handleTextPlaced called but isPlacingText is null');
-    }
+    // Toujours ajouter le texte si onTextPlaced est appelé, même si isPlacingText est null (au cas où)
+    const textCategory = isPlacingText || category || 'nom';
+    console.log('✅ Adding text with category:', textCategory, 'at position:', position);
+    addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
+    // Désactiver le mode placement après ajout
+    setIsPlacingText(null);
   };
 
   function updateQuestion(questionId: string, updates: Partial<Question>) {
@@ -2517,9 +2513,9 @@ export default function ProductBuilderPage() {
                             </Suspense>
                             <OrbitControls
                               enablePan={false}
-                              enableZoom={!selectedTextId}
-                              enableRotate={!selectedTextId}
-                              enabled={!isDraggingText && !isRotatingText && !isResizingText}
+                              enableZoom={!selectedTextId && !isPlacingText}
+                              enableRotate={!selectedTextId && !isPlacingText}
+                              enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
                               minDistance={1}
                               maxDistance={10}
                             />
