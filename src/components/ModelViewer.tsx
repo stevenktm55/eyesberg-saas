@@ -985,6 +985,11 @@ function SimpleViewer({
     }
     ctxRef.current = ctx;
     
+    // Exposer le canvas via callback si fourni
+    if (onCanvasReady) {
+      onCanvasReady(canvas);
+    }
+    
     // No background - transparent canvas to see logos
     console.log('✅ Overlay canvas created (no background)');
     const overlayTex = new THREE.CanvasTexture(canvas); 

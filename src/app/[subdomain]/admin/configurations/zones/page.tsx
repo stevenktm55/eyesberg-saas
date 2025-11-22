@@ -583,67 +583,7 @@ export default function ZonesConfigPage() {
                   </div>
                   
                   {/* Preview UV2 */}
-                  {uv2Canvas && (
-                    <div style={{
-                      width: '300px',
-                      height: '300px',
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        color: '#ffffff',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Preview UV2
-                      </div>
-                      <div style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#0a0a0a',
-                        borderRadius: '4px',
-                        overflow: 'hidden'
-                      }}>
-                        <canvas
-                          ref={(node) => {
-                            if (node && uv2Canvas) {
-                              const ctx = node.getContext('2d');
-                              if (ctx) {
-                                // Copier le contenu du canvas UV2
-                                node.width = uv2Canvas.width;
-                                node.height = uv2Canvas.height;
-                                ctx.drawImage(uv2Canvas, 0, 0);
-                                
-                                // Mettre à jour périodiquement
-                                const interval = setInterval(() => {
-                                  if (uv2Canvas && node) {
-                                    ctx.clearRect(0, 0, node.width, node.height);
-                                    ctx.drawImage(uv2Canvas, 0, 0);
-                                  }
-                                }, 100);
-                                
-                                return () => clearInterval(interval);
-                              }
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            imageRendering: 'pixelated'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {uv2Canvas && <UV2Preview canvas={uv2Canvas} />}
                 </div>
               )}
 
