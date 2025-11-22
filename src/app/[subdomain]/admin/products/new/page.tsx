@@ -1372,8 +1372,8 @@ export default function ProductBuilderPage() {
                   <button
                     key={module.id}
                     onClick={() => {
-                      // Ne pas fermer la sidebar, juste changer d'onglet
-                      const newTab = activeCustomizerTab === module.id ? module.id : module.id;
+                      // Ne pas fermer la sidebar, toujours ouvrir l'onglet
+                      const newTab = module.id;
                       setActiveCustomizerTab(newTab);
                       // Réinitialiser la sélection de couleur quand on change d'onglet
                       if (newTab !== activeCustomizerTab) {
