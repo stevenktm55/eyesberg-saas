@@ -2692,7 +2692,10 @@ function SimpleViewer({
           if (onTextPlaced) {
             // Use UV coordinates directly (0-1 range)
             const position: [number, number, number] = [uv.u, uv.v, 0];
+            console.log('📞 Calling onTextPlaced with:', { category: currentIsPlacingText, position });
             onTextPlaced(currentIsPlacingText, position);
+          } else {
+            console.log('⚠️ onTextPlaced callback is not defined!');
           }
         }
         return;

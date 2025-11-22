@@ -551,8 +551,12 @@ export default function ZonesConfigPage() {
                         textZones={[]}
                         isPlacingText={isPlacingZone ? 'nom' : null}
                         onTextPlaced={(category, position) => {
+                          console.log('🎯 onTextPlaced called:', { category, position, isPlacingZone });
                           if (isPlacingZone) {
+                            console.log('✅ isPlacingZone is true, calling handleZonePlaced');
                             handleZonePlaced(position);
+                          } else {
+                            console.log('❌ isPlacingZone is false, not placing zone');
                           }
                         }}
                         selectedTextId={selectedZoneId}
