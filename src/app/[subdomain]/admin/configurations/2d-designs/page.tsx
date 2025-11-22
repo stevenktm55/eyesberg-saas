@@ -132,10 +132,13 @@ export default function Designs2DConfigPage() {
         const classAttr = element.getAttribute('class');
         if (classAttr) {
           classAttr.split(/\s+/).forEach((cls) => {
+            const trimmedClass = cls.trim().toLowerCase();
             // Détecter les classes de couleurs communes (primary, secondary, tertiary, etc.)
-            const colorClassPattern = /^(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?$/i;
-            if (colorClassPattern.test(cls.trim())) {
-              classes.add(cls.trim().toLowerCase());
+            const colorClassPattern = /^(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?$/i;
+            if (colorClassPattern.test(trimmedClass)) {
+              // Extraire le nom de base (sans -light, -dark, etc.)
+              const baseClass = trimmedClass.replace(/-light|-dark|-lighten|-darken$/i, '');
+              classes.add(baseClass);
             }
           });
         }
@@ -146,19 +149,23 @@ export default function Designs2DConfigPage() {
       styleElements.forEach((style) => {
         const styleText = style.textContent || '';
         // Chercher les variables CSS --primary, --secondary, etc.
-        const varMatches = styleText.match(/--(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?/gi);
+        const varMatches = styleText.match(/--(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?/gi);
         if (varMatches) {
           varMatches.forEach((match) => {
             const className = match.replace('--', '').toLowerCase();
-            classes.add(className);
+            // Extraire le nom de base (sans -light, -dark, etc.)
+            const baseClass = className.replace(/-light|-dark|-lighten|-darken$/i, '');
+            classes.add(baseClass);
           });
         }
         // Chercher les classes CSS définies
-        const classMatches = styleText.match(/\.(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke)(?:-light|-dark)?/gi);
+        const classMatches = styleText.match(/\.(primary|secondary|tertiary|quaternary|quinary|accent|background|text|border|fill|stroke|color|couleur)(?:-light|-dark|-lighten|-darken)?/gi);
         if (classMatches) {
           classMatches.forEach((match) => {
             const className = match.replace('.', '').toLowerCase();
-            classes.add(className);
+            // Extraire le nom de base (sans -light, -dark, etc.)
+            const baseClass = className.replace(/-light|-dark|-lighten|-darken$/i, '');
+            classes.add(baseClass);
           });
         }
       });
@@ -819,18 +826,61 @@ export default function Designs2DConfigPage() {
                   )}
                   
                   {/* Sélection des couleurs pour les classes détectées */}
-                  {detectedColorClasses.length > 0 && (
-                    <div>
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '12px'
+                    }}>
                       <label style={{
                         display: 'block',
                         fontSize: '14px',
                         color: '#ffffff',
-                        marginBottom: '12px',
                         fontFamily: 'var(--stepn-font-body)'
                       }}>
-                        Couleurs détectées dans le SVG
+                        Couleurs du design
+                        {detectedColorClasses.length > 0 && (
+                          <span style={{ fontSize: '12px', color: '#a0a0a0', marginLeft: '8px' }}>
+                            ({detectedColorClasses.length} détectée{detectedColorClasses.length > 1 ? 's' : ''})
+                          </span>
+                        )}
                       </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newClass = prompt('Entrez le nom de la classe de couleur (ex: primary, secondary):');
+                          if (newClass && newClass.trim()) {
+                            const trimmedClass = newClass.trim().toLowerCase();
+                            if (!detectedColorClasses.includes(trimmedClass)) {
+                              setDetectedColorClasses([...detectedColorClasses, trimmedClass]);
+                            }
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: '#2a2a2a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#3a3a3a';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#2a2a2a';
+                        }}
+                      >
+                        + Ajouter une classe
+                      </button>
+                    </div>
+                    {(detectedColorClasses.length > 0 || Object.keys(colorMappings).length > 0) ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* Afficher les classes détectées */}
                         {detectedColorClasses.map((colorClass) => {
                           const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
                           colorPalettes.forEach((palette) => {
@@ -923,9 +973,135 @@ export default function Designs2DConfigPage() {
                             </div>
                           );
                         })}
+                        {/* Afficher aussi les classes dans colorMappings qui ne sont pas dans detectedColorClasses */}
+                        {Object.keys(colorMappings).filter(cls => !detectedColorClasses.includes(cls)).map((colorClass) => {
+                          const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
+                          colorPalettes.forEach((palette) => {
+                            if (palette.colors) {
+                              palette.colors.forEach((color) => {
+                                allColors.push({
+                                  ...color,
+                                  paletteName: palette.name
+                                });
+                              });
+                            }
+                          });
+                          
+                          return (
+                            <div key={colorClass} style={{
+                              padding: '12px',
+                              backgroundColor: '#0a0a0a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '8px'
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px'
+                              }}>
+                                <span style={{
+                                  fontSize: '12px',
+                                  color: '#ffffff',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontWeight: '500',
+                                  textTransform: 'capitalize'
+                                }}>
+                                  {colorClass}
+                                </span>
+                                {colorMappings[colorClass] && (() => {
+                                  const selectedColor = allColors.find(c => c.id === colorMappings[colorClass]);
+                                  return selectedColor ? (
+                                    <div style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px'
+                                    }}>
+                                      <div style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        backgroundColor: selectedColor.hex,
+                                        borderRadius: '4px',
+                                        border: '1px solid #2a2a2a'
+                                      }} />
+                                      <span style={{
+                                        fontSize: '11px',
+                                        color: '#a0a0a0',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        {selectedColor.name}
+                                      </span>
+                                    </div>
+                                  ) : null;
+                                })()}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newMappings = { ...colorMappings };
+                                    delete newMappings[colorClass];
+                                    setColorMappings(newMappings);
+                                    setDetectedColorClasses(detectedColorClasses.filter(c => c !== colorClass));
+                                  }}
+                                  style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#ff4444',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '10px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                              <select
+                                value={colorMappings[colorClass] || ''}
+                                onChange={(e) => {
+                                  setColorMappings({
+                                    ...colorMappings,
+                                    [colorClass]: e.target.value || undefined
+                                  });
+                                }}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: '#1a1a1a',
+                                  border: '1px solid #2a2a2a',
+                                  borderRadius: '4px',
+                                  color: '#ffffff',
+                                  fontSize: '12px',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  cursor: 'pointer',
+                                  outline: 'none'
+                                }}
+                              >
+                                <option value="">Sélectionner une couleur</option>
+                                {allColors.map((color) => (
+                                  <option key={color.id} value={color.id}>
+                                    {color.paletteName} - {color.name} ({color.hex})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div style={{
+                        padding: '16px',
+                        backgroundColor: '#0a0a0a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '8px',
+                        color: '#a0a0a0',
+                        fontSize: '12px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        textAlign: 'center'
+                      }}>
+                        Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.
+                      </div>
+                    )}
+                  </div>
                   
                   {/* Informations du design */}
                   <div>
