@@ -2373,12 +2373,81 @@ export default function ProductBuilderPage() {
                       }
                       
                       // Préparer les material maps pour chaque partie du modèle
+                      // ModelViewer attend les material maps indexés par nom de matériau
                       const parts = (selectedModel as any).model_parts || [];
                       const materialMapsForModel: Record<string, any> = {};
                       parts.forEach((part: any) => {
                         if (part.material_map_id && modelMaterialMaps[part.material_map_id]) {
-                          // Utiliser material_map_id comme clé
-                          materialMapsForModel[part.material_map_id] = modelMaterialMaps[part.material_map_id];
+                          const materialMap = modelMaterialMaps[part.material_map_id];
+                          const materialMapFiles = materialMap.material_map_files || [];
+                          
+                          // Transformer la structure pour ModelViewer
+                          const transformedMap: any = {
+                            materialName: part.name, // Utiliser le nom de la partie comme materialName
+                          };
+                          
+                          // Extraire les fichiers et les transformer en format attendu par ModelViewer
+                          materialMapFiles.forEach((file: any) => {
+                            const mapType = file.map_type?.toLowerCase();
+                            const fileUrl = file.file_url;
+                            const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+                            const scale = file.scale !== undefined ? file.scale : 1;
+                            
+                            if (!fileUrl) return;
+                            
+                            // Mapper les types de fichiers vers les propriétés attendues par ModelViewer
+                            if (mapType === 'normal' || mapType === 'normalmap') {
+                              transformedMap.normalMap = fileUrl;
+                              transformedMap.normal = fileUrl;
+                              transformedMap.normalTexture = fileUrl;
+                              if (scale !== 1) {
+                                transformedMap.normalScale = scale;
+                                transformedMap.normalScaleX = scale;
+                                transformedMap.normalScaleY = scale;
+                              }
+                            } else if (mapType === 'roughness' || mapType === 'roughnessmap') {
+                              transformedMap.roughnessMap = fileUrl;
+                              transformedMap.roughness = fileUrl;
+                              transformedMap.roughnessTexture = fileUrl;
+                              if (intensity !== 1) {
+                                transformedMap.roughnessFactor = intensity;
+                                transformedMap.roughness = intensity;
+                              }
+                            } else if (mapType === 'metalness' || mapType === 'metallic' || mapType === 'metalnessmap') {
+                              transformedMap.metalnessMap = fileUrl;
+                              transformedMap.metallicMap = fileUrl;
+                              transformedMap.metalness = fileUrl;
+                              transformedMap.metalnessTexture = fileUrl;
+                              if (intensity !== 1) {
+                                transformedMap.metalnessFactor = intensity;
+                                transformedMap.metalness = intensity;
+                                transformedMap.metallic = intensity;
+                              }
+                            } else if (mapType === 'ao' || mapType === 'ambientocclusion' || mapType === 'occlusion' || mapType === 'aomap') {
+                              transformedMap.aoMap = fileUrl;
+                              transformedMap.ambientOcclusionMap = fileUrl;
+                              transformedMap.occlusionMap = fileUrl;
+                              if (intensity !== 1) {
+                                transformedMap.aoIntensity = intensity;
+                                transformedMap.occlusionIntensity = intensity;
+                              }
+                            } else if (mapType === 'orm' || mapType === 'occlusionroughnessmetalness') {
+                              transformedMap.ormMap = fileUrl;
+                              transformedMap.occlusionRoughnessMetalnessMap = fileUrl;
+                              transformedMap.occlusion_roughness_metalness = fileUrl;
+                            }
+                          });
+                          
+                          // Indexer par nom de partie (qui correspond au nom de matériau dans le modèle)
+                          // Utiliser plusieurs variantes du nom pour faciliter la correspondance
+                          const partName = part.name || '';
+                          if (partName) {
+                            materialMapsForModel[partName] = transformedMap;
+                            materialMapsForModel[partName.toLowerCase()] = transformedMap;
+                            materialMapsForModel[partName.toUpperCase()] = transformedMap;
+                            // Aussi garder l'ID comme clé de secours
+                            materialMapsForModel[part.material_map_id] = transformedMap;
+                          }
                         }
                       });
                       
