@@ -3342,6 +3342,7 @@ export default function ProductBuilderPage() {
                   <option value="fonts">Polices (Font Groups)</option>
                   <option value="designs-2d">Designs 2D</option>
                   <option value="sizes">Tailles (Size Patterns)</option>
+                  <option value="text">Texte</option>
                 </select>
               </div>
 
