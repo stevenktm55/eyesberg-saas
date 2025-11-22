@@ -50,39 +50,48 @@ function TextZone({
     setLocalPosition(position);
     setLocalRotation(rotation);
     setLocalScale(scale);
+    if (meshRef.current && transformControlsRef.current) {
+      transformControlsRef.current.attach(meshRef.current);
+    }
   }, [position, rotation, scale]);
 
+  useEffect(() => {
+    if (isSelected && mode && meshRef.current && transformControlsRef.current) {
+      transformControlsRef.current.attach(meshRef.current);
+    } else if (transformControlsRef.current) {
+      transformControlsRef.current.detach();
+    }
+  }, [isSelected, mode]);
+
   useFrame(() => {
-    if (transformControlsRef.current && meshRef.current && isSelected) {
-      const controls = transformControlsRef.current;
-      if (controls.object) {
-        const newPos: [number, number, number] = [
-          controls.object.position.x,
-          controls.object.position.y,
-          controls.object.position.z
-        ];
-        const newRot: [number, number, number] = [
-          controls.object.rotation.x,
-          controls.object.rotation.y,
-          controls.object.rotation.z
-        ];
-        const newScale: [number, number, number] = [
-          controls.object.scale.x,
-          controls.object.scale.y,
-          controls.object.scale.z
-        ];
-        
-        if (
-          newPos[0] !== localPosition[0] || newPos[1] !== localPosition[1] || newPos[2] !== localPosition[2] ||
-          newRot[0] !== localRotation[0] || newRot[1] !== localRotation[1] || newRot[2] !== localRotation[2] ||
-          newScale[0] !== localScale[0] || newScale[1] !== localScale[1] || newScale[2] !== localScale[2]
-        ) {
-          setLocalPosition(newPos);
-          setLocalRotation(newRot);
-          setLocalScale(newScale);
-          if (onUpdate) {
-            onUpdate(newPos, newRot, newScale);
-          }
+    if (transformControlsRef.current && meshRef.current && isSelected && mode) {
+      const mesh = meshRef.current;
+      const newPos: [number, number, number] = [
+        mesh.position.x,
+        mesh.position.y,
+        mesh.position.z
+      ];
+      const newRot: [number, number, number] = [
+        mesh.rotation.x,
+        mesh.rotation.y,
+        mesh.rotation.z
+      ];
+      const newScale: [number, number, number] = [
+        mesh.scale.x,
+        mesh.scale.y,
+        mesh.scale.z
+      ];
+      
+      if (
+        newPos[0] !== localPosition[0] || newPos[1] !== localPosition[1] || newPos[2] !== localPosition[2] ||
+        newRot[0] !== localRotation[0] || newRot[1] !== localRotation[1] || newRot[2] !== localRotation[2] ||
+        newScale[0] !== localScale[0] || newScale[1] !== localScale[1] || newScale[2] !== localScale[2]
+      ) {
+        setLocalPosition(newPos);
+        setLocalRotation(newRot);
+        setLocalScale(newScale);
+        if (onUpdate) {
+          onUpdate(newPos, newRot, newScale);
         }
       }
     }
@@ -111,7 +120,6 @@ function TextZone({
       {isSelected && mode && (
         <TransformControls
           ref={transformControlsRef}
-          object={meshRef.current}
           mode={mode}
           showX={true}
           showY={true}
