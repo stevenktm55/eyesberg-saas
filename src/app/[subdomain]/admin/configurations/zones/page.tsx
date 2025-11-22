@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, TransformControls } from "@react-three/drei";
-import * as THREE from "three";
+import { ModelViewer } from "@/components/ModelViewer";
 
 type Zone = {
   id: string;
   name: string;
   model3d_id: string;
-  position: { x: number; y: number; z: number };
-  rotation: { x: number; y: number; z: number };
-  scale: { x: number; y: number; z: number };
+  position: [number, number, number]; // UV coordinates [u, v, 0]
+  rotation: number; // Rotation in radians
+  scale: number; // Scale factor
+  width: number; // Width in UV space (0-1)
+  height: number; // Height in UV space (0-1)
   createdAt?: string;
 };
 
@@ -22,272 +22,6 @@ type Model3D = {
   glbUrl?: string;
 };
 
-// Composant pour la zone 3D (plan noir avec opacité 70%)
-function TextZone({ 
-  position, 
-  rotation, 
-  scale, 
-  isSelected, 
-  onSelect,
-  onUpdate,
-  mode 
-}: {
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale: [number, number, number];
-  isSelected: boolean;
-  onSelect: () => void;
-  onUpdate?: (position: [number, number, number], rotation: [number, number, number], scale: [number, number, number]) => void;
-  mode?: 'translate' | 'rotate' | 'scale';
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const transformControlsRef = useRef<any>(null);
-  const [localPosition, setLocalPosition] = useState<[number, number, number]>(position);
-  const [localRotation, setLocalRotation] = useState<[number, number, number]>(rotation);
-  const [localScale, setLocalScale] = useState<[number, number, number]>(scale);
-
-  useEffect(() => {
-    setLocalPosition(position);
-    setLocalRotation(rotation);
-    setLocalScale(scale);
-    if (meshRef.current && transformControlsRef.current) {
-      transformControlsRef.current.attach(meshRef.current);
-    }
-  }, [position, rotation, scale]);
-
-  useEffect(() => {
-    if (isSelected && mode && meshRef.current && transformControlsRef.current) {
-      transformControlsRef.current.attach(meshRef.current);
-    } else if (transformControlsRef.current) {
-      transformControlsRef.current.detach();
-    }
-  }, [isSelected, mode]);
-
-  useFrame(() => {
-    if (transformControlsRef.current && meshRef.current && isSelected && mode) {
-      const mesh = meshRef.current;
-      const newPos: [number, number, number] = [
-        mesh.position.x,
-        mesh.position.y,
-        mesh.position.z
-      ];
-      const newRot: [number, number, number] = [
-        mesh.rotation.x,
-        mesh.rotation.y,
-        mesh.rotation.z
-      ];
-      const newScale: [number, number, number] = [
-        mesh.scale.x,
-        mesh.scale.y,
-        mesh.scale.z
-      ];
-      
-      if (
-        newPos[0] !== localPosition[0] || newPos[1] !== localPosition[1] || newPos[2] !== localPosition[2] ||
-        newRot[0] !== localRotation[0] || newRot[1] !== localRotation[1] || newRot[2] !== localRotation[2] ||
-        newScale[0] !== localScale[0] || newScale[1] !== localScale[1] || newScale[2] !== localScale[2]
-      ) {
-        setLocalPosition(newPos);
-        setLocalRotation(newRot);
-        setLocalScale(newScale);
-        if (onUpdate) {
-          onUpdate(newPos, newRot, newScale);
-        }
-      }
-    }
-  });
-
-  return (
-    <>
-      <mesh
-        ref={meshRef}
-        position={localPosition}
-        rotation={localRotation}
-        scale={localScale}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect();
-        }}
-      >
-        <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial
-          color="#000000"
-          transparent
-          opacity={0.7}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {isSelected && mode && (
-        <TransformControls
-          ref={transformControlsRef}
-          mode={mode}
-          showX={true}
-          showY={true}
-          showZ={true}
-        />
-      )}
-    </>
-  );
-}
-
-// Composant pour le modèle 3D
-function Model({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
-  }, [scene]);
-
-  return <primitive object={scene} />;
-}
-
-// Composant pour le viewer 3D interactif
-function ZoneEditor3D({ 
-  modelUrl, 
-  zones, 
-  selectedZoneId,
-  onZoneSelect,
-  onAddZone,
-  onZoneUpdate
-}: {
-  modelUrl: string;
-  zones: Zone[];
-  selectedZoneId: string | null;
-  onZoneSelect: (zoneId: string) => void;
-  onAddZone: () => void;
-  onZoneUpdate?: (zoneId: string, position: [number, number, number], rotation: [number, number, number], scale: [number, number, number]) => void;
-}) {
-  const [transformMode, setTransformMode] = useState<'translate' | 'rotate' | 'scale'>('translate');
-  const controlsRef = useRef<any>(null);
-
-  return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
-        style={{ width: '100%', height: '100%' }}
-        gl={{ preserveDrawingBuffer: true }}
-      >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <Suspense fallback={null}>
-          <Model url={modelUrl} />
-          {zones.map((zone) => (
-            <TextZone
-              key={zone.id}
-              position={[zone.position.x, zone.position.y, zone.position.z]}
-              rotation={[zone.rotation.x, zone.rotation.y, zone.rotation.z]}
-              scale={[zone.scale.x, zone.scale.y, zone.scale.z]}
-              isSelected={selectedZoneId === zone.id}
-              onSelect={() => onZoneSelect(zone.id)}
-              mode={selectedZoneId === zone.id ? transformMode : undefined}
-              onUpdate={(pos, rot, scl) => {
-                if (onZoneUpdate) {
-                  onZoneUpdate(zone.id, pos, rot, scl);
-                }
-              }}
-            />
-          ))}
-        </Suspense>
-        <OrbitControls 
-          ref={controlsRef}
-          enabled={!selectedZoneId || transformMode === undefined}
-        />
-      </Canvas>
-      
-      {/* Contrôles */}
-      <div style={{
-        position: 'absolute',
-        top: '16px',
-        left: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px'
-      }}>
-        <button
-          onClick={() => {
-            onAddZone();
-          }}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#8eff36',
-            color: '#000000',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            fontFamily: 'var(--stepn-font-body)'
-          }}
-        >
-          Ajouter une zone
-        </button>
-        
-        {selectedZoneId && (
-          <div style={{
-            display: 'flex',
-            gap: '4px',
-            backgroundColor: '#1a1a1a',
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #2a2a2a'
-          }}>
-            <button
-              onClick={() => setTransformMode('translate')}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: transformMode === 'translate' ? '#8eff36' : '#2a2a2a',
-                color: transformMode === 'translate' ? '#000000' : '#ffffff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)'
-              }}
-            >
-              Déplacer
-            </button>
-            <button
-              onClick={() => setTransformMode('rotate')}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: transformMode === 'rotate' ? '#8eff36' : '#2a2a2a',
-                color: transformMode === 'rotate' ? '#000000' : '#ffffff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)'
-              }}
-            >
-              Rotation
-            </button>
-            <button
-              onClick={() => setTransformMode('scale')}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: transformMode === 'scale' ? '#8eff36' : '#2a2a2a',
-                color: transformMode === 'scale' ? '#000000' : '#ffffff',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)'
-              }}
-            >
-              Taille
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function ZonesConfigPage() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
@@ -297,6 +31,10 @@ export default function ZonesConfigPage() {
   const [newZoneName, setNewZoneName] = useState("");
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [editingZones, setEditingZones] = useState<Zone[]>([]);
+  const [isDraggingZone, setIsDraggingZone] = useState(false);
+  const [isResizingZone, setIsResizingZone] = useState(false);
+  const [isRotatingZone, setIsRotatingZone] = useState(false);
+  const [isPlacingZone, setIsPlacingZone] = useState(false);
 
   useEffect(() => {
     fetchZones();
@@ -337,28 +75,47 @@ export default function ZonesConfigPage() {
       alert('Veuillez d\'abord sélectionner un modèle 3D');
       return;
     }
-    // Créer une nouvelle zone temporaire pour l'édition
+    setIsPlacingZone(true);
+  }
+
+  function handleZonePlaced(position: [number, number, number]) {
+    if (!selectedModel3DId) return;
+    
     const newZone: Zone = {
       id: `temp-${Date.now()}`,
       name: newZoneName || `Zone ${editingZones.length + 1}`,
       model3d_id: selectedModel3DId,
-      position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 },
-      scale: { x: 1, y: 1, z: 1 }
+      position: position,
+      rotation: 0,
+      scale: 1,
+      width: 0.1, // Default width (10% of UV space)
+      height: 0.1 // Default height (10% of UV space)
     };
     setEditingZones([...editingZones, newZone]);
     setSelectedZoneId(newZone.id);
+    setIsPlacingZone(false);
   }
 
-  function handleZoneUpdate(zoneId: string, position: [number, number, number], rotation: [number, number, number], scale: [number, number, number]) {
+  function handleUpdateZonePosition(zoneId: string, position: [number, number, number]) {
     setEditingZones(editingZones.map(zone => 
       zone.id === zoneId 
-        ? {
-            ...zone,
-            position: { x: position[0], y: position[1], z: position[2] },
-            rotation: { x: rotation[0], y: rotation[1], z: rotation[2] },
-            scale: { x: scale[0], y: scale[1], z: scale[2] }
-          }
+        ? { ...zone, position }
+        : zone
+    ));
+  }
+
+  function handleUpdateZoneRotation(zoneId: string, rotation: number) {
+    setEditingZones(editingZones.map(zone => 
+      zone.id === zoneId 
+        ? { ...zone, rotation }
+        : zone
+    ));
+  }
+
+  function handleUpdateZoneScale(zoneId: string, scale: number) {
+    setEditingZones(editingZones.map(zone => 
+      zone.id === zoneId 
+        ? { ...zone, scale }
         : zone
     ));
   }
@@ -377,10 +134,24 @@ export default function ZonesConfigPage() {
     setSelectedModel3DId(null);
     setEditingZones([]);
     setSelectedZoneId(null);
+    setIsPlacingZone(false);
   }
 
   const selectedModel = models3D.find(m => m.id === selectedModel3DId);
   const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
+
+  // Convertir les zones en format compatible avec ModelViewer (comme textZones)
+  const textZonesForViewer = editingZones.map(zone => ({
+    id: zone.id,
+    name: zone.name,
+    position: zone.position,
+    color: '#000000',
+    image: undefined,
+    categories: [],
+    zoneCategory: 'text',
+    view: 'front' as const,
+    designId: null
+  }));
 
   return (
     <div>
@@ -501,7 +272,7 @@ export default function ZonesConfigPage() {
           <div
             style={{
               width: '90%',
-              maxWidth: '1200px',
+              maxWidth: '1400px',
               height: '90%',
               backgroundColor: '#1a1a1a',
               borderRadius: '8px',
@@ -554,90 +325,150 @@ export default function ZonesConfigPage() {
               {/* Sélection du modèle 3D */}
               <div style={{
                 padding: '20px',
-                borderBottom: '1px solid #2a2a2a'
+                borderBottom: '1px solid #2a2a2a',
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'center'
               }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '12px',
-                  color: '#a0a0a0',
-                  marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
-                }}>
-                  Modèle 3D
-                </label>
-                <select
-                  value={selectedModel3DId || ''}
-                  onChange={(e) => setSelectedModel3DId(e.target.value || null)}
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Modèle 3D
+                  </label>
+                  <select
+                    value={selectedModel3DId || ''}
+                    onChange={(e) => {
+                      setSelectedModel3DId(e.target.value || null);
+                      setEditingZones([]);
+                      setSelectedZoneId(null);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">Sélectionner un modèle 3D</option>
+                    {models3D.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Nom de la zone
+                  </label>
+                  <input
+                    type="text"
+                    value={newZoneName}
+                    onChange={(e) => setNewZoneName(e.target.value)}
+                    placeholder="Ex: Zone de texte avant"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={handleAddZone}
+                  disabled={!selectedModel3DId || isPlacingZone}
                   style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a',
+                    padding: '10px 20px',
+                    backgroundColor: (!selectedModel3DId || isPlacingZone) ? '#4a4a4a' : '#8eff36',
+                    color: (!selectedModel3DId || isPlacingZone) ? '#a0a0a0' : '#000000',
+                    border: 'none',
                     borderRadius: '4px',
-                    color: '#ffffff',
                     fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: (!selectedModel3DId || isPlacingZone) ? 'not-allowed' : 'pointer',
                     fontFamily: 'var(--stepn-font-body)',
-                    cursor: 'pointer',
-                    outline: 'none'
+                    alignSelf: 'flex-end'
                   }}
                 >
-                  <option value="">Sélectionner un modèle 3D</option>
-                  {models3D.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.name}
-                    </option>
-                  ))}
-                </select>
+                  {isPlacingZone ? 'Cliquez sur le modèle pour placer la zone' : 'Ajouter une zone'}
+                </button>
               </div>
 
-              {/* Nom de la zone */}
-              <div style={{
-                padding: '20px',
-                borderBottom: '1px solid #2a2a2a'
-              }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '12px',
-                  color: '#a0a0a0',
-                  marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
-                }}>
-                  Nom de la zone
-                </label>
-                <input
-                  type="text"
-                  value={newZoneName}
-                  onChange={(e) => setNewZoneName(e.target.value)}
-                  placeholder="Ex: Zone de texte avant"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '4px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              {/* Viewer 3D */}
+              {/* Viewer 3D avec zones sur UV */}
               {modelUrl && (
                 <div style={{
                   flex: 1,
                   minHeight: '400px',
-                  position: 'relative'
+                  position: 'relative',
+                  backgroundColor: '#0a0a0a'
                 }}>
-                  <ZoneEditor3D
-                    modelUrl={modelUrl}
-                    zones={editingZones}
-                    selectedZoneId={selectedZoneId}
-                    onZoneSelect={setSelectedZoneId}
-                    onAddZone={handleAddZone}
-                    onZoneUpdate={handleZoneUpdate}
-                  />
+                  <Suspense fallback={
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#a0a0a0'
+                    }}>
+                      Chargement du modèle...
+                    </div>
+                  }>
+                    <ModelViewer
+                      url={modelUrl}
+                      textZones={textZonesForViewer}
+                      isPlacingText={isPlacingZone ? 'nom' : null}
+                      onTextPlaced={(category, position) => {
+                        if (isPlacingZone) {
+                          handleZonePlaced(position);
+                        }
+                      }}
+                      selectedTextId={selectedZoneId}
+                      selectText={(id) => setSelectedZoneId(id)}
+                      isDraggingText={isDraggingZone}
+                      setIsDraggingText={setIsDraggingZone}
+                      isRotatingText={isRotatingZone}
+                      setIsRotatingText={setIsRotatingZone}
+                      isResizingText={isResizingZone}
+                      setIsResizingText={setIsResizingZone}
+                      updateTextPosition={(id, position) => {
+                        handleUpdateZonePosition(id, position);
+                      }}
+                      updateTextRotation={(id, rotation) => {
+                        handleUpdateZoneRotation(id, rotation);
+                      }}
+                      updateTextSize={(id, size) => {
+                        // Convertir size en scale
+                        const zone = editingZones.find(z => z.id === id);
+                        if (zone) {
+                          const newScale = size / (zone.width * 4096); // Assuming base width in pixels
+                          handleUpdateZoneScale(id, newScale);
+                        }
+                      }}
+                    />
+                  </Suspense>
                 </div>
               )}
 
@@ -650,7 +481,12 @@ export default function ZonesConfigPage() {
                 gap: '12px'
               }}>
                 <button
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setEditingZones([]);
+                    setSelectedZoneId(null);
+                    setIsPlacingZone(false);
+                  }}
                   style={{
                     padding: '10px 20px',
                     backgroundColor: '#2a2a2a',
@@ -667,16 +503,16 @@ export default function ZonesConfigPage() {
                 </button>
                 <button
                   onClick={handleCreateZone}
-                  disabled={!selectedModel3DId || !newZoneName}
+                  disabled={!selectedModel3DId || !newZoneName || editingZones.length === 0}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: (!selectedModel3DId || !newZoneName) ? '#4a4a4a' : '#8eff36',
-                    color: (!selectedModel3DId || !newZoneName) ? '#a0a0a0' : '#000000',
+                    backgroundColor: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? '#4a4a4a' : '#8eff36',
+                    color: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? '#a0a0a0' : '#000000',
                     border: 'none',
                     borderRadius: '4px',
                     fontSize: '14px',
                     fontWeight: '500',
-                    cursor: (!selectedModel3DId || !newZoneName) ? 'not-allowed' : 'pointer',
+                    cursor: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? 'not-allowed' : 'pointer',
                     fontFamily: 'var(--stepn-font-body)'
                   }}
                 >
@@ -690,4 +526,3 @@ export default function ZonesConfigPage() {
     </div>
   );
 }
-
