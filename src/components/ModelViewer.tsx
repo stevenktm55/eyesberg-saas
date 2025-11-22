@@ -2581,13 +2581,20 @@ function SimpleViewer({
       const uv = getInterUV(e.clientX, e.clientY);
       
       // Check if we're in text placement mode - doit être vérifié AVANT la vérification de uv
-      if (isPlacingText) {
-        console.log('📍 Text placement mode active, isPlacingText:', isPlacingText, 'uv:', uv);
+      // Utiliser une ref pour s'assurer que la valeur est à jour dans la closure
+      const currentIsPlacingText = isPlacingText;
+      if (currentIsPlacingText) {
+        console.log('📍 Text placement mode active, isPlacingText:', currentIsPlacingText, 'uv:', uv);
         e.preventDefault();
         e.stopPropagation();
         
+        // Si pas de UV, essayer quand même de placer le texte au centre
         if (!uv) {
-          console.log('⚠️ No UV found in text placement mode, cannot place text');
+          console.log('⚠️ No UV found in text placement mode, placing text at center');
+          if (onTextPlaced) {
+            const position: [number, number, number] = [0.5, 0.5, 0];
+            onTextPlaced(currentIsPlacingText, position);
+          }
           return;
         }
         
@@ -2623,7 +2630,7 @@ function SimpleViewer({
           if (onTextPlaced) {
             // Use the zone's predefined position
             const position: [number, number, number] = closestZone.position;
-            onTextPlaced(isPlacingText, position, closestZone.zoneCategory);
+            onTextPlaced(currentIsPlacingText, position, closestZone.zoneCategory);
           }
         } else {
           // No text zones available - place text directly at UV coordinates
@@ -2631,7 +2638,7 @@ function SimpleViewer({
           if (onTextPlaced) {
             // Use UV coordinates directly (0-1 range)
             const position: [number, number, number] = [uv.u, uv.v, 0];
-            onTextPlaced(isPlacingText, position);
+            onTextPlaced(currentIsPlacingText, position);
           }
         }
         return;

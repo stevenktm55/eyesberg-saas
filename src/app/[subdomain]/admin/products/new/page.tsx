@@ -2428,29 +2428,23 @@ export default function ProductBuilderPage() {
                               transformedMap.roughnessMap = fileUrl;
                               transformedMap.roughness = fileUrl;
                               transformedMap.roughnessTexture = fileUrl;
-                              // L'intensité est utilisée pour roughnessFactor (0-1)
-                              if (intensity !== 1) {
-                                transformedMap.roughnessFactor = intensity;
-                              }
+                              // L'intensité est utilisée pour roughnessFactor (0-1) - toujours appliquer
+                              transformedMap.roughnessFactor = intensity;
                             } else if (mapType === 'metalness' || mapType === 'metallic' || mapType === 'metalnessmap') {
                               transformedMap.metalnessMap = fileUrl;
                               transformedMap.metallicMap = fileUrl;
                               transformedMap.metalness = fileUrl;
                               transformedMap.metalnessTexture = fileUrl;
-                              // L'intensité est utilisée pour metalnessFactor (0-1)
-                              if (intensity !== 1) {
-                                transformedMap.metalnessFactor = intensity;
-                                transformedMap.metallic = intensity;
-                              }
+                              // L'intensité est utilisée pour metalnessFactor (0-1) - toujours appliquer
+                              transformedMap.metalnessFactor = intensity;
+                              transformedMap.metallic = intensity;
                             } else if (mapType === 'ao' || mapType === 'ambientocclusion' || mapType === 'occlusion' || mapType === 'aomap') {
                               transformedMap.aoMap = fileUrl;
                               transformedMap.ambientOcclusionMap = fileUrl;
                               transformedMap.occlusionMap = fileUrl;
-                              // L'intensité est utilisée pour aoIntensity (0-1)
-                              if (intensity !== 1) {
-                                transformedMap.aoIntensity = intensity;
-                                transformedMap.occlusionIntensity = intensity;
-                              }
+                              // L'intensité est utilisée pour aoIntensity (0-1) - toujours appliquer
+                              transformedMap.aoIntensity = intensity;
+                              transformedMap.occlusionIntensity = intensity;
                             } else if (mapType === 'orm' || mapType === 'occlusionroughnessmetalness') {
                               transformedMap.ormMap = fileUrl;
                               transformedMap.occlusionRoughnessMetalnessMap = fileUrl;
