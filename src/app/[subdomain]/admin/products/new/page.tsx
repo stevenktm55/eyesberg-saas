@@ -537,12 +537,16 @@ export default function ProductBuilderPage() {
   };
 
   const handleTextPlaced = (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
+    console.log('📍 handleTextPlaced called:', { category, position, zoneCategory, rotation, isPlacingText });
     if (isPlacingText) {
       // Utiliser la catégorie du mode placement si elle est définie, sinon utiliser celle passée en paramètre
       const textCategory = isPlacingText || category;
+      console.log('✅ Adding text with category:', textCategory, 'at position:', position);
       addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
       // Désactiver le mode placement après ajout
       setIsPlacingText(null);
+    } else {
+      console.log('⚠️ handleTextPlaced called but isPlacingText is null');
     }
   };
 
