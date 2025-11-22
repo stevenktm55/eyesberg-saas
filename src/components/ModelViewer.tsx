@@ -179,6 +179,13 @@ function SimpleViewer({
   const loadSeqRef = useRef<number>(0);
   // Ref for isPlacingText to ensure closure has latest value
   const isPlacingTextRef = useRef<'nom' | 'numero' | null | undefined>(isPlacingText);
+  
+  // Update ref when isPlacingText changes
+  useEffect(() => {
+    isPlacingTextRef.current = isPlacingText;
+    console.log('🔄 isPlacingTextRef updated to:', isPlacingText);
+  }, [isPlacingText]);
+  
   // Signal that a fresh original SVG is available
   const [svgBaseVersion, setSvgBaseVersion] = useState(0);
 
