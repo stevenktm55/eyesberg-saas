@@ -33,9 +33,7 @@ function SimpleViewer({
   setIsDraggingText,
   fonts = [],
   selectedDesign,
-  materialMaps,
-  renderZonesAsRectangles = false,
-  onCanvasReady
+  materialMaps
 }: { 
   url: string, 
   designSrc?: string, 
@@ -401,7 +399,7 @@ function SimpleViewer({
   // Setup meshes and load design texture (UV0) - runs when designSrc changes
   useEffect(() => {
     if (!gltf?.scene) return;
-    if (!designSrc || renderZonesAsRectangles) return; // aucun design à charger ou mode zones
+    if (!designSrc) return; // aucun design à charger
     
     if (lastLoadedDesignSrcRef.current !== designSrc) {
       appliedSvgRef.current = null;
@@ -757,7 +755,7 @@ function SimpleViewer({
       };
             const resolveMaterialConfig = (matName: string, meshName?: string) => {
               const maps: any = materialMaps as any;
-              if (!maps || renderZonesAsRectangles) return null; // Pas de material maps en mode zones
+              if (!maps) return null;
               const normalize = (name?: string) => (name || '').trim();
         const mirrorFrontBack = (name: string) => (/back/i.test(name) ? name.replace(/back/i, 'FRONT') : name);
         const stripSuffixes = (name: string) => { let n = name.replace(/_[0-9]+(?:\.[0-9]+)?$/i, ''); n = n.replace(/(\.|_)[0-9]{2,}$/i, ''); return n; };
@@ -984,14 +982,6 @@ function SimpleViewer({
       return;
     }
     ctxRef.current = ctx;
-    
-    // Exposer le canvas via callback si fourni
-    if (onCanvasReady) {
-      console.log('📤 Exposing canvas via onCanvasReady callback');
-      onCanvasReady(canvas);
-    } else {
-      console.log('⚠️ onCanvasReady callback not provided');
-    }
     
     // No background - transparent canvas to see logos
     console.log('✅ Overlay canvas created (no background)');
@@ -1747,10 +1737,7 @@ function SimpleViewer({
         return;
       }
 
-      // Effacer le canvas avant de redessiner
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      console.log('📝 redrawAllTexts called with', textsRef.current.length, 'texts', 'renderZonesAsRectangles:', renderZonesAsRectangles);
+      // console.log('📝 redrawAllTexts called with', textsRef.current.length, 'texts');
 
       // (no always-on lines)
 
@@ -1781,37 +1768,6 @@ function SimpleViewer({
       let drawnCount = 0;
       let pendingFonts = false;
       textsRef.current.forEach(text => {
-        // Mode zones : dessiner un rectangle noir avec 70% d'opacité
-        if (renderZonesAsRectangles) {
-          const [u, v] = text.position;
-          const x = u * canvas.width;
-          const y = v * canvas.height;
-          
-          // Utiliser fontSize comme largeur et hauteur (en pixels)
-          const width = text.fontSize || 200; // Largeur par défaut
-          const height = text.fontSize || 200; // Hauteur par défaut
-          
-          console.log('🎨 Drawing zone rectangle:', { id: text.id, u, v, x, y, width, height, rotation: text.rotation });
-          
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(text.rotation);
-          
-          // Rectangle noir avec 70% d'opacité
-          ctx.globalAlpha = 0.7;
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(-width / 2, -height / 2, width, height);
-          
-          ctx.restore();
-          drawnCount++;
-          
-          // Forcer la mise à jour de la texture
-          if (overlayTex) {
-            overlayTex.needsUpdate = true;
-          }
-          return;
-        }
-        
         // Get font info
         const font = fonts.find(f => f.id === text.fontFamily);
         const baseFontSize = text.fontSize || 700;
@@ -2692,10 +2648,7 @@ function SimpleViewer({
           if (onTextPlaced) {
             // Use UV coordinates directly (0-1 range)
             const position: [number, number, number] = [uv.u, uv.v, 0];
-            console.log('📞 Calling onTextPlaced with:', { category: currentIsPlacingText, position });
             onTextPlaced(currentIsPlacingText, position);
-          } else {
-            console.log('⚠️ onTextPlaced callback is not defined!');
           }
         }
         return;
@@ -3721,8 +3674,6 @@ type Props = ThreeElements['group'] & {
     designId?: string | null;
   }>;
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
-  renderZonesAsRectangles?: boolean; // Mode zones : afficher des rectangles noirs au lieu de texte
-  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void; // Callback pour exposer le canvas overlay
   // Suppression de fontsLoaded pour éviter les boucles infinies
 };
 
@@ -3829,7 +3780,6 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     onSvgProcessed={onSvgProcessed}
     selectedDesign={selectedDesign}
     materialMaps={materialMaps}
-    renderZonesAsRectangles={(props as any).renderZonesAsRectangles || false}
     placedLogos={logosToDisplay}
     updateLogoPosition={handleUpdateLogoPosition}
     updateLogoScale={handleUpdateLogoScale}
@@ -3852,8 +3802,6 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     toggleTextLock={toggleTextLock}
     setIsDraggingText={setIsDraggingText}
     fonts={fonts}
-    renderZonesAsRectangles={(props as any).renderZonesAsRectangles || false}
-    onCanvasReady={(props as any).onCanvasReady}
   />;
 }
 

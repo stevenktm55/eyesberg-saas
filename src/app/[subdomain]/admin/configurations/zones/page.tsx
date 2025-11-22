@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense, useCallback } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
-import { ModelViewer } from "@/components/ModelViewer";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { UVMapViewer } from "@/components/UVMapViewer";
 
 type Zone = {
   id: string;
@@ -24,81 +22,6 @@ type Model3D = {
   glbUrl?: string;
 };
 
-// Composant pour afficher la preview UV2
-function UV2Preview({ canvas }: { canvas: HTMLCanvasElement }) {
-  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  
-  useEffect(() => {
-    if (!previewCanvasRef.current || !canvas) return;
-    
-    const previewCtx = previewCanvasRef.current.getContext('2d');
-    if (!previewCtx) return;
-    
-    // Copier le contenu du canvas UV2
-    previewCanvasRef.current.width = canvas.width;
-    previewCanvasRef.current.height = canvas.height;
-    
-    const updatePreview = () => {
-      if (previewCanvasRef.current && canvas) {
-        previewCtx.clearRect(0, 0, previewCanvasRef.current.width, previewCanvasRef.current.height);
-        previewCtx.drawImage(canvas, 0, 0);
-      }
-    };
-    
-    // Mettre à jour immédiatement
-    updatePreview();
-    
-    // Mettre à jour périodiquement
-    const interval = setInterval(updatePreview, 100);
-    
-    return () => clearInterval(interval);
-  }, [canvas]);
-  
-  return (
-    <div style={{
-      width: '300px',
-      height: '300px',
-      backgroundColor: '#1a1a1a',
-      border: '1px solid #2a2a2a',
-      borderRadius: '8px',
-      padding: '8px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
-    }}>
-      <div style={{
-        fontSize: '12px',
-        fontWeight: '600',
-        color: '#ffffff',
-        fontFamily: 'var(--stepn-font-body)'
-      }}>
-        Preview UV2
-      </div>
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#ffffff',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        <canvas
-          ref={previewCanvasRef}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            imageRendering: 'pixelated',
-            display: 'block'
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function ZonesConfigPage() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
@@ -112,7 +35,6 @@ export default function ZonesConfigPage() {
   const [isResizingZone, setIsResizingZone] = useState(false);
   const [isRotatingZone, setIsRotatingZone] = useState(false);
   const [isPlacingZone, setIsPlacingZone] = useState(false);
-  const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     fetchZones();
@@ -159,8 +81,6 @@ export default function ZonesConfigPage() {
   function handleZonePlaced(position: [number, number, number]) {
     if (!selectedModel3DId) return;
     
-    console.log('📍 Zone placed at position:', position);
-    
     const newZone: Zone = {
       id: `temp-${Date.now()}`,
       name: newZoneName || `Zone ${editingZones.length + 1}`,
@@ -171,8 +91,6 @@ export default function ZonesConfigPage() {
       width: 0.1, // Default width (10% of UV space)
       height: 0.1 // Default height (10% of UV space)
     };
-    
-    console.log('✅ Creating new zone:', newZone);
     setEditingZones([...editingZones, newZone]);
     setSelectedZoneId(newZone.id);
     setIsPlacingZone(false);
@@ -498,146 +416,40 @@ export default function ZonesConfigPage() {
                 </button>
               </div>
 
-              {/* Viewer 3D avec zones sur UV */}
+              {/* UV Map Viewer */}
               {modelUrl && (
                 <div style={{
                   flex: 1,
                   minHeight: '400px',
                   position: 'relative',
-                  backgroundColor: '#0a0a0a',
-                  display: 'flex',
-                  gap: '16px'
+                  backgroundColor: '#0a0a0a'
                 }}>
-                  {/* Viewer 3D principal */}
-                  <div style={{
-                    flex: 1,
-                    position: 'relative',
-                    backgroundColor: '#0a0a0a'
-                  }}>
-                  <Canvas
-                    camera={{ position: [0, 0, 5], fov: 50 }}
-                    gl={{ preserveDrawingBuffer: true }}
-                    style={{ width: '100%', height: '100%' }}
-                  >
-                    <ambientLight intensity={0.4} color="#f5f5f5" />
-                    <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
-                    <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
-                    <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
-                    <Suspense fallback={null}>
-                      <ModelViewer
-                        url={modelUrl}
-                        color="#ffffff"
-                        // Pas de design 2D ni de material maps en mode zones
-                        designTexture={undefined}
-                        materialMaps={undefined}
-                        // Utiliser les zones comme textes pour le système de placement
-                        texts={editingZones.map(zone => {
-                          const fontSize = zone.width * 2048; // Convertir width (0-1) en pixels
-                          console.log('🔄 Mapping zone to text:', { id: zone.id, position: zone.position, width: zone.width, fontSize });
-                          return {
-                            id: zone.id,
-                            content: '', // Pas de texte, juste un rectangle
-                            position: zone.position,
-                            rotation: zone.rotation,
-                            fontSize: fontSize,
-                            fontFamily: undefined,
-                            category: 'nom' as const,
-                            locked: false,
-                            zoneCategory: 'text',
-                            color: '#000000',
-                            editable: true
-                          };
-                        })}
-                        textZones={[]}
-                        isPlacingText={isPlacingZone ? 'nom' : null}
-                        onTextPlaced={(category, position) => {
-                          console.log('🎯 onTextPlaced called:', { category, position, isPlacingZone });
-                          if (isPlacingZone) {
-                            console.log('✅ isPlacingZone is true, calling handleZonePlaced');
-                            handleZonePlaced(position);
-                          } else {
-                            console.log('❌ isPlacingZone is false, not placing zone');
-                          }
-                        }}
-                        selectedTextId={selectedZoneId}
-                        selectText={(id) => setSelectedZoneId(id)}
-                        isDraggingText={isDraggingZone}
-                        setIsDraggingText={setIsDraggingZone}
-                        isRotatingText={isRotatingZone}
-                        setIsRotatingText={setIsRotatingZone}
-                        isResizingText={isResizingZone}
-                        setIsResizingText={setIsResizingZone}
-                        updateTextPosition={(id, position) => {
-                          handleUpdateZonePosition(id, position);
-                        }}
-                        updateTextRotation={(id, rotation) => {
-                          handleUpdateZoneRotation(id, rotation);
-                        }}
-                        updateTextSize={(id, size) => {
-                          // Convertir size en scale
-                          const zone = editingZones.find(z => z.id === id);
-                          if (zone) {
-                            const newScale = size / (zone.width * 2048);
-                            handleUpdateZoneScale(id, newScale);
-                          }
-                        }}
-                        // Mode zones : afficher des rectangles noirs au lieu de texte
-                        renderZonesAsRectangles={true}
-                        onCanvasReady={(canvas) => {
-                          console.log('📥 Received canvas from ModelViewer:', canvas);
-                          setUv2Canvas(canvas);
-                        }}
-                      />
-                    </Suspense>
-                    <OrbitControls
-                      enablePan={false}
-                      enableZoom={!isDraggingZone && !isRotatingZone && !isResizingZone}
-                      enableRotate={!isDraggingZone && !isRotatingZone && !isResizingZone}
-                      enabled={!isDraggingZone && !isRotatingZone && !isResizingZone}
-                      minDistance={1}
-                      maxDistance={10}
-                    />
-                  </Canvas>
-                  </div>
-                  
-                  {/* Preview UV2 */}
-                  <div style={{
-                    width: '300px',
-                    height: '300px',
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '8px',
-                    padding: '8px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}>
-                    <div style={{
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: '#ffffff',
-                      fontFamily: 'var(--stepn-font-body)'
-                    }}>
-                      Preview UV2 {uv2Canvas ? '(Ready)' : '(Waiting...)'}
-                    </div>
-                    {uv2Canvas ? (
-                      <UV2Preview canvas={uv2Canvas} />
-                    ) : (
-                      <div style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#ffffff',
-                        borderRadius: '4px',
-                        color: '#666',
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Canvas not ready yet...
-                      </div>
-                    )}
-                  </div>
+                  <UVMapViewer
+                    modelUrl={modelUrl}
+                    zones={editingZones}
+                    selectedZoneId={selectedZoneId}
+                    onZoneSelect={(id) => setSelectedZoneId(id)}
+                    onZonePlaced={(position) => {
+                      if (isPlacingZone) {
+                        handleZonePlaced(position);
+                      }
+                    }}
+                    onZoneUpdate={(id, updates) => {
+                      if (updates.position) {
+                        handleUpdateZonePosition(id, updates.position);
+                      }
+                      if (updates.rotation !== undefined) {
+                        handleUpdateZoneRotation(id, updates.rotation);
+                      }
+                      if (updates.width !== undefined || updates.height !== undefined) {
+                        const zone = editingZones.find(z => z.id === id);
+                        if (zone) {
+                          handleUpdateZoneScale(id, (updates.width || zone.width) / zone.width);
+                        }
+                      }
+                    }}
+                    isPlacingZone={isPlacingZone}
+                  />
                 </div>
               )}
 
