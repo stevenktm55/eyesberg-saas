@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Model3DPreviewWithControls } from '@/components/Model3DPreviewWithControls';
+import { Canvas } from '@react-three/fiber';
+import { Suspense } from 'react';
+import { ModelViewer } from '@/components/ModelViewer';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -117,6 +119,33 @@ export default function ProductBuilderPage() {
   const [maxZoom, setMaxZoom] = useState(10);
   const [initialZoom, setInitialZoom] = useState(5);
   const [initialRotation, setInitialRotation] = useState(0);
+  
+  // Text management states
+  const [texts, setTexts] = useState<Array<{
+    id: string;
+    content: string;
+    position: [number, number, number];
+    fontSize: number;
+    color: string;
+    editable: boolean;
+    rotation: number;
+    locked?: boolean;
+    category: 'text' | 'nom' | 'numero';
+    zoneCategory?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+    fontFamily?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    deformation?: string;
+    deformationIntensity?: number;
+    fillType?: 'solid' | 'gradient';
+    gradientColors?: string[];
+    gradientDirection?: 'horizontal' | 'vertical';
+  }>>([]);
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [isDraggingText, setIsDraggingText] = useState(false);
+  const [isRotatingText, setIsRotatingText] = useState(false);
+  const [isResizingText, setIsResizingText] = useState(false);
+  const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -425,6 +454,92 @@ export default function ProductBuilderPage() {
       setActiveCustomizerTab(null);
     }
   }
+
+  // Text management functions
+  const addText = (content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number, zoneCategory?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit', initialRotation?: number) => {
+    const resolvedPosition: [number, number, number] = position
+      ? [position[0], position[1], position[2] ?? 0]
+      : [0.5, 0.5, 0];
+
+    const newText = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      content,
+      position: resolvedPosition,
+      fontSize: initialFontSize ?? 700,
+      color: '#000000',
+      editable: true,
+      rotation: initialRotation ?? 0,
+      category,
+      zoneCategory,
+      fontFamily: defaultFontFamily,
+      strokeColor: '#000000',
+      strokeWidth: 0.1,
+      deformation: 'none',
+      deformationIntensity: 0,
+      fillType: 'solid' as const,
+      gradientColors: ['#000000', '#000000'],
+      gradientDirection: 'horizontal' as const
+    };
+    
+    setTexts(prev => [...prev, newText]);
+    setSelectedTextId(newText.id);
+    setIsPlacingText(null); // Désactiver le mode placement après ajout
+  };
+
+  const updateText = (id: string, updates: Partial<typeof texts[0]>) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id 
+        ? { 
+            ...text, 
+            ...updates,
+            position: updates.position
+              ? [updates.position[0], updates.position[1], updates.position[2] ?? 0] as [number, number, number]
+              : text.position
+          }
+        : text
+    ));
+  };
+
+  const removeText = (id: string) => {
+    setTexts(prev => prev.filter(text => text.id !== id));
+    if (selectedTextId === id) {
+      setSelectedTextId(null);
+    }
+  };
+
+  const updateTextPosition = (id: string, position: [number, number, number]) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, position: [position[0], position[1], position[2] ?? 0] as [number, number, number] } : text
+    ));
+  };
+
+  const updateTextRotation = (id: string, rotation: number) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, rotation } : text
+    ));
+  };
+
+  const updateTextSize = (id: string, fontSize: number) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, fontSize } : text
+    ));
+  };
+
+  const selectText = (id: string | null) => {
+    setSelectedTextId(id);
+  };
+
+  const toggleTextLock = (id: string) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, locked: !text.locked } : text
+    ));
+  };
+
+  const handleTextPlaced = (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
+    if (isPlacingText) {
+      addText('', position, undefined, category, 700, zoneCategory as any, rotation);
+    }
+  };
 
   function updateQuestion(questionId: string, updates: Partial<Question>) {
     setQuestions(questions.map(q => 
@@ -2133,8 +2248,7 @@ export default function ProductBuilderPage() {
                       <div>
                         <button
                           onClick={() => {
-                            // TODO: Ouvrir le modal d'ajout de texte
-                            console.log('Ajouter un texte');
+                            setIsPlacingText('nom'); // Activer le mode placement
                           }}
                           style={{
                             width: '100%',
