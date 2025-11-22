@@ -2580,11 +2580,16 @@ function SimpleViewer({
       
       const uv = getInterUV(e.clientX, e.clientY);
       
-      // Check if we're in text placement mode
-      if (isPlacingText && uv) {
-        console.log('📍 Text placement mode active, clicking at UV:', uv.u, uv.v);
+      // Check if we're in text placement mode - doit être vérifié AVANT la vérification de uv
+      if (isPlacingText) {
+        console.log('📍 Text placement mode active, isPlacingText:', isPlacingText, 'uv:', uv);
         e.preventDefault();
         e.stopPropagation();
+        
+        if (!uv) {
+          console.log('⚠️ No UV found in text placement mode, cannot place text');
+          return;
+        }
         
         // Find the closest text zone to the clicked position
         if (textZones && textZones.length > 0) {

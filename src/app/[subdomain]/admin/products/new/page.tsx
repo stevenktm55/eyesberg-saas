@@ -2387,6 +2387,11 @@ export default function ProductBuilderPage() {
                           };
                           
                           // Extraire les fichiers et les transformer en format attendu par ModelViewer
+                          // Le scale est utilisé pour repeatX/repeatY (dimensions de répétition de la texture)
+                          // L'intensité est utilisée pour les facteurs d'intensité (roughnessFactor, metalnessFactor, etc.)
+                          let globalRepeatX: number | undefined;
+                          let globalRepeatY: number | undefined;
+                          
                           materialMapFiles.forEach((file: any) => {
                             const mapType = file.map_type?.toLowerCase();
                             const fileUrl = file.file_url;
@@ -2395,11 +2400,25 @@ export default function ProductBuilderPage() {
                             
                             if (!fileUrl) return;
                             
+                            // Appliquer les dimensions (repeat) globalement - utiliser le scale du premier fichier trouvé
+                            if (scale !== 1 && globalRepeatX === undefined) {
+                              globalRepeatX = scale;
+                              globalRepeatY = scale;
+                              transformedMap.repeatX = scale;
+                              transformedMap.repeatY = scale;
+                              transformedMap.scaleX = scale;
+                              transformedMap.scaleY = scale;
+                              transformedMap.tilingX = scale;
+                              transformedMap.tilingY = scale;
+                            }
+                            
                             // Mapper les types de fichiers vers les propriétés attendues par ModelViewer
                             if (mapType === 'normal' || mapType === 'normalmap') {
                               transformedMap.normalMap = fileUrl;
                               transformedMap.normal = fileUrl;
                               transformedMap.normalTexture = fileUrl;
+                              // Pour normal, le scale est utilisé pour normalScale (intensité du normal)
+                              // Mais on garde aussi le repeat global
                               if (scale !== 1) {
                                 transformedMap.normalScale = scale;
                                 transformedMap.normalScaleX = scale;
@@ -2409,24 +2428,25 @@ export default function ProductBuilderPage() {
                               transformedMap.roughnessMap = fileUrl;
                               transformedMap.roughness = fileUrl;
                               transformedMap.roughnessTexture = fileUrl;
+                              // L'intensité est utilisée pour roughnessFactor (0-1)
                               if (intensity !== 1) {
                                 transformedMap.roughnessFactor = intensity;
-                                transformedMap.roughness = intensity;
                               }
                             } else if (mapType === 'metalness' || mapType === 'metallic' || mapType === 'metalnessmap') {
                               transformedMap.metalnessMap = fileUrl;
                               transformedMap.metallicMap = fileUrl;
                               transformedMap.metalness = fileUrl;
                               transformedMap.metalnessTexture = fileUrl;
+                              // L'intensité est utilisée pour metalnessFactor (0-1)
                               if (intensity !== 1) {
                                 transformedMap.metalnessFactor = intensity;
-                                transformedMap.metalness = intensity;
                                 transformedMap.metallic = intensity;
                               }
                             } else if (mapType === 'ao' || mapType === 'ambientocclusion' || mapType === 'occlusion' || mapType === 'aomap') {
                               transformedMap.aoMap = fileUrl;
                               transformedMap.ambientOcclusionMap = fileUrl;
                               transformedMap.occlusionMap = fileUrl;
+                              // L'intensité est utilisée pour aoIntensity (0-1)
                               if (intensity !== 1) {
                                 transformedMap.aoIntensity = intensity;
                                 transformedMap.occlusionIntensity = intensity;
