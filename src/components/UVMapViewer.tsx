@@ -440,6 +440,20 @@ export function UVMapViewer({
           transformOrigin: "top left"
         }}
       />
+      <canvas
+        ref={zonesCanvasRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          pointerEvents: "none",
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+          transformOrigin: "top left"
+        }}
+      />
       {isPlacingZone && (
         <div style={{
           position: "absolute",
