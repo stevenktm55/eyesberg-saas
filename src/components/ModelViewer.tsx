@@ -3699,6 +3699,7 @@ type Props = ThreeElements['group'] & {
     designId?: string | null;
   }>;
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
+  renderZonesAsRectangles?: boolean; // Mode zones : afficher des rectangles noirs au lieu de texte
   // Suppression de fontsLoaded pour éviter les boucles infinies
 };
 
