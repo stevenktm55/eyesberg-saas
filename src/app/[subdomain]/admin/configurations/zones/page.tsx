@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { UVMapViewer } from "@/components/UVMapViewer";
 
 type Zone = {
@@ -8,11 +8,21 @@ type Zone = {
   name: string;
   model3d_id: string;
   position: [number, number, number]; // UV coordinates [u, v, 0]
-  rotation: number; // Rotation in radians
-  scale: number; // Scale factor
+  rotation: number; // Rotation in degrees
   width: number; // Width in UV space (0-1)
   height: number; // Height in UV space (0-1)
+  thumbnailUrl?: string;
+  isLogo: boolean; // true for logo, false for text
   createdAt?: string;
+};
+
+type ZoneGroup = {
+  id: string;
+  name: string;
+  zones: Zone[];
+  design2dIds?: string[]; // IDs of 2D designs that can use these zones
+  created_at?: string;
+  updated_at?: string;
 };
 
 type Model3D = {
@@ -22,37 +32,60 @@ type Model3D = {
   glbUrl?: string;
 };
 
+type Design2D = {
+  id: string;
+  name: string;
+  svgUrl: string;
+};
+
 export default function ZonesConfigPage() {
-  const [zones, setZones] = useState<Zone[]>([]);
+  const [zoneGroups, setZoneGroups] = useState<ZoneGroup[]>([]);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
+  const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<ZoneGroup | null>(null);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
-  const [newZoneName, setNewZoneName] = useState("");
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [editingZones, setEditingZones] = useState<Zone[]>([]);
-  const [isDraggingZone, setIsDraggingZone] = useState(false);
-  const [isResizingZone, setIsResizingZone] = useState(false);
-  const [isRotatingZone, setIsRotatingZone] = useState(false);
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isPlacingZone, setIsPlacingZone] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+
+  // Zone settings (left panel)
+  const [zoneSettings, setZoneSettings] = useState<{
+    thumbnailUrl?: string;
+    isLogo: boolean;
+    width: number;
+    height: number;
+    rotation: number;
+  }>({
+    isLogo: false,
+    width: 0.1,
+    height: 0.1,
+    rotation: 0
+  });
 
   useEffect(() => {
-    fetchZones();
+    fetchZoneGroups();
     fetchModels3D();
+    fetchDesigns2D();
   }, []);
 
-  async function fetchZones() {
+  async function fetchZoneGroups() {
     try {
       setLoading(true);
-      // TODO: Créer l'API route pour récupérer les zones
-      // const res = await fetch('/api/zones');
+      // TODO: Créer l'API route pour récupérer les groupes de zones
+      // const res = await fetch('/api/zone-groups');
       // if (res.ok) {
       //   const data = await res.json();
-      //   setZones(data);
+      //   setZoneGroups(data);
       // }
-      setZones([]);
+      setZoneGroups([]);
     } catch (error) {
-      console.error('Error fetching zones:', error);
+      console.error('Error fetching zone groups:', error);
     } finally {
       setLoading(false);
     }
@@ -70,6 +103,69 @@ export default function ZonesConfigPage() {
     }
   }
 
+  async function fetchDesigns2D() {
+    try {
+      const res = await fetch('/api/designs-2d');
+      if (res.ok) {
+        const data = await res.json();
+        setDesigns2D(data);
+      }
+    } catch (error) {
+      console.error('Error fetching designs 2D:', error);
+    }
+  }
+
+  function toggleGroup(groupId: string) {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupId)) {
+      newExpanded.delete(groupId);
+    } else {
+      newExpanded.add(groupId);
+    }
+    setExpandedGroups(newExpanded);
+  }
+
+  function openCreateGroupModal() {
+    setNewGroupName("");
+    setIsCreatingGroup(true);
+    setSelectedGroup(null);
+    setShowEditModal(true);
+    setEditingZones([]);
+    setSelectedZoneId(null);
+    setSelectedModel3DId(null);
+    setSelectedDesign2DId(null);
+    setIsPlacingZone(false);
+  }
+
+  function openEditGroupModal(group: ZoneGroup) {
+    setSelectedGroup(group);
+    setIsCreatingGroup(false);
+    setShowEditModal(true);
+    setEditingZones([...group.zones]);
+    setSelectedZoneId(null);
+    setSelectedModel3DId(group.zones[0]?.model3d_id || null);
+    setSelectedDesign2DId(null);
+    setIsPlacingZone(false);
+  }
+
+  function closeEditModal() {
+    setShowEditModal(false);
+    setSelectedGroup(null);
+    setEditingZones([]);
+    setSelectedZoneId(null);
+    setSelectedModel3DId(null);
+    setSelectedDesign2DId(null);
+    setIsPlacingZone(false);
+    setNewGroupName("");
+    setIsCreatingGroup(false);
+    setZoneSettings({
+      isLogo: false,
+      width: 0.1,
+      height: 0.1,
+      rotation: 0
+    });
+  }
+
   function handleAddZone() {
     if (!selectedModel3DId) {
       alert('Veuillez d\'abord sélectionner un modèle 3D');
@@ -83,75 +179,107 @@ export default function ZonesConfigPage() {
     
     const newZone: Zone = {
       id: `temp-${Date.now()}`,
-      name: newZoneName || `Zone ${editingZones.length + 1}`,
+      name: `Zone ${editingZones.length + 1}`,
       model3d_id: selectedModel3DId,
       position: position,
-      rotation: 0,
-      scale: 1,
-      width: 0.1, // Default width (10% of UV space)
-      height: 0.1 // Default height (10% of UV space)
+      rotation: zoneSettings.rotation,
+      width: zoneSettings.width,
+      height: zoneSettings.height,
+      isLogo: zoneSettings.isLogo,
+      thumbnailUrl: zoneSettings.thumbnailUrl
     };
     setEditingZones([...editingZones, newZone]);
     setSelectedZoneId(newZone.id);
     setIsPlacingZone(false);
+    
+    // Reset settings to defaults
+    setZoneSettings({
+      isLogo: false,
+      width: 0.1,
+      height: 0.1,
+      rotation: 0
+    });
   }
 
-  function handleUpdateZonePosition(zoneId: string, position: [number, number, number]) {
+  function handleSelectZone(zoneId: string) {
+    setSelectedZoneId(zoneId);
+    const zone = editingZones.find(z => z.id === zoneId);
+    if (zone) {
+      setZoneSettings({
+        thumbnailUrl: zone.thumbnailUrl,
+        isLogo: zone.isLogo,
+        width: zone.width,
+        height: zone.height,
+        rotation: zone.rotation
+      });
+    }
+  }
+
+  function handleUpdateZone(updates: Partial<Zone>) {
+    if (!selectedZoneId) return;
+    
     setEditingZones(editingZones.map(zone => 
-      zone.id === zoneId 
-        ? { ...zone, position }
+      zone.id === selectedZoneId 
+        ? { ...zone, ...updates }
         : zone
     ));
+    
+    // Update settings if they match
+    if (updates.width !== undefined) setZoneSettings(prev => ({ ...prev, width: updates.width! }));
+    if (updates.height !== undefined) setZoneSettings(prev => ({ ...prev, height: updates.height! }));
+    if (updates.rotation !== undefined) setZoneSettings(prev => ({ ...prev, rotation: updates.rotation! }));
+    if (updates.isLogo !== undefined) setZoneSettings(prev => ({ ...prev, isLogo: updates.isLogo! }));
   }
 
-  function handleUpdateZoneRotation(zoneId: string, rotation: number) {
-    setEditingZones(editingZones.map(zone => 
-      zone.id === zoneId 
-        ? { ...zone, rotation }
-        : zone
-    ));
+  function handleDeleteZone(zoneId: string) {
+    setEditingZones(editingZones.filter(z => z.id !== zoneId));
+    if (selectedZoneId === zoneId) {
+      setSelectedZoneId(null);
+      setZoneSettings({
+        isLogo: false,
+        width: 0.1,
+        height: 0.1,
+        rotation: 0
+      });
+    }
   }
 
-  function handleUpdateZoneScale(zoneId: string, scale: number) {
-    setEditingZones(editingZones.map(zone => 
-      zone.id === zoneId 
-        ? { ...zone, scale }
-        : zone
-    ));
-  }
-
-  function handleCreateZone() {
-    if (!selectedModel3DId || !newZoneName || editingZones.length === 0) {
-      alert('Veuillez sélectionner un modèle 3D, donner un nom à la zone et ajouter au moins une zone');
+  async function handleSaveGroup() {
+    if (!newGroupName.trim() && isCreatingGroup) {
+      alert('Veuillez entrer un nom pour le groupe');
       return;
     }
-    // TODO: Implémenter la création de zone via API
-    console.log('Creating zones:', editingZones);
-    // Pour l'instant, on ajoute juste aux zones existantes
-    setZones([...zones, ...editingZones]);
-    setShowCreateModal(false);
-    setNewZoneName("");
-    setSelectedModel3DId(null);
-    setEditingZones([]);
-    setSelectedZoneId(null);
-    setIsPlacingZone(false);
+    if (!selectedModel3DId) {
+      alert('Veuillez sélectionner un modèle 3D');
+      return;
+    }
+    if (editingZones.length === 0) {
+      alert('Veuillez ajouter au moins une zone');
+      return;
+    }
+
+    // TODO: Implémenter la sauvegarde via API
+    const groupName = isCreatingGroup ? newGroupName : selectedGroup?.name || 'Nouveau groupe';
+    const newGroup: ZoneGroup = {
+      id: isCreatingGroup ? `temp-${Date.now()}` : selectedGroup!.id,
+      name: groupName,
+      zones: editingZones,
+      design2dIds: []
+    };
+
+    if (isCreatingGroup) {
+      setZoneGroups([...zoneGroups, newGroup]);
+    } else {
+      setZoneGroups(zoneGroups.map(g => g.id === newGroup.id ? newGroup : g));
+    }
+
+    closeEditModal();
   }
 
   const selectedModel = models3D.find(m => m.id === selectedModel3DId);
   const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
-
-  // Convertir les zones en format compatible avec ModelViewer (comme textZones)
-  const textZonesForViewer = editingZones.map(zone => ({
-    id: zone.id,
-    name: zone.name,
-    position: zone.position,
-    color: '#000000',
-    image: undefined,
-    categories: [],
-    zoneCategory: 'text',
-    view: 'front' as const,
-    designId: null
-  }));
+  const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
+  const designUrl = selectedDesign?.svgUrl || null;
 
   return (
     <div>
@@ -166,10 +294,10 @@ export default function ZonesConfigPage() {
           fontWeight: '600',
           fontFamily: 'var(--stepn-font-body)'
         }}>
-          Zones de texte
+          Zones de texte et logos
         </h2>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={openCreateGroupModal}
           style={{
             padding: '10px 20px',
             backgroundColor: '#8eff36',
@@ -182,13 +310,13 @@ export default function ZonesConfigPage() {
             fontFamily: 'var(--stepn-font-body)'
           }}
         >
-          Créer une zone
+          Créer un groupe
         </button>
       </div>
 
       {loading ? (
         <p style={{ color: '#a0a0a0' }}>Chargement...</p>
-      ) : zones.length === 0 ? (
+      ) : zoneGroups.length === 0 ? (
         <div style={{
           padding: '48px',
           textAlign: 'center',
@@ -197,10 +325,10 @@ export default function ZonesConfigPage() {
           border: '1px solid #2a2a2a'
         }}>
           <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '16px' }}>
-            Aucune zone configurée
+            Aucun groupe de zones configuré
           </p>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={openCreateGroupModal}
             style={{
               padding: '10px 20px',
               backgroundColor: '#8eff36',
@@ -213,47 +341,115 @@ export default function ZonesConfigPage() {
               fontFamily: 'var(--stepn-font-body)'
             }}
           >
-            Créer votre première zone
+            Créer votre premier groupe
           </button>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '16px'
-        }}>
-          {zones.map((zone) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {zoneGroups.map((group) => (
             <div
-              key={zone.id}
+              key={group.id}
               style={{
-                padding: '16px',
                 backgroundColor: '#1a1a1a',
                 borderRadius: '8px',
-                border: '1px solid #2a2a2a'
+                border: '1px solid #2a2a2a',
+                overflow: 'hidden'
               }}
             >
-              <h3 style={{ 
-                fontSize: '16px', 
-                fontWeight: '600',
-                marginBottom: '8px',
-                fontFamily: 'var(--stepn-font-body)'
-              }}>
-                {zone.name}
-              </h3>
-              <p style={{ 
-                fontSize: '12px', 
-                color: '#a0a0a0',
-                fontFamily: 'var(--stepn-font-body)'
-              }}>
-                Modèle: {models3D.find(m => m.id === zone.model3d_id)?.name || 'N/A'}
-              </p>
+              <div
+                style={{
+                  padding: '16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+                onClick={() => toggleGroup(group.id)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '18px' }}>
+                    {expandedGroups.has(group.id) ? '▼' : '▶'}
+                  </span>
+                  <h3 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: '600',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    {group.name}
+                  </h3>
+                  <span style={{ 
+                    fontSize: '12px', 
+                    color: '#a0a0a0',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    ({group.zones.length} zone{group.zones.length > 1 ? 's' : ''})
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditGroupModal(group);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#2a2a2a',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}
+                >
+                  Modifier
+                </button>
+              </div>
+              {expandedGroups.has(group.id) && (
+                <div style={{
+                  padding: '16px',
+                  paddingTop: '0',
+                  borderTop: '1px solid #2a2a2a',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: '12px'
+                }}>
+                  {group.zones.map((zone) => (
+                    <div
+                      key={zone.id}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: '#0a0a0a',
+                        borderRadius: '4px',
+                        border: '1px solid #2a2a2a'
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        marginBottom: '4px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {zone.name}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {zone.isLogo ? 'Logo' : 'Texte'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal de création de zone */}
-      {showCreateModal && (
+      {/* Modal d'édition */}
+      {showEditModal && (
         <div
           style={{
             position: 'fixed',
@@ -267,12 +463,12 @@ export default function ZonesConfigPage() {
             justifyContent: 'center',
             zIndex: 10000
           }}
-          onClick={() => setShowCreateModal(false)}
+          onClick={closeEditModal}
         >
           <div
             style={{
-              width: '90%',
-              maxWidth: '1400px',
+              width: '95%',
+              maxWidth: '1800px',
               height: '90%',
               backgroundColor: '#1a1a1a',
               borderRadius: '8px',
@@ -296,10 +492,10 @@ export default function ZonesConfigPage() {
                 fontWeight: '600',
                 fontFamily: 'var(--stepn-font-body)'
               }}>
-                Créer une zone
+                {isCreatingGroup ? 'Créer un groupe de zones' : `Modifier: ${selectedGroup?.name}`}
               </h2>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={closeEditModal}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: '#2a2a2a',
@@ -315,22 +511,52 @@ export default function ZonesConfigPage() {
               </button>
             </div>
 
-            {/* Content */}
+            {/* Content: 3 columns layout */}
             <div style={{
               flex: 1,
               display: 'flex',
-              flexDirection: 'column',
               overflow: 'hidden'
             }}>
-              {/* Sélection du modèle 3D */}
+              {/* Left: Settings */}
               <div style={{
+                width: '300px',
+                borderRight: '1px solid #2a2a2a',
                 padding: '20px',
-                borderBottom: '1px solid #2a2a2a',
-                display: 'flex',
-                gap: '16px',
-                alignItems: 'center'
+                overflowY: 'auto',
+                backgroundColor: '#0a0a0a'
               }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Nom du groupe
+                  </label>
+                  <input
+                    type="text"
+                    value={isCreatingGroup ? newGroupName : selectedGroup?.name || ''}
+                    onChange={(e) => isCreatingGroup ? setNewGroupName(e.target.value) : undefined}
+                    disabled={!isCreatingGroup}
+                    placeholder="Nom du groupe"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none',
+                      opacity: isCreatingGroup ? 1 : 0.5
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
                   <label style={{
                     display: 'block',
                     fontSize: '12px',
@@ -350,7 +576,7 @@ export default function ZonesConfigPage() {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      backgroundColor: '#0a0a0a',
+                      backgroundColor: '#1a1a1a',
                       border: '1px solid #2a2a2a',
                       borderRadius: '4px',
                       color: '#ffffff',
@@ -368,7 +594,8 @@ export default function ZonesConfigPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: 1 }}>
+
+                <div style={{ marginBottom: '24px' }}>
                   <label style={{
                     display: 'block',
                     fontSize: '12px',
@@ -376,59 +603,265 @@ export default function ZonesConfigPage() {
                     marginBottom: '8px',
                     fontFamily: 'var(--stepn-font-body)'
                   }}>
-                    Nom de la zone
+                    Design 2D (optionnel)
                   </label>
-                  <input
-                    type="text"
-                    value={newZoneName}
-                    onChange={(e) => setNewZoneName(e.target.value)}
-                    placeholder="Ex: Zone de texte avant"
+                  <select
+                    value={selectedDesign2DId || ''}
+                    onChange={(e) => setSelectedDesign2DId(e.target.value || null)}
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      backgroundColor: '#0a0a0a',
+                      backgroundColor: '#1a1a1a',
                       border: '1px solid #2a2a2a',
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
                       fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
                       outline: 'none'
                     }}
-                  />
+                  >
+                    <option value="">Aucun design</option>
+                    {designs2D.map((design) => (
+                      <option key={design.id} value={design.id}>
+                        {design.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  onClick={handleAddZone}
-                  disabled={!selectedModel3DId || isPlacingZone}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: (!selectedModel3DId || isPlacingZone) ? '#4a4a4a' : '#8eff36',
-                    color: (!selectedModel3DId || isPlacingZone) ? '#a0a0a0' : '#000000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: (!selectedModel3DId || isPlacingZone) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--stepn-font-body)',
-                    alignSelf: 'flex-end'
-                  }}
-                >
-                  {isPlacingZone ? 'Cliquez sur le modèle pour placer la zone' : 'Ajouter une zone'}
-                </button>
+
+                {selectedZoneId && (
+                  <>
+                    <div style={{ 
+                      marginTop: '32px',
+                      paddingTop: '24px',
+                      borderTop: '1px solid #2a2a2a'
+                    }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        marginBottom: '16px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Réglages de la zone
+                      </h3>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          Image de la vignette
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setZoneSettings(prev => ({ ...prev, thumbnailUrl: url }));
+                              handleUpdateZone({ thumbnailUrl: url });
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '12px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        {zoneSettings.thumbnailUrl && (
+                          <img
+                            src={zoneSettings.thumbnailUrl}
+                            alt="Vignette"
+                            style={{
+                              width: '100%',
+                              marginTop: '8px',
+                              borderRadius: '4px',
+                              maxHeight: '100px',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        )}
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: 'pointer'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={zoneSettings.isLogo}
+                            onChange={(e) => {
+                              setZoneSettings(prev => ({ ...prev, isLogo: e.target.checked }));
+                              handleUpdateZone({ isLogo: e.target.checked });
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          Logo (sinon Texte)
+                        </label>
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          Largeur (0-1)
+                        </label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          max="1"
+                          step="0.01"
+                          value={zoneSettings.width}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setZoneSettings(prev => ({ ...prev, width: val }));
+                            handleUpdateZone({ width: val });
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          Hauteur (0-1)
+                        </label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          max="1"
+                          step="0.01"
+                          value={zoneSettings.height}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setZoneSettings(prev => ({ ...prev, height: val }));
+                            handleUpdateZone({ height: val });
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          Rotation (degrés)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="360"
+                          step="1"
+                          value={zoneSettings.rotation}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setZoneSettings(prev => ({ ...prev, rotation: val }));
+                            handleUpdateZone({ rotation: val });
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div style={{ marginTop: '24px' }}>
+                  <button
+                    onClick={handleAddZone}
+                    disabled={!selectedModel3DId || isPlacingZone}
+                    style={{
+                      width: '100%',
+                      padding: '10px 20px',
+                      backgroundColor: (!selectedModel3DId || isPlacingZone) ? '#4a4a4a' : '#8eff36',
+                      color: (!selectedModel3DId || isPlacingZone) ? '#a0a0a0' : '#000000',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: (!selectedModel3DId || isPlacingZone) ? 'not-allowed' : 'pointer',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}
+                  >
+                    {isPlacingZone ? 'Cliquez sur l\'UV map' : 'Ajouter une zone'}
+                  </button>
+                </div>
               </div>
 
-              {/* UV Map Viewer */}
-              {modelUrl && (
-                <div style={{
-                  flex: 1,
-                  minHeight: '400px',
-                  position: 'relative',
-                  backgroundColor: '#0a0a0a'
-                }}>
+              {/* Center: UV Map Viewer */}
+              <div style={{
+                flex: 1,
+                position: 'relative',
+                backgroundColor: '#0a0a0a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {modelUrl ? (
                   <UVMapViewer
                     modelUrl={modelUrl}
                     zones={editingZones}
                     selectedZoneId={selectedZoneId}
-                    onZoneSelect={(id) => setSelectedZoneId(id)}
+                    onZoneSelect={handleSelectZone}
                     onZonePlaced={(position) => {
                       if (isPlacingZone) {
                         handleZonePlaced(position);
@@ -436,70 +869,137 @@ export default function ZonesConfigPage() {
                     }}
                     onZoneUpdate={(id, updates) => {
                       if (updates.position) {
-                        handleUpdateZonePosition(id, updates.position);
-                      }
-                      if (updates.rotation !== undefined) {
-                        handleUpdateZoneRotation(id, updates.rotation);
-                      }
-                      if (updates.width !== undefined || updates.height !== undefined) {
-                        const zone = editingZones.find(z => z.id === id);
-                        if (zone) {
-                          handleUpdateZoneScale(id, (updates.width || zone.width) / zone.width);
-                        }
+                        handleUpdateZone({ position: updates.position });
                       }
                     }}
                     isPlacingZone={isPlacingZone}
+                    design2DUrl={designUrl}
                   />
-                </div>
-              )}
-
-              {/* Actions */}
-              <div style={{
-                padding: '20px',
-                borderTop: '1px solid #2a2a2a',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px'
-              }}>
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setEditingZones([]);
-                    setSelectedZoneId(null);
-                    setIsPlacingZone(false);
-                  }}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#2a2a2a',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '4px',
+                ) : (
+                  <div style={{
+                    color: '#a0a0a0',
                     fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
                     fontFamily: 'var(--stepn-font-body)'
-                  }}
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={handleCreateZone}
-                  disabled={!selectedModel3DId || !newZoneName || editingZones.length === 0}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? '#4a4a4a' : '#8eff36',
-                    color: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? '#a0a0a0' : '#000000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: (!selectedModel3DId || !newZoneName || editingZones.length === 0) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}
-                >
-                  Créer
-                </button>
+                  }}>
+                    Sélectionnez un modèle 3D pour afficher l'UV map
+                  </div>
+                )}
               </div>
+
+              {/* Right: Zones list */}
+              <div style={{
+                width: '300px',
+                borderLeft: '1px solid #2a2a2a',
+                padding: '20px',
+                overflowY: 'auto',
+                backgroundColor: '#0a0a0a'
+              }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  marginBottom: '16px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Zones configurées ({editingZones.length})
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {editingZones.map((zone) => (
+                    <div
+                      key={zone.id}
+                      onClick={() => handleSelectZone(zone.id)}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: selectedZoneId === zone.id ? '#2a2a2a' : '#1a1a1a',
+                        borderRadius: '4px',
+                        border: selectedZoneId === zone.id ? '2px solid #8eff36' : '1px solid #2a2a2a',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div>
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          marginBottom: '4px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          {zone.name}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          {zone.isLogo ? 'Logo' : 'Texte'}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteZone(zone.id);
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          backgroundColor: '#ff4444',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '20px',
+              borderTop: '1px solid #2a2a2a',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px'
+            }}>
+              <button
+                onClick={closeEditModal}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#2a2a2a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveGroup}
+                disabled={!selectedModel3DId || editingZones.length === 0}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: (!selectedModel3DId || editingZones.length === 0) ? '#4a4a4a' : '#8eff36',
+                  color: (!selectedModel3DId || editingZones.length === 0) ? '#a0a0a0' : '#000000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: (!selectedModel3DId || editingZones.length === 0) ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}
+              >
+                Enregistrer
+              </button>
             </div>
           </div>
         </div>
