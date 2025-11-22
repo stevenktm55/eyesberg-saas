@@ -1769,6 +1769,30 @@ function SimpleViewer({
       let drawnCount = 0;
       let pendingFonts = false;
       textsRef.current.forEach(text => {
+        // Mode zones : dessiner un rectangle noir avec 70% d'opacité
+        if (renderZonesAsRectangles) {
+          const [u, v] = text.position;
+          const x = u * canvas.width;
+          const y = v * canvas.height;
+          
+          // Utiliser fontSize comme largeur et hauteur (en pixels)
+          const width = text.fontSize || 200; // Largeur par défaut
+          const height = text.fontSize || 200; // Hauteur par défaut
+          
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(text.rotation);
+          
+          // Rectangle noir avec 70% d'opacité
+          ctx.globalAlpha = 0.7;
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(-width / 2, -height / 2, width, height);
+          
+          ctx.restore();
+          drawnCount++;
+          return;
+        }
+        
         // Get font info
         const font = fonts.find(f => f.id === text.fontFamily);
         const baseFontSize = text.fontSize || 700;
