@@ -1217,7 +1217,7 @@ export default function ProductBuilderPage() {
                         alignItems: 'center',
                         gap: '12px',
                         opacity: draggedModuleId === module.id ? 0.5 : 1,
-                        backgroundColor: dragOverIndex === index && draggedModuleId !== module.id ? '#1a1a1a' : (selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a')
+                        backgroundColor: selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a'
                       }}
                     >
                       <div style={{
