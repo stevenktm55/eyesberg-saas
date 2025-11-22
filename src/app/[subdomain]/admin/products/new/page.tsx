@@ -1169,9 +1169,10 @@ export default function ProductBuilderPage() {
                         e.preventDefault();
                         e.stopPropagation();
                         const draggedId = draggedModuleId;
-                        if (draggedId && draggedId !== module.id && dragOverIndex !== null) {
+                        const targetIndex = index;
+                        
+                        if (draggedId && draggedId !== module.id) {
                           const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
-                          const targetIndex = dragOverIndex;
                           
                           console.log('Drag & Drop:', { 
                             draggedId, 
@@ -1187,8 +1188,8 @@ export default function ProductBuilderPage() {
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
                             console.log('New order:', newModules.map(m => m.tabName));
-                            // Mettre à jour l'état avec le nouveau tableau
-                            setCustomizationModules(newModules);
+                            // Mettre à jour l'état avec le nouveau tableau - forcer un nouveau tableau
+                            setCustomizationModules([...newModules]);
                           }
                         }
                         setDraggedModuleId(null);
