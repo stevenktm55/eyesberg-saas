@@ -71,13 +71,15 @@ export default function Designs2DConfigPage() {
         const allColorsMap = new Map<string, string>(); // text -> id
         colorPalettes.forEach((palette) => {
           if (palette.colors) {
-            palette.colors.forEach((color) => {
-              const colorText = `${palette.name} - ${color.name} (${color.hex})`;
-              allColorsMap.set(colorText, color.id);
+            palette.colors.forEach((color, index) => {
+              // Générer un ID unique pour chaque couleur (même logique que partout ailleurs)
+              const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+              const colorText = `${palette.name} - ${color.name || ''} (${color.hex || '#000000'})`;
+              allColorsMap.set(colorText, colorId);
               // Aussi essayer sans le nom de la palette
-              const colorTextShort = `${color.name} (${color.hex})`;
+              const colorTextShort = `${color.name || ''} (${color.hex || '#000000'})`;
               if (!allColorsMap.has(colorTextShort)) {
-                allColorsMap.set(colorTextShort, color.id);
+                allColorsMap.set(colorTextShort, colorId);
               }
             });
           }
@@ -864,10 +866,12 @@ export default function Designs2DConfigPage() {
                     const colorsMap: Record<string, { hex: string; name: string }> = {};
                     colorPalettes.forEach((palette) => {
                       if (palette.colors) {
-                        palette.colors.forEach((color) => {
-                          colorsMap[color.id] = {
-                            hex: color.hex,
-                            name: color.name
+                        palette.colors.forEach((color, index) => {
+                          // Générer un ID unique pour chaque couleur (même logique que dans les selects)
+                          const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                          colorsMap[colorId] = {
+                            hex: color.hex || '#000000',
+                            name: color.name || ''
                           };
                         });
                       }
@@ -991,9 +995,13 @@ export default function Designs2DConfigPage() {
                           if (selectedPaletteId) {
                             const selectedPalette = colorPalettes.find(p => p.id === selectedPaletteId);
                             if (selectedPalette && selectedPalette.colors) {
-                              selectedPalette.colors.forEach((color) => {
+                              selectedPalette.colors.forEach((color, index) => {
+                                // Générer un ID unique pour chaque couleur (palette.id + index + hex)
+                                const colorId = color.id || `${selectedPalette.id}-${index}-${color.hex}`;
                                 allColors.push({
-                                  ...color,
+                                  id: colorId,
+                                  name: color.name || '',
+                                  hex: color.hex || '#000000',
                                   paletteName: selectedPalette.name
                                 });
                               });
@@ -1002,9 +1010,13 @@ export default function Designs2DConfigPage() {
                             // Si aucune palette sélectionnée, afficher toutes les couleurs
                             colorPalettes.forEach((palette) => {
                               if (palette.colors) {
-                                palette.colors.forEach((color) => {
+                                palette.colors.forEach((color, index) => {
+                                  // Générer un ID unique pour chaque couleur
+                                  const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
                                   allColors.push({
-                                    ...color,
+                                    id: colorId,
+                                    name: color.name || '',
+                                    hex: color.hex || '#000000',
                                     paletteName: palette.name
                                   });
                                 });
@@ -1126,9 +1138,13 @@ export default function Designs2DConfigPage() {
                           if (selectedPaletteId) {
                             const selectedPalette = colorPalettes.find(p => p.id === selectedPaletteId);
                             if (selectedPalette && selectedPalette.colors) {
-                              selectedPalette.colors.forEach((color) => {
+                              selectedPalette.colors.forEach((color, index) => {
+                                // Générer un ID unique pour chaque couleur
+                                const colorId = color.id || `${selectedPalette.id}-${index}-${color.hex}`;
                                 allColors.push({
-                                  ...color,
+                                  id: colorId,
+                                  name: color.name || '',
+                                  hex: color.hex || '#000000',
                                   paletteName: selectedPalette.name
                                 });
                               });
@@ -1137,9 +1153,13 @@ export default function Designs2DConfigPage() {
                             // Si aucune palette sélectionnée, afficher toutes les couleurs
                             colorPalettes.forEach((palette) => {
                               if (palette.colors) {
-                                palette.colors.forEach((color) => {
+                                palette.colors.forEach((color, index) => {
+                                  // Générer un ID unique pour chaque couleur
+                                  const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
                                   allColors.push({
-                                    ...color,
+                                    id: colorId,
+                                    name: color.name || '',
+                                    hex: color.hex || '#000000',
                                     paletteName: palette.name
                                   });
                                 });
