@@ -50,6 +50,7 @@ export default function Designs2DConfigPage() {
   const [detectedColorClasses, setDetectedColorClasses] = useState<string[]>([]);
   const [colorMappings, setColorMappings] = useState<Record<string, string>>({}); // class -> color_id
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedPaletteId, setSelectedPaletteId] = useState<string | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function Designs2DConfigPage() {
       setSelectedModel3DId(selectedDesign.model3d_id || null);
       setColorMappings(selectedDesign.color_mappings || {});
       setPreviewUrl(selectedDesign.preview_url || null);
+      setSelectedPaletteId(null); // Reset palette selection
       // Détecter les classes de couleurs dans le SVG
       if (selectedDesign.svg_url || selectedDesign.svgUrl) {
         detectColorClasses(selectedDesign.svg_url || selectedDesign.svgUrl || '');
@@ -74,6 +76,7 @@ export default function Designs2DConfigPage() {
       setColorMappings({});
       setPreviewUrl(null);
       setDetectedColorClasses([]);
+      setSelectedPaletteId(null);
     }
   }, [selectedDesign]);
 
@@ -245,6 +248,7 @@ export default function Designs2DConfigPage() {
     setDetectedColorClasses([]);
     setColorMappings({});
     setPreviewUrl(null);
+    setSelectedPaletteId(null);
     previewCanvasRef.current = null; // Reset canvas ref
   }
   
@@ -839,6 +843,7 @@ export default function Designs2DConfigPage() {
                         minHeight: '400px'
                       }}>
                         <Model3DPreviewStatic
+                          key={`${selectedModel3DId}-${JSON.stringify(colorMappings)}`} // Force re-render when colorMappings change
                           url={modelUrl}
                           design2DUrl={designUrl}
                           modelParts={parts}
@@ -871,6 +876,42 @@ export default function Designs2DConfigPage() {
                   
                   {/* Sélection des couleurs pour les classes détectées */}
                   <div>
+                    {/* Sélection de la palette */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        color: '#ffffff',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Palette de couleurs
+                      </label>
+                      <select
+                        value={selectedPaletteId || ''}
+                        onChange={(e) => setSelectedPaletteId(e.target.value || null)}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          backgroundColor: '#0a0a0a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '8px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">Sélectionner une palette</option>
+                        {colorPalettes.map((palette) => (
+                          <option key={palette.id} value={palette.id}>
+                            {palette.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -945,17 +986,31 @@ export default function Designs2DConfigPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {/* Afficher les classes détectées */}
                         {detectedColorClasses.map((colorClass) => {
+                          // Filtrer les couleurs selon la palette sélectionnée
                           const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
-                          colorPalettes.forEach((palette) => {
-                            if (palette.colors) {
-                              palette.colors.forEach((color) => {
+                          if (selectedPaletteId) {
+                            const selectedPalette = colorPalettes.find(p => p.id === selectedPaletteId);
+                            if (selectedPalette && selectedPalette.colors) {
+                              selectedPalette.colors.forEach((color) => {
                                 allColors.push({
                                   ...color,
-                                  paletteName: palette.name
+                                  paletteName: selectedPalette.name
                                 });
                               });
                             }
-                          });
+                          } else {
+                            // Si aucune palette sélectionnée, afficher toutes les couleurs
+                            colorPalettes.forEach((palette) => {
+                              if (palette.colors) {
+                                palette.colors.forEach((color) => {
+                                  allColors.push({
+                                    ...color,
+                                    paletteName: palette.name
+                                  });
+                                });
+                              }
+                            });
+                          }
                           
                           return (
                             <div key={colorClass} style={{
@@ -1041,17 +1096,31 @@ export default function Designs2DConfigPage() {
                         })}
                         {/* Afficher aussi les classes dans colorMappings qui ne sont pas dans detectedColorClasses */}
                         {Object.keys(colorMappings).filter(cls => !detectedColorClasses.includes(cls)).map((colorClass) => {
+                          // Filtrer les couleurs selon la palette sélectionnée
                           const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
-                          colorPalettes.forEach((palette) => {
-                            if (palette.colors) {
-                              palette.colors.forEach((color) => {
+                          if (selectedPaletteId) {
+                            const selectedPalette = colorPalettes.find(p => p.id === selectedPaletteId);
+                            if (selectedPalette && selectedPalette.colors) {
+                              selectedPalette.colors.forEach((color) => {
                                 allColors.push({
                                   ...color,
-                                  paletteName: palette.name
+                                  paletteName: selectedPalette.name
                                 });
                               });
                             }
-                          });
+                          } else {
+                            // Si aucune palette sélectionnée, afficher toutes les couleurs
+                            colorPalettes.forEach((palette) => {
+                              if (palette.colors) {
+                                palette.colors.forEach((color) => {
+                                  allColors.push({
+                                    ...color,
+                                    paletteName: palette.name
+                                  });
+                                });
+                              }
+                            });
+                          }
                           
                           return (
                             <div key={colorClass} style={{
@@ -1167,7 +1236,14 @@ export default function Designs2DConfigPage() {
                         fontFamily: 'var(--stepn-font-body)',
                         textAlign: 'center'
                       }}>
-                        Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.
+                        {!selectedPaletteId ? (
+                          <div>
+                            <p style={{ marginBottom: '8px' }}>Sélectionnez d'abord une palette de couleurs ci-dessus.</p>
+                            <p>Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.</p>
+                          </div>
+                        ) : (
+                          'Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.'
+                        )}
                       </div>
                     )}
                   </div>
