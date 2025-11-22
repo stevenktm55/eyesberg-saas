@@ -159,6 +159,8 @@ export default function ZonesConfigPage() {
   function handleZonePlaced(position: [number, number, number]) {
     if (!selectedModel3DId) return;
     
+    console.log('📍 Zone placed at position:', position);
+    
     const newZone: Zone = {
       id: `temp-${Date.now()}`,
       name: newZoneName || `Zone ${editingZones.length + 1}`,
@@ -169,6 +171,8 @@ export default function ZonesConfigPage() {
       width: 0.1, // Default width (10% of UV space)
       height: 0.1 // Default height (10% of UV space)
     };
+    
+    console.log('✅ Creating new zone:', newZone);
     setEditingZones([...editingZones, newZone]);
     setSelectedZoneId(newZone.id);
     setIsPlacingZone(false);
@@ -527,17 +531,23 @@ export default function ZonesConfigPage() {
                         designTexture={undefined}
                         materialMaps={undefined}
                         // Utiliser les zones comme textes pour le système de placement
-                        texts={editingZones.map(zone => ({
-                          id: zone.id,
-                          content: '', // Pas de texte, juste un rectangle
-                          position: zone.position,
-                          rotation: zone.rotation,
-                          fontSize: zone.width * 2048, // Utiliser width comme base pour fontSize
-                          fontFamily: undefined,
-                          category: 'nom' as const,
-                          locked: false,
-                          zoneCategory: 'text'
-                        }))}
+                        texts={editingZones.map(zone => {
+                          const fontSize = zone.width * 2048; // Convertir width (0-1) en pixels
+                          console.log('🔄 Mapping zone to text:', { id: zone.id, position: zone.position, width: zone.width, fontSize });
+                          return {
+                            id: zone.id,
+                            content: '', // Pas de texte, juste un rectangle
+                            position: zone.position,
+                            rotation: zone.rotation,
+                            fontSize: fontSize,
+                            fontFamily: undefined,
+                            category: 'nom' as const,
+                            locked: false,
+                            zoneCategory: 'text',
+                            color: '#000000',
+                            editable: true
+                          };
+                        })}
                         textZones={[]}
                         isPlacingText={isPlacingZone ? 'nom' : null}
                         onTextPlaced={(category, position) => {

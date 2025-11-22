@@ -1747,7 +1747,10 @@ function SimpleViewer({
         return;
       }
 
-      // console.log('📝 redrawAllTexts called with', textsRef.current.length, 'texts');
+      // Effacer le canvas avant de redessiner
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      console.log('📝 redrawAllTexts called with', textsRef.current.length, 'texts', 'renderZonesAsRectangles:', renderZonesAsRectangles);
 
       // (no always-on lines)
 
