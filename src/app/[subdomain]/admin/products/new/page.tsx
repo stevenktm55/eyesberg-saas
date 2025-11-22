@@ -4,13 +4,19 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Model3DPreviewWithControls } from '@/components/Model3DPreviewWithControls';
 
-// Style global pour forcer le texte en noir dans le Tab Header
+// Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
     .customizer-tab-name {
       color: #000000 !important;
       -webkit-text-fill-color: #000000 !important;
+      -webkit-text-stroke-color: #000000 !important;
+    }
+    .color-class-card-label {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
     }
   `;
   if (!document.getElementById('customizer-tab-style')) {
@@ -1730,11 +1736,10 @@ export default function ProductBuilderPage() {
                                     <span style={{
                                       fontSize: '14px',
                                       fontWeight: '500',
-                                      color: '#111827 !important',
-                                      WebkitTextFillColor: '#111827',
+                                      color: '#111827',
                                       fontFamily: 'var(--stepn-font-body)',
                                       textAlign: 'center'
-                                    }} className="customizer-tab-name">
+                                    }} className="color-class-card-label">
                                       {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
                                     </span>
                                   </div>
