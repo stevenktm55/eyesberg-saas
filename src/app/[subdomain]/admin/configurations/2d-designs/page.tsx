@@ -115,6 +115,7 @@ export default function Designs2DConfigPage() {
   }
   
   // Détecter les classes de couleurs dans le SVG
+  // Uniquement les classes ordonnées : primary, secondary, tertiary, quaternary, quinary, senary, septenary, octonary, etc.
   async function detectColorClasses(svgUrl: string) {
     try {
       console.log('Detecting color classes from SVG:', svgUrl);
@@ -123,8 +124,22 @@ export default function Designs2DConfigPage() {
       const parser = new DOMParser();
       const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
       
-      // Trouver toutes les classes CSS dans le SVG
-      const classes = new Set<string>();
+      // Liste des classes de couleurs ordonnées supportées
+      const validColorClasses = [
+        'primary',
+        'secondary',
+        'tertiary',
+        'quaternary',
+        'quinary',
+        'senary',
+        'septenary',
+        'octonary',
+        'nonary',
+        'denary'
+      ];
+      
+      // Créer un Set pour stocker les classes détectées
+      const detectedClasses = new Set<string>();
       
       // 1. Chercher dans les attributs class de tous les éléments
       const allElements = svgDoc.querySelectorAll('*');
@@ -132,52 +147,48 @@ export default function Designs2DConfigPage() {
         const classAttr = element.getAttribute('class');
         if (classAttr) {
           classAttr.split(/\s+/).forEach((cls) => {
-            const trimmedClass = cls.trim();
+            const trimmedClass = cls.trim().toLowerCase();
             if (trimmedClass) {
               // Extraire le nom de base (sans -light, -dark, etc.)
-              const baseClass = trimmedClass.replace(/-light|-dark|-lighten|-darken$/i, '').toLowerCase();
-              classes.add(baseClass);
+              const baseClass = trimmedClass.replace(/-light|-dark|-lighten|-darken$/i, '');
+              // Vérifier si c'est une classe de couleur valide
+              if (validColorClasses.includes(baseClass)) {
+                detectedClasses.add(baseClass);
+              }
             }
           });
         }
       });
       
-      // 2. Chercher toutes les variables CSS (--variable-name) dans les balises <style>
+      // 2. Chercher les variables CSS (--variable-name) dans les balises <style>
       const styleElements = svgDoc.querySelectorAll('style');
       styleElements.forEach((style) => {
         const styleText = style.textContent || '';
         
-        // Chercher toutes les variables CSS --variable-name
-        const varMatches = styleText.match(/--([a-zA-Z][a-zA-Z0-9_-]*)/g);
-        if (varMatches) {
-          varMatches.forEach((match) => {
-            const varName = match.replace('--', '').toLowerCase();
-            // Extraire le nom de base (sans -light, -dark, etc.)
-            const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
-            classes.add(baseClass);
-          });
-        }
+        // Chercher les variables CSS --primary, --secondary, etc.
+        validColorClasses.forEach((colorClass) => {
+          // Chercher --colorClass, --colorClass-light, --colorClass-dark, etc.
+          const varPattern = new RegExp(`--${colorClass}(?:-light|-dark|-lighten|-darken)?`, 'gi');
+          if (varPattern.test(styleText)) {
+            detectedClasses.add(colorClass);
+          }
+        });
         
-        // Chercher toutes les classes CSS définies (.class-name)
-        const classMatches = styleText.match(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g);
-        if (classMatches) {
-          classMatches.forEach((match) => {
-            const className = match.replace('.', '').toLowerCase();
-            // Extraire le nom de base (sans -light, -dark, etc.)
-            const baseClass = className.replace(/-light|-dark|-lighten|-darken$/i, '');
-            classes.add(baseClass);
-          });
-        }
+        // Chercher les classes CSS définies (.primary, .secondary, etc.)
+        validColorClasses.forEach((colorClass) => {
+          const classPattern = new RegExp(`\\.${colorClass}(?:-light|-dark|-lighten|-darken)?`, 'gi');
+          if (classPattern.test(styleText)) {
+            detectedClasses.add(colorClass);
+          }
+        });
         
-        // Chercher les références à var(--variable-name) pour trouver les variables utilisées
-        const varUsageMatches = styleText.match(/var\(--([a-zA-Z][a-zA-Z0-9_-]*)\)/g);
-        if (varUsageMatches) {
-          varUsageMatches.forEach((match) => {
-            const varName = match.replace(/var\(--/, '').replace(/\)/, '').toLowerCase();
-            const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
-            classes.add(baseClass);
-          });
-        }
+        // Chercher les références à var(--variable-name)
+        validColorClasses.forEach((colorClass) => {
+          const varUsagePattern = new RegExp(`var\\(--${colorClass}(?:-light|-dark|-lighten|-darken)?\\)`, 'gi');
+          if (varUsagePattern.test(styleText)) {
+            detectedClasses.add(colorClass);
+          }
+        });
       });
       
       // 3. Chercher dans les attributs fill et stroke qui utilisent var()
@@ -187,32 +198,25 @@ export default function Designs2DConfigPage() {
         
         [fill, stroke].forEach((attr) => {
           if (attr && attr.includes('var(--')) {
-            const varMatches = attr.match(/var\(--([a-zA-Z][a-zA-Z0-9_-]*)\)/g);
-            if (varMatches) {
-              varMatches.forEach((match) => {
-                const varName = match.replace(/var\(--/, '').replace(/\)/, '').toLowerCase();
-                const baseClass = varName.replace(/-light|-dark|-lighten|-darken$/i, '');
-                classes.add(baseClass);
-              });
-            }
+            validColorClasses.forEach((colorClass) => {
+              const varPattern = new RegExp(`var\\(--${colorClass}(?:-light|-dark|-lighten|-darken)?\\)`, 'gi');
+              if (varPattern.test(attr)) {
+                detectedClasses.add(colorClass);
+              }
+            });
           }
         });
       });
       
-      // Filtrer les classes pour ne garder que celles qui semblent être des couleurs
-      // On garde toutes les classes trouvées, mais on peut filtrer celles qui sont trop génériques
-      const detectedClasses = Array.from(classes).filter(cls => {
-        // Exclure les classes trop courtes ou trop génériques
-        if (cls.length < 2) return false;
-        // Exclure les classes qui sont clairement des classes de layout/structure
-        const excludePatterns = ['svg', 'path', 'g', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan', 'defs', 'use', 'mask', 'clip', 'pattern', 'linear', 'radial', 'stop', 'filter', 'fe'];
-        if (excludePatterns.includes(cls)) return false;
-        return true;
-      }).sort(); // Trier par ordre alphabétique
+      // Convertir en tableau et trier selon l'ordre des validColorClasses
+      const sortedClasses = Array.from(detectedClasses).sort((a, b) => {
+        const indexA = validColorClasses.indexOf(a);
+        const indexB = validColorClasses.indexOf(b);
+        return indexA - indexB;
+      });
       
-      console.log('All classes found:', Array.from(classes));
-      console.log('Detected color classes (filtered):', detectedClasses);
-      setDetectedColorClasses(detectedClasses);
+      console.log('Detected color classes:', sortedClasses);
+      setDetectedColorClasses(sortedClasses);
     } catch (error) {
       console.error("Error detecting color classes:", error);
       setDetectedColorClasses([]);
@@ -889,11 +893,30 @@ export default function Designs2DConfigPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          const newClass = prompt('Entrez le nom de la classe de couleur (ex: primary, secondary):');
+                          const validColorClasses = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
+                          const availableClasses = validColorClasses.filter(cls => !detectedColorClasses.includes(cls));
+                          
+                          if (availableClasses.length === 0) {
+                            alert('Toutes les classes de couleurs disponibles sont déjà ajoutées.');
+                            return;
+                          }
+                          
+                          const message = `Classes disponibles:\n${availableClasses.join(', ')}\n\nEntrez le nom de la classe de couleur:`;
+                          const newClass = prompt(message);
                           if (newClass && newClass.trim()) {
                             const trimmedClass = newClass.trim().toLowerCase();
-                            if (!detectedColorClasses.includes(trimmedClass)) {
-                              setDetectedColorClasses([...detectedColorClasses, trimmedClass]);
+                            if (validColorClasses.includes(trimmedClass)) {
+                              if (!detectedColorClasses.includes(trimmedClass)) {
+                                setDetectedColorClasses([...detectedColorClasses, trimmedClass].sort((a, b) => {
+                                  const indexA = validColorClasses.indexOf(a);
+                                  const indexB = validColorClasses.indexOf(b);
+                                  return indexA - indexB;
+                                }));
+                              } else {
+                                alert('Cette classe est déjà ajoutée.');
+                              }
+                            } else {
+                              alert(`Classe invalide. Classes valides: ${validColorClasses.join(', ')}`);
                             }
                           }
                         }}
