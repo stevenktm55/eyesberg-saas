@@ -17,7 +17,7 @@ interface Model3DPreviewStaticProps {
   colors?: Record<string, { hex: string; name: string }>; // color_id -> { hex, name }
 }
 
-// Fonction pour appliquer les couleurs au SVG en remplaçant les variables CSS
+// Fonction pour appliquer les couleurs au SVG en remplaçant les codes HEX (comme dans ModelViewer)
 async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, string>, colors?: Record<string, { hex: string; name: string }>): Promise<string> {
   console.log('applyColorsToSVG called with:', { 
     svgUrl, 
@@ -33,95 +33,100 @@ async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, s
 
   try {
     const response = await fetch(svgUrl);
-    const svgText = await response.text();
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    let svgText = await response.text();
     
-    // Fonction pour générer les variantes de couleur (light et dark)
-    const generateColorVariants = (hex: string) => {
-      // Convertir hex en RGB
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      
-      // Générer la version light (30% plus claire)
-      const lightR = Math.min(255, Math.round(r + (255 - r) * 0.3));
-      const lightG = Math.min(255, Math.round(g + (255 - g) * 0.3));
-      const lightB = Math.min(255, Math.round(b + (255 - b) * 0.3));
-      const lightHex = `#${lightR.toString(16).padStart(2, '0')}${lightG.toString(16).padStart(2, '0')}${lightB.toString(16).padStart(2, '0')}`;
-      
-      // Générer la version dark (30% plus foncée)
-      const darkR = Math.max(0, Math.round(r * 0.7));
-      const darkG = Math.max(0, Math.round(g * 0.7));
-      const darkB = Math.max(0, Math.round(b * 0.7));
-      const darkHex = `#${darkR.toString(16).padStart(2, '0')}${darkG.toString(16).padStart(2, '0')}${darkB.toString(16).padStart(2, '0')}`;
-      
-      return { light: lightHex, dark: darkHex };
-    };
-    
-    // Trouver ou créer l'élément <style>
-    let styleElement = svgDoc.querySelector('style');
-    if (!styleElement) {
-      styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
-      const defs = svgDoc.querySelector('defs') || svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
-      if (!svgDoc.querySelector('defs')) {
-        svgDoc.documentElement.insertBefore(defs, svgDoc.documentElement.firstChild);
+    // Détecter les HEX codes originaux dans le SVG pour chaque classe de couleur
+    // (comme dans ModelViewer ligne 480-517)
+    const classHex: Record<string, string> = {};
+    const normalizedKeys = new Set<string>();
+    Object.keys(colorMappings).forEach((key) => {
+      normalizedKeys.add(key.replace(/^--/, '').toLowerCase());
+    });
+    [
+      'primary',
+      'secondary',
+      'tertiary',
+      'quaternary',
+      'quinary',
+      'senary',
+      'septenary',
+      'octonary',
+      'nonary',
+      'denary',
+    ].forEach((key) => normalizedKeys.add(key));
+
+    // Chercher les HEX codes dans les balises <style>
+    const styleBlocks = Array.from(svgText.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
+    if (styleBlocks.length > 0 && normalizedKeys.size > 0) {
+      for (const [, css] of styleBlocks) {
+        const lowerCss = css.toLowerCase();
+        normalizedKeys.forEach((key) => {
+          if (classHex[key]) return;
+          // Chercher les patterns comme .primary { fill: #FF0000; } ou .primary { color: #FF0000; }
+          const re = new RegExp(`\\.${key}[^}]*?#([0-9a-f]{3,6})`, 'i');
+          const m = lowerCss.match(re);
+          if (m && m[1]) {
+            const hex = m[1].length === 3 
+              ? `#${m[1].split('').map(c => c + c).join('')}` // Convertir #RGB en #RRGGBB
+              : `#${m[1]}`;
+            classHex[key] = hex;
+          }
+        });
       }
-      defs.appendChild(styleElement);
     }
     
-    // Construire le CSS avec les variables de couleurs
-    let cssText = styleElement.textContent || '';
-    
-    // Construire les définitions de variables CSS
-    const colorVars: string[] = [];
-    Object.entries(colorMappings).forEach(([colorClass, colorId]) => {
-      console.log(`Processing color mapping: ${colorClass} -> ${colorId}`);
-      const color = colors[colorId];
-      if (!color) {
-        console.warn(`Color not found for ID: ${colorId}, available IDs:`, Object.keys(colors));
-        return;
+    // Chercher aussi dans les attributs fill et stroke
+    normalizedKeys.forEach((key) => {
+      if (classHex[key]) return;
+      // Chercher fill="var(--primary)" ou stroke="var(--primary)" et trouver la valeur dans le CSS
+      const varRe = new RegExp(`(fill|stroke)=["']var\\(--${key}(?:-light|-dark)?\\)["']`, 'i');
+      if (varRe.test(svgText)) {
+        // Si on trouve var(--primary), chercher la définition dans le CSS
+        const cssVarRe = new RegExp(`--${key}\\s*:\\s*#([0-9a-f]{3,6})`, 'i');
+        const cssMatch = svgText.match(cssVarRe);
+        if (cssMatch && cssMatch[1]) {
+          const hex = cssMatch[1].length === 3 
+            ? `#${cssMatch[1].split('').map(c => c + c).join('')}`
+            : `#${cssMatch[1]}`;
+          classHex[key] = hex;
+        }
       }
-      console.log(`Found color for ${colorClass}:`, color);
-      
-      const variants = generateColorVariants(color.hex);
-      
-      // Remplacer ou ajouter les variables CSS
-      const baseVar = `--${colorClass}`;
-      const lightVar = `--${colorClass}-light`;
-      const darkVar = `--${colorClass}-dark`;
-      
-      // Supprimer les anciennes définitions si elles existent (chercher dans :root et svg)
-      cssText = cssText.replace(new RegExp(`(:root|svg)\\s*\\{[^}]*${baseVar}[^}]*\\}`, 'g'), '');
-      cssText = cssText.replace(new RegExp(`${baseVar}\\s*:[^;]+;`, 'g'), '');
-      cssText = cssText.replace(new RegExp(`${lightVar}\\s*:[^;]+;`, 'g'), '');
-      cssText = cssText.replace(new RegExp(`${darkVar}\\s*:[^;]+;`, 'g'), '');
-      
-      // Ajouter les nouvelles définitions
-      colorVars.push(`${baseVar}: ${color.hex}; ${lightVar}: ${variants.light}; ${darkVar}: ${variants.dark};`);
     });
     
-    // Ajouter les variables CSS dans svg (standard pour SVG) ou :root
-    if (colorVars.length > 0) {
-      const varsText = colorVars.join(' ');
-      if (cssText.includes('svg {') || cssText.includes('svg{')) {
-        // Insérer dans svg existant
-        cssText = cssText.replace(/(svg\s*\{)/, `$1 ${varsText}`);
-      } else if (cssText.includes(':root {') || cssText.includes(':root{')) {
-        // Insérer dans :root existant
-        cssText = cssText.replace(/(:root\s*\{)/, `$1 ${varsText}`);
-      } else {
-        // Créer un nouveau bloc svg
-        cssText = `svg { ${varsText} } ${cssText}`;
+    console.log('🔎 Detected original class HEX:', classHex);
+    
+    // Remplacer les HEX codes par les nouveaux (comme dans ModelViewer ligne 666-677)
+    let finalSvg = svgText;
+    let anyChange = false;
+    for (const [key, newHex] of Object.entries(colorMappings)) {
+      const normalizedKey = key.replace(/^--/, '').toLowerCase();
+      const color = colors[newHex];
+      if (!color) {
+        console.warn(`Color not found for ID: ${newHex}, available IDs:`, Object.keys(colors));
+        continue;
       }
+      
+      const fromHex = classHex[normalizedKey];
+      if (!fromHex || !color.hex || fromHex.toLowerCase() === color.hex.toLowerCase()) {
+        continue;
+      }
+      
+      // Échapper les caractères spéciaux pour la regex
+      const safe = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(safe, 'gi');
+      const before = finalSvg;
+      finalSvg = finalSvg.replace(re, (m) => color.hex);
+      const count = (before.match(re) || []).length;
+      console.log(`🟢 HEX replace for key: ${normalizedKey} ${fromHex} → ${color.hex}, count=${count}`);
+      if (count > 0) anyChange = true;
     }
     
-    styleElement.textContent = cssText;
+    if (!anyChange) {
+      console.log('ℹ️ No color change detected in SVG');
+    }
     
     // Convertir le SVG modifié en blob URL
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svgDoc);
-    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const blob = new Blob([finalSvg], { type: 'image/svg+xml' });
     return URL.createObjectURL(blob);
   } catch (error) {
     console.error('Error applying colors to SVG:', error);
