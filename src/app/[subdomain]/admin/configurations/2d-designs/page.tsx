@@ -62,8 +62,23 @@ export default function Designs2DConfigPage() {
   useEffect(() => {
     if (selectedDesign) {
       console.log('Selected design changed:', selectedDesign);
+      console.log('Color mappings from DB:', selectedDesign.color_mappings);
+      
+      // Nettoyer les colorMappings pour s'assurer qu'ils contiennent uniquement des IDs
+      const cleanedMappings: Record<string, string> = {};
+      if (selectedDesign.color_mappings) {
+        Object.entries(selectedDesign.color_mappings).forEach(([key, value]) => {
+          // Si la valeur ressemble à un texte (contient des tirets ou des parenthèses), on l'ignore
+          // Sinon, on garde la valeur (qui devrait être un ID)
+          if (typeof value === 'string' && !value.includes(' - ') && !value.includes('(')) {
+            cleanedMappings[key] = value;
+          }
+        });
+      }
+      
+      console.log('Cleaned color mappings:', cleanedMappings);
       setSelectedModel3DId(selectedDesign.model3d_id || null);
-      setColorMappings(selectedDesign.color_mappings || {});
+      setColorMappings(cleanedMappings);
       setPreviewUrl(selectedDesign.preview_url || null);
       setSelectedPaletteId(null); // Reset palette selection
       // Détecter les classes de couleurs dans le SVG
@@ -832,6 +847,15 @@ export default function Designs2DConfigPage() {
                       }
                     });
                     
+                    console.log('Passing to Model3DPreviewStatic:', {
+                      colorMappings,
+                      colorsMapKeys: Object.keys(colorsMap),
+                      colorsMapSample: Object.keys(colorsMap).slice(0, 3).reduce((acc, key) => {
+                        acc[key] = colorsMap[key];
+                        return acc;
+                      }, {} as Record<string, { hex: string; name: string }>)
+                    });
+                    
                     return (
                       <div style={{
                         width: '100%',
@@ -931,56 +955,6 @@ export default function Designs2DConfigPage() {
                           </span>
                         )}
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const validColorClasses = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
-                          const availableClasses = validColorClasses.filter(cls => !detectedColorClasses.includes(cls));
-                          
-                          if (availableClasses.length === 0) {
-                            alert('Toutes les classes de couleurs disponibles sont déjà ajoutées.');
-                            return;
-                          }
-                          
-                          const message = `Classes disponibles:\n${availableClasses.join(', ')}\n\nEntrez le nom de la classe de couleur:`;
-                          const newClass = prompt(message);
-                          if (newClass && newClass.trim()) {
-                            const trimmedClass = newClass.trim().toLowerCase();
-                            if (validColorClasses.includes(trimmedClass)) {
-                              if (!detectedColorClasses.includes(trimmedClass)) {
-                                setDetectedColorClasses([...detectedColorClasses, trimmedClass].sort((a, b) => {
-                                  const indexA = validColorClasses.indexOf(a);
-                                  const indexB = validColorClasses.indexOf(b);
-                                  return indexA - indexB;
-                                }));
-                              } else {
-                                alert('Cette classe est déjà ajoutée.');
-                              }
-                            } else {
-                              alert(`Classe invalide. Classes valides: ${validColorClasses.join(', ')}`);
-                            }
-                          }
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#2a2a2a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '6px',
-                          color: '#ffffff',
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#3a3a3a';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#2a2a2a';
-                        }}
-                      >
-                        + Ajouter une classe
-                      </button>
                     </div>
                     {(detectedColorClasses.length > 0 || Object.keys(colorMappings).length > 0) ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1066,6 +1040,7 @@ export default function Designs2DConfigPage() {
                                   const newMappings = { ...colorMappings };
                                   if (e.target.value) {
                                     newMappings[colorClass] = e.target.value;
+                                    console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
                                   } else {
                                     delete newMappings[colorClass];
                                   }
@@ -1196,6 +1171,7 @@ export default function Designs2DConfigPage() {
                                   const newMappings = { ...colorMappings };
                                   if (e.target.value) {
                                     newMappings[colorClass] = e.target.value;
+                                    console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
                                   } else {
                                     delete newMappings[colorClass];
                                   }
@@ -1239,10 +1215,10 @@ export default function Designs2DConfigPage() {
                         {!selectedPaletteId ? (
                           <div>
                             <p style={{ marginBottom: '8px' }}>Sélectionnez d'abord une palette de couleurs ci-dessus.</p>
-                            <p>Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.</p>
+                            <p>Aucune classe de couleur détectée dans le SVG.</p>
                           </div>
                         ) : (
-                          'Aucune classe de couleur détectée. Cliquez sur "Ajouter une classe" pour en ajouter manuellement.'
+                          'Aucune classe de couleur détectée dans le SVG.'
                         )}
                       </div>
                     )}
