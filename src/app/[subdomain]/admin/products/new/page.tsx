@@ -1236,7 +1236,11 @@ export default function ProductBuilderPage() {
                           e.currentTarget.style.opacity = '1';
                         }
                       }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        // Ne pas sélectionner si on vient de faire un drag & drop
+                        if (draggedModuleId) {
+                          return;
+                        }
                         setSelectedModule(module);
                         setSelectedQuestion(null);
                         setShowQuestionSettings(true);
