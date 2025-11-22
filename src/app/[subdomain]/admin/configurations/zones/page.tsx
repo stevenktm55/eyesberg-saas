@@ -110,6 +110,7 @@ export default function ZonesConfigPage() {
   const [isResizingZone, setIsResizingZone] = useState(false);
   const [isRotatingZone, setIsRotatingZone] = useState(false);
   const [isPlacingZone, setIsPlacingZone] = useState(false);
+  const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     fetchZones();
