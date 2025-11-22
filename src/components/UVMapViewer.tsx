@@ -91,11 +91,24 @@ export function UVMapViewer({
         ctx.fillStyle = "#1a1a1a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
+        // Rotate canvas 180 degrees
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI); // 180 degrees
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        
         // Draw design 2D
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
-        // Then draw UV wireframe on top
+        ctx.restore();
+        
+        // Then draw UV wireframe on top (also rotated)
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI); // 180 degrees
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
         drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+        ctx.restore();
         
         // Convert to image
         canvas.toBlob((blob) => {
@@ -106,8 +119,14 @@ export function UVMapViewer({
         });
       };
       img.onerror = () => {
-        // If design fails to load, just draw UV wireframe
+        // If design fails to load, just draw UV wireframe (rotated)
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI); // 180 degrees
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
         drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+        ctx.restore();
+        
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
@@ -117,8 +136,13 @@ export function UVMapViewer({
       };
       img.src = design2DUrl;
     } else {
-      // Just draw UV wireframe
+      // Just draw UV wireframe (rotated)
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI); // 180 degrees
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
       drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+      ctx.restore();
       
       // Convert canvas to image
       canvas.toBlob((blob) => {
@@ -248,7 +272,7 @@ export function UVMapViewer({
     return Math.abs(rotatedX) < width / 2 && Math.abs(rotatedY) < height / 2;
   }, []);
 
-  // Handle mouse down - simplified: just select zone or place new one
+  // Handle mouse down - select zone, move selected zone, or place new one
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!containerRef.current) return;
     
@@ -280,8 +304,14 @@ export function UVMapViewer({
     }
     
     if (clickedZone) {
-      // Just select the zone
+      // Select the zone
       onZoneSelect(clickedZone.id);
+    } else if (selectedZoneId) {
+      // If a zone is selected and we click outside, move it to the clicked position
+      const uv = screenToUV(e.clientX, e.clientY);
+      if (uv) {
+        onZoneUpdate(selectedZoneId, { position: [uv[0], uv[1], 0] });
+      }
     } else if (isPlacingZone) {
       // Place new zone
       const uv = screenToUV(e.clientX, e.clientY);
@@ -292,7 +322,7 @@ export function UVMapViewer({
       // Deselect
       onZoneSelect(null);
     }
-  }, [zones, uvToScreen, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, scale, isPointInRotatedRect]);
+  }, [zones, uvToScreen, screenToUV, isPlacingZone, selectedZoneId, onZoneSelect, onZonePlaced, onZoneUpdate, scale, isPointInRotatedRect]);
 
   // Handle mouse move - no longer needed for dragging, but keep for potential future use
   const handleMouseMove = useCallback((e: React.MouseEvent) => {

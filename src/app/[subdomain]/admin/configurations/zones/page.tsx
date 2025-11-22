@@ -826,24 +826,53 @@ export default function ZonesConfigPage() {
                 )}
 
                 <div style={{ marginTop: '24px' }}>
-                  <button
-                    onClick={handleAddZone}
-                    disabled={!selectedModel3DId || isPlacingZone}
-                    style={{
-                      width: '100%',
-                      padding: '10px 20px',
-                      backgroundColor: (!selectedModel3DId || isPlacingZone) ? '#4a4a4a' : '#8eff36',
-                      color: (!selectedModel3DId || isPlacingZone) ? '#a0a0a0' : '#000000',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      cursor: (!selectedModel3DId || isPlacingZone) ? 'not-allowed' : 'pointer',
-                      fontFamily: 'var(--stepn-font-body)'
-                    }}
-                  >
-                    {isPlacingZone ? 'Cliquez sur l\'UV map' : 'Ajouter une zone'}
-                  </button>
+                  {selectedZoneId ? (
+                    <button
+                      onClick={() => {
+                        setIsPlacingZone(false);
+                        setSelectedZoneId(null);
+                        setZoneSettings({
+                          isLogo: false,
+                          width: 0.1,
+                          height: 0.1,
+                          rotation: 0
+                        });
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 20px',
+                        backgroundColor: '#8eff36',
+                        color: '#000000',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}
+                    >
+                      Confirmer la zone
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleAddZone}
+                      disabled={!selectedModel3DId || isPlacingZone}
+                      style={{
+                        width: '100%',
+                        padding: '10px 20px',
+                        backgroundColor: (!selectedModel3DId || isPlacingZone) ? '#4a4a4a' : '#8eff36',
+                        color: (!selectedModel3DId || isPlacingZone) ? '#a0a0a0' : '#000000',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: (!selectedModel3DId || isPlacingZone) ? 'not-allowed' : 'pointer',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}
+                    >
+                      {isPlacingZone ? 'Cliquez sur l\'UV map' : 'Ajouter une zone'}
+                    </button>
+                  )}
                 </div>
               </div>
 
