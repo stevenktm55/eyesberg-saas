@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
 import { ModelViewer } from "@/components/ModelViewer";
 
 type Zone = {
@@ -424,51 +425,47 @@ export default function ZonesConfigPage() {
                   position: 'relative',
                   backgroundColor: '#0a0a0a'
                 }}>
-                  <Suspense fallback={
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#a0a0a0'
-                    }}>
-                      Chargement du modèle...
-                    </div>
-                  }>
-                    <ModelViewer
-                      url={modelUrl}
-                      textZones={textZonesForViewer}
-                      isPlacingText={isPlacingZone ? 'nom' : null}
-                      onTextPlaced={(category, position) => {
-                        if (isPlacingZone) {
-                          handleZonePlaced(position);
-                        }
-                      }}
-                      selectedTextId={selectedZoneId}
-                      selectText={(id) => setSelectedZoneId(id)}
-                      isDraggingText={isDraggingZone}
-                      setIsDraggingText={setIsDraggingZone}
-                      isRotatingText={isRotatingZone}
-                      setIsRotatingText={setIsRotatingZone}
-                      isResizingText={isResizingZone}
-                      setIsResizingText={setIsResizingZone}
-                      updateTextPosition={(id, position) => {
-                        handleUpdateZonePosition(id, position);
-                      }}
-                      updateTextRotation={(id, rotation) => {
-                        handleUpdateZoneRotation(id, rotation);
-                      }}
-                      updateTextSize={(id, size) => {
-                        // Convertir size en scale
-                        const zone = editingZones.find(z => z.id === id);
-                        if (zone) {
-                          const newScale = size / (zone.width * 4096); // Assuming base width in pixels
-                          handleUpdateZoneScale(id, newScale);
-                        }
-                      }}
-                    />
-                  </Suspense>
+                  <Canvas
+                    camera={{ position: [0, 0, 5], fov: 50 }}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <ambientLight intensity={0.5} />
+                    <directionalLight position={[10, 10, 5]} intensity={1} />
+                    <Suspense fallback={null}>
+                      <ModelViewer
+                        url={modelUrl}
+                        textZones={textZonesForViewer}
+                        isPlacingText={isPlacingZone ? 'nom' : null}
+                        onTextPlaced={(category, position) => {
+                          if (isPlacingZone) {
+                            handleZonePlaced(position);
+                          }
+                        }}
+                        selectedTextId={selectedZoneId}
+                        selectText={(id) => setSelectedZoneId(id)}
+                        isDraggingText={isDraggingZone}
+                        setIsDraggingText={setIsDraggingZone}
+                        isRotatingText={isRotatingZone}
+                        setIsRotatingText={setIsRotatingZone}
+                        isResizingText={isResizingZone}
+                        setIsResizingText={setIsResizingZone}
+                        updateTextPosition={(id, position) => {
+                          handleUpdateZonePosition(id, position);
+                        }}
+                        updateTextRotation={(id, rotation) => {
+                          handleUpdateZoneRotation(id, rotation);
+                        }}
+                        updateTextSize={(id, size) => {
+                          // Convertir size en scale
+                          const zone = editingZones.find(z => z.id === id);
+                          if (zone) {
+                            const newScale = size / (zone.width * 4096); // Assuming base width in pixels
+                            handleUpdateZoneScale(id, newScale);
+                          }
+                        }}
+                      />
+                    </Suspense>
+                  </Canvas>
                 </div>
               )}
 
