@@ -1420,7 +1420,7 @@ export default function ProductBuilderPage() {
               
               return (
                 <div style={{
-                  width: '320px',
+                  width: '420px',
                   backgroundColor: '#ffffff',
                   borderRight: '1px solid #e0e0e0',
                   display: 'flex',
@@ -1673,7 +1673,7 @@ export default function ProductBuilderPage() {
                             <div style={{
                               display: 'grid',
                               gridTemplateColumns: 'repeat(3, 1fr)',
-                              gap: '16px'
+                              gap: '12px'
                             }}>
                               {availableColorClasses.map((colorClass) => {
                                 const currentColorId = selectedDesign?.color_mappings?.[colorClass];
@@ -1730,10 +1730,11 @@ export default function ProductBuilderPage() {
                                     <span style={{
                                       fontSize: '14px',
                                       fontWeight: '500',
-                                      color: '#111827',
+                                      color: '#111827 !important',
+                                      WebkitTextFillColor: '#111827',
                                       fontFamily: 'var(--stepn-font-body)',
                                       textAlign: 'center'
-                                    }}>
+                                    }} className="customizer-tab-name">
                                       {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
                                     </span>
                                   </div>
