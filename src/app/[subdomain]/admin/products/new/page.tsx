@@ -1364,7 +1364,14 @@ export default function ProductBuilderPage() {
                 {customizationModules.map((module) => (
                   <button
                     key={module.id}
-                    onClick={() => setActiveCustomizerTab(activeCustomizerTab === module.id ? null : module.id)}
+                    onClick={() => {
+                      const newTab = activeCustomizerTab === module.id ? null : module.id;
+                      setActiveCustomizerTab(newTab);
+                      // Réinitialiser la sélection de couleur quand on change d'onglet
+                      if (newTab !== activeCustomizerTab) {
+                        setSelectedColorClass(null);
+                      }
+                    }}
                     style={{
                       width: '48px',
                       height: '48px',
