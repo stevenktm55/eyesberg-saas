@@ -61,6 +61,7 @@ type Design2D = {
   svg_url?: string;
   svgUrl?: string;
   preview_url?: string | null;
+  color_mappings?: Record<string, string> | null;
 };
 
 export default function ProductBuilderPage() {
@@ -1886,6 +1887,25 @@ export default function ProductBuilderPage() {
                       const selectedDesign = designs2D.find(d => d.id === designIdToUse);
                       const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
                       
+                      // Récupérer les color_mappings du design et construire l'objet colors
+                      const designColorMappings = selectedDesign?.color_mappings || null;
+                      const colorsMap: Record<string, { hex: string; name: string }> = {};
+                      if (designColorMappings && colorPalettes.length > 0) {
+                        // Construire une map de toutes les couleurs disponibles
+                        colorPalettes.forEach((palette) => {
+                          if (palette.colors) {
+                            palette.colors.forEach((color: any, index: number) => {
+                              // Générer un ID unique pour chaque couleur (même logique que dans l'admin)
+                              const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                              colorsMap[colorId] = {
+                                hex: color.hex || '#000000',
+                                name: color.name || ''
+                              };
+                            });
+                          }
+                        });
+                      }
+                      
                       // Préparer les material maps pour chaque partie du modèle
                       const parts = (selectedModel as any).model_parts || [];
                       const materialMapsForModel: Record<string, any> = {};
@@ -1913,6 +1933,8 @@ export default function ProductBuilderPage() {
                             maxZoom={maxZoom}
                             initialZoom={initialZoom}
                             initialRotation={initialRotation}
+                            colorMappings={designColorMappings || undefined}
+                            colors={Object.keys(colorsMap).length > 0 ? colorsMap : undefined}
                             style={{
                               width: '100%',
                               height: '100%',

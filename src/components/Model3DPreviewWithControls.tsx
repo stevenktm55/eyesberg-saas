@@ -18,18 +18,97 @@ interface Model3DPreviewWithControlsProps {
   maxZoom?: number;
   initialZoom?: number;
   initialRotation?: number;
+  colorMappings?: Record<string, string>;
+  colors?: Record<string, { hex: string; name: string }>;
+}
+
+// Fonction pour appliquer les couleurs au SVG (même logique que Model3DPreviewStatic)
+async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, string>, colors?: Record<string, { hex: string; name: string }>): Promise<string> {
+  if (!colorMappings || !colors || Object.keys(colorMappings).length === 0) {
+    return svgUrl;
+  }
+
+  try {
+    const response = await fetch(svgUrl);
+    let svgText = await response.text();
+    
+    // Détecter les HEX codes originaux dans le SVG
+    const classHex: Record<string, string> = {};
+    const normalizedKeys = new Set<string>();
+    Object.keys(colorMappings).forEach((key) => {
+      normalizedKeys.add(key.replace(/^--/, '').toLowerCase());
+    });
+    [
+      'primary',
+      'secondary',
+      'tertiary',
+      'quaternary',
+      'quinary',
+      'senary',
+      'septenary',
+      'octonary',
+      'nonary',
+      'denary',
+    ].forEach((key) => normalizedKeys.add(key));
+
+    // Chercher les HEX codes dans les balises <style>
+    const styleBlocks = Array.from(svgText.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
+    if (styleBlocks.length > 0 && normalizedKeys.size > 0) {
+      for (const [, css] of styleBlocks) {
+        const lowerCss = css.toLowerCase();
+        normalizedKeys.forEach((key) => {
+          if (classHex[key]) return;
+          const re = new RegExp(`\\.${key}[^}]*?#([0-9a-f]{3,6})`, 'i');
+          const m = lowerCss.match(re);
+          if (m && m[1]) {
+            const hex = m[1].length === 3 
+              ? `#${m[1].split('').map(c => c + c).join('')}`
+              : `#${m[1]}`;
+            classHex[key] = hex;
+          }
+        });
+      }
+    }
+    
+    // Remplacer les HEX codes par les nouveaux
+    let finalSvg = svgText;
+    for (const [key, newHex] of Object.entries(colorMappings)) {
+      const normalizedKey = key.replace(/^--/, '').toLowerCase();
+      const color = colors[newHex];
+      if (!color) continue;
+      
+      const fromHex = classHex[normalizedKey];
+      if (!fromHex || !color.hex || fromHex.toLowerCase() === color.hex.toLowerCase()) {
+        continue;
+      }
+      
+      const safe = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(safe, 'gi');
+      finalSvg = finalSvg.replace(re, (m) => color.hex);
+    }
+    
+    const blob = new Blob([finalSvg], { type: 'image/svg+xml' });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error applying colors to SVG:', error);
+    return svgUrl;
+  }
 }
 
 function Model({ 
   url, 
   materialMaps, 
   design2DUrl, 
-  modelParts 
+  modelParts,
+  colorMappings,
+  colors
 }: { 
   url: string;
   materialMaps?: Record<string, any>;
   design2DUrl?: string | null;
   modelParts?: Array<{ name: string; material_map_id?: string | null }>;
+  colorMappings?: Record<string, string>;
+  colors?: Record<string, { hex: string; name: string }>;
 }) {
   const { scene } = useGLTF(url);
   const groupRef = useRef<THREE.Group>(null);
@@ -304,29 +383,65 @@ function Model({
                         // Si on a un design 2D, le combiner avec cette texture
                         if (design2DUrl) {
                           if (design2DUrl.toLowerCase().endsWith('.svg')) {
-                            const img = new Image();
-                            img.crossOrigin = 'anonymous';
-                            img.onload = () => {
-                            const canvas = combineDesignWithMaterial(img, texture);
-                            if (canvas) {
-                              const combinedTexture = new THREE.CanvasTexture(canvas);
-                              combinedTexture.colorSpace = THREE.SRGBColorSpace;
-                              // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
-                              combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
-                              combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
-                              combinedTexture.repeat.set(1, 1);
-                              combinedTexture.offset.set(0, 0);
-                              combinedTexture.flipY = false;
-                              combinedTexture.needsUpdate = true;
-                              standardMaterial.map = combinedTexture;
-                              standardMaterial.map.needsUpdate = true;
-                              standardMaterial.needsUpdate = true;
-                              console.log('Combined texture applied (material map + design 2D)');
-                            }
-                              resolve();
-                            };
-                            img.onerror = () => reject(new Error('Failed to load SVG'));
-                            img.src = design2DUrl;
+                            // Appliquer les couleurs au SVG si nécessaire
+                            applyColorsToSVG(design2DUrl, colorMappings, colors).then((coloredSvgUrl) => {
+                              const img = new Image();
+                              img.crossOrigin = 'anonymous';
+                              img.onload = () => {
+                              const canvas = combineDesignWithMaterial(img, texture);
+                              if (canvas) {
+                                const combinedTexture = new THREE.CanvasTexture(canvas);
+                                combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                                // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                                combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                                combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                                combinedTexture.repeat.set(1, 1);
+                                combinedTexture.offset.set(0, 0);
+                                combinedTexture.flipY = false;
+                                combinedTexture.needsUpdate = true;
+                                standardMaterial.map = combinedTexture;
+                                standardMaterial.map.needsUpdate = true;
+                                standardMaterial.needsUpdate = true;
+                                console.log('Combined texture applied (material map + design 2D)');
+                              }
+                                // Nettoyer le blob URL si c'était un blob créé
+                                if (coloredSvgUrl.startsWith('blob:')) {
+                                  URL.revokeObjectURL(coloredSvgUrl);
+                                }
+                                resolve();
+                              };
+                              img.onerror = () => {
+                                if (coloredSvgUrl.startsWith('blob:')) {
+                                  URL.revokeObjectURL(coloredSvgUrl);
+                                }
+                                reject(new Error('Failed to load SVG'));
+                              };
+                              img.src = coloredSvgUrl;
+                            }).catch((error) => {
+                              console.error('Error applying colors to SVG:', error);
+                              // En cas d'erreur, charger le SVG original
+                              const img = new Image();
+                              img.crossOrigin = 'anonymous';
+                              img.onload = () => {
+                                const canvas = combineDesignWithMaterial(img, texture);
+                                if (canvas) {
+                                  const combinedTexture = new THREE.CanvasTexture(canvas);
+                                  combinedTexture.colorSpace = THREE.SRGBColorSpace;
+                                  combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+                                  combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+                                  combinedTexture.repeat.set(1, 1);
+                                  combinedTexture.offset.set(0, 0);
+                                  combinedTexture.flipY = false;
+                                  combinedTexture.needsUpdate = true;
+                                  standardMaterial.map = combinedTexture;
+                                  standardMaterial.map.needsUpdate = true;
+                                  standardMaterial.needsUpdate = true;
+                                }
+                                resolve();
+                              };
+                              img.onerror = () => reject(new Error('Failed to load SVG'));
+                              img.src = design2DUrl;
+                            });
                             return; // Ne pas resolve ici, attendre le chargement du SVG
                           } else {
                             // Design 2D non-SVG, charger et combiner
@@ -411,30 +526,63 @@ function Model({
               if (design2DUrl && !hasDiffuseTexture) {
                 console.log('Applying design 2D after material maps (no diffuse texture found)');
                 if (design2DUrl.toLowerCase().endsWith('.svg')) {
-                  const img = new Image();
-                  img.crossOrigin = 'anonymous';
-                  img.onload = () => {
-                    const canvas = combineDesignWithMaterial(img, null);
-                    if (canvas) {
-                      const texture = new THREE.CanvasTexture(canvas);
-                      texture.colorSpace = THREE.SRGBColorSpace;
-                      // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
-                      texture.wrapS = THREE.ClampToEdgeWrapping;
-                      texture.wrapT = THREE.ClampToEdgeWrapping;
-                      texture.repeat.set(1, 1);
-                      texture.offset.set(0, 0);
-                      texture.flipY = false;
-                      texture.needsUpdate = true;
-                      standardMaterial.map = texture;
-                      standardMaterial.map.needsUpdate = true;
-                      standardMaterial.needsUpdate = true;
-                      console.log('Design 2D applied after material maps (no diffuse)');
-                    }
-                  };
-                  img.onerror = (error) => {
-                    console.error('Error loading SVG for conversion:', error);
-                  };
-                  img.src = design2DUrl;
+                  // Appliquer les couleurs au SVG si nécessaire
+                  applyColorsToSVG(design2DUrl, colorMappings, colors).then((coloredSvgUrl) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                      const canvas = combineDesignWithMaterial(img, null);
+                      if (canvas) {
+                        const texture = new THREE.CanvasTexture(canvas);
+                        texture.colorSpace = THREE.SRGBColorSpace;
+                        // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                        texture.wrapS = THREE.ClampToEdgeWrapping;
+                        texture.wrapT = THREE.ClampToEdgeWrapping;
+                        texture.repeat.set(1, 1);
+                        texture.offset.set(0, 0);
+                        texture.flipY = false;
+                        texture.needsUpdate = true;
+                        standardMaterial.map = texture;
+                        standardMaterial.map.needsUpdate = true;
+                        standardMaterial.needsUpdate = true;
+                        console.log('Design 2D applied after material maps (no diffuse)');
+                      }
+                      // Nettoyer le blob URL si c'était un blob créé
+                      if (coloredSvgUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(coloredSvgUrl);
+                      }
+                    };
+                    img.onerror = (error) => {
+                      if (coloredSvgUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(coloredSvgUrl);
+                      }
+                      console.error('Error loading SVG for conversion:', error);
+                    };
+                    img.src = coloredSvgUrl;
+                  }).catch((error) => {
+                    console.error('Error applying colors to SVG:', error);
+                    // En cas d'erreur, charger le SVG original
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                      const canvas = combineDesignWithMaterial(img, null);
+                      if (canvas) {
+                        const texture = new THREE.CanvasTexture(canvas);
+                        texture.colorSpace = THREE.SRGBColorSpace;
+                        texture.wrapS = THREE.ClampToEdgeWrapping;
+                        texture.wrapT = THREE.ClampToEdgeWrapping;
+                        texture.repeat.set(1, 1);
+                        texture.offset.set(0, 0);
+                        texture.flipY = false;
+                        texture.needsUpdate = true;
+                        standardMaterial.map = texture;
+                        standardMaterial.map.needsUpdate = true;
+                        standardMaterial.needsUpdate = true;
+                      }
+                    };
+                    img.onerror = (error) => console.error('Error loading SVG for conversion:', error);
+                    img.src = design2DUrl;
+                  });
                 } else {
                   const designLoader = new THREE.TextureLoader();
                   designLoader.load(
@@ -474,30 +622,63 @@ function Model({
           // Si pas de material maps mais qu'on a un design 2D, appliquer le design 2D seul
           if (!part && design2DUrl) {
             if (design2DUrl.toLowerCase().endsWith('.svg')) {
-              const img = new Image();
-              img.crossOrigin = 'anonymous';
-              img.onload = () => {
-                const canvas = combineDesignWithMaterial(img, null);
-                if (canvas) {
-                  const texture = new THREE.CanvasTexture(canvas);
-                  texture.colorSpace = THREE.SRGBColorSpace;
-                  // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
-                  texture.wrapS = THREE.ClampToEdgeWrapping;
-                  texture.wrapT = THREE.ClampToEdgeWrapping;
-                  texture.repeat.set(1, 1);
-                  texture.offset.set(0, 0);
-                  texture.flipY = false;
-                  texture.needsUpdate = true;
-                  standardMaterial.map = texture;
-                  standardMaterial.map.needsUpdate = true;
-                  standardMaterial.needsUpdate = true;
-                  console.log('Design 2D applied alone (no material maps)');
-                }
-              };
-              img.onerror = (error) => {
-                console.error('Error loading SVG for conversion:', error);
-              };
-              img.src = design2DUrl;
+              // Appliquer les couleurs au SVG si nécessaire
+              applyColorsToSVG(design2DUrl, colorMappings, colors).then((coloredSvgUrl) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                  const canvas = combineDesignWithMaterial(img, null);
+                  if (canvas) {
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    // Utiliser ClampToEdgeWrapping pour le design 2D (pas de tiling)
+                    texture.wrapS = THREE.ClampToEdgeWrapping;
+                    texture.wrapT = THREE.ClampToEdgeWrapping;
+                    texture.repeat.set(1, 1);
+                    texture.offset.set(0, 0);
+                    texture.flipY = false;
+                    texture.needsUpdate = true;
+                    standardMaterial.map = texture;
+                    standardMaterial.map.needsUpdate = true;
+                    standardMaterial.needsUpdate = true;
+                    console.log('Design 2D applied alone (no material maps)');
+                  }
+                  // Nettoyer le blob URL si c'était un blob créé
+                  if (coloredSvgUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(coloredSvgUrl);
+                  }
+                };
+                img.onerror = (error) => {
+                  if (coloredSvgUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(coloredSvgUrl);
+                  }
+                  console.error('Error loading SVG for conversion:', error);
+                };
+                img.src = coloredSvgUrl;
+              }).catch((error) => {
+                console.error('Error applying colors to SVG:', error);
+                // En cas d'erreur, charger le SVG original
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                  const canvas = combineDesignWithMaterial(img, null);
+                  if (canvas) {
+                    const texture = new THREE.CanvasTexture(canvas);
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    texture.wrapS = THREE.ClampToEdgeWrapping;
+                    texture.wrapT = THREE.ClampToEdgeWrapping;
+                    texture.repeat.set(1, 1);
+                    texture.offset.set(0, 0);
+                    texture.flipY = false;
+                    texture.needsUpdate = true;
+                    standardMaterial.map = texture;
+                    standardMaterial.map.needsUpdate = true;
+                    standardMaterial.needsUpdate = true;
+                  }
+                };
+                img.onerror = (error) => console.error('Error loading SVG for conversion:', error);
+                img.src = design2DUrl;
+              });
             } else {
               const textureLoader = new THREE.TextureLoader();
               textureLoader.load(
