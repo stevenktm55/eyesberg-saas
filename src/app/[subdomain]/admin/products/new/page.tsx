@@ -729,12 +729,34 @@ export default function ProductBuilderPage() {
             </div>
 
             {/* Modules/Questions List */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '16px',
-              position: 'relative'
-            }}>
+            <div 
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px',
+                position: 'relative'
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Si on drop sur le conteneur (pas sur un élément), placer à la fin
+                if (draggedModuleId) {
+                  const draggedIndex = customizationModules.findIndex(m => m.id === draggedModuleId);
+                  if (draggedIndex !== -1) {
+                    const newModules = [...customizationModules];
+                    const [removed] = newModules.splice(draggedIndex, 1);
+                    newModules.push(removed);
+                    setCustomizationModules(newModules);
+                  }
+                }
+                setDraggedModuleId(null);
+                setDragOverIndex(null);
+              }}
+            >
               {/* 3D Viewer Settings Overlay */}
               {show3DSettings && (
                 <div style={{
@@ -1146,9 +1168,11 @@ export default function ProductBuilderPage() {
                       onDragStart={(e) => {
                         setDraggedModuleId(module.id);
                         e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('text/html', module.id);
+                        e.dataTransfer.setData('text/plain', module.id);
+                        e.dataTransfer.setData('application/json', JSON.stringify({ id: module.id, index }));
                         if (e.currentTarget.style) {
                           e.currentTarget.style.cursor = 'grabbing';
+                          e.currentTarget.style.opacity = '0.5';
                         }
                       }}
                       onDragOver={(e) => {
@@ -1160,7 +1184,9 @@ export default function ProductBuilderPage() {
                       onDragEnter={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setDragOverIndex(index);
+                        if (draggedModuleId && draggedModuleId !== module.id) {
+                          setDragOverIndex(index);
+                        }
                       }}
                       onDragLeave={(e) => {
                         // Ne pas réinitialiser dragOverIndex ici pour éviter les flickers
@@ -1168,8 +1194,15 @@ export default function ProductBuilderPage() {
                       onDrop={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        const draggedId = draggedModuleId;
+                        const draggedId = draggedModuleId || e.dataTransfer.getData('text/plain');
                         const targetIndex = index;
+                        
+                        console.log('onDrop triggered:', { 
+                          draggedId, 
+                          moduleId: module.id,
+                          targetIndex,
+                          draggedModuleId
+                        });
                         
                         if (draggedId && draggedId !== module.id) {
                           const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
@@ -1188,7 +1221,7 @@ export default function ProductBuilderPage() {
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
                             console.log('New order:', newModules.map(m => m.tabName));
-                            // Mettre à jour l'état avec le nouveau tableau - forcer un nouveau tableau
+                            // Mettre à jour l'état avec le nouveau tableau
                             setCustomizationModules([...newModules]);
                           }
                         }
@@ -1200,6 +1233,7 @@ export default function ProductBuilderPage() {
                         setDragOverIndex(null);
                         if (e.currentTarget.style) {
                           e.currentTarget.style.cursor = 'grab';
+                          e.currentTarget.style.opacity = '1';
                         }
                       }}
                       onClick={() => {
