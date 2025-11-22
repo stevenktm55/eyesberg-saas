@@ -147,11 +147,138 @@ function Model({
     scene.position.sub(center.multiplyScalar(scale));
   }
 
+  // Fonction pour combiner le design 2D avec la texture diffuse existante
+  const combineDesignWithMaterial = React.useCallback((designImg: HTMLImageElement, materialTex: THREE.Texture | null) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 4096; // 4096px pour une meilleure qualité du design 2D
+    canvas.height = 4096;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    
+    // 1. D'abord, dessiner la texture diffuse des material maps (si elle existe)
+    if (materialTex && materialTex.image) {
+      ctx.drawImage(materialTex.image as CanvasImageSource, 0, 0, canvas.width, canvas.height);
+    } else {
+      // Pas de texture diffuse, mettre un fond blanc
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    // 2. Ensuite, dessiner le design 2D par-dessus
+    const imgAspect = designImg.width / designImg.height;
+    const canvasAspect = canvas.width / canvas.height;
+    let drawWidth = canvas.width;
+    let drawHeight = canvas.height;
+    let drawX = 0;
+    let drawY = 0;
+    
+    if (imgAspect > canvasAspect) {
+      drawHeight = canvas.width / imgAspect;
+      drawY = (canvas.height - drawHeight) / 2;
+    } else {
+      drawWidth = canvas.height * imgAspect;
+      drawX = (canvas.width - drawWidth) / 2;
+    }
+    
+    ctx.drawImage(designImg, drawX, drawY, drawWidth, drawHeight);
+    
+    return canvas;
+  }, []);
+
+  // Fonction pour appliquer le design 2D avec les couleurs sur un matériau
+  const applyDesign2DToMaterial = React.useCallback(async (
+    material: THREE.MeshStandardMaterial,
+    design2DUrl: string,
+    materialDiffuseTexture: THREE.Texture | null
+  ) => {
+    if (!design2DUrl) return;
+    
+    console.log('Applying design 2D with colors:', { design2DUrl, colorMappings, colors });
+    
+    if (design2DUrl.toLowerCase().endsWith('.svg')) {
+      // Appliquer les couleurs au SVG si nécessaire
+      const coloredSvgUrl = await applyColorsToSVG(design2DUrl, colorMappings, colors);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          const canvas = combineDesignWithMaterial(img, materialDiffuseTexture);
+          if (canvas) {
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.repeat.set(1, 1);
+            texture.offset.set(0, 0);
+            texture.flipY = false;
+            texture.needsUpdate = true;
+            material.map = texture;
+            material.map.needsUpdate = true;
+            material.needsUpdate = true;
+            console.log('Design 2D with colors applied to material');
+          }
+          // Nettoyer le blob URL si c'était un blob créé
+          if (coloredSvgUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(coloredSvgUrl);
+          }
+          resolve();
+        };
+        img.onerror = (error) => {
+          console.error('Error loading colored SVG:', error);
+          if (coloredSvgUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(coloredSvgUrl);
+          }
+          reject(error);
+        };
+        img.src = coloredSvgUrl;
+      });
+    } else {
+      // Design 2D non-SVG
+      const textureLoader = new THREE.TextureLoader();
+      const texture = await new Promise<THREE.Texture>((resolve, reject) => {
+        textureLoader.load(
+          design2DUrl,
+          (tex) => {
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.wrapS = THREE.ClampToEdgeWrapping;
+            tex.wrapT = THREE.ClampToEdgeWrapping;
+            tex.repeat.set(1, 1);
+            tex.offset.set(0, 0);
+            tex.flipY = false;
+            resolve(tex);
+          },
+          undefined,
+          reject
+        );
+      });
+      
+      if (materialDiffuseTexture && materialDiffuseTexture.image) {
+        const canvas = combineDesignWithMaterial(texture.image as HTMLImageElement, materialDiffuseTexture);
+        if (canvas) {
+          const combinedTexture = new THREE.CanvasTexture(canvas);
+          combinedTexture.colorSpace = THREE.SRGBColorSpace;
+          combinedTexture.wrapS = THREE.ClampToEdgeWrapping;
+          combinedTexture.wrapT = THREE.ClampToEdgeWrapping;
+          combinedTexture.repeat.set(1, 1);
+          combinedTexture.offset.set(0, 0);
+          combinedTexture.flipY = false;
+          combinedTexture.needsUpdate = true;
+          material.map = combinedTexture;
+        }
+      } else {
+        material.map = texture;
+      }
+      material.map.needsUpdate = true;
+      material.needsUpdate = true;
+    }
+  }, [colorMappings, colors, combineDesignWithMaterial]);
+
   // Appliquer les material maps et le design 2D
   React.useEffect(() => {
     if (!scene) return;
 
-    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl);
+    console.log('Applying materials - materialMaps:', materialMaps, 'modelParts:', modelParts, 'design2DUrl:', design2DUrl, 'colorMappings:', colorMappings);
 
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
@@ -494,7 +621,59 @@ function Model({
         }
       }
     });
-  }, [scene, materialMaps, design2DUrl, modelParts, colorMappings, colors]);
+  }, [scene, materialMaps, design2DUrl, modelParts]);
+
+  // Mettre à jour les couleurs en temps réel quand colorMappings ou colors changent
+  React.useEffect(() => {
+    if (!scene || !design2DUrl) return;
+    
+    console.log('Updating colors in real-time:', { colorMappings, colors });
+    
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const mesh = child as THREE.Mesh;
+        let material = mesh.material;
+        
+        if (Array.isArray(material)) {
+          material = material[0];
+        }
+        
+        if (material instanceof THREE.MeshStandardMaterial && material.map) {
+          // Trouver la texture diffuse actuelle
+          let diffuseTexture: THREE.Texture | null = null;
+          
+          // Chercher dans les material maps
+          const meshName = mesh.name || '';
+          let part: { name: string; material_map_id?: string | null } | undefined;
+          
+          if (modelParts && modelParts.length > 0) {
+            part = modelParts.find(p => {
+              const partName = (p.name || '').toLowerCase();
+              const meshNameLower = meshName.toLowerCase();
+              return partName === meshNameLower || 
+                     meshNameLower.includes(partName) || 
+                     partName.includes(meshNameLower);
+            });
+          }
+          
+          if (part && part.material_map_id && materialMaps?.[part.material_map_id]) {
+            const materialMap = materialMaps[part.material_map_id];
+            const files = materialMap.material_map_files || [];
+            const diffuseFile = files.find((f: any) => f.map_type === 'diffuse');
+            if (diffuseFile) {
+              // La texture diffuse est déjà dans material.map, on la garde
+              diffuseTexture = material.map;
+            }
+          }
+          
+          // Réappliquer le design 2D avec les nouvelles couleurs
+          applyDesign2DToMaterial(material, design2DUrl, diffuseTexture).catch(err => {
+            console.error('Error updating design 2D with new colors:', err);
+          });
+        }
+      }
+    });
+  }, [scene, design2DUrl, colorMappings, colors, applyDesign2DToMaterial, modelParts, materialMaps]);
 
   return <primitive object={scene} />;
 }
