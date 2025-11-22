@@ -1176,15 +1176,13 @@ export default function ProductBuilderPage() {
                           });
                           
                           if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
-                            const newModules = [...customizationModules];
+                            // Créer un nouveau tableau avec l'ordre modifié
+                            const newModules = Array.from(customizationModules);
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
                             console.log('New order:', newModules.map(m => m.tabName));
+                            // Mettre à jour l'état avec le nouveau tableau
                             setCustomizationModules(newModules);
-                            // Forcer un re-render en mettant à jour l'état
-                            setTimeout(() => {
-                              console.log('After update, modules:', customizationModules.map(m => m.tabName));
-                            }, 100);
                           }
                         }
                         setDraggedModuleId(null);
