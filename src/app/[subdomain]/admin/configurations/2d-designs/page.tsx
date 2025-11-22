@@ -60,6 +60,7 @@ export default function Designs2DConfigPage() {
   
   useEffect(() => {
     if (selectedDesign) {
+      console.log('Selected design changed:', selectedDesign);
       setSelectedModel3DId(selectedDesign.model3d_id || null);
       setColorMappings(selectedDesign.color_mappings || {});
       setPreviewUrl(selectedDesign.preview_url || null);
@@ -67,6 +68,12 @@ export default function Designs2DConfigPage() {
       if (selectedDesign.svg_url || selectedDesign.svgUrl) {
         detectColorClasses(selectedDesign.svg_url || selectedDesign.svgUrl || '');
       }
+    } else {
+      // Reset when no design is selected
+      setSelectedModel3DId(null);
+      setColorMappings({});
+      setPreviewUrl(null);
+      setDetectedColorClasses([]);
     }
   }, [selectedDesign]);
 
