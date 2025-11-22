@@ -1372,7 +1372,8 @@ export default function ProductBuilderPage() {
                   <button
                     key={module.id}
                     onClick={() => {
-                      const newTab = activeCustomizerTab === module.id ? null : module.id;
+                      // Ne pas fermer la sidebar, juste changer d'onglet
+                      const newTab = activeCustomizerTab === module.id ? module.id : module.id;
                       setActiveCustomizerTab(newTab);
                       // Réinitialiser la sélection de couleur quand on change d'onglet
                       if (newTab !== activeCustomizerTab) {
@@ -2076,15 +2077,29 @@ export default function ProductBuilderPage() {
                     if (selectedModel) {
                       const modelUrl = selectedModel.glb_url || selectedModel.glbUrl || '';
                       
-                      // Prioriser le design sélectionné dans l'onglet actif, sinon utiliser le design de base
+                      // Chercher le design sélectionné dans tous les modules de type designs-2d
+                      // Prioriser celui de l'onglet actif, sinon prendre le premier trouvé
                       let designIdToUse: string | null = null;
+                      
+                      // D'abord, chercher dans l'onglet actif
                       if (activeCustomizerTab) {
                         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
                         if (activeModule?.contentType === 'designs-2d' && activeModule.selectedItems?.design2DId) {
                           designIdToUse = activeModule.selectedItems.design2DId;
                         }
                       }
-                      // Si aucun design dans l'onglet, utiliser le design de base
+                      
+                      // Si aucun design dans l'onglet actif, chercher dans tous les autres modules
+                      if (!designIdToUse) {
+                        const designModule = customizationModules.find(m => 
+                          m.contentType === 'designs-2d' && m.selectedItems?.design2DId
+                        );
+                        if (designModule?.selectedItems?.design2DId) {
+                          designIdToUse = designModule.selectedItems.design2DId;
+                        }
+                      }
+                      
+                      // Si toujours aucun design, utiliser le design de base
                       if (!designIdToUse) {
                         designIdToUse = selectedDesign2DId;
                       }
