@@ -101,7 +101,7 @@ export default function ProductBuilderPage() {
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
   const [designColors, setDesignColors] = useState<Record<string, string>>({}); // Stocker les couleurs sélectionnées pour le design
-  const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null); // Pour le drag & drop des onglets
+  const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null); // Pour le drag & drop des modules dans la sidebar gauche
   const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
@@ -1138,9 +1138,44 @@ export default function ProductBuilderPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {/* Customization Modules */}
-                  {customizationModules.map((module) => (
+                  {customizationModules.map((module, index) => (
                     <div
                       key={module.id}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggedModuleId(module.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/html', module.id);
+                        if (e.currentTarget.style) {
+                          e.currentTarget.style.cursor = 'grabbing';
+                        }
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const draggedId = e.dataTransfer.getData('text/html');
+                        if (draggedId && draggedId !== module.id) {
+                          const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
+                          const targetIndex = index;
+                          
+                          if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
+                            const newModules = [...customizationModules];
+                            const [removed] = newModules.splice(draggedIndex, 1);
+                            newModules.splice(targetIndex, 0, removed);
+                            setCustomizationModules(newModules);
+                          }
+                        }
+                        setDraggedModuleId(null);
+                      }}
+                      onDragEnd={(e) => {
+                        setDraggedModuleId(null);
+                        if (e.currentTarget.style) {
+                          e.currentTarget.style.cursor = 'grab';
+                        }
+                      }}
                       onClick={() => {
                         setSelectedModule(module);
                         setSelectedQuestion(null);
@@ -1151,11 +1186,12 @@ export default function ProductBuilderPage() {
                         backgroundColor: selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a',
                         border: selectedModule?.id === module.id ? '1px solid #8eff36' : '1px solid #1a1a1a',
                         borderRadius: '4px',
-                        cursor: 'pointer',
+                        cursor: draggedModuleId === module.id ? 'grabbing' : 'grab',
                         transition: 'all 0.2s',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: '12px',
+                        opacity: draggedModuleId === module.id ? 0.5 : 1
                       }}
                     >
                       <div style={{
