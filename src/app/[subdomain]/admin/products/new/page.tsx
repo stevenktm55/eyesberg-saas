@@ -1377,6 +1377,9 @@ export default function ProductBuilderPage() {
                       setDraggedModuleId(module.id);
                       e.dataTransfer.effectAllowed = 'move';
                       e.dataTransfer.setData('text/html', module.id);
+                      if (e.currentTarget.style) {
+                        e.currentTarget.style.cursor = 'grabbing';
+                      }
                     }}
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -1398,8 +1401,11 @@ export default function ProductBuilderPage() {
                       }
                       setDraggedModuleId(null);
                     }}
-                    onDragEnd={() => {
+                    onDragEnd={(e) => {
                       setDraggedModuleId(null);
+                      if (e.currentTarget.style) {
+                        e.currentTarget.style.cursor = 'grab';
+                      }
                     }}
                     onClick={() => {
                       // Ne pas fermer la sidebar, toujours ouvrir l'onglet
