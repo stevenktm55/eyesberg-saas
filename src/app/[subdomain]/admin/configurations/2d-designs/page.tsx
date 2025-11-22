@@ -166,6 +166,7 @@ export default function Designs2DConfigPage() {
   }
 
   function openModal(design: Design2D) {
+    console.log('Opening modal for design:', design);
     setSelectedDesign(design);
     setIsCreating(false);
   }
@@ -1005,7 +1006,11 @@ export default function Designs2DConfigPage() {
                     </div>
                   ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <div style={{ color: '#ffffff', padding: '20px' }}>
+                  <p>Aucun design sélectionné</p>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
