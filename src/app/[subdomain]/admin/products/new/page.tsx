@@ -1240,8 +1240,7 @@ export default function ProductBuilderPage() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px',
-                        opacity: draggedModuleId === module.id ? 0.5 : 1,
-                        backgroundColor: selectedModule?.id === module.id ? '#1a1a1a' : '#0a0a0a'
+                        opacity: draggedModuleId === module.id ? 0.5 : 1
                       }}
                     >
                       <div style={{
@@ -1671,11 +1670,11 @@ export default function ProductBuilderPage() {
                                 className="color-class-card-label"
                                 onMouseEnter={(e) => {
                                   e.currentTarget.style.color = '#1f2937';
-                                  e.currentTarget.style.WebkitTextFillColor = '#1f2937';
+                                  (e.currentTarget.style as any).webkitTextFillColor = '#1f2937';
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.style.color = '#111827';
-                                  e.currentTarget.style.WebkitTextFillColor = '#111827';
+                                  (e.currentTarget.style as any).webkitTextFillColor = '#111827';
                                 }}
                               >
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#111827' }}>
