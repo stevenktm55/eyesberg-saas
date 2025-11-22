@@ -2371,28 +2371,41 @@ export default function ProductBuilderPage() {
                         <div style={{
                           width: '100%',
                           height: '100%',
-                          minHeight: '600px'
+                          minHeight: '600px',
+                          backgroundColor: '#e8e8e8'
                         }}>
-                          <Model3DPreviewWithControls
-                            url={modelUrl}
-                            materialMaps={materialMapsForModel}
-                            design2DUrl={designUrl}
-                            modelParts={parts}
-                            zoomSpeed={zoomSpeed}
-                            rotateSpeed={rotateSpeed}
-                            minZoom={minZoom}
-                            maxZoom={maxZoom}
-                            initialZoom={initialZoom}
-                            initialRotation={initialRotation}
-                            colorMappings={designColorMappings || undefined}
-                            colors={Object.keys(colorsMap).length > 0 ? colorsMap : undefined}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              minHeight: '600px',
-                              backgroundColor: '#e8e8e8'
-                            }}
-                          />
+                          <Canvas
+                            camera={{ position: [0, 0, 5], fov: 50 }}
+                            style={{ width: '100%', height: '100%' }}
+                          >
+                            <ambientLight intensity={0.5} />
+                            <directionalLight position={[10, 10, 5]} intensity={1} />
+                            <Suspense fallback={null}>
+                              <ModelViewer
+                                url={modelUrl}
+                                designTexture={designUrl || undefined}
+                                materialMaps={materialMapsForModel}
+                                colors={Object.keys(colorsMap).length > 0 ? colorsMap : undefined}
+                                selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
+                                texts={texts}
+                                updateTextPosition={updateTextPosition}
+                                updateTextRotation={updateTextRotation}
+                                updateTextSize={updateTextSize}
+                                toggleTextLock={toggleTextLock}
+                                removeText={removeText}
+                                selectedTextId={selectedTextId}
+                                selectText={selectText}
+                                isDraggingText={isDraggingText}
+                                setIsDraggingText={setIsDraggingText}
+                                isRotatingText={isRotatingText}
+                                setIsRotatingText={setIsRotatingText}
+                                isResizingText={isResizingText}
+                                setIsResizingText={setIsResizingText}
+                                isPlacingText={isPlacingText}
+                                onTextPlaced={handleTextPlaced}
+                              />
+                            </Suspense>
+                          </Canvas>
                         </div>
                       );
                     }
