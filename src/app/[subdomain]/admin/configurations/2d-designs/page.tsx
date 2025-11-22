@@ -67,11 +67,37 @@ export default function Designs2DConfigPage() {
       // Nettoyer les colorMappings pour s'assurer qu'ils contiennent uniquement des IDs
       const cleanedMappings: Record<string, string> = {};
       if (selectedDesign.color_mappings) {
+        // Construire une map de toutes les couleurs disponibles pour trouver les IDs
+        const allColorsMap = new Map<string, string>(); // text -> id
+        colorPalettes.forEach((palette) => {
+          if (palette.colors) {
+            palette.colors.forEach((color) => {
+              const colorText = `${palette.name} - ${color.name} (${color.hex})`;
+              allColorsMap.set(colorText, color.id);
+              // Aussi essayer sans le nom de la palette
+              const colorTextShort = `${color.name} (${color.hex})`;
+              if (!allColorsMap.has(colorTextShort)) {
+                allColorsMap.set(colorTextShort, color.id);
+              }
+            });
+          }
+        });
+        
         Object.entries(selectedDesign.color_mappings).forEach(([key, value]) => {
-          // Si la valeur ressemble à un texte (contient des tirets ou des parenthèses), on l'ignore
-          // Sinon, on garde la valeur (qui devrait être un ID)
-          if (typeof value === 'string' && !value.includes(' - ') && !value.includes('(')) {
-            cleanedMappings[key] = value;
+          if (typeof value === 'string') {
+            // Si la valeur ressemble à un ID (pas de texte descriptif), on la garde
+            if (!value.includes(' - ') && !value.includes('(')) {
+              cleanedMappings[key] = value;
+            } else {
+              // Sinon, essayer de trouver l'ID correspondant au texte
+              const foundId = allColorsMap.get(value);
+              if (foundId) {
+                cleanedMappings[key] = foundId;
+                console.log(`Converted text to ID: ${value} -> ${foundId}`);
+              } else {
+                console.warn(`Could not find ID for color text: ${value}`);
+              }
+            }
           }
         });
       }
@@ -1009,7 +1035,16 @@ export default function Designs2DConfigPage() {
                                   {colorClass}
                                 </span>
                                 {colorMappings[colorClass] && (() => {
-                                  const selectedColor = allColors.find(c => c.id === colorMappings[colorClass]);
+                                  // Trouver la couleur : soit par ID, soit par texte si c'est du texte qui a été sauvegardé
+                                  const mappingValue = colorMappings[colorClass];
+                                  let selectedColor = allColors.find(c => c.id === mappingValue);
+                                  if (!selectedColor && (mappingValue.includes(' - ') || mappingValue.includes('('))) {
+                                    // Si c'est du texte, essayer de trouver la couleur correspondante
+                                    selectedColor = allColors.find(c => {
+                                      const colorText = `${c.paletteName} - ${c.name} (${c.hex})`;
+                                      return colorText === mappingValue;
+                                    });
+                                  }
                                   return selectedColor ? (
                                     <div style={{
                                       display: 'flex',
@@ -1035,10 +1070,25 @@ export default function Designs2DConfigPage() {
                                 })()}
                               </div>
                               <select
-                                value={colorMappings[colorClass] || ''}
+                                value={(() => {
+                                  // S'assurer que la valeur est bien un ID, pas du texte
+                                  const currentValue = colorMappings[colorClass];
+                                  if (!currentValue) return '';
+                                  // Si c'est du texte, essayer de trouver l'ID correspondant
+                                  if (currentValue.includes(' - ') || currentValue.includes('(')) {
+                                    const foundColor = allColors.find(c => {
+                                      const colorText = `${c.paletteName} - ${c.name} (${c.hex})`;
+                                      return colorText === currentValue;
+                                    });
+                                    return foundColor ? foundColor.id : '';
+                                  }
+                                  // Sinon, c'est déjà un ID
+                                  return currentValue;
+                                })()}
                                 onChange={(e) => {
                                   const newMappings = { ...colorMappings };
                                   if (e.target.value) {
+                                    // S'assurer qu'on sauvegarde bien l'ID, pas le texte
                                     newMappings[colorClass] = e.target.value;
                                     console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
                                   } else {
@@ -1120,7 +1170,16 @@ export default function Designs2DConfigPage() {
                                   {colorClass}
                                 </span>
                                 {colorMappings[colorClass] && (() => {
-                                  const selectedColor = allColors.find(c => c.id === colorMappings[colorClass]);
+                                  // Trouver la couleur : soit par ID, soit par texte si c'est du texte qui a été sauvegardé
+                                  const mappingValue = colorMappings[colorClass];
+                                  let selectedColor = allColors.find(c => c.id === mappingValue);
+                                  if (!selectedColor && (mappingValue.includes(' - ') || mappingValue.includes('('))) {
+                                    // Si c'est du texte, essayer de trouver la couleur correspondante
+                                    selectedColor = allColors.find(c => {
+                                      const colorText = `${c.paletteName} - ${c.name} (${c.hex})`;
+                                      return colorText === mappingValue;
+                                    });
+                                  }
                                   return selectedColor ? (
                                     <div style={{
                                       display: 'flex',
@@ -1166,10 +1225,25 @@ export default function Designs2DConfigPage() {
                                 </button>
                               </div>
                               <select
-                                value={colorMappings[colorClass] || ''}
+                                value={(() => {
+                                  // S'assurer que la valeur est bien un ID, pas du texte
+                                  const currentValue = colorMappings[colorClass];
+                                  if (!currentValue) return '';
+                                  // Si c'est du texte, essayer de trouver l'ID correspondant
+                                  if (currentValue.includes(' - ') || currentValue.includes('(')) {
+                                    const foundColor = allColors.find(c => {
+                                      const colorText = `${c.paletteName} - ${c.name} (${c.hex})`;
+                                      return colorText === currentValue;
+                                    });
+                                    return foundColor ? foundColor.id : '';
+                                  }
+                                  // Sinon, c'est déjà un ID
+                                  return currentValue;
+                                })()}
                                 onChange={(e) => {
                                   const newMappings = { ...colorMappings };
                                   if (e.target.value) {
+                                    // S'assurer qu'on sauvegarde bien l'ID, pas le texte
                                     newMappings[colorClass] = e.target.value;
                                     console.log('Color mapping updated:', { colorClass, colorId: e.target.value, allMappings: newMappings });
                                   } else {
