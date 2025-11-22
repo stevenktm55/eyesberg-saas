@@ -89,6 +89,7 @@ export default function ProductBuilderPage() {
     contentType: null
   });
   const [newModuleIconFile, setNewModuleIconFile] = useState<File | null>(null);
+  const [selectedModuleIconFile, setSelectedModuleIconFile] = useState<File | null>(null);
   const [selectedModule, setSelectedModule] = useState<CustomizationModule | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -2343,6 +2344,132 @@ export default function ProductBuilderPage() {
                 />
               </div>
 
+              {/* Icon Selection */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  color: '#a0a0a0',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Icône
+                </label>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '8px'
+                }}>
+                  {selectedModule.iconUrl ? (
+                    <img
+                      src={selectedModule.iconUrl}
+                      alt={selectedModule.tabName}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        objectFit: 'contain',
+                        borderRadius: '4px',
+                        backgroundColor: '#1a1a1a',
+                        padding: '4px'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '4px',
+                      padding: '4px'
+                    }}>
+                      {selectedModule.icon}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept=".svg,.png"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file && selectedModule) {
+                        setSelectedModuleIconFile(file);
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          formData.append('folder', 'module-icons');
+
+                          const res = await fetch('/api/upload-icon', {
+                            method: 'POST',
+                            body: formData,
+                          });
+
+                          if (res.ok) {
+                            const data = await res.json();
+                            const updated = { 
+                              ...selectedModule, 
+                              iconUrl: data.url 
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m => 
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                            setSelectedModuleIconFile(null);
+                          } else {
+                            console.error('Error uploading icon');
+                            alert('Erreur lors de l\'upload de l\'icône');
+                          }
+                        } catch (error) {
+                          console.error('Error uploading icon:', error);
+                          alert('Erreur lors de l\'upload de l\'icône');
+                        }
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Ou entrez un emoji/texte"
+                  value={selectedModule.icon}
+                  onChange={(e) => {
+                    const updated = { 
+                      ...selectedModule, 
+                      icon: e.target.value,
+                      iconUrl: undefined // Supprimer l'URL si on utilise un emoji/texte
+                    };
+                    setSelectedModule(updated);
+                    setCustomizationModules(customizationModules.map(m => 
+                      m.id === selectedModule.id ? updated : m
+                    ));
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
               {/* Content Type Selection */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{
@@ -3018,47 +3145,71 @@ export default function ProductBuilderPage() {
                   marginBottom: '8px',
                   fontFamily: 'var(--stepn-font-body)'
                 }}>
-                  Icône (image .svg ou .png, ou emoji/texte)
+                  Icône
                 </label>
-                <input
-                  type="file"
-                  accept=".svg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    setNewModuleIconFile(file);
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    backgroundColor: '#0a0a0a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '4px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    cursor: 'pointer',
-                    marginBottom: '8px'
-                  }}
-                />
-                {newModuleIconFile && (
-                  <div style={{
-                    padding: '8px',
-                    backgroundColor: '#0a0a0a',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    color: '#8eff36',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Fichier sélectionné: {newModuleIconFile.name}
-                  </div>
-                )}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '8px'
+                }}>
+                  {newModuleIconFile ? (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      fontSize: '12px',
+                      color: '#a0a0a0'
+                    }}>
+                      {newModuleIconFile.name}
+                    </div>
+                  ) : newModule.icon ? (
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '4px',
+                      padding: '4px'
+                    }}>
+                      {newModule.icon}
+                    </div>
+                  ) : null}
+                  <input
+                    type="file"
+                    accept=".svg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setNewModuleIconFile(file);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer'
+                    }}
+                  />
+                </div>
                 <input
                   type="text"
                   value={newModule.icon || ''}
                   onChange={(e) => setNewModule({ ...newModule, icon: e.target.value })}
-                  placeholder="🎨 (si pas d'image)"
+                  placeholder="Ou entrez un emoji/texte"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -3069,8 +3220,7 @@ export default function ProductBuilderPage() {
                     fontSize: '14px',
                     fontFamily: 'var(--stepn-font-body)',
                     outline: 'none',
-                    boxSizing: 'border-box',
-                    marginTop: '8px'
+                    boxSizing: 'border-box'
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = '#8eff36';
@@ -3079,14 +3229,6 @@ export default function ProductBuilderPage() {
                     e.currentTarget.style.borderColor = '#2a2a2a';
                   }}
                 />
-                <p style={{
-                  fontSize: '11px',
-                  color: '#666',
-                  marginTop: '4px',
-                  fontFamily: 'var(--stepn-font-body)'
-                }}>
-                  Ou utilisez un emoji/texte si vous n'upload pas d'image
-                </p>
               </div>
 
               {/* Module Type (Content Type) */}
