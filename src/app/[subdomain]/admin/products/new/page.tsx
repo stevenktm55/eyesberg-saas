@@ -2146,7 +2146,7 @@ export default function ProductBuilderPage() {
           {/* Right Sidebar - Module/Question Settings */}
           {showQuestionSettings && selectedModule ? (
             <div style={{
-              width: '320px',
+              width: '420px',
               backgroundColor: '#0a0a0a',
               borderLeft: '1px solid #1a1a1a',
               padding: '24px',
@@ -2597,7 +2597,7 @@ export default function ProductBuilderPage() {
             </div>
           ) : showQuestionSettings && selectedQuestion ? (
             <div style={{
-              width: '320px',
+              width: '420px',
               backgroundColor: '#0a0a0a',
               borderLeft: '1px solid #1a1a1a',
               padding: '24px',
@@ -2752,7 +2752,7 @@ export default function ProductBuilderPage() {
             </div>
           ) : (
             <div style={{
-              width: '320px',
+              width: '420px',
               backgroundColor: '#0a0a0a',
               borderLeft: '1px solid #1a1a1a',
               padding: '24px',
