@@ -2427,6 +2427,7 @@ export default function ProductBuilderPage() {
                                   isResizingText={isResizingText}
                                   setIsResizingText={setIsResizingText}
                                   isPlacingText={isPlacingText}
+                                  textZones={[]} // Pas de zones prédéfinies dans le builder
                                   onTextPlaced={handleTextPlaced}
                                 />
                               )}

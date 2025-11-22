@@ -2621,7 +2621,13 @@ function SimpleViewer({
             onTextPlaced(isPlacingText, position, closestZone.zoneCategory);
           }
         } else {
-          console.log('⚠️ No text zones available');
+          // No text zones available - place text directly at UV coordinates
+          console.log('📍 No text zones available, placing text directly at UV:', uv.u, uv.v);
+          if (onTextPlaced) {
+            // Use UV coordinates directly (0-1 range)
+            const position: [number, number, number] = [uv.u, uv.v, 0];
+            onTextPlaced(isPlacingText, position);
+          }
         }
         return;
       }
