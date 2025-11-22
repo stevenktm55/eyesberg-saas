@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
@@ -23,6 +23,79 @@ type Model3D = {
   glb_url?: string;
   glbUrl?: string;
 };
+
+// Composant pour afficher la preview UV2
+function UV2Preview({ canvas }: { canvas: HTMLCanvasElement }) {
+  const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  
+  useEffect(() => {
+    if (!previewCanvasRef.current || !canvas) return;
+    
+    const previewCtx = previewCanvasRef.current.getContext('2d');
+    if (!previewCtx) return;
+    
+    // Copier le contenu du canvas UV2
+    previewCanvasRef.current.width = canvas.width;
+    previewCanvasRef.current.height = canvas.height;
+    
+    const updatePreview = () => {
+      if (previewCanvasRef.current && canvas) {
+        previewCtx.clearRect(0, 0, previewCanvasRef.current.width, previewCanvasRef.current.height);
+        previewCtx.drawImage(canvas, 0, 0);
+      }
+    };
+    
+    // Mettre à jour immédiatement
+    updatePreview();
+    
+    // Mettre à jour périodiquement
+    const interval = setInterval(updatePreview, 100);
+    
+    return () => clearInterval(interval);
+  }, [canvas]);
+  
+  return (
+    <div style={{
+      width: '300px',
+      height: '300px',
+      backgroundColor: '#1a1a1a',
+      border: '1px solid #2a2a2a',
+      borderRadius: '8px',
+      padding: '8px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px'
+    }}>
+      <div style={{
+        fontSize: '12px',
+        fontWeight: '600',
+        color: '#ffffff',
+        fontFamily: 'var(--stepn-font-body)'
+      }}>
+        Preview UV2
+      </div>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#0a0a0a',
+        borderRadius: '4px',
+        overflow: 'hidden'
+      }}>
+        <canvas
+          ref={previewCanvasRef}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            imageRendering: 'pixelated'
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function ZonesConfigPage() {
   const [zones, setZones] = useState<Zone[]>([]);
