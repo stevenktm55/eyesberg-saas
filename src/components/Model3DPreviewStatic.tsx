@@ -19,7 +19,15 @@ interface Model3DPreviewStaticProps {
 
 // Fonction pour appliquer les couleurs au SVG en remplaçant les variables CSS
 async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, string>, colors?: Record<string, { hex: string; name: string }>): Promise<string> {
+  console.log('applyColorsToSVG called with:', { 
+    svgUrl, 
+    colorMappings, 
+    colorsKeys: colors ? Object.keys(colors) : [],
+    colorMappingsKeys: colorMappings ? Object.keys(colorMappings) : []
+  });
+  
   if (!colorMappings || !colors || Object.keys(colorMappings).length === 0) {
+    console.log('No color mappings or colors, returning original SVG URL');
     return svgUrl; // Pas de couleurs à appliquer, retourner l'URL originale
   }
 
@@ -68,8 +76,13 @@ async function applyColorsToSVG(svgUrl: string, colorMappings?: Record<string, s
     // Construire les définitions de variables CSS
     const colorVars: string[] = [];
     Object.entries(colorMappings).forEach(([colorClass, colorId]) => {
+      console.log(`Processing color mapping: ${colorClass} -> ${colorId}`);
       const color = colors[colorId];
-      if (!color) return;
+      if (!color) {
+        console.warn(`Color not found for ID: ${colorId}, available IDs:`, Object.keys(colors));
+        return;
+      }
+      console.log(`Found color for ${colorClass}:`, color);
       
       const variants = generateColorVariants(color.hex);
       
