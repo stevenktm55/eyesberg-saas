@@ -1156,15 +1156,19 @@ export default function ProductBuilderPage() {
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         const draggedId = e.dataTransfer.getData('text/html');
                         if (draggedId && draggedId !== module.id) {
                           const draggedIndex = customizationModules.findIndex(m => m.id === draggedId);
                           const targetIndex = index;
                           
+                          console.log('Drag & Drop:', { draggedId, draggedIndex, targetIndex, moduleId: module.id });
+                          
                           if (draggedIndex !== -1 && draggedIndex !== targetIndex) {
                             const newModules = [...customizationModules];
                             const [removed] = newModules.splice(draggedIndex, 1);
                             newModules.splice(targetIndex, 0, removed);
+                            console.log('New order:', newModules.map(m => m.tabName));
                             setCustomizationModules(newModules);
                           }
                         }
