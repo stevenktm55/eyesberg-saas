@@ -2383,6 +2383,7 @@ export default function ProductBuilderPage() {
                             <Suspense fallback={null}>
                               <ModelViewer
                                 url={modelUrl}
+                                color="#ffffff"
                                 designTexture={designUrl || undefined}
                                 materialMaps={materialMapsForModel}
                                 colors={Object.keys(colorsMap).length > 0 ? Object.fromEntries(Object.entries(colorsMap).map(([k, v]) => [k, v.hex])) : undefined}
