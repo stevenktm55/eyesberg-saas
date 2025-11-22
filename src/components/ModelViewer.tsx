@@ -34,7 +34,8 @@ function SimpleViewer({
   fonts = [],
   selectedDesign,
   materialMaps,
-  renderZonesAsRectangles = false
+  renderZonesAsRectangles = false,
+  onCanvasReady
 }: { 
   url: string, 
   designSrc?: string, 
@@ -3707,6 +3708,7 @@ type Props = ThreeElements['group'] & {
   }>;
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
   renderZonesAsRectangles?: boolean; // Mode zones : afficher des rectangles noirs au lieu de texte
+  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void; // Callback pour exposer le canvas overlay
   // Suppression de fontsLoaded pour éviter les boucles infinies
 };
 
@@ -3836,6 +3838,8 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     toggleTextLock={toggleTextLock}
     setIsDraggingText={setIsDraggingText}
     fonts={fonts}
+    renderZonesAsRectangles={(props as any).renderZonesAsRectangles || false}
+    onCanvasReady={(props as any).onCanvasReady}
   />;
 }
 
