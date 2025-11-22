@@ -538,7 +538,11 @@ export default function ProductBuilderPage() {
 
   const handleTextPlaced = (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
     if (isPlacingText) {
-      addText('', position, undefined, category, 700, zoneCategory as any, rotation);
+      // Utiliser la catégorie du mode placement si elle est définie, sinon utiliser celle passée en paramètre
+      const textCategory = isPlacingText || category;
+      addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
+      // Désactiver le mode placement après ajout
+      setIsPlacingText(null);
     }
   };
 
@@ -2249,29 +2253,35 @@ export default function ProductBuilderPage() {
                       <div>
                         <button
                           onClick={() => {
-                            setIsPlacingText('nom'); // Activer le mode placement
+                            // Activer le mode placement - l'utilisateur devra cliquer sur le modèle pour placer le texte
+                            setIsPlacingText('nom');
                           }}
+                          disabled={isPlacingText !== null}
                           style={{
                             width: '100%',
                             padding: '12px 16px',
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #e0e0e0',
+                            backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
+                            border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
                             borderRadius: '4px',
                             fontSize: '14px',
                             fontFamily: 'var(--stepn-font-body)',
-                            color: '#000000',
-                            cursor: 'pointer',
+                            color: isPlacingText ? '#000000' : '#000000',
+                            cursor: isPlacingText ? 'not-allowed' : 'pointer',
                             fontWeight: '500',
                             transition: 'all 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            if (!isPlacingText) {
+                              e.currentTarget.style.backgroundColor = '#f5f5f5';
+                            }
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#ffffff';
+                            if (!isPlacingText) {
+                              e.currentTarget.style.backgroundColor = '#ffffff';
+                            }
                           }}
                         >
-                          {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                         </button>
                       </div>
                     ) : (
