@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
+import { OrbitControls } from '@react-three/drei';
 import { ModelViewer } from '@/components/ModelViewer';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
@@ -2376,36 +2377,54 @@ export default function ProductBuilderPage() {
                         }}>
                           <Canvas
                             camera={{ position: [0, 0, 5], fov: 50 }}
+                            gl={{ preserveDrawingBuffer: true }}
                             style={{ width: '100%', height: '100%' }}
                           >
-                            <ambientLight intensity={0.5} />
-                            <directionalLight position={[10, 10, 5]} intensity={1} />
-                            <Suspense fallback={null}>
-                              <ModelViewer
-                                url={modelUrl}
-                                color="#ffffff"
-                                designTexture={designUrl || undefined}
-                                materialMaps={materialMapsForModel}
-                                colors={Object.keys(colorsMap).length > 0 ? Object.fromEntries(Object.entries(colorsMap).map(([k, v]) => [k, v.hex])) : undefined}
-                                selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
-                                texts={texts}
-                                updateTextPosition={updateTextPosition}
-                                updateTextRotation={updateTextRotation}
-                                updateTextSize={updateTextSize}
-                                toggleTextLock={toggleTextLock}
-                                removeText={removeText}
-                                selectedTextId={selectedTextId}
-                                selectText={selectText}
-                                isDraggingText={isDraggingText}
-                                setIsDraggingText={setIsDraggingText}
-                                isRotatingText={isRotatingText}
-                                setIsRotatingText={setIsRotatingText}
-                                isResizingText={isResizingText}
-                                setIsResizingText={setIsResizingText}
-                                isPlacingText={isPlacingText}
-                                onTextPlaced={handleTextPlaced}
-                              />
+                            <ambientLight intensity={0.4} color="#f5f5f5" />
+                            <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+                            <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+                            <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
+                            <Suspense fallback={
+                              <mesh>
+                                <boxGeometry args={[1, 1, 1]} />
+                                <meshStandardMaterial color="#3b82f6" wireframe />
+                              </mesh>
+                            }>
+                              {modelUrl && (
+                                <ModelViewer
+                                  url={modelUrl}
+                                  color="#ffffff"
+                                  designTexture={designUrl || undefined}
+                                  materialMaps={materialMapsForModel}
+                                  colors={Object.keys(colorsMap).length > 0 ? Object.fromEntries(Object.entries(colorsMap).map(([k, v]) => [k, v.hex])) : undefined}
+                                  selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
+                                  texts={texts}
+                                  updateTextPosition={updateTextPosition}
+                                  updateTextRotation={updateTextRotation}
+                                  updateTextSize={updateTextSize}
+                                  toggleTextLock={toggleTextLock}
+                                  removeText={removeText}
+                                  selectedTextId={selectedTextId}
+                                  selectText={selectText}
+                                  isDraggingText={isDraggingText}
+                                  setIsDraggingText={setIsDraggingText}
+                                  isRotatingText={isRotatingText}
+                                  setIsRotatingText={setIsRotatingText}
+                                  isResizingText={isResizingText}
+                                  setIsResizingText={setIsResizingText}
+                                  isPlacingText={isPlacingText}
+                                  onTextPlaced={handleTextPlaced}
+                                />
+                              )}
                             </Suspense>
+                            <OrbitControls
+                              enablePan={false}
+                              enableZoom={!selectedTextId}
+                              enableRotate={!selectedTextId}
+                              enabled={!isDraggingText && !isRotatingText && !isResizingText}
+                              minDistance={1}
+                              maxDistance={10}
+                            />
                           </Canvas>
                         </div>
                       );
