@@ -383,20 +383,19 @@ export function UVMapViewer({
         (zone.rotation * Math.PI) / 180 // Convert degrees to radians
       );
       
-      // Debug log for first zone
-      if (zones.indexOf(zone) === 0) {
-        console.log('Zone detection:', {
-          mouse: { x: mouseX, y: mouseY },
-          canvasMouse: { x: canvasMouseX, y: canvasMouseY },
-          zoneCenter: { x: zoneCenterX, y: zoneCenterY },
-          zoneSize: { width: zoneWidth, height: zoneHeight },
-          isInside,
-          pan: { x: pan.x, y: pan.y },
-          scale,
-          scaleX,
-          scaleY
-        });
-      }
+      // Debug log for all zones when clicking
+      console.log(`Zone ${zone.id} detection:`, {
+        mouse: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+        canvasMouse: { x: canvasMouseX, y: canvasMouseY },
+        zoneCenter: { x: zoneCenterX, y: zoneCenterY },
+        zoneSize: { width: zoneWidth, height: zoneHeight },
+        zonePosition: zone.position,
+        isInside,
+        distanceX: Math.abs(canvasMouseX - zoneCenterX),
+        distanceY: Math.abs(canvasMouseY - zoneCenterY),
+        halfWidth: zoneWidth / 2,
+        halfHeight: zoneHeight / 2
+      });
       
       if (isInside) {
         clickedZone = zone;
