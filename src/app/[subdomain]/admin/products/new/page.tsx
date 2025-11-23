@@ -2440,303 +2440,420 @@ export default function ProductBuilderPage() {
                           
                           return (
                             <div style={{
-                              marginTop: '24px',
-                              padding: '16px',
-                              backgroundColor: '#1a1a1a',
-                              border: '1px solid #2a2a2a',
-                              borderRadius: '4px'
+                              marginTop: '20px',
+                              backgroundColor: '#ffffff',
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              border: '1px solid #e5e5e5'
                             }}>
+                              {/* Header */}
                               <div style={{
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                color: '#ffffff',
-                                fontFamily: 'var(--stepn-font-body)',
-                                marginBottom: '16px'
+                                padding: '12px 16px',
+                                backgroundColor: '#f8f8f8',
+                                borderBottom: '1px solid #e5e5e5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
                               }}>
-                                Modifier le texte
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  color: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Options de texte
+                                </div>
+                                <button
+                                  onClick={() => selectText(null)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '18px',
+                                    color: '#666',
+                                    cursor: 'pointer',
+                                    padding: '0',
+                                    width: '20px',
+                                    height: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    lineHeight: '1'
+                                  }}
+                                >
+                                  ×
+                                </button>
                               </div>
 
-                              {/* Contenu du texte */}
-                              {activeModule.enableTextContent !== false && (
-                                <div style={{ marginBottom: '16px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#a0a0a0',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Contenu
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={selectedText.content}
-                                    onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      backgroundColor: '#0a0a0a',
-                                      border: '1px solid #2a2a2a',
-                                      borderRadius: '4px',
-                                      color: '#ffffff',
-                                      fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      outline: 'none'
-                                    }}
-                                  />
-                                </div>
-                              )}
-
-                              {/* Police */}
-                              {activeModule.enableTextFont !== false && (
-                                <div style={{ marginBottom: '16px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#a0a0a0',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Police
-                                  </label>
-                                  <select
-                                    value={selectedText.fontFamily || ''}
-                                    onChange={(e) => {
-                                      updateText(selectedTextId, { 
-                                        fontFamily: e.target.value || undefined 
-                                      });
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      backgroundColor: '#0a0a0a',
-                                      border: '1px solid #2a2a2a',
-                                      borderRadius: '4px',
-                                      color: '#ffffff',
-                                      fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      cursor: 'pointer',
-                                      outline: 'none'
-                                    }}
-                                  >
-                                    <option value="">Police par défaut</option>
-                                    {fontGroups.map((group) =>
-                                      group.fonts?.map((font: any) => (
-                                        <option key={font.id} value={font.id}>
-                                          {font.display_name || font.name || font.id}
-                                        </option>
-                                      ))
-                                    )}
-                                  </select>
-                                </div>
-                              )}
-
-                              {/* Couleur */}
-                              {activeModule.enableTextColor !== false && (
-                                <div style={{ marginBottom: '16px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#a0a0a0',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Couleur
-                                  </label>
-                                  <div style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                    alignItems: 'center'
-                                  }}>
-                                    <input
-                                      type="color"
-                                      value={selectedText.color || '#000000'}
-                                      onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
-                                      style={{
-                                        width: '50px',
-                                        height: '40px',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        backgroundColor: '#0a0a0a'
-                                      }}
-                                    />
-                                    <input
-                                      type="text"
-                                      value={selectedText.color || '#000000'}
-                                      onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
-                                      style={{
-                                        flex: 1,
-                                        padding: '10px 12px',
-                                        backgroundColor: '#0a0a0a',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        color: '#ffffff',
-                                        fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        outline: 'none'
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Contour */}
-                              {activeModule.enableTextStroke !== false && (
-                                <div style={{ marginBottom: '16px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#a0a0a0',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Contour
-                                  </label>
-                                  <div style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                    alignItems: 'center',
-                                    marginBottom: '8px'
-                                  }}>
-                                    <input
-                                      type="color"
-                                      value={selectedText.strokeColor || '#000000'}
-                                      onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
-                                      style={{
-                                        width: '50px',
-                                        height: '40px',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        backgroundColor: '#0a0a0a'
-                                      }}
-                                    />
-                                    <input
-                                      type="text"
-                                      value={selectedText.strokeColor || '#000000'}
-                                      onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
-                                      style={{
-                                        flex: 1,
-                                        padding: '10px 12px',
-                                        backgroundColor: '#0a0a0a',
-                                        border: '1px solid #2a2a2a',
-                                        borderRadius: '4px',
-                                        color: '#ffffff',
-                                        fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        outline: 'none'
-                                      }}
-                                    />
-                                  </div>
-                                  <div>
-                                    <label style={{
-                                      display: 'block',
-                                      fontSize: '12px',
-                                      color: '#a0a0a0',
-                                      marginBottom: '8px',
-                                      fontFamily: 'var(--stepn-font-body)'
-                                    }}>
-                                      Épaisseur du contour
-                                    </label>
-                                    <input
-                                      type="range"
-                                      min="0"
-                                      max="2"
-                                      step="0.1"
-                                      value={selectedText.strokeWidth || 0.1}
-                                      onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
-                                      style={{
-                                        width: '100%',
-                                        cursor: 'pointer'
-                                      }}
-                                    />
+                              <div style={{ padding: '16px' }}>
+                                {/* Contenu du texte */}
+                                {activeModule.enableTextContent !== false && (
+                                  <div style={{ marginBottom: '20px' }}>
                                     <div style={{
                                       fontSize: '11px',
-                                      color: '#666',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      marginBottom: '8px',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      marginTop: '4px'
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
                                     }}>
-                                      {selectedText.strokeWidth || 0.1}
+                                      Texte
+                                    </div>
+                                    <input
+                                      type="text"
+                                      value={selectedText.content}
+                                      onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
+                                      style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#ffffff',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        color: '#111827',
+                                        fontSize: '14px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        outline: 'none',
+                                        transition: 'border-color 0.2s'
+                                      }}
+                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Police */}
+                                {activeModule.enableTextFont !== false && (
+                                  <div style={{ marginBottom: '20px' }}>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      marginBottom: '8px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
+                                    }}>
+                                      Police
+                                    </div>
+                                    <select
+                                      value={selectedText.fontFamily || ''}
+                                      onChange={(e) => {
+                                        updateText(selectedTextId, { 
+                                          fontFamily: e.target.value || undefined 
+                                        });
+                                      }}
+                                      style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#ffffff',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        color: '#111827',
+                                        fontSize: '14px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        cursor: 'pointer',
+                                        outline: 'none',
+                                        transition: 'border-color 0.2s'
+                                      }}
+                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                    >
+                                      <option value="">Police par défaut</option>
+                                      {fontGroups.map((group) =>
+                                        group.fonts?.map((font: any) => (
+                                          <option key={font.id} value={font.id}>
+                                            {font.display_name || font.name || font.id}
+                                          </option>
+                                        ))
+                                      )}
+                                    </select>
+                                  </div>
+                                )}
+
+                                {/* Couleur */}
+                                {activeModule.enableTextColor !== false && (
+                                  <div style={{ marginBottom: '20px' }}>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      marginBottom: '8px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
+                                    }}>
+                                      Couleur
+                                    </div>
+                                    <div style={{
+                                      display: 'flex',
+                                      gap: '10px',
+                                      alignItems: 'center'
+                                    }}>
+                                      <div style={{
+                                        position: 'relative',
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        border: '2px solid #e5e5e5',
+                                        cursor: 'pointer',
+                                        flexShrink: 0
+                                      }}>
+                                        <input
+                                          type="color"
+                                          value={selectedText.color || '#000000'}
+                                          onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
+                                          style={{
+                                            position: 'absolute',
+                                            width: '100%',
+                                            height: '100%',
+                                            border: 'none',
+                                            padding: '0',
+                                            cursor: 'pointer',
+                                            opacity: '0'
+                                          }}
+                                        />
+                                        <div style={{
+                                          position: 'absolute',
+                                          inset: '0',
+                                          backgroundColor: selectedText.color || '#000000',
+                                          pointerEvents: 'none'
+                                        }} />
+                                      </div>
+                                      <input
+                                        type="text"
+                                        value={selectedText.color || '#000000'}
+                                        onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
+                                        style={{
+                                          flex: 1,
+                                          padding: '10px 12px',
+                                          backgroundColor: '#ffffff',
+                                          border: '1px solid #d1d5db',
+                                          borderRadius: '6px',
+                                          color: '#111827',
+                                          fontSize: '14px',
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          outline: 'none',
+                                          transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                      />
                                     </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
-                              {/* Déformation */}
-                              {activeModule.enableTextDeformation !== false && (
-                                <div style={{ marginBottom: '16px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#a0a0a0',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Type de déformation
-                                  </label>
-                                  <select
-                                    value={selectedText.deformation || ''}
-                                    onChange={(e) => updateText(selectedTextId, { 
-                                      deformation: e.target.value || undefined 
-                                    })}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      backgroundColor: '#0a0a0a',
-                                      border: '1px solid #2a2a2a',
-                                      borderRadius: '4px',
-                                      color: '#ffffff',
-                                      fontSize: '14px',
+                                {/* Contour */}
+                                {activeModule.enableTextStroke !== false && (
+                                  <div style={{ marginBottom: '20px' }}>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      marginBottom: '8px',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      cursor: 'pointer',
-                                      outline: 'none',
-                                      marginBottom: '8px'
-                                    }}
-                                  >
-                                    <option value="">Aucune</option>
-                                    <option value="arc">Arc</option>
-                                    <option value="wave">Vague</option>
-                                    <option value="bulge">Bombé</option>
-                                    <option value="pinch">Pincement</option>
-                                  </select>
-                                  {selectedText.deformation && (
-                                    <div>
-                                      <label style={{
-                                        display: 'block',
-                                        fontSize: '12px',
-                                        color: '#a0a0a0',
-                                        marginBottom: '8px',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
+                                    }}>
+                                      Contour
+                                    </div>
+                                    <div style={{
+                                      display: 'flex',
+                                      gap: '10px',
+                                      alignItems: 'center',
+                                      marginBottom: '12px'
+                                    }}>
+                                      <div style={{
+                                        position: 'relative',
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        border: '2px solid #e5e5e5',
+                                        cursor: 'pointer',
+                                        flexShrink: 0
                                       }}>
-                                        Intensité
-                                      </label>
+                                        <input
+                                          type="color"
+                                          value={selectedText.strokeColor || '#000000'}
+                                          onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
+                                          style={{
+                                            position: 'absolute',
+                                            width: '100%',
+                                            height: '100%',
+                                            border: 'none',
+                                            padding: '0',
+                                            cursor: 'pointer',
+                                            opacity: '0'
+                                          }}
+                                        />
+                                        <div style={{
+                                          position: 'absolute',
+                                          inset: '0',
+                                          backgroundColor: selectedText.strokeColor || '#000000',
+                                          pointerEvents: 'none'
+                                        }} />
+                                      </div>
+                                      <input
+                                        type="text"
+                                        value={selectedText.strokeColor || '#000000'}
+                                        onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
+                                        style={{
+                                          flex: 1,
+                                          padding: '10px 12px',
+                                          backgroundColor: '#ffffff',
+                                          border: '1px solid #d1d5db',
+                                          borderRadius: '6px',
+                                          color: '#111827',
+                                          fontSize: '14px',
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          outline: 'none',
+                                          transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                      />
+                                    </div>
+                                    <div>
+                                      <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '6px'
+                                      }}>
+                                        <div style={{
+                                          fontSize: '12px',
+                                          color: '#6b7280',
+                                          fontFamily: 'var(--stepn-font-body)'
+                                        }}>
+                                          Épaisseur
+                                        </div>
+                                        <div style={{
+                                          fontSize: '12px',
+                                          fontWeight: '600',
+                                          color: '#111827',
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          minWidth: '40px',
+                                          textAlign: 'right'
+                                        }}>
+                                          {(selectedText.strokeWidth || 0.1).toFixed(1)}
+                                        </div>
+                                      </div>
                                       <input
                                         type="range"
                                         min="0"
-                                        max="100"
-                                        step="1"
-                                        value={selectedText.deformationIntensity || 50}
-                                        onChange={(e) => updateText(selectedTextId, { 
-                                          deformationIntensity: parseInt(e.target.value) 
-                                        })}
+                                        max="2"
+                                        step="0.1"
+                                        value={selectedText.strokeWidth || 0.1}
+                                        onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
                                         style={{
                                           width: '100%',
-                                          cursor: 'pointer'
+                                          height: '6px',
+                                          borderRadius: '3px',
+                                          background: '#e5e7eb',
+                                          outline: 'none',
+                                          cursor: 'pointer',
+                                          WebkitAppearance: 'none',
+                                          appearance: 'none'
                                         }}
                                       />
-                                      <div style={{
-                                        fontSize: '11px',
-                                        color: '#666',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        marginTop: '4px'
-                                      }}>
-                                        {selectedText.deformationIntensity || 50}%
-                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              )}
+                                  </div>
+                                )}
+
+                                {/* Déformation */}
+                                {activeModule.enableTextDeformation !== false && (
+                                  <div style={{ marginBottom: '20px' }}>
+                                    <div style={{
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      color: '#6b7280',
+                                      marginBottom: '8px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
+                                    }}>
+                                      Déformation
+                                    </div>
+                                    <select
+                                      value={selectedText.deformation || ''}
+                                      onChange={(e) => updateText(selectedTextId, { 
+                                        deformation: e.target.value || undefined 
+                                      })}
+                                      style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        backgroundColor: '#ffffff',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        color: '#111827',
+                                        fontSize: '14px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        cursor: 'pointer',
+                                        outline: 'none',
+                                        marginBottom: selectedText.deformation ? '12px' : '0',
+                                        transition: 'border-color 0.2s'
+                                      }}
+                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                    >
+                                      <option value="">Aucune</option>
+                                      <option value="arc">Arc</option>
+                                      <option value="wave">Vague</option>
+                                      <option value="bulge">Bombé</option>
+                                      <option value="pinch">Pincement</option>
+                                    </select>
+                                    {selectedText.deformation && (
+                                      <div style={{ marginTop: '12px' }}>
+                                        <div style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          marginBottom: '6px'
+                                        }}>
+                                          <div style={{
+                                            fontSize: '12px',
+                                            color: '#6b7280',
+                                            fontFamily: 'var(--stepn-font-body)'
+                                          }}>
+                                            Intensité
+                                          </div>
+                                          <div style={{
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            color: '#111827',
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            minWidth: '50px',
+                                            textAlign: 'right'
+                                          }}>
+                                            {selectedText.deformationIntensity || 50}%
+                                          </div>
+                                        </div>
+                                        <input
+                                          type="range"
+                                          min="0"
+                                          max="100"
+                                          step="1"
+                                          value={selectedText.deformationIntensity || 50}
+                                          onChange={(e) => updateText(selectedTextId, { 
+                                            deformationIntensity: parseInt(e.target.value) 
+                                          })}
+                                          style={{
+                                            width: '100%',
+                                            height: '6px',
+                                            borderRadius: '3px',
+                                            background: '#e5e7eb',
+                                            outline: 'none',
+                                            cursor: 'pointer',
+                                            WebkitAppearance: 'none',
+                                            appearance: 'none'
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           );
                         })()}
