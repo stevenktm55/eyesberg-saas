@@ -1808,8 +1808,9 @@ function SimpleViewer({
             try { document.fonts.load(`12px "${target.display_name}"`); } catch {}
           }
           pendingFonts = true;
-          // Skip drawing this text if font is not ready
-          return;
+          // Use Arial as fallback if font is not ready - don't skip drawing
+          measureFontFamily = 'Arial';
+          fontIsReady = true; // Allow drawing with fallback
         }
         ctx.font = `${fontSize}px ${measureFontFamily}`;
         

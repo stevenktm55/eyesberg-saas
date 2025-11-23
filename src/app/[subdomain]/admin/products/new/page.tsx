@@ -3899,7 +3899,8 @@ export default function ProductBuilderPage() {
                 console.log('🔍 Available zones:', availableZones.map(z => ({ 
                   id: z.id, 
                   name: z.name, 
-                  thumbnailUrl: z.thumbnailUrl 
+                  thumbnailUrl: z.thumbnailUrl,
+                  hasThumbnail: !!z.thumbnailUrl && !z.thumbnailUrl.startsWith('blob:')
                 })));
               
                 if (availableZones.length === 0) {
