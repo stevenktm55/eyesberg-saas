@@ -344,27 +344,22 @@ export function UVMapViewer({
 
   // Handle mouse down - select zone, move selected zone, or place new one
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current || !canvasRef.current || !zonesCanvasRef.current) return;
+    if (!containerRef.current || !canvasRef.current) return;
     
-    // Get the actual bounding rect of the zones canvas (after CSS transforms)
-    const zonesCanvasRect = zonesCanvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - zonesCanvasRect.left;
-    const mouseY = e.clientY - zonesCanvasRect.top;
+    // Use the same logic as screenToUV but convert to canvas coordinates instead
+    const rect = containerRef.current.getBoundingClientRect();
+    const canvasDisplayWidth = rect.width;
+    const canvasDisplayHeight = rect.height;
+    const scaleX = canvasRef.current.width / canvasDisplayWidth;
+    const scaleY = canvasRef.current.height / canvasDisplayHeight;
     
-    // The zones canvas has the same size as the base canvas and same CSS transform
-    // Convert mouse coordinates to canvas coordinates
-    // The canvas has transform: translate(pan.x, pan.y) scale(scale) with transformOrigin: "top left"
-    const canvasDisplayWidth = zonesCanvasRect.width;
-    const canvasDisplayHeight = zonesCanvasRect.height;
-    const scaleX = canvasDisplayWidth / canvasRef.current.width;
-    const scaleY = canvasDisplayHeight / canvasRef.current.height;
+    // Account for pan and scale (same as screenToUV)
+    const x = (e.clientX - rect.left - pan.x) / scale * scaleX;
+    const y = (e.clientY - rect.top - pan.y) / scale * scaleY;
     
-    // Account for pan and scale transformations
-    // First, subtract pan to get position relative to transformed canvas
-    // Then divide by scale to get position in canvas display space
-    // Finally, divide by scaleX/scaleY to get position in actual canvas pixels
-    const canvasMouseX = ((mouseX - pan.x) / scale) / scaleX;
-    const canvasMouseY = ((mouseY - pan.y) / scale) / scaleY;
+    // Convert to canvas coordinates (0 to canvas.width/height)
+    const canvasMouseX = Math.max(0, Math.min(canvasRef.current.width, x));
+    const canvasMouseY = Math.max(0, Math.min(canvasRef.current.height, y));
     
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
