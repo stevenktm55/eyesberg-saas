@@ -3845,6 +3845,7 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     toggleTextLock={toggleTextLock}
     setIsDraggingText={setIsDraggingText}
     fonts={fonts}
+    onCanvasReady={onCanvasReady}
   />;
 }
 
