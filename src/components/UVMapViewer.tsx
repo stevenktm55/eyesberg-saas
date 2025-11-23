@@ -346,25 +346,47 @@ export function UVMapViewer({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!containerRef.current || !canvasRef.current || !zonesCanvasRef.current) return;
     
-    // Get the actual bounding rect of the zones canvas (accounts for all CSS transforms including objectFit: contain)
-    const zonesCanvasRect = zonesCanvasRef.current.getBoundingClientRect();
+    // Get bounding rects
     const containerRect = containerRef.current.getBoundingClientRect();
+    const zonesCanvasRect = zonesCanvasRef.current.getBoundingClientRect();
     
-    // Mouse position relative to zones canvas (after all CSS transforms)
-    const mouseXInCanvas = e.clientX - zonesCanvasRect.left;
-    const mouseYInCanvas = e.clientY - zonesCanvasRect.top;
+    // Calculate the actual displayed size of the canvas (accounting for objectFit: contain)
+    // The canvas maintains aspect ratio, so we need to find which dimension is limiting
+    const containerAspect = containerRect.width / containerRect.height;
+    const canvasAspect = canvasRef.current.width / canvasRef.current.height;
+    
+    let canvasDisplayWidth: number;
+    let canvasDisplayHeight: number;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    if (containerAspect > canvasAspect) {
+      // Container is wider - canvas height limits, centered horizontally
+      canvasDisplayHeight = containerRect.height;
+      canvasDisplayWidth = canvasDisplayHeight * canvasAspect;
+      offsetX = (containerRect.width - canvasDisplayWidth) / 2;
+    } else {
+      // Container is taller - canvas width limits, centered vertically
+      canvasDisplayWidth = containerRect.width;
+      canvasDisplayHeight = canvasDisplayWidth / canvasAspect;
+      offsetY = (containerRect.height - canvasDisplayHeight) / 2;
+    }
+    
+    // Mouse position relative to container
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
+    
+    // Account for objectFit: contain offset
+    const mouseXInCanvas = mouseX - offsetX;
+    const mouseYInCanvas = mouseY - offsetY;
     
     // Convert to canvas pixel coordinates
-    // The canvas is scaled by CSS transform: scale(scale), so we need to divide by scale
-    // Also account for objectFit: contain which may scale the canvas differently in X and Y
-    const canvasDisplayWidth = zonesCanvasRect.width;
-    const canvasDisplayHeight = zonesCanvasRect.height;
+    // Account for pan and scale transformations
     const scaleX = canvasRef.current.width / canvasDisplayWidth;
     const scaleY = canvasRef.current.height / canvasDisplayHeight;
     
-    // Account for pan (which is applied before scale in CSS transform)
-    const canvasMouseX = (mouseXInCanvas - pan.x) / scale * scaleX;
-    const canvasMouseY = (mouseYInCanvas - pan.y) / scale * scaleY;
+    const canvasMouseX = ((mouseXInCanvas - pan.x) / scale) * scaleX;
+    const canvasMouseY = ((mouseYInCanvas - pan.y) / scale) * scaleY;
     
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
