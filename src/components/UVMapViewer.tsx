@@ -37,6 +37,11 @@ export function UVMapViewer({
   canvasSize = 2048,
   design2DUrl
 }: UVMapViewerProps) {
+  // Expose selectedZoneId to handleMouseDown
+  const selectedZoneIdRef = useRef(selectedZoneId);
+  useEffect(() => {
+    selectedZoneIdRef.current = selectedZoneId;
+  }, [selectedZoneId]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [uvMapImage, setUvMapImage] = useState<string | null>(null);
@@ -322,7 +327,7 @@ export function UVMapViewer({
       // Deselect
       onZoneSelect(null);
     }
-  }, [zones, uvToScreen, screenToUV, isPlacingZone, selectedZoneId, onZoneSelect, onZonePlaced, onZoneUpdate, scale, isPointInRotatedRect]);
+  }, [zones, uvToScreen, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, onZoneUpdate, scale, isPointInRotatedRect]);
 
   // Handle mouse move - no longer needed for dragging, but keep for potential future use
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -354,8 +359,9 @@ export function UVMapViewer({
     
     // Draw zones
     zones.forEach(zone => {
-      const x = zone.position[0] * zonesCanvas.width;
-      const y = (1 - zone.position[1]) * zonesCanvas.height;
+      // Apply 180° rotation to match UV map
+      const x = (1 - zone.position[0]) * zonesCanvas.width;
+      const y = zone.position[1] * zonesCanvas.height;
       const width = zone.width * zonesCanvas.width;
       const height = zone.height * zonesCanvas.height;
       
