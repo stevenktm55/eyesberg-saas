@@ -108,7 +108,12 @@ export default function ZonesConfigPage() {
       const res = await fetch('/api/designs-2d');
       if (res.ok) {
         const data = await res.json();
-        setDesigns2D(data);
+        // Map svg_url (from API) to svgUrl (for TypeScript)
+        const mappedData = data.map((design: any) => ({
+          ...design,
+          svgUrl: design.svg_url || design.svgUrl
+        }));
+        setDesigns2D(mappedData);
       }
     } catch (error) {
       console.error('Error fetching designs 2D:', error);
@@ -279,7 +284,8 @@ export default function ZonesConfigPage() {
   const selectedModel = models3D.find(m => m.id === selectedModel3DId);
   const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
   const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
-  const designUrl = selectedDesign?.svgUrl || null;
+  // Support both svgUrl (camelCase) and svg_url (snake_case)
+  const designUrl = selectedDesign?.svgUrl || selectedDesign?.svg_url || null;
   
   // Debug log
   useEffect(() => {
@@ -287,7 +293,8 @@ export default function ZonesConfigPage() {
       selectedDesign2DId,
       selectedDesign,
       designUrl,
-      totalDesigns: designs2D.length
+      totalDesigns: designs2D.length,
+      designKeys: selectedDesign ? Object.keys(selectedDesign) : []
     });
   }, [selectedDesign2DId, selectedDesign, designUrl, designs2D.length]);
 
