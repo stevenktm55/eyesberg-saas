@@ -4154,9 +4154,16 @@ export default function ProductBuilderPage() {
                               };
                               const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                               
+                              // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                              const zonePosition: [number, number, number] = [
+                                selectedZone.position[0],
+                                selectedZone.position[1],
+                                selectedZone.position[2] || 0
+                              ];
+                              console.log('📍 Adding text at zone position:', zonePosition, 'for zone:', selectedZone.name);
                               addText(
                                 textInputValue,
-                                selectedZone.position,
+                                zonePosition,
                                 undefined,
                                 'text',
                                 700,
@@ -4234,9 +4241,16 @@ export default function ProductBuilderPage() {
                             };
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
+                            // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                            const zonePosition: [number, number, number] = [
+                              selectedZone.position[0],
+                              selectedZone.position[1],
+                              selectedZone.position[2] || 0
+                            ];
+                            console.log('📍 Adding text at zone position:', zonePosition, 'for zone:', selectedZone.name);
                             addText(
                               textInputValue,
-                              selectedZone.position,
+                              zonePosition,
                               undefined,
                               'text',
                               700,
