@@ -3283,43 +3283,151 @@ export default function ProductBuilderPage() {
               )}
 
               {selectedModule.contentType === 'text' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#a0a0a0',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Texte du bouton
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedModule.addTextButtonLabel || 'Ajouter un texte'}
-                    onChange={(e) => {
-                      const updated = { 
-                        ...selectedModule, 
-                        addTextButtonLabel: e.target.value || undefined
-                      };
-                      setSelectedModule(updated);
-                      setCustomizationModules(customizationModules.map(m => 
-                        m.id === selectedModule.id ? updated : m
-                      ));
-                    }}
-                    placeholder="Ajouter un texte"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
+                <>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Mode de placement
+                    </label>
+                    <select
+                      value={selectedModule.textPlacementMode || 'free'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          textPlacementMode: e.target.value as 'zones' | 'free',
+                          zoneGroupIds: e.target.value === 'zones' ? (selectedModule.zoneGroupIds || []) : undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="free">Placement libre (cliquer sur le 3D)</option>
+                      <option value="zones">Utiliser des zones prédéfinies</option>
+                    </select>
+                  </div>
+
+                  {selectedModule.textPlacementMode === 'zones' && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Groupes de zones
+                      </label>
+                      <div style={{
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        padding: '8px',
+                        backgroundColor: '#1a1a1a'
+                      }}>
+                        {zoneGroups.length === 0 ? (
+                          <p style={{ color: '#666', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                            Aucun groupe de zones disponible. Créez-en dans My Configurations → Zones.
+                          </p>
+                        ) : (
+                          zoneGroups.map((group) => (
+                            <label
+                              key={group.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px',
+                                cursor: 'pointer',
+                                fontFamily: 'var(--stepn-font-body)',
+                                fontSize: '14px',
+                                color: '#ffffff'
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedModule.zoneGroupIds?.includes(group.id) || false}
+                                onChange={(e) => {
+                                  const currentIds = selectedModule.zoneGroupIds || [];
+                                  const newIds = e.target.checked
+                                    ? [...currentIds, group.id]
+                                    : currentIds.filter(id => id !== group.id);
+                                  const updated = { 
+                                    ...selectedModule, 
+                                    zoneGroupIds: newIds
+                                  };
+                                  setSelectedModule(updated);
+                                  setCustomizationModules(customizationModules.map(m => 
+                                    m.id === selectedModule.id ? updated : m
+                                  ));
+                                }}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <span>{group.name} ({group.zones.length} zone{group.zones.length > 1 ? 's' : ''})</span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Texte du bouton
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedModule.addTextButtonLabel || 'Ajouter un texte'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          addTextButtonLabel: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      placeholder="Ajouter un texte"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </>
               )}
 
               <button
