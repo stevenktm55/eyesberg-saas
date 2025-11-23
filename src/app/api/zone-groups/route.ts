@@ -242,22 +242,30 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Récupérer le groupe mis à jour avec ses zones
+    // Récupérer le groupe mis à jour
     const { data: updatedGroup, error: fetchUpdatedError } = await supabaseAdmin
       .from('zone_groups')
-      .select(`
-        *,
-        zones:zones(*)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
     if (fetchUpdatedError) throw fetchUpdatedError;
 
+    // Récupérer les zones du groupe
+    const { data: zones, error: zonesError } = await supabaseAdmin
+      .from('zones')
+      .select('*')
+      .eq('zone_group_id', id)
+      .order('created_at', { ascending: true });
+
+    if (zonesError) {
+      console.error(`Error fetching zones for group ${id}:`, zonesError);
+    }
+
     const result = {
       id: updatedGroup.id,
       name: updatedGroup.name,
-      zones: (updatedGroup.zones || []).map((z: any) => ({
+      zones: (zones || []).map((z: any) => ({
         id: z.id,
         name: z.name,
         model3d_id: z.model3d_id,
@@ -267,7 +275,7 @@ export async function PATCH(request: NextRequest) {
         height: z.height,
         thumbnailUrl: z.thumbnail_url,
         isLogo: z.is_logo,
-        view: z.view,
+        view: z.view || 'Face',
         createdAt: z.created_at
       })),
       design2dIds: updatedGroup.design2d_ids || [],
