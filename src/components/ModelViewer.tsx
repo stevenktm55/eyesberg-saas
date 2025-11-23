@@ -3783,7 +3783,7 @@ const loadFontToCache = async (font: any): Promise<string | null> => {
   }
 };
 
-export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, ...props }: Props) {
+export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, ...props }: Props) {
   console.log('🎨 ModelViewer: designTexture =', designTexture);
   console.log('🎨 ModelViewer: placedLogos =', placedLogos);
   console.log('📍 ModelViewer: isPlacingText =', isPlacingText);
