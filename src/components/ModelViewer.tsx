@@ -868,7 +868,6 @@ function SimpleViewer({
         console.log('🎯 Applied material to mesh:', m.name || '(unnamed)', '→', ((m.material as any)?.name) || '(no name)');
       });
       tex.needsUpdate = true;
-      console.log('✅ Texture fully updated after recolor');
       appliedSvgRef.current = finalSvg;
       try {
         const svgDataUrlLocal = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(finalSvg);
@@ -1724,8 +1723,6 @@ function SimpleViewer({
       if ((overlayTex as any).source && (overlayTex as any).source.data) {
         (overlayTex as any).source.data.version = Date.now();
       }
-      
-      console.log('✅ Texture fully updated, needsUpdate:', overlayTex.needsUpdate);
     }
     
     function redrawAllTexts() {
@@ -2202,8 +2199,6 @@ function SimpleViewer({
       if ((overlayTex as any).source && (overlayTex as any).source.data) {
         (overlayTex as any).source.data.version = Date.now();
       }
-      
-      console.log('✅ Text texture updated');
     }
     
     // Combined redraw function (clears and redraws everything)
