@@ -344,17 +344,18 @@ export function UVMapViewer({
 
   // Handle mouse down - select zone, move selected zone, or place new one
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current || !canvasRef.current) return;
+    if (!containerRef.current || !canvasRef.current || !zonesCanvasRef.current) return;
     
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    // Get the actual bounding rect of the zones canvas (after CSS transforms)
+    const zonesCanvasRect = zonesCanvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - zonesCanvasRect.left;
+    const mouseY = e.clientY - zonesCanvasRect.top;
     
-    // Convert mouse coordinates to canvas coordinates (accounting for CSS transform and objectFit: contain)
+    // The zones canvas has the same size as the base canvas and same CSS transform
+    // Convert mouse coordinates to canvas coordinates
     // The canvas has transform: translate(pan.x, pan.y) scale(scale) with transformOrigin: "top left"
-    // And objectFit: "contain" which may scale the canvas to fit the container
-    const canvasDisplayWidth = rect.width;
-    const canvasDisplayHeight = rect.height;
+    const canvasDisplayWidth = zonesCanvasRect.width;
+    const canvasDisplayHeight = zonesCanvasRect.height;
     const scaleX = canvasDisplayWidth / canvasRef.current.width;
     const scaleY = canvasDisplayHeight / canvasRef.current.height;
     
