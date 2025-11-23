@@ -344,41 +344,41 @@ export function UVMapViewer({
 
   // Handle mouse down - select zone, move selected zone, or place new one
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !canvasRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     
+    // Convert mouse coordinates to canvas coordinates (accounting for CSS transform)
+    // The canvas has transform: translate(pan.x, pan.y) scale(scale)
+    // So we need to reverse this: subtract pan, then divide by scale
+    const canvasDisplayWidth = rect.width;
+    const canvasDisplayHeight = rect.height;
+    const scaleX = canvasDisplayWidth / canvasRef.current.width;
+    const scaleY = canvasDisplayHeight / canvasRef.current.height;
+    
+    // Convert mouse position to canvas coordinates
+    const canvasMouseX = (mouseX - pan.x) / scale / scaleX;
+    const canvasMouseY = (mouseY - pan.y) / scale / scaleY;
+    
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
     
     for (const zone of zones) {
-      if (!canvasRef.current) continue;
-      
-      // Calculate zone position and size in screen space (matching the drawing exactly)
-      const rect = containerRef.current.getBoundingClientRect();
-      const canvasDisplayWidth = rect.width;
-      const canvasDisplayHeight = rect.height;
-      const scaleX = canvasDisplayWidth / canvasRef.current.width;
-      const scaleY = canvasDisplayHeight / canvasRef.current.height;
-      
       // Calculate zone center position in canvas pixels (matching drawing: x = u * width, y = (1-v) * height)
       const zoneCenterX = zone.position[0] * canvasRef.current.width;
       const zoneCenterY = (1 - zone.position[1]) * canvasRef.current.height;
       
-      // Convert to screen coordinates with pan and scale
-      const screenCenterX = zoneCenterX * scaleX * scale + pan.x;
-      const screenCenterY = zoneCenterY * scaleY * scale + pan.y;
-      
-      // Zone size in screen pixels (exact match with drawing)
-      const zoneWidth = zone.width * canvasRef.current.width * scaleX * scale;
-      const zoneHeight = zone.height * canvasRef.current.height * scaleY * scale;
+      // Zone size in canvas pixels
+      const zoneWidth = zone.width * canvasRef.current.width;
+      const zoneHeight = zone.height * canvasRef.current.height;
       
       // Check if clicking inside zone (accounting for rotation in degrees)
+      // Use canvas coordinates directly
       if (isPointInRotatedRect(
-        { x: mouseX, y: mouseY },
-        { x: screenCenterX, y: screenCenterY },
+        { x: canvasMouseX, y: canvasMouseY },
+        { x: zoneCenterX, y: zoneCenterY },
         zoneWidth,
         zoneHeight,
         (zone.rotation * Math.PI) / 180 // Convert degrees to radians
