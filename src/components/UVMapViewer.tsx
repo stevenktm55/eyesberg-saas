@@ -346,20 +346,17 @@ export function UVMapViewer({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!containerRef.current || !canvasRef.current) return;
     
-    // Use the same logic as screenToUV but convert to canvas coordinates instead
     const rect = containerRef.current.getBoundingClientRect();
-    const canvasDisplayWidth = rect.width;
-    const canvasDisplayHeight = rect.height;
-    const scaleX = canvasRef.current.width / canvasDisplayWidth;
-    const scaleY = canvasRef.current.height / canvasDisplayHeight;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
     
-    // Account for pan and scale (same as screenToUV)
-    const x = (e.clientX - rect.left - pan.x) / scale * scaleX;
-    const y = (e.clientY - rect.top - pan.y) / scale * scaleY;
+    // Convert mouse to UV coordinates first (same as screenToUV)
+    const uv = screenToUV(e.clientX, e.clientY);
+    if (!uv) return;
     
-    // Convert to canvas coordinates (0 to canvas.width/height)
-    const canvasMouseX = Math.max(0, Math.min(canvasRef.current.width, x));
-    const canvasMouseY = Math.max(0, Math.min(canvasRef.current.height, y));
+    // Convert UV to canvas coordinates (matching how zones are drawn)
+    const canvasMouseX = uv[0] * canvasRef.current.width;
+    const canvasMouseY = (1 - uv[1]) * canvasRef.current.height; // Invert Y for drawing coordinates
     
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
@@ -374,7 +371,6 @@ export function UVMapViewer({
       const zoneHeight = zone.height * canvasRef.current.height;
       
       // Check if clicking inside zone (accounting for rotation in degrees)
-      // Use canvas coordinates directly
       const isInside = isPointInRotatedRect(
         { x: canvasMouseX, y: canvasMouseY },
         { x: zoneCenterX, y: zoneCenterY },
@@ -382,20 +378,6 @@ export function UVMapViewer({
         zoneHeight,
         (zone.rotation * Math.PI) / 180 // Convert degrees to radians
       );
-      
-      // Debug log for all zones when clicking
-      console.log(`Zone ${zone.id} detection:`, {
-        mouse: { x: e.clientX - rect.left, y: e.clientY - rect.top },
-        canvasMouse: { x: canvasMouseX, y: canvasMouseY },
-        zoneCenter: { x: zoneCenterX, y: zoneCenterY },
-        zoneSize: { width: zoneWidth, height: zoneHeight },
-        zonePosition: zone.position,
-        isInside,
-        distanceX: Math.abs(canvasMouseX - zoneCenterX),
-        distanceY: Math.abs(canvasMouseY - zoneCenterY),
-        halfWidth: zoneWidth / 2,
-        halfHeight: zoneHeight / 2
-      });
       
       if (isInside) {
         clickedZone = zone;
@@ -413,7 +395,6 @@ export function UVMapViewer({
       e.stopPropagation();
     } else if (isPlacingZone) {
       // Place new zone
-      const uv = screenToUV(e.clientX, e.clientY);
       if (uv) {
         onZonePlaced([uv[0], uv[1], 0]);
       }
@@ -421,7 +402,7 @@ export function UVMapViewer({
       // Deselect
       onZoneSelect(null);
     }
-  }, [zones, uvToScreen, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, onZoneUpdate, scale, isPointInRotatedRect]);
+  }, [zones, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, scale, isPointInRotatedRect]);
 
   // Handle mouse move - drag zone if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
