@@ -304,7 +304,7 @@ export function UVMapViewer({
     return [finalU, finalV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates
+  // Convert UV coordinates to screen coordinates (with vertical inversion)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -317,8 +317,9 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
+    // Invert vertical axis: (u, v) -> (u, 1-v) for screen coordinates
     const x = uv[0] * canvas.width * scaleX * scale + pan.x;
-    const y = uv[1] * canvas.height * scaleY * scale + pan.y;
+    const y = (1 - uv[1]) * canvas.height * scaleY * scale + pan.y;
     
     return { x, y };
   }, [pan, scale]);
@@ -455,10 +456,10 @@ export function UVMapViewer({
     // Clear
     ctx.clearRect(0, 0, zonesCanvas.width, zonesCanvas.height);
     
-    // Draw zones
+    // Draw zones (with vertical inversion)
     zones.forEach(zone => {
       const x = zone.position[0] * zonesCanvas.width;
-      const y = zone.position[1] * zonesCanvas.height;
+      const y = (1 - zone.position[1]) * zonesCanvas.height;
       const width = zone.width * zonesCanvas.width;
       const height = zone.height * zonesCanvas.height;
       
