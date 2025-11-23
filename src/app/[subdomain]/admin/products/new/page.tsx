@@ -2342,8 +2342,8 @@ export default function ProductBuilderPage() {
                           {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                         </button>
                         
-                        {/* Liste des textes ajoutés */}
-                        {texts.length > 0 && (
+                        {/* Liste des textes ajoutés - affichée uniquement quand aucun texte n'est sélectionné */}
+                        {!selectedTextId && texts.length > 0 && (
                           <div style={{
                             marginTop: '16px',
                             display: 'flex',
@@ -2501,26 +2501,28 @@ export default function ProductBuilderPage() {
                                 display: 'flex',
                                 borderBottom: '1px solid #e5e5e5',
                                 backgroundColor: '#ffffff',
-                                overflowX: 'auto'
+                                overflow: 'hidden'
                               }}>
                                 {tabs.map((tab) => (
                                   <button
                                     key={tab.id}
                                     onClick={() => setActiveTextTab(tab.id)}
                                     style={{
-                                      flex: '1',
-                                      minWidth: '100px',
-                                      padding: '12px 16px',
+                                      flex: '1 1 0',
+                                      minWidth: '0',
+                                      padding: '10px 8px',
                                       background: 'none',
                                       border: 'none',
                                       borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
                                       color: activeTextTab === tab.id ? '#111827' : '#6b7280',
-                                      fontSize: '13px',
+                                      fontSize: '12px',
                                       fontWeight: activeTextTab === tab.id ? '600' : '400',
                                       fontFamily: 'var(--stepn-font-body)',
                                       cursor: 'pointer',
                                       whiteSpace: 'nowrap',
-                                      transition: 'all 0.2s'
+                                      transition: 'all 0.2s',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis'
                                     }}
                                     onMouseEnter={(e) => {
                                       if (activeTextTab !== tab.id) {
