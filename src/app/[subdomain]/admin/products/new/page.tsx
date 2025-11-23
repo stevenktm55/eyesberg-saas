@@ -274,16 +274,17 @@ export default function ProductBuilderPage() {
 
   async function fetchZoneGroups() {
     try {
-      // TODO: Créer l'API route pour récupérer les groupes de zones
-      // Pour l'instant, on retourne un tableau vide
-      // const res = await fetch('/api/zone-groups');
-      // if (res.ok) {
-      //   const data = await res.json();
-      //   setZoneGroups(Array.isArray(data) ? data : []);
-      // }
-      setZoneGroups([]);
+      const res = await fetch('/api/zone-groups');
+      if (res.ok) {
+        const data = await res.json();
+        setZoneGroups(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch zone groups:', res.statusText);
+        setZoneGroups([]);
+      }
     } catch (error) {
       console.error('Error fetching zone groups:', error);
+      setZoneGroups([]);
     }
   }
 
