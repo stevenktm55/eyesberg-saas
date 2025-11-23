@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
@@ -153,6 +154,7 @@ export default function ProductBuilderPage() {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
+  const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -3886,7 +3888,7 @@ export default function ProductBuilderPage() {
                       </h3>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
                         gap: '16px'
                       }}>
                         {availableZones.map((zone) => {
@@ -4057,6 +4059,11 @@ export default function ProductBuilderPage() {
                                 undefined
                               );
                               
+                              // Positionner la caméra sur la vue de la zone
+                              if (zoneCategory) {
+                                setTargetView(zoneCategory);
+                              }
+                              
                               setShowZoneSelectionModal(false);
                               setSelectedZoneId(null);
                               setTextInputValue('');
@@ -4131,6 +4138,11 @@ export default function ProductBuilderPage() {
                               zoneCategory,
                               undefined
                             );
+                            
+                            // Positionner la caméra sur la vue de la zone
+                            if (zoneCategory) {
+                              setTargetView(zoneCategory);
+                            }
                             
                             setShowZoneSelectionModal(false);
                             setSelectedZoneId(null);
