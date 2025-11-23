@@ -169,6 +169,7 @@ export default function ProductBuilderPage() {
     gradientDirection?: 'horizontal' | 'vertical';
   }>>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [activeTextTab, setActiveTextTab] = useState<'contenu' | 'police' | 'couleur' | 'contour' | 'deformation'>('contenu');
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
@@ -576,6 +577,9 @@ export default function ProductBuilderPage() {
 
   const selectText = (id: string | null) => {
     setSelectedTextId(id);
+    if (id) {
+      setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+    }
   };
 
   const toggleTextLock = (id: string) => {
@@ -2438,6 +2442,14 @@ export default function ProductBuilderPage() {
                           const selectedText = texts.find(t => t.id === selectedTextId);
                           if (!selectedText) return null;
                           
+                          const tabs = [
+                            { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
+                            { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
+                            { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
+                            { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
+                            { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
+                          ].filter(tab => tab.enabled);
+                          
                           return (
                             <div style={{
                               marginTop: '20px',
@@ -2449,55 +2461,96 @@ export default function ProductBuilderPage() {
                               {/* Header */}
                               <div style={{
                                 padding: '12px 16px',
-                                backgroundColor: '#f8f8f8',
+                                backgroundColor: '#ffffff',
                                 borderBottom: '1px solid #e5e5e5',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between'
                               }}>
-                                <div style={{
-                                  fontSize: '13px',
-                                  fontWeight: '600',
-                                  color: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
-                                }}>
-                                  Options de texte
-                                </div>
                                 <button
                                   onClick={() => selectText(null)}
                                   style={{
                                     background: 'none',
                                     border: 'none',
-                                    fontSize: '18px',
-                                    color: '#666',
+                                    fontSize: '16px',
+                                    color: '#111827',
                                     cursor: 'pointer',
-                                    padding: '0',
-                                    width: '20px',
-                                    height: '20px',
+                                    padding: '4px 8px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
-                                    lineHeight: '1'
+                                    gap: '4px',
+                                    fontFamily: 'var(--stepn-font-body)'
                                   }}
                                 >
-                                  ×
+                                  <span>←</span>
+                                  <span>Retour</span>
                                 </button>
+                                <div style={{
+                                  fontSize: '14px',
+                                  fontWeight: '600',
+                                  color: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Typographie
+                                </div>
+                                <div style={{ width: '80px' }} /> {/* Spacer pour centrer */}
                               </div>
 
-                              <div style={{ padding: '16px' }}>
-                                {/* Contenu du texte */}
-                                {activeModule.enableTextContent !== false && (
-                                  <div style={{ marginBottom: '20px' }}>
-                                    <div style={{
-                                      fontSize: '11px',
-                                      fontWeight: '600',
-                                      color: '#6b7280',
-                                      marginBottom: '8px',
+                              {/* Onglets */}
+                              <div style={{
+                                display: 'flex',
+                                borderBottom: '1px solid #e5e5e5',
+                                backgroundColor: '#ffffff',
+                                overflowX: 'auto'
+                              }}>
+                                {tabs.map((tab) => (
+                                  <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTextTab(tab.id)}
+                                    style={{
+                                      flex: '1',
+                                      minWidth: '100px',
+                                      padding: '12px 16px',
+                                      background: 'none',
+                                      border: 'none',
+                                      borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
+                                      color: activeTextTab === tab.id ? '#111827' : '#6b7280',
+                                      fontSize: '13px',
+                                      fontWeight: activeTextTab === tab.id ? '600' : '400',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.5px'
+                                      cursor: 'pointer',
+                                      whiteSpace: 'nowrap',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (activeTextTab !== tab.id) {
+                                        e.currentTarget.style.color = '#111827';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (activeTextTab !== tab.id) {
+                                        e.currentTarget.style.color = '#6b7280';
+                                      }
+                                    }}
+                                  >
+                                    {tab.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Contenu de l'onglet sélectionné */}
+                              <div style={{ padding: '20px' }}>
+                                {/* Onglet Contenu */}
+                                {activeTextTab === 'contenu' && (
+                                  <div>
+                                    <div style={{
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      color: '#111827',
+                                      marginBottom: '12px',
+                                      fontFamily: 'var(--stepn-font-body)'
                                     }}>
-                                      Texte
+                                      Contenu du texte
                                     </div>
                                     <input
                                       type="text"
@@ -2505,10 +2558,10 @@ export default function ProductBuilderPage() {
                                       onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
                                       style={{
                                         width: '100%',
-                                        padding: '10px 12px',
+                                        padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         border: '1px solid #d1d5db',
-                                        borderRadius: '6px',
+                                        borderRadius: '8px',
                                         color: '#111827',
                                         fontSize: '14px',
                                         fontFamily: 'var(--stepn-font-body)',
@@ -2521,17 +2574,15 @@ export default function ProductBuilderPage() {
                                   </div>
                                 )}
 
-                                {/* Police */}
-                                {activeModule.enableTextFont !== false && (
-                                  <div style={{ marginBottom: '20px' }}>
+                                {/* Onglet Police */}
+                                {activeTextTab === 'police' && (
+                                  <div>
                                     <div style={{
-                                      fontSize: '11px',
-                                      fontWeight: '600',
-                                      color: '#6b7280',
-                                      marginBottom: '8px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.5px'
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      color: '#111827',
+                                      marginBottom: '12px',
+                                      fontFamily: 'var(--stepn-font-body)'
                                     }}>
                                       Police
                                     </div>
@@ -2544,10 +2595,10 @@ export default function ProductBuilderPage() {
                                       }}
                                       style={{
                                         width: '100%',
-                                        padding: '10px 12px',
+                                        padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         border: '1px solid #d1d5db',
-                                        borderRadius: '6px',
+                                        borderRadius: '8px',
                                         color: '#111827',
                                         fontSize: '14px',
                                         fontFamily: 'var(--stepn-font-body)',
@@ -2570,29 +2621,27 @@ export default function ProductBuilderPage() {
                                   </div>
                                 )}
 
-                                {/* Couleur */}
-                                {activeModule.enableTextColor !== false && (
-                                  <div style={{ marginBottom: '20px' }}>
+                                {/* Onglet Couleur */}
+                                {activeTextTab === 'couleur' && (
+                                  <div>
                                     <div style={{
-                                      fontSize: '11px',
-                                      fontWeight: '600',
-                                      color: '#6b7280',
-                                      marginBottom: '8px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.5px'
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      color: '#111827',
+                                      marginBottom: '12px',
+                                      fontFamily: 'var(--stepn-font-body)'
                                     }}>
                                       Couleur
                                     </div>
                                     <div style={{
                                       display: 'flex',
-                                      gap: '10px',
+                                      gap: '12px',
                                       alignItems: 'center'
                                     }}>
                                       <div style={{
                                         position: 'relative',
-                                        width: '48px',
-                                        height: '48px',
+                                        width: '56px',
+                                        height: '56px',
                                         borderRadius: '8px',
                                         overflow: 'hidden',
                                         border: '2px solid #e5e5e5',
@@ -2626,10 +2675,10 @@ export default function ProductBuilderPage() {
                                         onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
                                         style={{
                                           flex: 1,
-                                          padding: '10px 12px',
+                                          padding: '12px 16px',
                                           backgroundColor: '#ffffff',
                                           border: '1px solid #d1d5db',
-                                          borderRadius: '6px',
+                                          borderRadius: '8px',
                                           color: '#111827',
                                           fontSize: '14px',
                                           fontFamily: 'var(--stepn-font-body)',
@@ -2643,30 +2692,28 @@ export default function ProductBuilderPage() {
                                   </div>
                                 )}
 
-                                {/* Contour */}
-                                {activeModule.enableTextStroke !== false && (
-                                  <div style={{ marginBottom: '20px' }}>
+                                {/* Onglet Contour */}
+                                {activeTextTab === 'contour' && (
+                                  <div>
                                     <div style={{
-                                      fontSize: '11px',
-                                      fontWeight: '600',
-                                      color: '#6b7280',
-                                      marginBottom: '8px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.5px'
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      color: '#111827',
+                                      marginBottom: '12px',
+                                      fontFamily: 'var(--stepn-font-body)'
                                     }}>
                                       Contour
                                     </div>
                                     <div style={{
                                       display: 'flex',
-                                      gap: '10px',
+                                      gap: '12px',
                                       alignItems: 'center',
-                                      marginBottom: '12px'
+                                      marginBottom: '20px'
                                     }}>
                                       <div style={{
                                         position: 'relative',
-                                        width: '48px',
-                                        height: '48px',
+                                        width: '56px',
+                                        height: '56px',
                                         borderRadius: '8px',
                                         overflow: 'hidden',
                                         border: '2px solid #e5e5e5',
@@ -2700,10 +2747,10 @@ export default function ProductBuilderPage() {
                                         onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
                                         style={{
                                           flex: 1,
-                                          padding: '10px 12px',
+                                          padding: '12px 16px',
                                           backgroundColor: '#ffffff',
                                           border: '1px solid #d1d5db',
-                                          borderRadius: '6px',
+                                          borderRadius: '8px',
                                           color: '#111827',
                                           fontSize: '14px',
                                           fontFamily: 'var(--stepn-font-body)',
@@ -2719,21 +2766,22 @@ export default function ProductBuilderPage() {
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        marginBottom: '6px'
+                                        marginBottom: '8px'
                                       }}>
                                         <div style={{
-                                          fontSize: '12px',
-                                          color: '#6b7280',
+                                          fontSize: '13px',
+                                          fontWeight: '500',
+                                          color: '#111827',
                                           fontFamily: 'var(--stepn-font-body)'
                                         }}>
                                           Épaisseur
                                         </div>
                                         <div style={{
-                                          fontSize: '12px',
+                                          fontSize: '13px',
                                           fontWeight: '600',
                                           color: '#111827',
                                           fontFamily: 'var(--stepn-font-body)',
-                                          minWidth: '40px',
+                                          minWidth: '50px',
                                           textAlign: 'right'
                                         }}>
                                           {(selectedText.strokeWidth || 0.1).toFixed(1)}
@@ -2761,19 +2809,17 @@ export default function ProductBuilderPage() {
                                   </div>
                                 )}
 
-                                {/* Déformation */}
-                                {activeModule.enableTextDeformation !== false && (
-                                  <div style={{ marginBottom: '20px' }}>
+                                {/* Onglet Déformation */}
+                                {activeTextTab === 'deformation' && (
+                                  <div>
                                     <div style={{
-                                      fontSize: '11px',
-                                      fontWeight: '600',
-                                      color: '#6b7280',
-                                      marginBottom: '8px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.5px'
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      color: '#111827',
+                                      marginBottom: '12px',
+                                      fontFamily: 'var(--stepn-font-body)'
                                     }}>
-                                      Déformation
+                                      Type de déformation
                                     </div>
                                     <select
                                       value={selectedText.deformation || ''}
@@ -2782,16 +2828,16 @@ export default function ProductBuilderPage() {
                                       })}
                                       style={{
                                         width: '100%',
-                                        padding: '10px 12px',
+                                        padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         border: '1px solid #d1d5db',
-                                        borderRadius: '6px',
+                                        borderRadius: '8px',
                                         color: '#111827',
                                         fontSize: '14px',
                                         fontFamily: 'var(--stepn-font-body)',
                                         cursor: 'pointer',
                                         outline: 'none',
-                                        marginBottom: selectedText.deformation ? '12px' : '0',
+                                        marginBottom: selectedText.deformation ? '20px' : '0',
                                         transition: 'border-color 0.2s'
                                       }}
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
@@ -2804,22 +2850,23 @@ export default function ProductBuilderPage() {
                                       <option value="pinch">Pincement</option>
                                     </select>
                                     {selectedText.deformation && (
-                                      <div style={{ marginTop: '12px' }}>
+                                      <div style={{ marginTop: '20px' }}>
                                         <div style={{
                                           display: 'flex',
                                           justifyContent: 'space-between',
                                           alignItems: 'center',
-                                          marginBottom: '6px'
+                                          marginBottom: '8px'
                                         }}>
                                           <div style={{
-                                            fontSize: '12px',
-                                            color: '#6b7280',
+                                            fontSize: '13px',
+                                            fontWeight: '500',
+                                            color: '#111827',
                                             fontFamily: 'var(--stepn-font-body)'
                                           }}>
                                             Intensité
                                           </div>
                                           <div style={{
-                                            fontSize: '12px',
+                                            fontSize: '13px',
                                             fontWeight: '600',
                                             color: '#111827',
                                             fontFamily: 'var(--stepn-font-body)',
