@@ -75,11 +75,17 @@ export function UVMapViewer({
 
   // Generate UV map visualization with optional 2D design overlay
   useEffect(() => {
-    if (!scene || !canvasRef.current) return;
+    if (!scene || !canvasRef.current) {
+      console.log('⏳ Waiting for scene or canvas:', { hasScene: !!scene, hasCanvas: !!canvasRef.current });
+      return;
+    }
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      console.error('❌ Failed to get 2D context');
+      return;
+    }
 
     // Set canvas size
     canvas.width = canvasSize;
@@ -89,7 +95,7 @@ export function UVMapViewer({
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    console.log('🔄 Generating UV map, design2DUrl:', design2DUrl);
+    console.log('🔄 Generating UV map, design2DUrl:', design2DUrl, 'type:', typeof design2DUrl);
 
     // Load and draw 2D design if provided
     if (design2DUrl) {

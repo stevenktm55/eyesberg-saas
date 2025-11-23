@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { UVMapViewer } from "@/components/UVMapViewer";
 
 type Zone = {
@@ -280,6 +280,16 @@ export default function ZonesConfigPage() {
   const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
   const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
   const designUrl = selectedDesign?.svgUrl || null;
+  
+  // Debug log
+  useEffect(() => {
+    console.log('🎨 Design 2D selection:', {
+      selectedDesign2DId,
+      selectedDesign,
+      designUrl,
+      totalDesigns: designs2D.length
+    });
+  }, [selectedDesign2DId, selectedDesign, designUrl, designs2D.length]);
 
   return (
     <div>
