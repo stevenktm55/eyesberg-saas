@@ -98,7 +98,10 @@ export function UVMapViewer({
         ctx.fillStyle = "#1a1a1a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Apply 180° rotation
+        // First draw UV wireframe (with 180° rotation)
+        drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+        
+        // Then draw design 2D on top (with 180° rotation)
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(Math.PI); // 180 degrees
@@ -108,9 +111,6 @@ export function UVMapViewer({
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
         ctx.restore();
-        
-        // Then draw UV wireframe on top (with same transformations applied in drawUVWireframe)
-        drawUVWireframe(ctx, scene, canvas.width, canvas.height);
         
         // Convert to image
         canvas.toBlob((blob) => {
@@ -134,7 +134,7 @@ export function UVMapViewer({
       };
       img.src = design2DUrl;
     } else {
-      // Just draw UV wireframe
+      // Just draw UV wireframe (with 180° rotation)
       drawUVWireframe(ctx, scene, canvas.width, canvas.height);
       
       // Convert canvas to image
