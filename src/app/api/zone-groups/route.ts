@@ -252,7 +252,7 @@ export async function PATCH(request: NextRequest) {
     if (fetchUpdatedError) throw fetchUpdatedError;
 
     // Récupérer les zones du groupe
-    const { data: zones, error: zonesError } = await supabaseAdmin
+    const { data: fetchedZones, error: zonesError } = await supabaseAdmin
       .from('zones')
       .select('*')
       .eq('zone_group_id', id)
@@ -265,7 +265,7 @@ export async function PATCH(request: NextRequest) {
     const result = {
       id: updatedGroup.id,
       name: updatedGroup.name,
-      zones: (zones || []).map((z: any) => ({
+      zones: (fetchedZones || []).map((z: any) => ({
         id: z.id,
         name: z.name,
         model3d_id: z.model3d_id,
