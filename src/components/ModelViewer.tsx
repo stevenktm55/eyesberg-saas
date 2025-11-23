@@ -1771,11 +1771,6 @@ function SimpleViewer({
       let drawnCount = 0;
       let pendingFonts = false;
       
-      // Debug: log texts to verify they exist
-      if (textsRef.current.length > 0) {
-        console.log('📝 redrawAllTexts: Drawing', textsRef.current.length, 'texts');
-      }
-      
       textsRef.current.forEach(text => {
         // Get font info
         const font = fonts.find(f => f.id === text.fontFamily);
@@ -1828,17 +1823,6 @@ function SimpleViewer({
         const [u, v] = text.position || [0.5, 0.5, 0];
         const x = u * canvas.width;
         const y = v * canvas.height;
-        
-        // Debug log
-        console.log('🎨 Drawing text:', {
-          content: text.content,
-          position: [u, v],
-          canvasPos: [x, y],
-          fontSize,
-          font: measureFontFamily,
-          color: text.color || '#000000',
-          canvasSize: [canvas.width, canvas.height]
-        });
         
         // Ensure text is visible - use black if no color specified
         if (!text.color) {

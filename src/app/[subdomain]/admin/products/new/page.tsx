@@ -4161,8 +4161,10 @@ export default function ProductBuilderPage() {
                                 selectedZone.position[2] || 0
                               ];
                               // Convertir la rotation de degrés à radians si nécessaire
-                              const zoneRotation = (selectedZone as any).rotation ? (selectedZone as any).rotation * (Math.PI / 180) : undefined;
-                              console.log('📍 Adding text at zone position:', zonePosition, 'rotation:', zoneRotation, 'for zone:', selectedZone.name);
+                              // La rotation est stockée en degrés dans la base de données
+                              const zoneRotation = selectedZone.rotation !== undefined && selectedZone.rotation !== null 
+                                ? selectedZone.rotation * (Math.PI / 180) 
+                                : undefined;
                               addText(
                                 textInputValue,
                                 zonePosition,
@@ -4250,8 +4252,10 @@ export default function ProductBuilderPage() {
                               selectedZone.position[2] || 0
                             ];
                             // Convertir la rotation de degrés à radians si nécessaire
-                            const zoneRotation = (selectedZone as any).rotation ? (selectedZone as any).rotation * (Math.PI / 180) : undefined;
-                            console.log('📍 Adding text at zone position:', zonePosition, 'rotation:', zoneRotation, 'for zone:', selectedZone.name);
+                            // La rotation est stockée en degrés dans la base de données
+                            const zoneRotation = selectedZone.rotation !== undefined && selectedZone.rotation !== null 
+                              ? selectedZone.rotation * (Math.PI / 180) 
+                              : undefined;
                             addText(
                               textInputValue,
                               zonePosition,
