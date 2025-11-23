@@ -357,8 +357,16 @@ export function UVMapViewer({
       const screenPos = uvToScreen([zone.position[0], zone.position[1]]);
       if (!screenPos || !canvasRef.current) continue;
       
-      const zoneWidth = zone.width * canvasRef.current.width * scale;
-      const zoneHeight = zone.height * canvasRef.current.height * scale;
+      // Calculate zone dimensions in screen space (matching the drawing)
+      const rect = containerRef.current.getBoundingClientRect();
+      const canvasDisplayWidth = rect.width;
+      const canvasDisplayHeight = rect.height;
+      const scaleX = canvasDisplayWidth / canvasRef.current.width;
+      const scaleY = canvasDisplayHeight / canvasRef.current.height;
+      
+      // Zone size in screen pixels (exact match with drawing)
+      const zoneWidth = zone.width * canvasRef.current.width * scaleX * scale;
+      const zoneHeight = zone.height * canvasRef.current.height * scaleY * scale;
       
       // Check if clicking inside zone (accounting for rotation in degrees)
       if (isPointInRotatedRect(
