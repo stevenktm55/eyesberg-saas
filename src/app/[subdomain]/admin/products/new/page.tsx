@@ -4169,12 +4169,47 @@ export default function ProductBuilderPage() {
                               const zoneRotation = zoneRotationRaw !== undefined && zoneRotationRaw !== null 
                                 ? zoneRotationRaw * (Math.PI / 180) 
                                 : 0; // Par défaut, pas de rotation (0 radians)
+                              
+                              // Calculer la taille de police en fonction des dimensions de la zone
+                              // Le canvas fait 2048x2048, et le texte utilise un SCALE_FACTOR de 0.5
+                              // On veut que le texte s'adapte à la largeur de la zone
+                              const CANVAS_SIZE = 2048;
+                              const SCALE_FACTOR = 0.5; // Même facteur que dans ModelViewer
+                              const zoneWidth = (selectedZone as any).width || 0.1; // Largeur en UV space (0-1)
+                              const zoneHeight = (selectedZone as any).height || 0.1; // Hauteur en UV space (0-1)
+                              
+                              // Convertir en pixels
+                              const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+                              const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+                              
+                              // Estimer la taille de police pour que le texte tienne dans la zone
+                              // On utilise 80% de la largeur pour laisser de la marge
+                              // Et on prend le minimum entre largeur et hauteur pour s'assurer que le texte tient
+                              const availableWidth = zoneWidthPx * 0.8;
+                              const availableHeight = zoneHeightPx * 0.8;
+                              
+                              // Estimation: chaque caractère fait environ 0.6 * fontSize en largeur
+                              // Et la hauteur du texte est environ fontSize
+                              const estimatedCharWidth = 0.6; // Ratio largeur caractère / fontSize
+                              const textLength = textInputValue.length || 1;
+                              
+                              // Calculer fontSize basé sur la largeur disponible
+                              const fontSizeFromWidth = (availableWidth / textLength) / estimatedCharWidth / SCALE_FACTOR;
+                              // Calculer fontSize basé sur la hauteur disponible
+                              const fontSizeFromHeight = availableHeight / SCALE_FACTOR;
+                              
+                              // Prendre le minimum pour s'assurer que le texte tient dans les deux dimensions
+                              const calculatedFontSize = Math.min(fontSizeFromWidth, fontSizeFromHeight);
+                              
+                              // S'assurer que la taille est raisonnable (min 100, max 2000)
+                              const finalFontSize = Math.max(100, Math.min(2000, calculatedFontSize));
+                              
                               addText(
                                 textInputValue,
                                 zonePosition,
                                 undefined,
                                 'text',
-                                700,
+                                finalFontSize,
                                 zoneCategory,
                                 zoneRotation
                               );
