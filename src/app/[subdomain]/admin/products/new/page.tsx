@@ -2543,6 +2543,36 @@ export default function ProductBuilderPage() {
                               )}
                             </Suspense>
                             <OrbitControls
+                              ref={(controls) => {
+                                if (controls && targetView) {
+                                  // Positionner la caméra selon la vue
+                                  const camera = controls.object;
+                                  const distance = 5;
+                                  switch (targetView) {
+                                    case 'torse':
+                                      camera.position.set(0, 0, distance);
+                                      controls.target.set(0, 0, 0);
+                                      break;
+                                    case 'dos':
+                                      camera.position.set(0, 0, -distance);
+                                      controls.target.set(0, 0, 0);
+                                      break;
+                                    case 'bras-gauche':
+                                      camera.position.set(-distance, 0, 0);
+                                      controls.target.set(0, 0, 0);
+                                      break;
+                                    case 'bras-droit':
+                                      camera.position.set(distance, 0, 0);
+                                      controls.target.set(0, 0, 0);
+                                      break;
+                                  }
+                                  controls.update();
+                                  // Reset après un court délai pour permettre l'animation
+                                  setTimeout(() => {
+                                    setTargetView(null);
+                                  }, 100);
+                                }
+                              }}
                               enablePan={false}
                               enableZoom={!selectedTextId && !isPlacingText}
                               enableRotate={!selectedTextId && !isPlacingText}
