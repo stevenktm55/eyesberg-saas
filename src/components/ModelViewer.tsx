@@ -2250,8 +2250,16 @@ function SimpleViewer({
       (overlayTex as any).version = Date.now();
       
       // Also update the texture source to force reupload
-      if ((overlayTex as any).source && (overlayTex as any).source.data) {
+      if ((overlayTex as any).source) {
         (overlayTex as any).source.data = canvas;
+        if ((overlayTex as any).source.data) {
+          (overlayTex as any).source.data.version = Date.now();
+        }
+      }
+      
+      // Also update the texture image directly
+      if ((overlayTex as any).image) {
+        (overlayTex as any).image = canvas;
       }
     };
     
