@@ -379,13 +379,30 @@ export function UVMapViewer({
       
       // Check if clicking inside zone (accounting for rotation in degrees)
       // Use canvas coordinates directly
-      if (isPointInRotatedRect(
+      const isInside = isPointInRotatedRect(
         { x: canvasMouseX, y: canvasMouseY },
         { x: zoneCenterX, y: zoneCenterY },
         zoneWidth,
         zoneHeight,
         (zone.rotation * Math.PI) / 180 // Convert degrees to radians
-      )) {
+      );
+      
+      // Debug log for first zone
+      if (zones.indexOf(zone) === 0) {
+        console.log('Zone detection:', {
+          mouse: { x: mouseX, y: mouseY },
+          canvasMouse: { x: canvasMouseX, y: canvasMouseY },
+          zoneCenter: { x: zoneCenterX, y: zoneCenterY },
+          zoneSize: { width: zoneWidth, height: zoneHeight },
+          isInside,
+          pan: { x: pan.x, y: pan.y },
+          scale,
+          scaleX,
+          scaleY
+        });
+      }
+      
+      if (isInside) {
         clickedZone = zone;
         break;
       }
