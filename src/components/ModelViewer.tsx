@@ -1802,6 +1802,8 @@ function SimpleViewer({
             try { document.fonts.load(`12px "${target.display_name}"`); } catch {}
           }
           pendingFonts = true;
+          // Skip drawing this text if font is not ready
+          return;
         }
         ctx.font = `${fontSize}px ${measureFontFamily}`;
         
@@ -1813,6 +1815,11 @@ function SimpleViewer({
         const [u, v] = text.position;
         const x = u * canvas.width;
         const y = v * canvas.height;
+        
+        // Ensure text is visible - use black if no color specified
+        if (!text.color) {
+          text.color = '#000000';
+        }
         
         ctx.save();
         ctx.translate(x, y);
