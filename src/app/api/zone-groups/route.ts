@@ -13,26 +13,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: groups, error } = await supabaseAdmin
+    // Récupérer les groupes de zones
+    const { data: groups, error: groupsError } = await supabaseAdmin
       .from('zone_groups')
-      .select(`
-        *,
-        zones:zones(*)
-      `)
+      .select('*')
       .eq('subdomain', subdomain)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (groupsError) throw groupsError;
 
-    // Transformer les données pour correspondre au format attendu
-    const transformedGroups = groups.map((group: any) => ({
-      id: group.id,
-      name: group.name,
-      zones: group.zones || [],
-      design2dIds: group.design2d_ids || [],
-      created_at: group.created_at,
-      updated_at: group.updated_at
-    }));
+    // Pour chaque groupe, récupérer ses zones
+    const transformedGroups = await Promise.all(
+      (groups || []).map(async (group: any) => {
+        const { data: zones, error: zonesError } = await supabaseAdmin
+          .from('zones')
+          .select('*')
+          .eq('zone_group_id', group.id)
+          .order('created_at', { ascending: true });
+
+        if (zonesError) {
+          console.error(`Error fetching zones for group ${group.id}:`, zonesError);
+        }
+
+        return {
+          id: group.id,
+          name: group.name,
+          zones: (zones || []).map((z: any) => ({
+            id: z.id,
+            name: z.name,
+            model3d_id: z.model3d_id,
+            position: z.position,
+            rotation: z.rotation,
+            width: z.width,
+            height: z.height,
+            thumbnailUrl: z.thumbnail_url,
+            isLogo: z.is_logo,
+            view: z.view || 'Face',
+            createdAt: z.created_at
+          })),
+          design2dIds: group.design2d_ids || [],
+          created_at: group.created_at,
+          updated_at: group.updated_at
+        };
+      })
+    );
 
     return NextResponse.json(transformedGroups);
   } catch (error: any) {
