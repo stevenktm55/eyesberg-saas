@@ -305,14 +305,13 @@ export function UVMapViewer({
     }
     
     if (clickedZone) {
-      // Select the zone
+      // Select the zone and start dragging
       onZoneSelect(clickedZone.id);
-    } else if (selectedZoneId) {
-      // If a zone is selected and we click outside, move it to the clicked position
-      const uv = screenToUV(e.clientX, e.clientY);
-      if (uv) {
-        onZoneUpdate(selectedZoneId, { position: [uv[0], uv[1], 0] });
-      }
+      setDragZoneId(clickedZone.id);
+      setDragStart({ x: mouseX, y: mouseY });
+      setIsDragging(true);
+      e.preventDefault();
+      e.stopPropagation();
     } else if (isPlacingZone) {
       // Place new zone
       const uv = screenToUV(e.clientX, e.clientY);
