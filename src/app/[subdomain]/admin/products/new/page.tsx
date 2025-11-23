@@ -3805,31 +3805,32 @@ export default function ProductBuilderPage() {
           >
             <div
               style={{
-                backgroundColor: '#1a1a1a',
+                backgroundColor: '#ffffff',
                 borderRadius: '8px',
-                padding: '24px',
+                padding: '32px',
                 width: '90%',
-                maxWidth: '600px',
-                maxHeight: '80vh',
+                maxWidth: '700px',
+                maxHeight: '90vh',
                 overflowY: 'auto',
-                border: '1px solid #2a2a2a'
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Header */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '24px'
+                marginBottom: '32px'
               }}>
                 <h2 style={{
-                  fontSize: '18px',
+                  fontSize: '20px',
                   fontWeight: '600',
-                  color: '#ffffff',
+                  color: '#000000',
                   fontFamily: 'var(--stepn-font-body)',
                   margin: 0
                 }}>
-                  Sélectionner une zone
+                  {activeModule.addTextButtonLabel || 'Ajouter un texte'}
                 </h2>
                 <button
                   onClick={() => {
@@ -3840,7 +3841,7 @@ export default function ProductBuilderPage() {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#ffffff',
+                    color: '#666666',
                     fontSize: '24px',
                     cursor: 'pointer',
                     padding: '0',
@@ -3848,7 +3849,8 @@ export default function ProductBuilderPage() {
                     height: '32px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    lineHeight: '1'
                   }}
                 >
                   ×
@@ -3861,70 +3863,180 @@ export default function ProductBuilderPage() {
                   .filter(group => activeModule.zoneGroupIds?.includes(group.id))
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
-              if (availableZones.length === 0) {
+                if (availableZones.length === 0) {
+                  return (
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                      Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
+                    </p>
+                  );
+                }
+                
                 return (
-                  <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
-                    Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
-                  </p>
-                );
-              }
-              
-              return (
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#a0a0a0',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Zone
-                  </label>
-                  <select
-                    value={selectedZoneId || ''}
-                    onChange={(e) => {
-                      setSelectedZoneId(e.target.value || null);
-                      setTextInputValue('');
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      backgroundColor: '#0a0a0a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                      marginBottom: '16px'
-                    }}
-                  >
-                    <option value="">-- Choisir une zone --</option>
-                    {availableZones.map((zone) => (
-                      <option key={zone.id} value={zone.id}>
-                        {zone.groupName} - {zone.name} {zone.view ? `(${zone.view})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  
-                  {selectedZoneId && (
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '12px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                  <div>
+                    {/* Section: Choisissez une position standard */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#000000',
+                        fontFamily: 'var(--stepn-font-body)',
+                        marginBottom: '16px'
                       }}>
-                        Texte
-                      </label>
+                        Choisissez une position standard
+                      </h3>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                        gap: '16px'
+                      }}>
+                        {availableZones.map((zone) => {
+                          const isSelected = selectedZoneId === zone.id;
+                          return (
+                            <div
+                              key={zone.id}
+                              onClick={() => {
+                                setSelectedZoneId(zone.id);
+                                setTextInputValue('');
+                              }}
+                              style={{
+                                position: 'relative',
+                                cursor: 'pointer',
+                                border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                backgroundColor: '#ffffff',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.borderColor = '#999999';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.borderColor = '#e0e0e0';
+                                }
+                              }}
+                            >
+                              {/* Checkmark icon */}
+                              {isSelected && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '8px',
+                                  right: '8px',
+                                  width: '24px',
+                                  height: '24px',
+                                  backgroundColor: '#000000',
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  zIndex: 10
+                                }}>
+                                  <span style={{
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    ✓
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Zone thumbnail */}
+                              <div style={{
+                                width: '100%',
+                                height: '140px',
+                                backgroundColor: '#f5f5f5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}>
+                                {zone.thumbnailUrl ? (
+                                  <img
+                                    src={zone.thumbnailUrl}
+                                    alt={zone.name}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                      filter: 'grayscale(100%)'
+                                    }}
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: '#e0e0e0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#999999',
+                                    fontSize: '12px'
+                                  }}>
+                                    {zone.name}
+                                  </div>
+                                )}
+                                {/* Placeholder rectangle for zone position */}
+                                <div style={{
+                                  position: 'absolute',
+                                  width: '60%',
+                                  height: '30%',
+                                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                                  border: '1px solid rgba(0, 0, 0, 0.5)',
+                                  borderRadius: '2px',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)'
+                                }} />
+                              </div>
+                              
+                              {/* Zone label */}
+                              <div style={{
+                                padding: '12px',
+                                textAlign: 'center',
+                                backgroundColor: '#ffffff'
+                              }}>
+                                <p style={{
+                                  margin: 0,
+                                  fontSize: '12px',
+                                  fontWeight: '500',
+                                  color: '#000000',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  {zone.name}
+                                  {zone.view && ` (${zone.view})`}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Section: Contenu du texte */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#000000',
+                        fontFamily: 'var(--stepn-font-body)',
+                        marginBottom: '12px'
+                      }}>
+                        Contenu du texte
+                      </h3>
                       <input
                         type="text"
                         value={textInputValue}
                         onChange={(e) => setTextInputValue(e.target.value)}
-                        placeholder="Entrez le texte"
+                        placeholder="Saisir l'inscription ici..."
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && textInputValue.trim()) {
+                          if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                             const selectedZone = availableZones.find(z => z.id === selectedZoneId);
                             if (selectedZone) {
                               const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
@@ -3953,17 +4065,51 @@ export default function ProductBuilderPage() {
                         }}
                         style={{
                           width: '100%',
-                          padding: '10px 12px',
-                          backgroundColor: '#0a0a0a',
-                          border: '1px solid #2a2a2a',
+                          padding: '12px 16px',
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
                           fontFamily: 'var(--stepn-font-body)',
-                          color: '#ffffff',
-                          marginBottom: '16px',
+                          color: '#000000',
                           outline: 'none'
                         }}
                       />
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '12px'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setShowZoneSelectionModal(false);
+                          setSelectedZoneId(null);
+                          setTextInputValue('');
+                        }}
+                        style={{
+                          padding: '12px 24px',
+                          backgroundColor: '#f5f5f5',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#000000',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#e8e8e8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f5f5f5';
+                        }}
+                      >
+                        Annuler
+                      </button>
                       <button
                         onClick={() => {
                           const selectedZone = availableZones.find(z => z.id === selectedZoneId);
@@ -3991,27 +4137,35 @@ export default function ProductBuilderPage() {
                             setTextInputValue('');
                           }
                         }}
-                        disabled={!textInputValue.trim()}
+                        disabled={!textInputValue.trim() || !selectedZoneId}
                         style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          backgroundColor: textInputValue.trim() ? '#8eff36' : '#2a2a2a',
+                          padding: '12px 24px',
+                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
                           fontFamily: 'var(--stepn-font-body)',
-                          color: textInputValue.trim() ? '#000000' : '#666',
-                          cursor: textInputValue.trim() ? 'pointer' : 'not-allowed',
+                          color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
+                          cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
                           transition: 'all 0.2s'
                         }}
+                        onMouseEnter={(e) => {
+                          if (textInputValue.trim() && selectedZoneId) {
+                            e.currentTarget.style.backgroundColor = '#333333';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (textInputValue.trim() && selectedZoneId) {
+                            e.currentTarget.style.backgroundColor = '#000000';
+                          }
+                        }}
                       >
-                        Ajouter
+                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
                       </button>
                     </div>
-                  )}
-                </div>
-              );
+                  </div>
+                );
               })()}
             </div>
           </div>
