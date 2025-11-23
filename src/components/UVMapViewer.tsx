@@ -280,7 +280,7 @@ export function UVMapViewer({
     ctx.restore(); // Restore after rotation
   };
 
-  // Convert screen coordinates to UV coordinates (accounting for 180° rotation)
+  // Convert screen coordinates to UV coordinates (accounting for 180° rotation + horizontal mirror)
   const screenToUV = useCallback((screenX: number, screenY: number): [number, number] | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -301,14 +301,18 @@ export function UVMapViewer({
     const u = Math.max(0, Math.min(1, x / canvas.width));
     const v = Math.max(0, Math.min(1, y / canvas.height));
     
-    // Apply 180° rotation: flip both coordinates
-    const finalU = 1 - u;
-    const finalV = 1 - v;
+    // Apply 180° rotation + horizontal mirror: (u, v) -> (u, 1-v) after rotation and mirror
+    // With 180° rotation: (u, v) -> (1-u, 1-v)
+    // With horizontal mirror: (u, v) -> (1-u, v)
+    // Combined: (u, v) -> (1-u, 1-v) then mirror -> (u, 1-v)
+    // Actually: rotation first (1-u, 1-v), then mirror horizontally -> (u, 1-v)
+    const finalU = u; // After rotation and mirror, U stays the same
+    const finalV = 1 - v; // After rotation, V is flipped
     
     return [finalU, finalV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates (accounting for 180° rotation)
+  // Convert UV coordinates to screen coordinates (accounting for 180° rotation + horizontal mirror)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -321,9 +325,11 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
-    // Apply 180° rotation: flip both coordinates
-    const transformedU = 1 - uv[0];
-    const transformedV = 1 - uv[1];
+    // Apply 180° rotation + horizontal mirror (reverse transformation)
+    // From UV: (u, v) -> after rotation and mirror -> (u, 1-v) on screen
+    // Reverse: (u, 1-v) -> (u, v) in UV space
+    const transformedU = uv[0]; // U stays the same after transformations
+    const transformedV = 1 - uv[1]; // V is flipped after rotation
     
     const x = transformedU * canvas.width * scaleX * scale + pan.x;
     const y = transformedV * canvas.height * scaleY * scale + pan.y;
