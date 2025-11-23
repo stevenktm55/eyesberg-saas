@@ -98,10 +98,11 @@ export function UVMapViewer({
         ctx.fillStyle = "#1a1a1a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Rotate canvas 180 degrees
+        // Apply transformations: 180° rotation + horizontal mirror
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(Math.PI); // 180 degrees
+        ctx.scale(-1, 1); // Horizontal mirror
         ctx.translate(-canvas.width / 2, -canvas.height / 2);
         
         // Draw design 2D
@@ -109,13 +110,8 @@ export function UVMapViewer({
         
         ctx.restore();
         
-        // Then draw UV wireframe on top (also rotated)
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI); // 180 degrees
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        // Then draw UV wireframe on top (with same transformations applied in drawUVWireframe)
         drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-        ctx.restore();
         
         // Convert to image
         canvas.toBlob((blob) => {
@@ -125,14 +121,10 @@ export function UVMapViewer({
           }
         });
       };
-      img.onerror = () => {
-        // If design fails to load, just draw UV wireframe (rotated)
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI); // 180 degrees
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      img.onerror = (error) => {
+        console.error("Error loading design 2D:", error);
+        // If design fails to load, just draw UV wireframe
         drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-        ctx.restore();
         
         canvas.toBlob((blob) => {
           if (blob) {
@@ -143,13 +135,8 @@ export function UVMapViewer({
       };
       img.src = design2DUrl;
     } else {
-      // Just draw UV wireframe (rotated)
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(Math.PI); // 180 degrees
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      // Just draw UV wireframe
       drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-      ctx.restore();
       
       // Convert canvas to image
       canvas.toBlob((blob) => {
