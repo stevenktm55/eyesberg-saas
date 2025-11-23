@@ -471,14 +471,17 @@ export function UVMapViewer({
     // Clear
     ctx.clearRect(0, 0, zonesCanvas.width, zonesCanvas.height);
     
-    // Draw zones (accounting for 180° rotation)
+    // Draw zones (accounting for 180° rotation + horizontal mirror)
     zones.forEach(zone => {
-      // Apply 180° rotation to zone position
-      const rotatedU = 1 - zone.position[0];
-      const rotatedV = 1 - zone.position[1];
+      // Apply 180° rotation + horizontal mirror
+      // After rotation: (u, v) -> (1-u, 1-v)
+      // After horizontal mirror: (u, v) -> (1-u, v)
+      // Combined: (u, v) -> (u, 1-v) after both transformations
+      const transformedU = zone.position[0]; // U stays the same after both transformations
+      const transformedV = 1 - zone.position[1]; // V is flipped after rotation
       
-      const x = rotatedU * zonesCanvas.width;
-      const y = rotatedV * zonesCanvas.height;
+      const x = transformedU * zonesCanvas.width;
+      const y = transformedV * zonesCanvas.height;
       const width = zone.width * zonesCanvas.width;
       const height = zone.height * zonesCanvas.height;
       
