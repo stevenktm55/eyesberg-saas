@@ -350,17 +350,20 @@ export function UVMapViewer({
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     
-    // Convert mouse coordinates to canvas coordinates (accounting for CSS transform)
-    // The canvas has transform: translate(pan.x, pan.y) scale(scale)
-    // So we need to reverse this: subtract pan, then divide by scale
+    // Convert mouse coordinates to canvas coordinates (accounting for CSS transform and objectFit: contain)
+    // The canvas has transform: translate(pan.x, pan.y) scale(scale) with transformOrigin: "top left"
+    // And objectFit: "contain" which may scale the canvas to fit the container
     const canvasDisplayWidth = rect.width;
     const canvasDisplayHeight = rect.height;
     const scaleX = canvasDisplayWidth / canvasRef.current.width;
     const scaleY = canvasDisplayHeight / canvasRef.current.height;
     
-    // Convert mouse position to canvas coordinates
-    const canvasMouseX = (mouseX - pan.x) / scale / scaleX;
-    const canvasMouseY = (mouseY - pan.y) / scale / scaleY;
+    // Account for pan and scale transformations
+    // First, subtract pan to get position relative to transformed canvas
+    // Then divide by scale to get position in canvas display space
+    // Finally, divide by scaleX/scaleY to get position in actual canvas pixels
+    const canvasMouseX = ((mouseX - pan.x) / scale) / scaleX;
+    const canvasMouseY = ((mouseY - pan.y) / scale) / scaleY;
     
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
