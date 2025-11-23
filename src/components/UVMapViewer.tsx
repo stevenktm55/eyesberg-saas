@@ -94,20 +94,24 @@ export function UVMapViewer({
     // Load and draw 2D design if provided
     if (design2DUrl) {
       // Check if it's an SVG or image
-      const isSvg = design2DUrl.toLowerCase().endsWith('.svg') || design2DUrl.includes('svg');
+      const isSvg = design2DUrl.toLowerCase().endsWith('.svg') || design2DUrl.includes('svg') || design2DUrl.startsWith('data:image/svg');
       
       if (isSvg) {
         // Load SVG and convert to image
         fetch(design2DUrl)
-          .then(res => res.text())
+          .then(res => {
+            if (!res.ok) throw new Error(`Failed to fetch SVG: ${res.status}`);
+            return res.text();
+          })
           .then(svgText => {
+            console.log('📥 SVG fetched, length:', svgText.length);
             // Create an image from SVG
             const img = new Image();
-            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
+            // Use data URL for better compatibility
+            const svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
             
             img.onload = () => {
-              console.log('✅ SVG design loaded successfully');
+              console.log('✅ SVG design loaded successfully, size:', img.width, 'x', img.height);
               // Redraw everything
               ctx.fillStyle = "#1a1a1a";
               ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -127,7 +131,6 @@ export function UVMapViewer({
               ctx.restore();
               
               console.log('✅ Design 2D drawn on canvas');
-              URL.revokeObjectURL(url);
               
               // Convert to image
               canvas.toBlob((blob) => {
@@ -141,7 +144,6 @@ export function UVMapViewer({
             
             img.onerror = (error) => {
               console.error("Error loading SVG design 2D:", error);
-              URL.revokeObjectURL(url);
               // If design fails to load, just draw UV wireframe
               drawUVWireframe(ctx, scene, canvas.width, canvas.height);
               
@@ -153,7 +155,7 @@ export function UVMapViewer({
               });
             };
             
-            img.src = url;
+            img.src = svgDataUrl;
           })
           .catch(error => {
             console.error("Error fetching SVG design 2D:", error);
