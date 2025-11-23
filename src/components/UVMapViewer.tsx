@@ -344,19 +344,27 @@ export function UVMapViewer({
 
   // Handle mouse down - select zone, move selected zone, or place new one
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current || !canvasRef.current) return;
+    if (!containerRef.current || !canvasRef.current || !zonesCanvasRef.current) return;
     
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    // Get the actual bounding rect of the zones canvas (accounts for all CSS transforms including objectFit: contain)
+    const zonesCanvasRect = zonesCanvasRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
     
-    // Convert mouse to UV coordinates first (same as screenToUV)
-    const uv = screenToUV(e.clientX, e.clientY);
-    if (!uv) return;
+    // Mouse position relative to zones canvas (after all CSS transforms)
+    const mouseXInCanvas = e.clientX - zonesCanvasRect.left;
+    const mouseYInCanvas = e.clientY - zonesCanvasRect.top;
     
-    // Convert UV to canvas coordinates (matching how zones are drawn)
-    const canvasMouseX = uv[0] * canvasRef.current.width;
-    const canvasMouseY = (1 - uv[1]) * canvasRef.current.height; // Invert Y for drawing coordinates
+    // Convert to canvas pixel coordinates
+    // The canvas is scaled by CSS transform: scale(scale), so we need to divide by scale
+    // Also account for objectFit: contain which may scale the canvas differently in X and Y
+    const canvasDisplayWidth = zonesCanvasRect.width;
+    const canvasDisplayHeight = zonesCanvasRect.height;
+    const scaleX = canvasRef.current.width / canvasDisplayWidth;
+    const scaleY = canvasRef.current.height / canvasDisplayHeight;
+    
+    // Account for pan (which is applied before scale in CSS transform)
+    const canvasMouseX = (mouseXInCanvas - pan.x) / scale * scaleX;
+    const canvasMouseY = (mouseYInCanvas - pan.y) / scale * scaleY;
     
     // Check if clicking on a zone
     let clickedZone: Zone | null = null;
@@ -387,6 +395,9 @@ export function UVMapViewer({
     
     if (clickedZone) {
       // Select the zone and start dragging
+      // Use container-relative coordinates for drag (not canvas-relative)
+      const mouseX = e.clientX - containerRect.left;
+      const mouseY = e.clientY - containerRect.top;
       onZoneSelect(clickedZone.id);
       setDragZoneId(clickedZone.id);
       setDragStart({ x: mouseX, y: mouseY });
@@ -394,7 +405,8 @@ export function UVMapViewer({
       e.preventDefault();
       e.stopPropagation();
     } else if (isPlacingZone) {
-      // Place new zone
+      // Place new zone using screenToUV (which works correctly)
+      const uv = screenToUV(e.clientX, e.clientY);
       if (uv) {
         onZonePlaced([uv[0], uv[1], 0]);
       }
@@ -402,7 +414,7 @@ export function UVMapViewer({
       // Deselect
       onZoneSelect(null);
     }
-  }, [zones, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, scale, isPointInRotatedRect]);
+  }, [zones, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, pan, scale, isPointInRotatedRect]);
 
   // Handle mouse move - drag zone if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
