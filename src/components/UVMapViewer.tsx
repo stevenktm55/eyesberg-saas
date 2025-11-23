@@ -91,48 +91,122 @@ export function UVMapViewer({
 
     // Load and draw 2D design if provided
     if (design2DUrl) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        // Redraw everything
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // First draw UV wireframe (with 180° rotation)
-        drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-        
-        // Then draw design 2D on top (with 180° rotation)
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI); // 180 degrees
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        
-        // Draw design 2D
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        ctx.restore();
-        
-        // Convert to image
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            setUvMapImage(url);
-          }
-        });
-      };
-      img.onerror = (error) => {
-        console.error("Error loading design 2D:", error);
-        // If design fails to load, just draw UV wireframe
-        drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            setUvMapImage(url);
-          }
-        });
-      };
-      img.src = design2DUrl;
+      // Check if it's an SVG or image
+      const isSvg = design2DUrl.toLowerCase().endsWith('.svg') || design2DUrl.includes('svg');
+      
+      if (isSvg) {
+        // Load SVG and convert to image
+        fetch(design2DUrl)
+          .then(res => res.text())
+          .then(svgText => {
+            // Create an image from SVG
+            const img = new Image();
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = () => {
+              // Redraw everything
+              ctx.fillStyle = "#1a1a1a";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              
+              // First draw UV wireframe (with 180° rotation)
+              drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+              
+              // Then draw design 2D on top (with 180° rotation)
+              ctx.save();
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.rotate(Math.PI); // 180 degrees
+              ctx.translate(-canvas.width / 2, -canvas.height / 2);
+              
+              // Draw design 2D
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              
+              ctx.restore();
+              
+              URL.revokeObjectURL(url);
+              
+              // Convert to image
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const imageUrl = URL.createObjectURL(blob);
+                  setUvMapImage(imageUrl);
+                }
+              });
+            };
+            
+            img.onerror = (error) => {
+              console.error("Error loading SVG design 2D:", error);
+              URL.revokeObjectURL(url);
+              // If design fails to load, just draw UV wireframe
+              drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+              
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const imageUrl = URL.createObjectURL(blob);
+                  setUvMapImage(imageUrl);
+                }
+              });
+            };
+            
+            img.src = url;
+          })
+          .catch(error => {
+            console.error("Error fetching SVG design 2D:", error);
+            // If design fails to load, just draw UV wireframe
+            drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+            
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob);
+                setUvMapImage(url);
+              }
+            });
+          });
+      } else {
+        // Regular image
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          // Redraw everything
+          ctx.fillStyle = "#1a1a1a";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // First draw UV wireframe (with 180° rotation)
+          drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+          
+          // Then draw design 2D on top (with 180° rotation)
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate(Math.PI); // 180 degrees
+          ctx.translate(-canvas.width / 2, -canvas.height / 2);
+          
+          // Draw design 2D
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          ctx.restore();
+          
+          // Convert to image
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              setUvMapImage(url);
+            }
+          });
+        };
+        img.onerror = (error) => {
+          console.error("Error loading design 2D:", error);
+          // If design fails to load, just draw UV wireframe
+          drawUVWireframe(ctx, scene, canvas.width, canvas.height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              setUvMapImage(url);
+            }
+          });
+        };
+        img.src = design2DUrl;
+      }
     } else {
       // Just draw UV wireframe (with 180° rotation)
       drawUVWireframe(ctx, scene, canvas.width, canvas.height);
