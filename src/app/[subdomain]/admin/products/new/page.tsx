@@ -3895,6 +3895,13 @@ export default function ProductBuilderPage() {
                   .filter(group => activeModule.zoneGroupIds?.includes(group.id))
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
+                // Debug: log des zones pour vérifier les thumbnails
+                console.log('🔍 Available zones:', availableZones.map(z => ({ 
+                  id: z.id, 
+                  name: z.name, 
+                  thumbnailUrl: z.thumbnailUrl 
+                })));
+              
                 if (availableZones.length === 0) {
                   return (
                     <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
@@ -3997,7 +4004,11 @@ export default function ProductBuilderPage() {
                                       filter: 'grayscale(100%)'
                                     }}
                                     onError={(e) => {
+                                      console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnailUrl);
                                       e.currentTarget.style.display = 'none';
+                                    }}
+                                    onLoad={() => {
+                                      console.log('✅ Thumbnail loaded for zone:', zone.name, zone.thumbnailUrl);
                                     }}
                                   />
                                 ) : (
