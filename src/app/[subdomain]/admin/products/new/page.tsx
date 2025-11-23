@@ -2540,7 +2540,7 @@ export default function ProductBuilderPage() {
                                   isPlacingText={isPlacingText}
                                   textZones={[]} // Pas de zones prédéfinies dans le builder
                                   onTextPlaced={handleTextPlaced}
-                                  onCanvasReady={(canvas) => setUv2Canvas(canvas)}
+                                  onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
                                 />
                               )}
                             </Suspense>

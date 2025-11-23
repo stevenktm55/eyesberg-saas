@@ -33,7 +33,8 @@ function SimpleViewer({
   setIsDraggingText,
   fonts = [],
   selectedDesign,
-  materialMaps
+  materialMaps,
+  onCanvasReady
 }: { 
   url: string, 
   designSrc?: string, 
