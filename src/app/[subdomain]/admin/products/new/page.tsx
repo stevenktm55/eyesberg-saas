@@ -3993,7 +3993,7 @@ export default function ProductBuilderPage() {
                                 position: 'relative',
                                 overflow: 'hidden'
                               }}>
-                                {zone.thumbnailUrl ? (
+                                {zone.thumbnailUrl && !zone.thumbnailUrl.startsWith('blob:') ? (
                                   <img
                                     src={zone.thumbnailUrl}
                                     alt={zone.name}
@@ -4006,14 +4006,6 @@ export default function ProductBuilderPage() {
                                     }}
                                     onError={(e) => {
                                       console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnailUrl);
-                                      // Afficher le fallback en cas d'erreur
-                                      const parent = e.currentTarget.parentElement;
-                                      if (parent) {
-                                        const fallback = document.createElement('div');
-                                        fallback.style.cssText = 'width: 100%; height: 100%; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; color: #999999; font-size: 12px;';
-                                        fallback.textContent = zone.name;
-                                        parent.appendChild(fallback);
-                                      }
                                       e.currentTarget.style.display = 'none';
                                     }}
                                     onLoad={() => {

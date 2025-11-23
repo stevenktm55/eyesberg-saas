@@ -1913,6 +1913,7 @@ function SimpleViewer({
             ctx.strokeText(content, 0, 0);
           }
           ctx.fillStyle = fillStyle;
+          ctx.globalAlpha = 1.0; // Ensure full opacity
           ctx.fillText(content, 0, 0);
         } else {
           // Per-character layout avec déformation - calculer positions d'abord
@@ -2200,11 +2201,19 @@ function SimpleViewer({
       
       // console.log(`✅ redrawAllTexts complete: drew ${drawnCount} texts`);
       
+      // Force texture update
       overlayTex.needsUpdate = true;
-      (overlayTex as any).version++;
+      (overlayTex as any).version = Date.now();
       
+      // Force source update
       if ((overlayTex as any).source && (overlayTex as any).source.data) {
+        (overlayTex as any).source.data = canvas;
         (overlayTex as any).source.data.version = Date.now();
+      }
+      
+      // Also update the texture image directly
+      if ((overlayTex as any).image) {
+        (overlayTex as any).image = canvas;
       }
     }
     
