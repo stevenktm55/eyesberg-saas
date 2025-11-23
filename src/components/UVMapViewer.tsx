@@ -122,14 +122,12 @@ export function UVMapViewer({
               ctx.fillStyle = "#1a1a1a";
               ctx.fillRect(0, 0, canvas.width, canvas.height);
               
-              // Draw design 2D with 180° rotation + horizontal mirror
+              // Draw design 2D with 180° rotation only
               ctx.save();
               // Move to center
               ctx.translate(canvas.width / 2, canvas.height / 2);
               // Rotate 180°
               ctx.rotate(Math.PI);
-              // Mirror horizontally (flip X)
-              ctx.scale(-1, 1);
               // Move back and draw
               ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
               
@@ -182,14 +180,12 @@ export function UVMapViewer({
           ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Draw design 2D with 180° rotation + horizontal mirror
+          // Draw design 2D with 180° rotation only
           ctx.save();
           // Move to center
           ctx.translate(canvas.width / 2, canvas.height / 2);
           // Rotate 180°
           ctx.rotate(Math.PI);
-          // Mirror horizontally (flip X)
-          ctx.scale(-1, 1);
           // Move back and draw
           ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
           
@@ -324,7 +320,7 @@ export function UVMapViewer({
     return [finalU, finalV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates (accounting for 180° rotation + horizontal mirror)
+  // Convert UV coordinates to screen coordinates (accounting for 180° rotation)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -337,11 +333,11 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
-    // Apply 180° rotation + horizontal mirror (reverse transformation)
-    // From UV: (u, v) -> after rotation and mirror -> (u, 1-v) on screen
-    // Reverse: (u, 1-v) -> (u, v) in UV space
-    const transformedU = uv[0]; // U stays the same after transformations
-    const transformedV = 1 - uv[1]; // V is flipped after rotation
+    // Apply 180° rotation (reverse transformation)
+    // From UV: (u, v) -> after rotation -> (1-u, 1-v) on screen
+    // Reverse: (1-u, 1-v) -> (u, v) in UV space
+    const transformedU = 1 - uv[0];
+    const transformedV = 1 - uv[1];
     
     const x = transformedU * canvas.width * scaleX * scale + pan.x;
     const y = transformedV * canvas.height * scaleY * scale + pan.y;
@@ -483,14 +479,11 @@ export function UVMapViewer({
     // Clear
     ctx.clearRect(0, 0, zonesCanvas.width, zonesCanvas.height);
     
-    // Draw zones (accounting for 180° rotation + horizontal mirror)
+    // Draw zones (accounting for 180° rotation)
     zones.forEach(zone => {
-      // Apply 180° rotation + horizontal mirror
-      // After rotation: (u, v) -> (1-u, 1-v)
-      // After horizontal mirror: (u, v) -> (1-u, v)
-      // Combined: (u, v) -> (u, 1-v) after both transformations
-      const transformedU = zone.position[0]; // U stays the same after both transformations
-      const transformedV = 1 - zone.position[1]; // V is flipped after rotation
+      // Apply 180° rotation: (u, v) -> (1-u, 1-v)
+      const transformedU = 1 - zone.position[0];
+      const transformedV = 1 - zone.position[1];
       
       const x = transformedU * zonesCanvas.width;
       const y = transformedV * zonesCanvas.height;
