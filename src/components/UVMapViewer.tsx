@@ -351,8 +351,10 @@ export function UVMapViewer({
     if (!zone) return;
     
     // Update zone position (accounting for 180° rotation)
-    const newU = Math.max(0, Math.min(1, zone.position[0] - uvDx)); // Note: subtract because of rotation
-    const newV = Math.max(0, Math.min(1, zone.position[1] + uvDy)); // Note: add because Y is flipped
+    // When we move right in screen space, we move left in UV space (because of 180° rotation)
+    // When we move down in screen space, we move up in UV space (because of 180° rotation)
+    const newU = Math.max(0, Math.min(1, zone.position[0] - uvDx));
+    const newV = Math.max(0, Math.min(1, zone.position[1] - uvDy));
     
     onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
     
@@ -428,7 +430,7 @@ export function UVMapViewer({
         position: "relative",
         overflow: "hidden",
         backgroundColor: "#0a0a0a",
-        cursor: isPlacingZone ? "crosshair" : "default"
+        cursor: isPlacingZone ? "crosshair" : isDragging ? "grabbing" : "default"
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
