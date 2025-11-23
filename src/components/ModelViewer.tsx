@@ -1764,6 +1764,12 @@ function SimpleViewer({
       
       let drawnCount = 0;
       let pendingFonts = false;
+      
+      // Debug: log texts to verify they exist
+      if (textsRef.current.length > 0) {
+        console.log('📝 redrawAllTexts: Drawing', textsRef.current.length, 'texts');
+      }
+      
       textsRef.current.forEach(text => {
         // Get font info
         const font = fonts.find(f => f.id === text.fontFamily);
@@ -2071,7 +2077,7 @@ function SimpleViewer({
         ctx.restore();
         drawnCount++;
         
-        // console.log('📝 Drew text:', text.content, 'at', text.position, 'size:', fontSize, 'px, width:', textWidth);
+        console.log('✅ Drew text:', text.content, 'at', text.position, 'size:', fontSize, 'px, color:', text.color || '#000000');
       });
       
       // If some fonts were pending, retry shortly to render with proper fonts
