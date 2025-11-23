@@ -88,6 +88,8 @@ export function UVMapViewer({
     // Clear canvas with dark background
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    console.log('🔄 Generating UV map, design2DUrl:', design2DUrl);
 
     // Load and draw 2D design if provided
     if (design2DUrl) {
@@ -105,6 +107,7 @@ export function UVMapViewer({
             const url = URL.createObjectURL(svgBlob);
             
             img.onload = () => {
+              console.log('✅ SVG design loaded successfully');
               // Redraw everything
               ctx.fillStyle = "#1a1a1a";
               ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -123,6 +126,7 @@ export function UVMapViewer({
               
               ctx.restore();
               
+              console.log('✅ Design 2D drawn on canvas');
               URL.revokeObjectURL(url);
               
               // Convert to image
@@ -130,6 +134,7 @@ export function UVMapViewer({
                 if (blob) {
                   const imageUrl = URL.createObjectURL(blob);
                   setUvMapImage(imageUrl);
+                  console.log('✅ UV map image created');
                 }
               });
             };
@@ -167,6 +172,7 @@ export function UVMapViewer({
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
+          console.log('✅ Image design loaded successfully');
           // Redraw everything
           ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -185,11 +191,14 @@ export function UVMapViewer({
           
           ctx.restore();
           
+          console.log('✅ Design 2D drawn on canvas');
+          
           // Convert to image
           canvas.toBlob((blob) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
               setUvMapImage(url);
+              console.log('✅ UV map image created');
             }
           });
         };
@@ -272,6 +281,8 @@ export function UVMapViewer({
         }
       }
     });
+    
+    ctx.restore(); // Restore after rotation
   };
 
   // Convert screen coordinates to UV coordinates (accounting for 180° rotation)
