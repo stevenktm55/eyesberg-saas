@@ -2331,6 +2331,101 @@ export default function ProductBuilderPage() {
                         >
                           {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                         </button>
+                        
+                        {/* Liste des textes ajoutés */}
+                        {texts.length > 0 && (
+                          <div style={{
+                            marginTop: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}>
+                            <div style={{
+                              fontSize: '12px',
+                              color: '#a0a0a0',
+                              fontFamily: 'var(--stepn-font-body)',
+                              marginBottom: '4px'
+                            }}>
+                              Textes ajoutés ({texts.length})
+                            </div>
+                            {texts.map((text) => (
+                              <div
+                                key={text.id}
+                                onClick={() => selectText(text.id)}
+                                style={{
+                                  padding: '10px 12px',
+                                  backgroundColor: selectedTextId === text.id ? '#2a2a2a' : '#1a1a1a',
+                                  border: selectedTextId === text.id ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (selectedTextId !== text.id) {
+                                    e.currentTarget.style.backgroundColor = '#222222';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (selectedTextId !== text.id) {
+                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                  }
+                                }}
+                              >
+                                <div style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '4px'
+                                }}>
+                                  <div style={{
+                                    fontSize: '14px',
+                                    color: '#ffffff',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontWeight: selectedTextId === text.id ? '600' : '400'
+                                  }}>
+                                    {text.content || '(Texte vide)'}
+                                  </div>
+                                  <div style={{
+                                    fontSize: '11px',
+                                    color: '#666',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
+                                    {text.locked && ' 🔒'}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeText(text.id);
+                                  }}
+                                  style={{
+                                    padding: '4px 8px',
+                                    backgroundColor: '#ff4444',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '12px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    cursor: 'pointer',
+                                    fontWeight: '500'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#ff3333';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#ff4444';
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div>
