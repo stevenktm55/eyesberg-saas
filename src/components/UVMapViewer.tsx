@@ -98,11 +98,10 @@ export function UVMapViewer({
         ctx.fillStyle = "#1a1a1a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Apply transformations: 180° rotation + horizontal mirror
+        // Apply 180° rotation
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(Math.PI); // 180 degrees
-        ctx.scale(-1, 1); // Horizontal mirror
         ctx.translate(-canvas.width / 2, -canvas.height / 2);
         
         // Draw design 2D
@@ -148,7 +147,7 @@ export function UVMapViewer({
     }
   }, [scene, canvasSize, design2DUrl]);
 
-  // Helper function to draw UV wireframe (with horizontal mirror)
+  // Helper function to draw UV wireframe (with 180° rotation only)
   const drawUVWireframe = (ctx: CanvasRenderingContext2D, scene: THREE.Scene, width: number, height: number) => {
     ctx.strokeStyle = "#4a4a4a";
     ctx.lineWidth = 1;
@@ -172,7 +171,7 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i1), uvAttribute.getY(i1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i2), uvAttribute.getY(i2));
               
-              // Draw triangle edges with horizontal mirror (flip X)
+              // Draw triangle edges with 180° rotation (flip both X and Y)
               ctx.beginPath();
               ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
               ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
@@ -187,7 +186,7 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i + 1), uvAttribute.getY(i + 1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i + 2), uvAttribute.getY(i + 2));
               
-              // Draw triangle edges with horizontal mirror (flip X)
+              // Draw triangle edges with 180° rotation (flip both X and Y)
               ctx.beginPath();
               ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
               ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
@@ -201,7 +200,7 @@ export function UVMapViewer({
     });
   };
 
-  // Convert screen coordinates to UV coordinates (accounting for 180° rotation and horizontal mirror)
+  // Convert screen coordinates to UV coordinates (accounting for 180° rotation)
   const screenToUV = useCallback((screenX: number, screenY: number): [number, number] | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -219,22 +218,17 @@ export function UVMapViewer({
     const y = (screenY - rect.top - pan.y) / scale * scaleY;
     
     // Convert to UV coordinates (0-1)
-    // Note: canvas Y is top-to-bottom, UV Y is bottom-to-top, so we flip Y
     const u = Math.max(0, Math.min(1, x / canvas.width));
-    const v = Math.max(0, Math.min(1, y / canvas.height)); // Don't flip Y here
+    const v = Math.max(0, Math.min(1, y / canvas.height));
     
-    // Apply transformations: 180° rotation + horizontal mirror
-    // 180° rotation: (u, v) -> (1-u, 1-v)
-    // Horizontal mirror: (u, v) -> (1-u, v)
-    // Combined: (u, v) -> (1-u, 1-v) then mirror -> (u, 1-v)
-    // Actually, with horizontal mirror first: (u, v) -> (1-u, v) then 180° -> (u, 1-v)
-    const finalU = 1 - u; // Horizontal mirror
-    const finalV = 1 - v; // 180° rotation (flip Y)
+    // Apply 180° rotation: flip both coordinates
+    const finalU = 1 - u;
+    const finalV = 1 - v;
     
     return [finalU, finalV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates (accounting for 180° rotation and horizontal mirror)
+  // Convert UV coordinates to screen coordinates (accounting for 180° rotation)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -247,10 +241,9 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
-    // Apply transformations: 180° rotation + horizontal mirror
-    // Reverse: (u, v) -> apply mirror -> (1-u, v) -> apply 180° -> (u, 1-v)
-    const transformedU = 1 - uv[0]; // Horizontal mirror
-    const transformedV = 1 - uv[1]; // 180° rotation (flip Y)
+    // Apply 180° rotation: flip both coordinates
+    const transformedU = 1 - uv[0];
+    const transformedV = 1 - uv[1];
     
     const x = transformedU * canvas.width * scaleX * scale + pan.x;
     const y = transformedV * canvas.height * scaleY * scale + pan.y;
@@ -332,14 +325,45 @@ export function UVMapViewer({
     }
   }, [zones, uvToScreen, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, onZoneUpdate, scale, isPointInRotatedRect]);
 
-  // Handle mouse move - no longer needed for dragging, but keep for potential future use
+  // Handle mouse move - drag zone if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // No drag functionality - zones are managed via settings panel
-  }, []);
+    if (!isDragging || !dragStart || !dragZoneId || !containerRef.current || !canvasRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Calculate delta in screen space
+    const dx = mouseX - dragStart.x;
+    const dy = mouseY - dragStart.y;
+    
+    // Convert screen delta to UV delta
+    const canvasDisplayWidth = rect.width;
+    const canvasDisplayHeight = rect.height;
+    const scaleX = canvasRef.current.width / canvasDisplayWidth;
+    const scaleY = canvasRef.current.height / canvasDisplayHeight;
+    
+    const uvDx = (dx / scale) * scaleX / canvasRef.current.width;
+    const uvDy = (dy / scale) * scaleY / canvasRef.current.height;
+    
+    // Get current zone position
+    const zone = zones.find(z => z.id === dragZoneId);
+    if (!zone) return;
+    
+    // Update zone position (accounting for 180° rotation)
+    const newU = Math.max(0, Math.min(1, zone.position[0] - uvDx)); // Note: subtract because of rotation
+    const newV = Math.max(0, Math.min(1, zone.position[1] + uvDy)); // Note: add because Y is flipped
+    
+    onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
+    
+    setDragStart({ x: mouseX, y: mouseY });
+  }, [isDragging, dragStart, dragZoneId, zones, onZoneUpdate, scale]);
 
-  // Handle mouse up - no longer needed
+  // Handle mouse up - stop dragging
   const handleMouseUp = useCallback(() => {
-    // No drag functionality
+    setIsDragging(false);
+    setDragStart(null);
+    setDragZoneId(null);
   }, []);
 
   // Draw zones on canvas (separate layer for zones to allow pan/zoom)
@@ -412,8 +436,27 @@ export function UVMapViewer({
       onMouseLeave={handleMouseUp}
       onWheel={(e) => {
         e.preventDefault();
+        if (!containerRef.current || !canvasRef.current) return;
+        
+        const rect = containerRef.current.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Get mouse position relative to canvas
+        const canvasX = (mouseX - pan.x) / scale;
+        const canvasY = (mouseY - pan.y) / scale;
+        
+        // Calculate zoom delta
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setScale(prev => Math.max(0.1, Math.min(5, prev * delta)));
+        const newScale = Math.max(0.1, Math.min(5, scale * delta));
+        
+        // Adjust pan to zoom towards mouse position
+        const scaleChange = newScale / scale;
+        const newPanX = mouseX - canvasX * newScale;
+        const newPanY = mouseY - canvasY * newScale;
+        
+        setScale(newScale);
+        setPan({ x: newPanX, y: newPanY });
       }}
     >
       <canvas
