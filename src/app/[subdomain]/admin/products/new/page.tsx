@@ -126,6 +126,22 @@ export default function ProductBuilderPage() {
   
   // Text management states
   const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
+  const [uv2PreviewUrl, setUv2PreviewUrl] = useState<string | null>(null);
+  
+  // Update UV2 preview when canvas changes
+  useEffect(() => {
+    if (uv2Canvas) {
+      const updatePreview = () => {
+        setUv2PreviewUrl(uv2Canvas.toDataURL());
+      };
+      updatePreview();
+      // Update preview periodically to catch canvas changes
+      const interval = setInterval(updatePreview, 100);
+      return () => clearInterval(interval);
+    } else {
+      setUv2PreviewUrl(null);
+    }
+  }, [uv2Canvas]);
   const [texts, setTexts] = useState<Array<{
     id: string;
     content: string;
@@ -2569,7 +2585,7 @@ export default function ProductBuilderPage() {
                                   UV2 Preview
                                 </div>
                                 <img
-                                  src={uv2Canvas.toDataURL()}
+                                  src={uv2PreviewUrl || ''}
                                   alt="UV2 Preview"
                                   style={{
                                     width: '100%',
