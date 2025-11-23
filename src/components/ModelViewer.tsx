@@ -3717,6 +3717,7 @@ type Props = ThreeElements['group'] & {
     designId?: string | null;
   }>;
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
+  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
   // Suppression de fontsLoaded pour éviter les boucles infinies
 };
 
