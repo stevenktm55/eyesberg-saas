@@ -2303,44 +2303,47 @@ export default function ProductBuilderPage() {
                       );
                     })() : activeModule.contentType === 'text' ? (
                       <div>
-                        <button
-                          onClick={() => {
-                            if (activeModule.textPlacementMode === 'zones') {
-                              // Mode zones : ouvrir le modal de sélection de zones
-                              setShowZoneSelectionModal(true);
-                              setSelectedZoneId(null);
-                              setTextInputValue('');
-                            } else {
-                              // Mode libre : activer le mode placement
-                              if (isPlacingText) {
-                                setIsPlacingText(null);
+                        {/* Bouton "Ajouter un texte" - masqué quand un texte est sélectionné */}
+                        {!selectedTextId && (
+                          <button
+                            onClick={() => {
+                              if (activeModule.textPlacementMode === 'zones') {
+                                // Mode zones : ouvrir le modal de sélection de zones
+                                setShowZoneSelectionModal(true);
+                                setSelectedZoneId(null);
+                                setTextInputValue('');
                               } else {
-                                setIsPlacingText('nom');
+                                // Mode libre : activer le mode placement
+                                if (isPlacingText) {
+                                  setIsPlacingText(null);
+                                } else {
+                                  setIsPlacingText('nom');
+                                }
                               }
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '12px 16px',
-                            backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
-                            border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            color: '#000000',
-                            cursor: 'pointer',
-                            fontWeight: '500',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
-                          }}
-                        >
-                          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
-                        </button>
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
+                              border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              color: '#000000',
+                              cursor: 'pointer',
+                              fontWeight: '500',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
+                            }}
+                          >
+                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                          </button>
+                        )}
                         
                         {/* Liste des textes ajoutés - affichée uniquement quand aucun texte n'est sélectionné */}
                         {!selectedTextId && texts.length > 0 && (
@@ -2482,8 +2485,8 @@ export default function ProductBuilderPage() {
                                     fontFamily: 'var(--stepn-font-body)'
                                   }}
                                 >
-                                  <span>←</span>
-                                  <span>Retour</span>
+                                  <span style={{ color: '#111827' }}>←</span>
+                                  <span style={{ color: '#111827' }}>Retour</span>
                                 </button>
                                 <div style={{
                                   fontSize: '14px',
