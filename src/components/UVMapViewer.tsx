@@ -118,13 +118,14 @@ export function UVMapViewer({
               
               // Draw design 2D with 180° rotation + horizontal mirror
               ctx.save();
+              // Move to center
               ctx.translate(canvas.width / 2, canvas.height / 2);
-              ctx.rotate(Math.PI); // 180 degrees
-              ctx.scale(-1, 1); // Horizontal mirror
-              ctx.translate(-canvas.width / 2, -canvas.height / 2);
-              
-              // Draw design 2D
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              // Rotate 180°
+              ctx.rotate(Math.PI);
+              // Mirror horizontally (flip X)
+              ctx.scale(-1, 1);
+              // Move back and draw
+              ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
               
               ctx.restore();
               
@@ -136,6 +137,8 @@ export function UVMapViewer({
                   const imageUrl = URL.createObjectURL(blob);
                   setUvMapImage(imageUrl);
                   console.log('✅ UV map image created');
+                } else {
+                  console.error('❌ Failed to create blob from canvas');
                 }
               });
             };
@@ -168,20 +171,21 @@ export function UVMapViewer({
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
-          console.log('✅ Image design loaded successfully');
+          console.log('✅ Image design loaded successfully, size:', img.width, 'x', img.height);
           // Redraw everything
           ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
           // Draw design 2D with 180° rotation + horizontal mirror
           ctx.save();
+          // Move to center
           ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate(Math.PI); // 180 degrees
-          ctx.scale(-1, 1); // Horizontal mirror
-          ctx.translate(-canvas.width / 2, -canvas.height / 2);
-          
-          // Draw design 2D
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          // Rotate 180°
+          ctx.rotate(Math.PI);
+          // Mirror horizontally (flip X)
+          ctx.scale(-1, 1);
+          // Move back and draw
+          ctx.drawImage(img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
           
           ctx.restore();
           
@@ -193,6 +197,8 @@ export function UVMapViewer({
               const url = URL.createObjectURL(blob);
               setUvMapImage(url);
               console.log('✅ UV map image created');
+            } else {
+              console.error('❌ Failed to create blob from canvas');
             }
           });
         };
