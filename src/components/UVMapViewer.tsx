@@ -549,24 +549,24 @@ export function UVMapViewer({
         setPan({ x: newPanX, y: newPanY });
       }}
     >
-      {uvMapImage ? (
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+          transformOrigin: "top left",
+          display: uvMapImage ? "none" : "block"
+        }}
+      />
+      {uvMapImage && (
         <img
           src={uvMapImage}
           alt="UV Map with Design 2D"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
-            transformOrigin: "top left"
-          }}
-        />
-      ) : (
-        <canvas
-          ref={canvasRef}
           style={{
             position: "absolute",
             top: 0,
