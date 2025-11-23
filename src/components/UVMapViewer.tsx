@@ -24,6 +24,7 @@ type UVMapViewerProps = {
   isPlacingZone: boolean;
   canvasSize?: number; // Size of the UV map canvas (default: 2048)
   design2DUrl?: string | null; // Optional 2D design SVG to overlay on UV map
+  onZoneConfirm?: () => void; // Callback when zone is confirmed
 };
 
 export function UVMapViewer({
@@ -35,7 +36,8 @@ export function UVMapViewer({
   onZoneUpdate,
   isPlacingZone,
   canvasSize = 2048,
-  design2DUrl
+  design2DUrl,
+  onZoneConfirm
 }: UVMapViewerProps) {
   // Expose selectedZoneId to handleMouseDown
   const selectedZoneIdRef = useRef(selectedZoneId);
@@ -212,7 +214,7 @@ export function UVMapViewer({
     });
   };
 
-  // Convert screen coordinates to UV coordinates
+  // Convert screen coordinates to UV coordinates (accounting for 180° rotation)
   const screenToUV = useCallback((screenX: number, screenY: number): [number, number] | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -229,14 +231,19 @@ export function UVMapViewer({
     const x = (screenX - rect.left - pan.x) / scale * scaleX;
     const y = (screenY - rect.top - pan.y) / scale * scaleY;
     
-    // Convert to UV coordinates (0-1)
+    // Convert to UV coordinates (0-1) and apply 180° rotation
+    // After 180° rotation: (u, v) -> (1-u, 1-v)
     const u = Math.max(0, Math.min(1, x / canvas.width));
     const v = Math.max(0, Math.min(1, 1 - (y / canvas.height))); // Flip Y axis
     
-    return [u, v];
+    // Apply 180° rotation: flip both coordinates
+    const rotatedU = 1 - u;
+    const rotatedV = 1 - v;
+    
+    return [rotatedU, rotatedV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates
+  // Convert UV coordinates to screen coordinates (accounting for 180° rotation)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -249,8 +256,12 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
-    const x = uv[0] * canvas.width * scaleX * scale + pan.x;
-    const y = (1 - uv[1]) * canvas.height * scaleY * scale + pan.y;
+    // Apply 180° rotation: flip both coordinates
+    const rotatedU = 1 - uv[0];
+    const rotatedV = 1 - uv[1];
+    
+    const x = rotatedU * canvas.width * scaleX * scale + pan.x;
+    const y = rotatedV * canvas.height * scaleY * scale + pan.y;
     
     return { x, y };
   }, [pan, scale]);

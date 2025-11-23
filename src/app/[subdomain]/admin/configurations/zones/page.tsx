@@ -903,6 +903,15 @@ export default function ZonesConfigPage() {
                     }}
                     isPlacingZone={isPlacingZone}
                     design2DUrl={designUrl}
+                    onZoneConfirm={() => {
+                      setSelectedZoneId(null);
+                      setZoneSettings({
+                        isLogo: false,
+                        width: 0.1,
+                        height: 0.1,
+                        rotation: 0
+                      });
+                    }}
                   />
                 ) : (
                   <div style={{
