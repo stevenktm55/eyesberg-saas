@@ -354,15 +354,22 @@ export function UVMapViewer({
     let clickedZone: Zone | null = null;
     
     for (const zone of zones) {
-      const screenPos = uvToScreen([zone.position[0], zone.position[1]]);
-      if (!screenPos || !canvasRef.current) continue;
+      if (!canvasRef.current) continue;
       
-      // Calculate zone dimensions in screen space (matching the drawing)
+      // Calculate zone position and size in screen space (matching the drawing exactly)
       const rect = containerRef.current.getBoundingClientRect();
       const canvasDisplayWidth = rect.width;
       const canvasDisplayHeight = rect.height;
       const scaleX = canvasDisplayWidth / canvasRef.current.width;
       const scaleY = canvasDisplayHeight / canvasRef.current.height;
+      
+      // Calculate zone center position in canvas pixels (matching drawing: x = u * width, y = (1-v) * height)
+      const zoneCenterX = zone.position[0] * canvasRef.current.width;
+      const zoneCenterY = (1 - zone.position[1]) * canvasRef.current.height;
+      
+      // Convert to screen coordinates with pan and scale
+      const screenCenterX = zoneCenterX * scaleX * scale + pan.x;
+      const screenCenterY = zoneCenterY * scaleY * scale + pan.y;
       
       // Zone size in screen pixels (exact match with drawing)
       const zoneWidth = zone.width * canvasRef.current.width * scaleX * scale;
@@ -371,7 +378,7 @@ export function UVMapViewer({
       // Check if clicking inside zone (accounting for rotation in degrees)
       if (isPointInRotatedRect(
         { x: mouseX, y: mouseY },
-        screenPos,
+        { x: screenCenterX, y: screenCenterY },
         zoneWidth,
         zoneHeight,
         (zone.rotation * Math.PI) / 180 // Convert degrees to radians
