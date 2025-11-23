@@ -254,11 +254,11 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i1), uvAttribute.getY(i1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i2), uvAttribute.getY(i2));
               
-              // Draw triangle edges with 180° rotation (flip both X and Y)
+              // Draw triangle edges (rotation is applied via ctx transform)
               ctx.beginPath();
-              ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
-              ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
-              ctx.lineTo((1 - uv2.x) * width, (1 - uv2.y) * height);
+              ctx.moveTo(uv0.x * width, (1 - uv0.y) * height);
+              ctx.lineTo(uv1.x * width, (1 - uv1.y) * height);
+              ctx.lineTo(uv2.x * width, (1 - uv2.y) * height);
               ctx.closePath();
               ctx.stroke();
             }
@@ -269,11 +269,11 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i + 1), uvAttribute.getY(i + 1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i + 2), uvAttribute.getY(i + 2));
               
-              // Draw triangle edges with 180° rotation (flip both X and Y)
+              // Draw triangle edges (rotation is applied via ctx transform)
               ctx.beginPath();
-              ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
-              ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
-              ctx.lineTo((1 - uv2.x) * width, (1 - uv2.y) * height);
+              ctx.moveTo(uv0.x * width, (1 - uv0.y) * height);
+              ctx.lineTo(uv1.x * width, (1 - uv1.y) * height);
+              ctx.lineTo(uv2.x * width, (1 - uv2.y) * height);
               ctx.closePath();
               ctx.stroke();
             }
