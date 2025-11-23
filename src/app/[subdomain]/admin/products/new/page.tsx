@@ -2544,6 +2544,44 @@ export default function ProductBuilderPage() {
                                 />
                               )}
                             </Suspense>
+                            
+                            {/* UV2 Preview Window */}
+                            {uv2Canvas && (
+                              <div style={{
+                                position: 'absolute',
+                                bottom: '20px',
+                                right: '20px',
+                                width: '200px',
+                                height: '200px',
+                                backgroundColor: '#1a1a1a',
+                                border: '2px solid #333',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                zIndex: 1000,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                              }}>
+                                <div style={{
+                                  fontSize: '11px',
+                                  color: '#999',
+                                  marginBottom: '4px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  UV2 Preview
+                                </div>
+                                <img
+                                  src={uv2Canvas.toDataURL()}
+                                  alt="UV2 Preview"
+                                  style={{
+                                    width: '100%',
+                                    height: 'calc(100% - 20px)',
+                                    objectFit: 'contain',
+                                    imageRendering: 'pixelated',
+                                    border: '1px solid #333'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
                             <OrbitControls
                               ref={(controls) => {
                                 if (controls && targetView) {
