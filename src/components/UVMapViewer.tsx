@@ -368,11 +368,14 @@ export function UVMapViewer({
     // Clear
     ctx.clearRect(0, 0, zonesCanvas.width, zonesCanvas.height);
     
-    // Draw zones
+    // Draw zones (accounting for 180° rotation)
     zones.forEach(zone => {
-      // Apply 180° rotation to match UV map
-      const x = (1 - zone.position[0]) * zonesCanvas.width;
-      const y = zone.position[1] * zonesCanvas.height;
+      // Apply 180° rotation to zone position
+      const rotatedU = 1 - zone.position[0];
+      const rotatedV = 1 - zone.position[1];
+      
+      const x = rotatedU * zonesCanvas.width;
+      const y = rotatedV * zonesCanvas.height;
       const width = zone.width * zonesCanvas.width;
       const height = zone.height * zonesCanvas.height;
       
