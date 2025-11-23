@@ -418,9 +418,9 @@ export function UVMapViewer({
     const zone = zones.find(z => z.id === dragZoneId);
     if (!zone) return;
     
-    // Update zone position
+    // Update zone position (invert vertical delta because of vertical axis inversion)
     const newU = Math.max(0, Math.min(1, zone.position[0] + uvDx));
-    const newV = Math.max(0, Math.min(1, zone.position[1] + uvDy));
+    const newV = Math.max(0, Math.min(1, zone.position[1] - uvDy)); // Invert sign for vertical
     
     onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
     
