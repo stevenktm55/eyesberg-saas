@@ -421,11 +421,9 @@ export function UVMapViewer({
     const zone = zones.find(z => z.id === dragZoneId);
     if (!zone) return;
     
-    // Update zone position (accounting for 180° rotation)
-    // When we move right in screen space, we move left in UV space (because of 180° rotation)
-    // When we move down in screen space, we move up in UV space (because of 180° rotation)
-    const newU = Math.max(0, Math.min(1, zone.position[0] - uvDx));
-    const newV = Math.max(0, Math.min(1, zone.position[1] - uvDy));
+    // Update zone position
+    const newU = Math.max(0, Math.min(1, zone.position[0] + uvDx));
+    const newV = Math.max(0, Math.min(1, zone.position[1] + uvDy));
     
     onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
     
