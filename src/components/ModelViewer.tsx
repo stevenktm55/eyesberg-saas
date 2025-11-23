@@ -1815,13 +1815,24 @@ function SimpleViewer({
         ctx.font = `${fontSize}px ${measureFontFamily}`;
         
         // Measure text with current font
-        const textWidth = ctx.measureText(text.content).width;
+        const textWidth = ctx.measureText(text.content || '').width;
         const textHeight = fontSize;
         
         // Render text with custom font
-        const [u, v] = text.position;
+        const [u, v] = text.position || [0.5, 0.5, 0];
         const x = u * canvas.width;
         const y = v * canvas.height;
+        
+        // Debug log
+        console.log('🎨 Drawing text:', {
+          content: text.content,
+          position: [u, v],
+          canvasPos: [x, y],
+          fontSize,
+          font: measureFontFamily,
+          color: text.color || '#000000',
+          canvasSize: [canvas.width, canvas.height]
+        });
         
         // Ensure text is visible - use black if no color specified
         if (!text.color) {
