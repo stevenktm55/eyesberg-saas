@@ -80,15 +80,17 @@ export default function ZonesConfigPage() {
   async function fetchZoneGroups() {
     try {
       setLoading(true);
-      // TODO: Créer l'API route pour récupérer les groupes de zones
-      // const res = await fetch('/api/zone-groups');
-      // if (res.ok) {
-      //   const data = await res.json();
-      //   setZoneGroups(data);
-      // }
-      setZoneGroups([]);
+      const res = await fetch('/api/zone-groups');
+      if (res.ok) {
+        const data = await res.json();
+        setZoneGroups(data);
+      } else {
+        console.error('Failed to fetch zone groups:', res.statusText);
+        setZoneGroups([]);
+      }
     } catch (error) {
       console.error('Error fetching zone groups:', error);
+      setZoneGroups([]);
     } finally {
       setLoading(false);
     }
@@ -270,22 +272,65 @@ export default function ZonesConfigPage() {
       return;
     }
 
-    // TODO: Implémenter la sauvegarde via API
-    const groupName = isCreatingGroup ? newGroupName : selectedGroup?.name || 'Nouveau groupe';
-    const newGroup: ZoneGroup = {
-      id: isCreatingGroup ? `temp-${Date.now()}` : selectedGroup!.id,
-      name: groupName,
-      zones: editingZones,
-      design2dIds: []
-    };
+    try {
+      setLoading(true);
+      const groupName = isCreatingGroup ? newGroupName : selectedGroup?.name || 'Nouveau groupe';
+      
+      // Préparer les zones pour l'API (convertir les IDs temporaires et s'assurer que model3d_id est défini)
+      const zonesToSave = editingZones.map(zone => ({
+        ...zone,
+        model3d_id: zone.model3d_id || selectedModel3DId
+      }));
 
-    if (isCreatingGroup) {
-      setZoneGroups([...zoneGroups, newGroup]);
-    } else {
-      setZoneGroups(zoneGroups.map(g => g.id === newGroup.id ? newGroup : g));
+      if (isCreatingGroup) {
+        // Créer un nouveau groupe
+        const res = await fetch('/api/zone-groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: groupName,
+            zones: zonesToSave,
+            model3d_id: selectedModel3DId,
+            design2dIds: []
+          })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Failed to create zone group');
+        }
+
+        const newGroup = await res.json();
+        setZoneGroups([...zoneGroups, newGroup]);
+      } else {
+        // Mettre à jour un groupe existant
+        const res = await fetch(`/api/zone-groups?id=${encodeURIComponent(selectedGroup!.id)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: groupName,
+            zones: zonesToSave,
+            model3d_id: selectedModel3DId,
+            design2dIds: selectedGroup?.design2dIds || []
+          })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Failed to update zone group');
+        }
+
+        const updatedGroup = await res.json();
+        setZoneGroups(zoneGroups.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+      }
+
+      closeEditModal();
+    } catch (error: any) {
+      console.error('Error saving zone group:', error);
+      alert(`Erreur lors de la sauvegarde: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    closeEditModal();
   }
 
   const selectedModel = models3D.find(m => m.id === selectedModel3DId);
