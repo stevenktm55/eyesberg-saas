@@ -43,6 +43,12 @@ type CustomizationModule = {
   addTextButtonLabel?: string; // Texte du bouton "Ajouter un texte" (par défaut: "Ajouter un texte")
   textPlacementMode?: 'zones' | 'free'; // Mode de placement du texte: zones prédéfinies ou placement libre
   zoneGroupIds?: string[]; // IDs des groupes de zones à afficher (si textPlacementMode === 'zones')
+  // Options d'édition de texte
+  enableTextContent?: boolean; // Permettre de modifier le contenu du texte
+  enableTextFont?: boolean; // Permettre de changer la police
+  enableTextColor?: boolean; // Permettre de changer la couleur
+  enableTextStroke?: boolean; // Permettre de modifier le contour
+  enableTextDeformation?: boolean; // Permettre de déformer le texte
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
@@ -2426,6 +2432,318 @@ export default function ProductBuilderPage() {
                             ))}
                           </div>
                         )}
+
+                        {/* Interface d'édition du texte sélectionné */}
+                        {selectedTextId && (() => {
+                          const selectedText = texts.find(t => t.id === selectedTextId);
+                          if (!selectedText) return null;
+                          
+                          return (
+                            <div style={{
+                              marginTop: '24px',
+                              padding: '16px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px'
+                            }}>
+                              <div style={{
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: '#ffffff',
+                                fontFamily: 'var(--stepn-font-body)',
+                                marginBottom: '16px'
+                              }}>
+                                Modifier le texte
+                              </div>
+
+                              {/* Contenu du texte */}
+                              {activeModule.enableTextContent !== false && (
+                                <div style={{ marginBottom: '16px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#a0a0a0',
+                                    marginBottom: '8px',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Contenu
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={selectedText.content}
+                                    onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
+                                    style={{
+                                      width: '100%',
+                                      padding: '10px 12px',
+                                      backgroundColor: '#0a0a0a',
+                                      border: '1px solid #2a2a2a',
+                                      borderRadius: '4px',
+                                      color: '#ffffff',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      outline: 'none'
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Police */}
+                              {activeModule.enableTextFont !== false && (
+                                <div style={{ marginBottom: '16px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#a0a0a0',
+                                    marginBottom: '8px',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Police
+                                  </label>
+                                  <select
+                                    value={selectedText.fontFamily || ''}
+                                    onChange={(e) => {
+                                      const fontGroup = fontGroups.find(fg => 
+                                        fg.fonts?.some((f: any) => f.name === e.target.value)
+                                      );
+                                      const font = fontGroup?.fonts?.find((f: any) => f.name === e.target.value);
+                                      updateText(selectedTextId, { 
+                                        fontFamily: e.target.value || undefined 
+                                      });
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      padding: '10px 12px',
+                                      backgroundColor: '#0a0a0a',
+                                      border: '1px solid #2a2a2a',
+                                      borderRadius: '4px',
+                                      color: '#ffffff',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      cursor: 'pointer',
+                                      outline: 'none'
+                                    }}
+                                  >
+                                    <option value="">Police par défaut</option>
+                                    {fontGroups.map((group) =>
+                                      group.fonts?.map((font: any) => (
+                                        <option key={font.id} value={font.name}>
+                                          {font.name}
+                                        </option>
+                                      ))
+                                    )}
+                                  </select>
+                                </div>
+                              )}
+
+                              {/* Couleur */}
+                              {activeModule.enableTextColor !== false && (
+                                <div style={{ marginBottom: '16px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#a0a0a0',
+                                    marginBottom: '8px',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Couleur
+                                  </label>
+                                  <div style={{
+                                    display: 'flex',
+                                    gap: '8px',
+                                    alignItems: 'center'
+                                  }}>
+                                    <input
+                                      type="color"
+                                      value={selectedText.color || '#000000'}
+                                      onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
+                                      style={{
+                                        width: '50px',
+                                        height: '40px',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        backgroundColor: '#0a0a0a'
+                                      }}
+                                    />
+                                    <input
+                                      type="text"
+                                      value={selectedText.color || '#000000'}
+                                      onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
+                                      style={{
+                                        flex: 1,
+                                        padding: '10px 12px',
+                                        backgroundColor: '#0a0a0a',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        fontSize: '14px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        outline: 'none'
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Contour */}
+                              {activeModule.enableTextStroke !== false && (
+                                <div style={{ marginBottom: '16px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#a0a0a0',
+                                    marginBottom: '8px',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Contour
+                                  </label>
+                                  <div style={{
+                                    display: 'flex',
+                                    gap: '8px',
+                                    alignItems: 'center',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <input
+                                      type="color"
+                                      value={selectedText.strokeColor || '#000000'}
+                                      onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
+                                      style={{
+                                        width: '50px',
+                                        height: '40px',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        backgroundColor: '#0a0a0a'
+                                      }}
+                                    />
+                                    <input
+                                      type="text"
+                                      value={selectedText.strokeColor || '#000000'}
+                                      onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
+                                      style={{
+                                        flex: 1,
+                                        padding: '10px 12px',
+                                        backgroundColor: '#0a0a0a',
+                                        border: '1px solid #2a2a2a',
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        fontSize: '14px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        outline: 'none'
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label style={{
+                                      display: 'block',
+                                      fontSize: '12px',
+                                      color: '#a0a0a0',
+                                      marginBottom: '8px',
+                                      fontFamily: 'var(--stepn-font-body)'
+                                    }}>
+                                      Épaisseur du contour
+                                    </label>
+                                    <input
+                                      type="range"
+                                      min="0"
+                                      max="2"
+                                      step="0.1"
+                                      value={selectedText.strokeWidth || 0.1}
+                                      onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
+                                      style={{
+                                        width: '100%',
+                                        cursor: 'pointer'
+                                      }}
+                                    />
+                                    <div style={{
+                                      fontSize: '11px',
+                                      color: '#666',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      marginTop: '4px'
+                                    }}>
+                                      {selectedText.strokeWidth || 0.1}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Déformation */}
+                              {activeModule.enableTextDeformation !== false && (
+                                <div style={{ marginBottom: '16px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#a0a0a0',
+                                    marginBottom: '8px',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Type de déformation
+                                  </label>
+                                  <select
+                                    value={selectedText.deformation || ''}
+                                    onChange={(e) => updateText(selectedTextId, { 
+                                      deformation: e.target.value || undefined 
+                                    })}
+                                    style={{
+                                      width: '100%',
+                                      padding: '10px 12px',
+                                      backgroundColor: '#0a0a0a',
+                                      border: '1px solid #2a2a2a',
+                                      borderRadius: '4px',
+                                      color: '#ffffff',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      cursor: 'pointer',
+                                      outline: 'none',
+                                      marginBottom: '8px'
+                                    }}
+                                  >
+                                    <option value="">Aucune</option>
+                                    <option value="arc">Arc</option>
+                                    <option value="wave">Vague</option>
+                                    <option value="bulge">Bombé</option>
+                                    <option value="pinch">Pincement</option>
+                                  </select>
+                                  {selectedText.deformation && (
+                                    <div>
+                                      <label style={{
+                                        display: 'block',
+                                        fontSize: '12px',
+                                        color: '#a0a0a0',
+                                        marginBottom: '8px',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        Intensité
+                                      </label>
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value={selectedText.deformationIntensity || 50}
+                                        onChange={(e) => updateText(selectedTextId, { 
+                                          deformationIntensity: parseInt(e.target.value) 
+                                        })}
+                                        style={{
+                                          width: '100%',
+                                          cursor: 'pointer'
+                                        }}
+                                      />
+                                      <div style={{
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        marginTop: '4px'
+                                      }}>
+                                        {selectedText.deformationIntensity || 50}%
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     ) : (
                       <div>
@@ -3478,6 +3796,65 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     />
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '12px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Options d'édition de texte
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      padding: '12px',
+                      backgroundColor: '#1a1a1a',
+                      borderRadius: '4px',
+                      border: '1px solid #2a2a2a'
+                    }}>
+                      {[
+                        { key: 'enableTextContent', label: 'Modifier le contenu' },
+                        { key: 'enableTextFont', label: 'Changer la police' },
+                        { key: 'enableTextColor', label: 'Changer la couleur' },
+                        { key: 'enableTextStroke', label: 'Modifier le contour' },
+                        { key: 'enableTextDeformation', label: 'Déformer le texte' }
+                      ].map(({ key, label }) => (
+                        <label
+                          key={key}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)',
+                            fontSize: '14px',
+                            color: '#ffffff'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={(selectedModule[key as keyof typeof selectedModule] as boolean) || false}
+                            onChange={(e) => {
+                              const updated = { 
+                                ...selectedModule, 
+                                [key]: e.target.checked
+                              };
+                              setSelectedModule(updated);
+                              setCustomizationModules(customizationModules.map(m => 
+                                m.id === selectedModule.id ? updated : m
+                              ));
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <span>{label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
