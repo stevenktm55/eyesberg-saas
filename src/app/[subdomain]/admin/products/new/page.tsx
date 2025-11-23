@@ -149,7 +149,7 @@ export default function ProductBuilderPage() {
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
   const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
-  const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number] }> }>>([]);
+  const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number]; thumbnailUrl?: string }> }>>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
