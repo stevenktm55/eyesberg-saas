@@ -152,6 +152,7 @@ export default function ProductBuilderPage() {
   const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number] }> }>>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
+  const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -2273,176 +2274,44 @@ export default function ProductBuilderPage() {
                       );
                     })() : activeModule.contentType === 'text' ? (
                       <div>
-                        {activeModule.textPlacementMode === 'zones' ? (
-                          // Mode zones : afficher le sélecteur de zones
-                          <div>
-                            {/* Sélecteur de zones */}
-                            {(() => {
-                              // Récupérer les zones des groupes sélectionnés
-                              const availableZones = zoneGroups
-                                .filter(group => activeModule.zoneGroupIds?.includes(group.id))
-                                .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
-                              
-                              if (availableZones.length === 0) {
-                                return (
-                                  <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
-                                    Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
-                                  </p>
-                                );
-                              }
-                              
-                              return (
-                                <div>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    color: '#666',
-                                    marginBottom: '8px',
-                                    fontFamily: 'var(--stepn-font-body)'
-                                  }}>
-                                    Sélectionner une zone
-                                  </label>
-                                  <select
-                                    value={selectedZoneId || ''}
-                                    onChange={(e) => {
-                                      setSelectedZoneId(e.target.value || null);
-                                      setTextInputValue('');
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      padding: '10px 12px',
-                                      backgroundColor: '#ffffff',
-                                      border: '1px solid #e0e0e0',
-                                      borderRadius: '4px',
-                                      fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
-                                      color: '#000000',
-                                      cursor: 'pointer',
-                                      marginBottom: '12px'
-                                    }}
-                                  >
-                                    <option value="">-- Choisir une zone --</option>
-                                    {availableZones.map((zone) => (
-                                      <option key={zone.id} value={zone.id}>
-                                        {zone.groupName} - {zone.name} {zone.view ? `(${zone.view})` : ''}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  
-                                  {selectedZoneId && (
-                                    <div>
-                                      <label style={{
-                                        display: 'block',
-                                        fontSize: '12px',
-                                        color: '#666',
-                                        marginBottom: '8px',
-                                        fontFamily: 'var(--stepn-font-body)'
-                                      }}>
-                                        Texte
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={textInputValue}
-                                        onChange={(e) => setTextInputValue(e.target.value)}
-                                        placeholder="Entrez le texte"
-                                        style={{
-                                          width: '100%',
-                                          padding: '10px 12px',
-                                          backgroundColor: '#ffffff',
-                                          border: '1px solid #e0e0e0',
-                                          borderRadius: '4px',
-                                          fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
-                                          color: '#000000',
-                                          marginBottom: '12px'
-                                        }}
-                                      />
-                                      <button
-                                        onClick={() => {
-                                          const selectedZone = availableZones.find(z => z.id === selectedZoneId);
-                                          if (selectedZone && textInputValue.trim()) {
-                                            // Convertir la vue en zoneCategory si nécessaire
-                                            const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                              'Face': 'torse',
-                                              'Dos': 'dos',
-                                              'Gauche': 'bras-gauche',
-                                              'Droite': 'bras-droit'
-                                            };
-                                            const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
-                                            
-                                            addText(
-                                              textInputValue,
-                                              selectedZone.position,
-                                              undefined,
-                                              'text',
-                                              700,
-                                              zoneCategory,
-                                              undefined // rotation sera gérée par la zone
-                                            );
-                                            
-                                            // Réinitialiser
-                                            setSelectedZoneId(null);
-                                            setTextInputValue('');
-                                          }
-                                        }}
-                                        disabled={!textInputValue.trim()}
-                                        style={{
-                                          width: '100%',
-                                          padding: '12px 16px',
-                                          backgroundColor: textInputValue.trim() ? '#8eff36' : '#cccccc',
-                                          border: 'none',
-                                          borderRadius: '4px',
-                                          fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
-                                          color: '#000000',
-                                          cursor: textInputValue.trim() ? 'pointer' : 'not-allowed',
-                                          fontWeight: '500',
-                                          transition: 'all 0.2s'
-                                        }}
-                                      >
-                                        Ajouter
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        ) : (
-                          // Mode libre : bouton pour placer le texte
-                          <button
-                            onClick={() => {
+                        <button
+                          onClick={() => {
+                            if (activeModule.textPlacementMode === 'zones') {
+                              // Mode zones : ouvrir le modal de sélection de zones
+                              setShowZoneSelectionModal(true);
+                              setSelectedZoneId(null);
+                              setTextInputValue('');
+                            } else {
+                              // Mode libre : activer le mode placement
                               if (isPlacingText) {
-                                // Si déjà en mode placement, annuler le mode
                                 setIsPlacingText(null);
                               } else {
-                                // Activer le mode placement - l'utilisateur devra cliquer sur le modèle pour placer le texte
                                 setIsPlacingText('nom');
                               }
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '12px 16px',
-                              backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
-                              border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
-                              borderRadius: '4px',
-                              fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
-                              color: '#000000',
-                              cursor: 'pointer',
-                              fontWeight: '500',
-                              transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
-                            }}
-                          >
-                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
-                          </button>
-                        )}
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
+                            border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            color: '#000000',
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
+                          }}
+                        >
+                          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                        </button>
                       </div>
                     ) : (
                       <div>
