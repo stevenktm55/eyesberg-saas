@@ -2078,8 +2078,6 @@ function SimpleViewer({
         
         ctx.restore();
         drawnCount++;
-        
-        console.log('✅ Drew text:', text.content, 'at', text.position, 'size:', fontSize, 'px, color:', text.color || '#000000');
       });
       
       // If some fonts were pending, retry shortly to render with proper fonts
