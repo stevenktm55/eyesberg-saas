@@ -4162,9 +4162,11 @@ export default function ProductBuilderPage() {
                               ];
                               // Convertir la rotation de degrés à radians si nécessaire
                               // La rotation est stockée en degrés dans la base de données
-                              const zoneRotation = selectedZone.rotation !== undefined && selectedZone.rotation !== null 
-                                ? selectedZone.rotation * (Math.PI / 180) 
-                                : undefined;
+                              // Vérifier si la rotation existe dans la zone (peut être undefined si pas définie)
+                              const zoneRotationRaw = (selectedZone as any).rotation;
+                              const zoneRotation = zoneRotationRaw !== undefined && zoneRotationRaw !== null 
+                                ? zoneRotationRaw * (Math.PI / 180) 
+                                : 0; // Par défaut, pas de rotation (0 radians)
                               addText(
                                 textInputValue,
                                 zonePosition,
@@ -4253,9 +4255,11 @@ export default function ProductBuilderPage() {
                             ];
                             // Convertir la rotation de degrés à radians si nécessaire
                             // La rotation est stockée en degrés dans la base de données
-                            const zoneRotation = selectedZone.rotation !== undefined && selectedZone.rotation !== null 
-                              ? selectedZone.rotation * (Math.PI / 180) 
-                              : undefined;
+                            // Vérifier si la rotation existe dans la zone (peut être undefined si pas définie)
+                            const zoneRotationRaw = (selectedZone as any).rotation;
+                            const zoneRotation = zoneRotationRaw !== undefined && zoneRotationRaw !== null 
+                              ? zoneRotationRaw * (Math.PI / 180) 
+                              : 0; // Par défaut, pas de rotation (0 radians)
                             addText(
                               textInputValue,
                               zonePosition,
