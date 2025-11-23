@@ -654,6 +654,39 @@ export default function ZonesConfigPage() {
                           marginBottom: '8px',
                           fontFamily: 'var(--stepn-font-body)'
                         }}>
+                          Nom de la zone
+                        </label>
+                        <input
+                          type="text"
+                          value={editingZones.find(z => z.id === selectedZoneId)?.name || ''}
+                          onChange={(e) => {
+                            if (selectedZoneId) {
+                              handleUpdateZone({ name: e.target.value });
+                            }
+                          }}
+                          placeholder="Nom de la zone"
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
                           Image de la vignette
                         </label>
                         <input
@@ -952,45 +985,65 @@ export default function ZonesConfigPage() {
                         border: selectedZoneId === zone.id ? '2px solid #8eff36' : '1px solid #2a2a2a',
                         cursor: 'pointer',
                         display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
+                        flexDirection: 'column',
+                        gap: '8px'
                       }}
                     >
-                      <div>
-                        <div style={{
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          marginBottom: '4px',
-                          fontFamily: 'var(--stepn-font-body)'
-                        }}>
-                          {zone.name}
+                      {zone.thumbnailUrl && (
+                        <img
+                          src={zone.thumbnailUrl}
+                          alt={zone.name}
+                          style={{
+                            width: '100%',
+                            height: '80px',
+                            objectFit: 'contain',
+                            borderRadius: '4px',
+                            backgroundColor: '#0a0a0a'
+                          }}
+                        />
+                      )}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            marginBottom: '4px',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {zone.name}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: '#a0a0a0',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {zone.isLogo ? 'Logo' : 'Texte'}
+                          </div>
                         </div>
-                        <div style={{
-                          fontSize: '12px',
-                          color: '#a0a0a0',
-                          fontFamily: 'var(--stepn-font-body)'
-                        }}>
-                          {zone.isLogo ? 'Logo' : 'Texte'}
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteZone(zone.id);
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: '#ff4444',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}
+                        >
+                          ×
+                        </button>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteZone(zone.id);
-                        }}
-                        style={{
-                          padding: '4px 8px',
-                          backgroundColor: '#ff4444',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          fontFamily: 'var(--stepn-font-body)'
-                        }}
-                      >
-                        ×
-                      </button>
                     </div>
                   ))}
                 </div>

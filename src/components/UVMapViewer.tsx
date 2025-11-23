@@ -161,7 +161,7 @@ export function UVMapViewer({
     }
   }, [scene, canvasSize, design2DUrl]);
 
-  // Helper function to draw UV wireframe
+  // Helper function to draw UV wireframe (with horizontal mirror)
   const drawUVWireframe = (ctx: CanvasRenderingContext2D, scene: THREE.Scene, width: number, height: number) => {
     ctx.strokeStyle = "#4a4a4a";
     ctx.lineWidth = 1;
@@ -185,11 +185,11 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i1), uvAttribute.getY(i1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i2), uvAttribute.getY(i2));
               
-              // Draw triangle edges
+              // Draw triangle edges with horizontal mirror (flip X)
               ctx.beginPath();
-              ctx.moveTo(uv0.x * width, (1 - uv0.y) * height);
-              ctx.lineTo(uv1.x * width, (1 - uv1.y) * height);
-              ctx.lineTo(uv2.x * width, (1 - uv2.y) * height);
+              ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
+              ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
+              ctx.lineTo((1 - uv2.x) * width, (1 - uv2.y) * height);
               ctx.closePath();
               ctx.stroke();
             }
@@ -200,11 +200,11 @@ export function UVMapViewer({
               const uv1 = new THREE.Vector2(uvAttribute.getX(i + 1), uvAttribute.getY(i + 1));
               const uv2 = new THREE.Vector2(uvAttribute.getX(i + 2), uvAttribute.getY(i + 2));
               
-              // Draw triangle edges
+              // Draw triangle edges with horizontal mirror (flip X)
               ctx.beginPath();
-              ctx.moveTo(uv0.x * width, (1 - uv0.y) * height);
-              ctx.lineTo(uv1.x * width, (1 - uv1.y) * height);
-              ctx.lineTo(uv2.x * width, (1 - uv2.y) * height);
+              ctx.moveTo((1 - uv0.x) * width, (1 - uv0.y) * height);
+              ctx.lineTo((1 - uv1.x) * width, (1 - uv1.y) * height);
+              ctx.lineTo((1 - uv2.x) * width, (1 - uv2.y) * height);
               ctx.closePath();
               ctx.stroke();
             }
@@ -214,7 +214,7 @@ export function UVMapViewer({
     });
   };
 
-  // Convert screen coordinates to UV coordinates (accounting for 180° rotation)
+  // Convert screen coordinates to UV coordinates (accounting for 180° rotation and horizontal mirror)
   const screenToUV = useCallback((screenX: number, screenY: number): [number, number] | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -231,19 +231,23 @@ export function UVMapViewer({
     const x = (screenX - rect.left - pan.x) / scale * scaleX;
     const y = (screenY - rect.top - pan.y) / scale * scaleY;
     
-    // Convert to UV coordinates (0-1) and apply 180° rotation
-    // After 180° rotation: (u, v) -> (1-u, 1-v)
+    // Convert to UV coordinates (0-1)
+    // Note: canvas Y is top-to-bottom, UV Y is bottom-to-top, so we flip Y
     const u = Math.max(0, Math.min(1, x / canvas.width));
-    const v = Math.max(0, Math.min(1, 1 - (y / canvas.height))); // Flip Y axis
+    const v = Math.max(0, Math.min(1, y / canvas.height)); // Don't flip Y here
     
-    // Apply 180° rotation: flip both coordinates
-    const rotatedU = 1 - u;
-    const rotatedV = 1 - v;
+    // Apply transformations: 180° rotation + horizontal mirror
+    // 180° rotation: (u, v) -> (1-u, 1-v)
+    // Horizontal mirror: (u, v) -> (1-u, v)
+    // Combined: (u, v) -> (1-u, 1-v) then mirror -> (u, 1-v)
+    // Actually, with horizontal mirror first: (u, v) -> (1-u, v) then 180° -> (u, 1-v)
+    const finalU = 1 - u; // Horizontal mirror
+    const finalV = 1 - v; // 180° rotation (flip Y)
     
-    return [rotatedU, rotatedV];
+    return [finalU, finalV];
   }, [pan, scale]);
 
-  // Convert UV coordinates to screen coordinates (accounting for 180° rotation)
+  // Convert UV coordinates to screen coordinates (accounting for 180° rotation and horizontal mirror)
   const uvToScreen = useCallback((uv: [number, number]): { x: number; y: number } | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
@@ -256,12 +260,13 @@ export function UVMapViewer({
     const scaleX = canvasDisplayWidth / canvas.width;
     const scaleY = canvasDisplayHeight / canvas.height;
     
-    // Apply 180° rotation: flip both coordinates
-    const rotatedU = 1 - uv[0];
-    const rotatedV = 1 - uv[1];
+    // Apply transformations: 180° rotation + horizontal mirror
+    // Reverse: (u, v) -> apply mirror -> (1-u, v) -> apply 180° -> (u, 1-v)
+    const transformedU = 1 - uv[0]; // Horizontal mirror
+    const transformedV = 1 - uv[1]; // 180° rotation (flip Y)
     
-    const x = rotatedU * canvas.width * scaleX * scale + pan.x;
-    const y = rotatedV * canvas.height * scaleY * scale + pan.y;
+    const x = transformedU * canvas.width * scaleX * scale + pan.x;
+    const y = transformedV * canvas.height * scaleY * scale + pan.y;
     
     return { x, y };
   }, [pan, scale]);
