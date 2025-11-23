@@ -116,13 +116,11 @@ export function UVMapViewer({
               ctx.fillStyle = "#1a1a1a";
               ctx.fillRect(0, 0, canvas.width, canvas.height);
               
-              // First draw UV wireframe (with 180° rotation)
-              drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-              
-              // Then draw design 2D on top (with 180° rotation)
+              // Draw design 2D with 180° rotation + horizontal mirror
               ctx.save();
               ctx.translate(canvas.width / 2, canvas.height / 2);
               ctx.rotate(Math.PI); // 180 degrees
+              ctx.scale(-1, 1); // Horizontal mirror
               ctx.translate(-canvas.width / 2, -canvas.height / 2);
               
               // Draw design 2D
@@ -144,9 +142,7 @@ export function UVMapViewer({
             
             img.onerror = (error) => {
               console.error("Error loading SVG design 2D:", error);
-              // If design fails to load, just draw UV wireframe
-              drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-              
+              // If design fails to load, show empty canvas
               canvas.toBlob((blob) => {
                 if (blob) {
                   const imageUrl = URL.createObjectURL(blob);
@@ -159,9 +155,7 @@ export function UVMapViewer({
           })
           .catch(error => {
             console.error("Error fetching SVG design 2D:", error);
-            // If design fails to load, just draw UV wireframe
-            drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-            
+            // If design fails to load, show empty canvas
             canvas.toBlob((blob) => {
               if (blob) {
                 const url = URL.createObjectURL(blob);
@@ -179,13 +173,11 @@ export function UVMapViewer({
           ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // First draw UV wireframe (with 180° rotation)
-          drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-          
-          // Then draw design 2D on top (with 180° rotation)
+          // Draw design 2D with 180° rotation + horizontal mirror
           ctx.save();
           ctx.translate(canvas.width / 2, canvas.height / 2);
           ctx.rotate(Math.PI); // 180 degrees
+          ctx.scale(-1, 1); // Horizontal mirror
           ctx.translate(-canvas.width / 2, -canvas.height / 2);
           
           // Draw design 2D
@@ -206,9 +198,7 @@ export function UVMapViewer({
         };
         img.onerror = (error) => {
           console.error("Error loading design 2D:", error);
-          // If design fails to load, just draw UV wireframe
-          drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-          
+          // If design fails to load, show empty canvas
           canvas.toBlob((blob) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
@@ -219,10 +209,7 @@ export function UVMapViewer({
         img.src = design2DUrl;
       }
     } else {
-      // Just draw UV wireframe (with 180° rotation)
-      drawUVWireframe(ctx, scene, canvas.width, canvas.height);
-      
-      // Convert canvas to image
+      // No design - just show empty canvas
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
