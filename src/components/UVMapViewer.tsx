@@ -232,8 +232,14 @@ export function UVMapViewer({
     }
   }, [scene, canvasSize, design2DUrl]);
 
-  // Helper function to draw UV wireframe (with 180° rotation only)
+  // Helper function to draw UV wireframe (with 180° rotation)
   const drawUVWireframe = (ctx: CanvasRenderingContext2D, scene: THREE.Scene, width: number, height: number) => {
+    // Apply 180° rotation to the entire wireframe
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(Math.PI); // 180 degrees
+    ctx.translate(-width / 2, -height / 2);
+    
     ctx.strokeStyle = "#4a4a4a";
     ctx.lineWidth = 1;
     
