@@ -4160,7 +4160,9 @@ export default function ProductBuilderPage() {
                                 selectedZone.position[1],
                                 selectedZone.position[2] || 0
                               ];
-                              console.log('📍 Adding text at zone position:', zonePosition, 'for zone:', selectedZone.name);
+                              // Convertir la rotation de degrés à radians si nécessaire
+                              const zoneRotation = (selectedZone as any).rotation ? (selectedZone as any).rotation * (Math.PI / 180) : undefined;
+                              console.log('📍 Adding text at zone position:', zonePosition, 'rotation:', zoneRotation, 'for zone:', selectedZone.name);
                               addText(
                                 textInputValue,
                                 zonePosition,
@@ -4168,7 +4170,7 @@ export default function ProductBuilderPage() {
                                 'text',
                                 700,
                                 zoneCategory,
-                                undefined
+                                zoneRotation
                               );
                               
                               // Positionner la caméra sur la vue de la zone
@@ -4247,7 +4249,9 @@ export default function ProductBuilderPage() {
                               selectedZone.position[1],
                               selectedZone.position[2] || 0
                             ];
-                            console.log('📍 Adding text at zone position:', zonePosition, 'for zone:', selectedZone.name);
+                            // Convertir la rotation de degrés à radians si nécessaire
+                            const zoneRotation = (selectedZone as any).rotation ? (selectedZone as any).rotation * (Math.PI / 180) : undefined;
+                            console.log('📍 Adding text at zone position:', zonePosition, 'rotation:', zoneRotation, 'for zone:', selectedZone.name);
                             addText(
                               textInputValue,
                               zonePosition,
@@ -4255,7 +4259,7 @@ export default function ProductBuilderPage() {
                               'text',
                               700,
                               zoneCategory,
-                              undefined
+                              zoneRotation
                             );
                             
                             // Positionner la caméra sur la vue de la zone
