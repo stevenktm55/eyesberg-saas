@@ -4155,9 +4155,11 @@ export default function ProductBuilderPage() {
                               const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                               
                               // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                              // IMPORTANT: Les zones sont stockées avec inversion verticale (comme dans UVMapViewer)
+                              // Mais ModelViewer utilise des coordonnées directes, donc on doit inverser v
                               const zonePosition: [number, number, number] = [
                                 selectedZone.position[0],
-                                selectedZone.position[1],
+                                1 - selectedZone.position[1], // Inverser v pour correspondre à ModelViewer
                                 selectedZone.position[2] || 0
                               ];
                               // Convertir la rotation de degrés à radians si nécessaire
@@ -4248,9 +4250,11 @@ export default function ProductBuilderPage() {
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
                             // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                            // IMPORTANT: Les zones sont stockées avec inversion verticale (comme dans UVMapViewer)
+                            // Mais ModelViewer utilise des coordonnées directes, donc on doit inverser v
                             const zonePosition: [number, number, number] = [
                               selectedZone.position[0],
-                              selectedZone.position[1],
+                              1 - selectedZone.position[1], // Inverser v pour correspondre à ModelViewer
                               selectedZone.position[2] || 0
                             ];
                             // Convertir la rotation de degrés à radians si nécessaire
