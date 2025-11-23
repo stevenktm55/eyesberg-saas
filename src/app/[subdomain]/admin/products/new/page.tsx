@@ -125,6 +125,7 @@ export default function ProductBuilderPage() {
   const [initialRotation, setInitialRotation] = useState(0);
   
   // Text management states
+  const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
   const [texts, setTexts] = useState<Array<{
     id: string;
     content: string;
@@ -2539,6 +2540,7 @@ export default function ProductBuilderPage() {
                                   isPlacingText={isPlacingText}
                                   textZones={[]} // Pas de zones prédéfinies dans le builder
                                   onTextPlaced={handleTextPlaced}
+                                  onCanvasReady={(canvas) => setUv2Canvas(canvas)}
                                 />
                               )}
                             </Suspense>

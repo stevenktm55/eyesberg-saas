@@ -125,6 +125,7 @@ function SimpleViewer({
     aoIntensity?: number;
     useUV2?: boolean;
   }>;
+  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
 }) {
   const gltf = useGLTF(url) as any;
   const { scene, gl, camera } = useThree();
@@ -976,6 +977,10 @@ function SimpleViewer({
     
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 2048; // Higher quality
     canvasRef.current = canvas;
+    // Expose canvas to parent component
+    if (onCanvasReady) {
+      onCanvasReady(canvas);
+    }
     const ctx = canvas.getContext('2d'); if (!ctx) {
       console.error('❌ Failed to get 2d context for overlay canvas');
       return;
