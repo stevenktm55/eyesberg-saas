@@ -3775,6 +3775,243 @@ export default function ProductBuilderPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de sélection de zones */}
+      {showZoneSelectionModal && activeModule && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowZoneSelectionModal(false);
+              setSelectedZoneId(null);
+              setTextInputValue('');
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '8px',
+              padding: '24px',
+              width: '90%',
+              maxWidth: '600px',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              border: '1px solid #2a2a2a'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px'
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#ffffff',
+                fontFamily: 'var(--stepn-font-body)',
+                margin: 0
+              }}>
+                Sélectionner une zone
+              </h2>
+              <button
+                onClick={() => {
+                  setShowZoneSelectionModal(false);
+                  setSelectedZoneId(null);
+                  setTextInputValue('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {(() => {
+              // Récupérer les zones des groupes sélectionnés
+              const availableZones = zoneGroups
+                .filter(group => activeModule.zoneGroupIds?.includes(group.id))
+                .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+              
+              if (availableZones.length === 0) {
+                return (
+                  <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                    Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
+                  </p>
+                );
+              }
+              
+              return (
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Zone
+                  </label>
+                  <select
+                    value={selectedZoneId || ''}
+                    onChange={(e) => {
+                      setSelectedZoneId(e.target.value || null);
+                      setTextInputValue('');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    <option value="">-- Choisir une zone --</option>
+                    {availableZones.map((zone) => (
+                      <option key={zone.id} value={zone.id}>
+                        {zone.groupName} - {zone.name} {zone.view ? `(${zone.view})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {selectedZoneId && (
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Texte
+                      </label>
+                      <input
+                        type="text"
+                        value={textInputValue}
+                        onChange={(e) => setTextInputValue(e.target.value)}
+                        placeholder="Entrez le texte"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && textInputValue.trim()) {
+                            const selectedZone = availableZones.find(z => z.id === selectedZoneId);
+                            if (selectedZone) {
+                              const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                'Face': 'torse',
+                                'Dos': 'dos',
+                                'Gauche': 'bras-gauche',
+                                'Droite': 'bras-droit'
+                              };
+                              const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
+                              
+                              addText(
+                                textInputValue,
+                                selectedZone.position,
+                                undefined,
+                                'text',
+                                700,
+                                zoneCategory,
+                                undefined
+                              );
+                              
+                              setShowZoneSelectionModal(false);
+                              setSelectedZoneId(null);
+                              setTextInputValue('');
+                            }
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          backgroundColor: '#0a0a0a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#ffffff',
+                          marginBottom: '16px',
+                          outline: 'none'
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          const selectedZone = availableZones.find(z => z.id === selectedZoneId);
+                          if (selectedZone && textInputValue.trim()) {
+                            const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                              'Face': 'torse',
+                              'Dos': 'dos',
+                              'Gauche': 'bras-gauche',
+                              'Droite': 'bras-droit'
+                            };
+                            const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
+                            
+                            addText(
+                              textInputValue,
+                              selectedZone.position,
+                              undefined,
+                              'text',
+                              700,
+                              zoneCategory,
+                              undefined
+                            );
+                            
+                            setShowZoneSelectionModal(false);
+                            setSelectedZoneId(null);
+                            setTextInputValue('');
+                          }
+                        }}
+                        disabled={!textInputValue.trim()}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          backgroundColor: textInputValue.trim() ? '#8eff36' : '#2a2a2a',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: textInputValue.trim() ? '#000000' : '#666',
+                          cursor: textInputValue.trim() ? 'pointer' : 'not-allowed',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Ajouter
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
