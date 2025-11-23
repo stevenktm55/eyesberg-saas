@@ -293,13 +293,9 @@ export function UVMapViewer({
     const u = Math.max(0, Math.min(1, x / canvas.width));
     const v = Math.max(0, Math.min(1, y / canvas.height));
     
-    // Apply 180° rotation + horizontal mirror: (u, v) -> (u, 1-v) after rotation and mirror
-    // With 180° rotation: (u, v) -> (1-u, 1-v)
-    // With horizontal mirror: (u, v) -> (1-u, v)
-    // Combined: (u, v) -> (1-u, 1-v) then mirror -> (u, 1-v)
-    // Actually: rotation first (1-u, 1-v), then mirror horizontally -> (u, 1-v)
-    const finalU = u; // After rotation and mirror, U stays the same
-    const finalV = 1 - v; // After rotation, V is flipped
+    // Invert vertical axis: (u, v) -> (u, 1-v)
+    const finalU = u;
+    const finalV = 1 - v;
     
     return [finalU, finalV];
   }, [pan, scale]);
