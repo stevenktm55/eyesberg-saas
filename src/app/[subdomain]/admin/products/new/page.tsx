@@ -2502,10 +2502,6 @@ export default function ProductBuilderPage() {
                                   <select
                                     value={selectedText.fontFamily || ''}
                                     onChange={(e) => {
-                                      const fontGroup = fontGroups.find(fg => 
-                                        fg.fonts?.some((f: any) => f.name === e.target.value)
-                                      );
-                                      const font = fontGroup?.fonts?.find((f: any) => f.name === e.target.value);
                                       updateText(selectedTextId, { 
                                         fontFamily: e.target.value || undefined 
                                       });
@@ -2526,8 +2522,8 @@ export default function ProductBuilderPage() {
                                     <option value="">Police par défaut</option>
                                     {fontGroups.map((group) =>
                                       group.fonts?.map((font: any) => (
-                                        <option key={font.id} value={font.name}>
-                                          {font.name}
+                                        <option key={font.id} value={font.id}>
+                                          {font.display_name || font.name || font.id}
                                         </option>
                                       ))
                                     )}
