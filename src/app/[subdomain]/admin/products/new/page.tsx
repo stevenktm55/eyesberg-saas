@@ -1617,7 +1617,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">>Sélectionner un modèle 3D</option>
+                  <option value="">Sélectionner un modèle 3D</option>
                   {models3D.map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.name}
@@ -1653,7 +1653,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">>Sélectionner un design 2D</option>
+                  <option value="">Sélectionner un design 2D</option>
                   {designs2D.map((design) => (
                     <option key={design.id} value={design.id}>
                       {design.name}
@@ -2200,7 +2200,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">>Sélectionner un logo</option>
+                              <option value="">Sélectionner un logo</option>
                               {library.logos?.map((logo: any) => (
                                 <option key={logo.id} value={logo.id}>
                                   {logo.name}
@@ -2227,7 +2227,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">>Sélectionner une font</option>
+                              <option value="">Sélectionner une font</option>
                               {group.fonts?.map((font: any) => (
                                 <option key={font.id} value={font.id}>
                                   {font.name}
@@ -2366,7 +2366,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">>Sélectionner une taille</option>
+                              <option value="">Sélectionner une taille</option>
                               {pattern.sizes?.map((size: any) => (
                                 <option key={size.id} value={size.id}>
                                   {size.name}
@@ -2690,7 +2690,7 @@ export default function ProductBuilderPage() {
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     >
-                                      <option value="">>Police par défaut</option>
+                                      <option value="">Police par défaut</option>
                                       {fontGroups.map((group) =>
                                         group.fonts?.map((font: any) => (
                                           <option key={font.id} value={font.id}>
@@ -2950,7 +2950,7 @@ export default function ProductBuilderPage() {
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     >
-                                      <option value="">>Aucune</option>
+                                      <option value="">Aucune</option>
                                       <option value="arc">Arc</option>
                                       <option value="wave">Vague</option>
                                       <option value="bulge">Bombé</option>
@@ -3574,7 +3574,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">>Aucun</option>
+                  <option value="">Aucun</option>
                   <option value="colors">Couleurs</option>
                   <option value="logos">Logos</option>
                   <option value="fonts">Fonts</option>
@@ -3654,7 +3654,7 @@ export default function ProductBuilderPage() {
                           outline: 'none'
                         }}
                       >
-                        <option value="">>Sélectionner une palette</option>
+                        <option value="">Sélectionner une palette</option>
                         {colorPalettes.map((palette) => (
                           <option key={palette.id} value={palette.id}>
                             {palette.name}
@@ -3762,7 +3762,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">>Sélectionner une bibliothèque</option>
+                    <option value="">Sélectionner une bibliothèque</option>
                     {logoLibraries.map((library) => (
                       <option key={library.id} value={library.id}>
                         {library.name}
@@ -3811,7 +3811,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">>Sélectionner un groupe</option>
+                    <option value="">Sélectionner un groupe</option>
                     {fontGroups.map((group) => (
                       <option key={group.id} value={group.id}>
                         {group.name}
@@ -3860,7 +3860,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">>Sélectionner un design</option>
+                    <option value="">Sélectionner un design</option>
                     {designs2D.map((design) => (
                       <option key={design.id} value={design.id}>
                         {design.name}
@@ -3909,7 +3909,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">>Sélectionner un groupe</option>
+                    <option value="">Sélectionner un groupe</option>
                     {sizePatterns.map((pattern) => (
                       <option key={pattern.id} value={pattern.id}>
                         {pattern.name}
@@ -4159,7 +4159,7 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     >
-                      <option value="">>Sélectionner une palette</option>
+                      <option value="">Sélectionner une palette</option>
                       {colorPalettes.map((palette) => (
                         <option key={palette.id} value={palette.id}>
                           {palette.name}
@@ -4211,7 +4211,7 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     >
-                      <option value="">>Sélectionner une palette</option>
+                      <option value="">Sélectionner une palette</option>
                       {colorPalettes.map((palette) => (
                         <option key={palette.id} value={palette.id}>
                           {palette.name}
@@ -4896,7 +4896,7 @@ export default function ProductBuilderPage() {
                     e.currentTarget.style.borderColor = '#2a2a2a';
                   }}
                 >
-                  <option value="">>Sélectionner un type...</option>
+                  <option value="">Sélectionner un type...</option>
                   <option value="colors">Couleurs (Color Palettes)</option>
                   <option value="logos">Logos (Logo Libraries)</option>
                   <option value="fonts">Polices (Font Groups)</option>
