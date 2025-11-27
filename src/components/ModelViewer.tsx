@@ -34,7 +34,8 @@ function SimpleViewer({
   fonts = [],
   selectedDesign,
   materialMaps,
-  onCanvasReady
+  onCanvasReady,
+  textSizeLimits
 }: { 
   url: string, 
   designSrc?: string, 
@@ -127,6 +128,7 @@ function SimpleViewer({
     useUV2?: boolean;
   }>;
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
+  textSizeLimits?: { min: number; max: number };
 }) {
   const gltf = useGLTF(url) as any;
   const { scene, gl, camera } = useThree();
@@ -3330,9 +3332,8 @@ function SimpleViewer({
             const scaleRatio = currentDistance / initialDistance;
             const newFontSize = initialTextScaleRef.current * 120 * scaleRatio;
             
-            // Constrain font size: min 60px, max 750px  
-            const MIN_FONT_SIZE = 60;
-            const MAX_FONT_SIZE = 750;
+            const MIN_FONT_SIZE = textSizeLimits?.min ?? 60;
+            const MAX_FONT_SIZE = textSizeLimits?.max ?? 750;
             const constrainedSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, newFontSize));
             
             text.fontSize = constrainedSize;
@@ -3653,6 +3654,7 @@ type Props = ThreeElements['group'] & {
   setIsDraggingText?: (dragging: boolean) => void;
   isRotatingText?: boolean;
   setIsRotatingText?: (rotating: boolean) => void;
+  textSizeLimits?: { min: number; max: number };
   isResizingText?: boolean;
   setIsResizingText?: (resizing: boolean) => void;
   onSvgProcessed?: (svgUrl: string | null) => void;
@@ -3765,7 +3767,7 @@ const loadFontToCache = async (font: any): Promise<string | null> => {
   }
 };
 
-export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, ...props }: Props) {
+export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, textSizeLimits, ...props }: Props) {
   console.log('🎨 ModelViewer: designTexture =', designTexture);
   console.log('🎨 ModelViewer: placedLogos =', placedLogos);
   console.log('📍 ModelViewer: isPlacingText =', isPlacingText);
@@ -3829,6 +3831,7 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     setIsDraggingText={setIsDraggingText}
     fonts={fonts}
     onCanvasReady={onCanvasReady}
+    textSizeLimits={textSizeLimits}
   />;
 }
 

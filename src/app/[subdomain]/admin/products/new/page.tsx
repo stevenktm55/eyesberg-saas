@@ -57,6 +57,12 @@ type CustomizationModule = {
   enableTextDeformation?: boolean; // Permettre de déformer le texte
   textColorPaletteId?: string; // Palette à utiliser pour la couleur du texte
   textStrokePaletteId?: string; // Palette à utiliser pour le contour du texte
+  textMinFontSize?: number; // Taille min (px)
+  textMaxFontSize?: number; // Taille max (px)
+  textStrokeMaxWidth?: number; // Largeur max du contour (px)
+  textBaseStrokeWidth?: number; // Largeur par défaut du contour (px)
+  textDefaultColor?: string; // Couleur par défaut du texte
+  textDefaultStrokeColor?: string; // Couleur par défaut du contour
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
@@ -91,6 +97,8 @@ type Design2D = {
   preview_url?: string | null;
   color_mappings?: Record<string, string> | null;
 };
+
+const TEXT_FONT_SCALE = 0.5;
 
 export default function ProductBuilderPage() {
   const router = useRouter();
@@ -197,52 +205,73 @@ export default function ProductBuilderPage() {
     return customizationModules.find(module => module.contentType === 'text');
   }, [customizationModules, activeCustomizerTab]);
 
+  const pxToBaseFontSize = (px: number) => px / TEXT_FONT_SCALE;
+  const baseFontSizeToPx = (base: number) => base * TEXT_FONT_SCALE;
+
+  const convertLegacyStrokeWidth = (value: number, maxPx: number) => {
+    if (!Number.isFinite(value)) return 0;
+    if (value <= 2 && maxPx > 2) {
+      return Math.min(maxPx, (value / 2) * maxPx);
+    }
+    return value;
+  };
+
   const getTextConstraintValues = useCallback(() => {
     const module = getTextModuleConfig();
 
-    let minFontSize = Number(module?.textMinFontSize ?? 200);
-    let maxFontSize = Number(module?.textMaxFontSize ?? 2000);
-    if (!Number.isFinite(minFontSize) || minFontSize <= 0) minFontSize = 200;
-    if (!Number.isFinite(maxFontSize) || maxFontSize <= 0) maxFontSize = 2000;
-    if (maxFontSize < minFontSize) {
-      const temp = minFontSize;
-      minFontSize = maxFontSize;
-      maxFontSize = temp;
+    let minFontSizePx = Number(module?.textMinFontSize ?? 10);
+    let maxFontSizePx = Number(module?.textMaxFontSize ?? 500);
+    if (!Number.isFinite(minFontSizePx) || minFontSizePx <= 0) minFontSizePx = 10;
+    if (!Number.isFinite(maxFontSizePx) || maxFontSizePx <= 0) maxFontSizePx = 500;
+    if (maxFontSizePx < minFontSizePx) {
+      const temp = minFontSizePx;
+      minFontSizePx = maxFontSizePx;
+      maxFontSizePx = temp;
     }
 
-    let strokeMaxWidth = Number(module?.textStrokeMaxWidth ?? 2);
-    if (!Number.isFinite(strokeMaxWidth) || strokeMaxWidth <= 0) strokeMaxWidth = 2;
+    const minFontSizeBase = pxToBaseFontSize(minFontSizePx);
+    const maxFontSizeBase = pxToBaseFontSize(maxFontSizePx);
 
-    let baseStrokeWidth = Number(module?.textBaseStrokeWidth ?? 0.1);
-    if (!Number.isFinite(baseStrokeWidth) || baseStrokeWidth < 0) baseStrokeWidth = 0.1;
-    baseStrokeWidth = Math.min(strokeMaxWidth, baseStrokeWidth);
+    let strokeMaxWidthPx = Number(module?.textStrokeMaxWidth ?? 50);
+    if (!Number.isFinite(strokeMaxWidthPx) || strokeMaxWidthPx <= 0) strokeMaxWidthPx = 50;
+
+    let baseStrokeWidthPx = Number(module?.textBaseStrokeWidth ?? 2);
+    if (!Number.isFinite(baseStrokeWidthPx) || baseStrokeWidthPx < 0) baseStrokeWidthPx = 2;
+    baseStrokeWidthPx = Math.min(strokeMaxWidthPx, baseStrokeWidthPx);
 
     const defaultColor = module?.textDefaultColor || '#000000';
     const defaultStrokeColor = module?.textDefaultStrokeColor || '#000000';
 
     return {
-      minFontSize,
-      maxFontSize,
-      strokeMaxWidth,
-      baseStrokeWidth,
+      minFontSizeBase,
+      maxFontSizeBase,
+      minFontSizePx,
+      maxFontSizePx,
+      strokeMaxWidthPx,
+      baseStrokeWidthPx,
       defaultColor,
       defaultStrokeColor
     };
   }, [getTextModuleConfig]);
 
   const clampFontSize = useCallback((value: number) => {
-    const { minFontSize, maxFontSize } = getTextConstraintValues();
-    if (!Number.isFinite(value)) return minFontSize;
-    return Math.min(maxFontSize, Math.max(minFontSize, value));
+    const { minFontSizeBase, maxFontSizeBase } = getTextConstraintValues();
+    if (!Number.isFinite(value)) return minFontSizeBase;
+    return Math.min(maxFontSizeBase, Math.max(minFontSizeBase, value));
   }, [getTextConstraintValues]);
 
   const clampStrokeWidth = useCallback((value: number) => {
-    const { strokeMaxWidth } = getTextConstraintValues();
+    const { strokeMaxWidthPx } = getTextConstraintValues();
     if (!Number.isFinite(value)) return 0;
-    return Math.min(strokeMaxWidth, Math.max(0, value));
+    const pxValue = convertLegacyStrokeWidth(value, strokeMaxWidthPx);
+    return Math.min(strokeMaxWidthPx, Math.max(0, pxValue));
   }, [getTextConstraintValues]);
 
   const textConstraints = getTextConstraintValues();
+  const getDisplayStrokeWidthPx = (value?: number) => {
+    if (value === undefined || value === null) return textConstraints.baseStrokeWidthPx;
+    return convertLegacyStrokeWidth(value, textConstraints.strokeMaxWidthPx);
+  };
 
   useEffect(() => {
     // Récupérer le shop depuis l'URL
@@ -577,7 +606,7 @@ export default function ProductBuilderPage() {
 
     const constraints = getTextConstraintValues();
     const resolvedFontSize = clampFontSize(initialFontSize ?? 700);
-    const resolvedStrokeWidth = clampStrokeWidth(constraints.baseStrokeWidth);
+    const resolvedStrokeWidth = clampStrokeWidth(constraints.baseStrokeWidthPx);
 
     const newText = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -2891,15 +2920,15 @@ export default function ProductBuilderPage() {
                                           minWidth: '50px',
                                           textAlign: 'right'
                                         }}>
-                                          {(selectedText.strokeWidth ?? textConstraints.baseStrokeWidth).toFixed(1)}
+                                          {getDisplayStrokeWidthPx(selectedText.strokeWidth).toFixed(1)} px
                                         </div>
                                       </div>
                                       <input
                                         type="range"
                                         min="0"
-                                        max={textConstraints.strokeMaxWidth}
-                                        step="0.1"
-                                        value={Math.min(textConstraints.strokeMaxWidth, selectedText.strokeWidth ?? textConstraints.baseStrokeWidth)}
+                                        max={textConstraints.strokeMaxWidthPx}
+                                        step="1"
+                                        value={getDisplayStrokeWidthPx(selectedText.strokeWidth)}
                                         onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
                                         style={{
                                           width: '100%',
@@ -3237,6 +3266,7 @@ export default function ProductBuilderPage() {
                                   textZones={[]} // Pas de zones prédéfinies dans le builder
                                   onTextPlaced={handleTextPlaced}
                                   onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
+                                  textSizeLimits={{ min: textConstraints.minFontSizeBase, max: textConstraints.maxFontSizeBase }}
                                 />
                               )}
                             </Suspense>
