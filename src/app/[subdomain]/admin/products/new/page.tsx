@@ -275,6 +275,37 @@ export default function ProductBuilderPage() {
   };
 
   useEffect(() => {
+    setTexts(prev => {
+      let changed = false;
+      const updated = prev.map(text => {
+        let next = text;
+        const clampedFont = clampFontSize(text.fontSize ?? textConstraints.minFontSizePx);
+        if (clampedFont !== text.fontSize) {
+          next = { ...next, fontSize: clampedFont };
+          changed = true;
+        }
+        const rawStroke = text.strokeWidth ?? textConstraints.baseStrokeWidthPx;
+        const clampedStroke = clampStrokeWidth(rawStroke);
+        if (clampedStroke !== text.strokeWidth) {
+          next = { ...next, strokeWidth: clampedStroke };
+          changed = true;
+        }
+        return next;
+      });
+      return changed ? updated : prev;
+    });
+  }, [
+    clampFontSize,
+    clampStrokeWidth,
+    textConstraints.minFontSizePx,
+    textConstraints.maxFontSizePx,
+    textConstraints.strokeMinWidthPx,
+    textConstraints.strokeMaxWidthPx,
+    textConstraints.baseStrokeWidthPx
+  ]);
+
+
+  useEffect(() => {
     // Récupérer le shop depuis l'URL
     const shop = searchParams.get('shop');
     const id = searchParams.get('id');
@@ -2956,9 +2987,13 @@ export default function ProductBuilderPage() {
                                       </div>
                                       {(() => {
                                         const sliderRangePx = Math.max(0, textConstraints.strokeMaxWidthPx - textConstraints.strokeMinWidthPx);
-                                        const baseStepPx = 10;
-                                        const strokeSliderStepPx = sliderRangePx <= baseStepPx ? Math.max(1, Math.round(sliderRangePx || 1)) : baseStepPx;
-                                        const sliderMax = sliderRangePx > 0 ? Math.max(1, Math.round(sliderRangePx / strokeSliderStepPx)) : 0;
+                                        const baseStepPx = 2;
+                                        const strokeSliderStepPx = sliderRangePx < baseStepPx
+                                          ? Math.max(1, Math.round(sliderRangePx || 1))
+                                          : baseStepPx;
+                                        const sliderMax = sliderRangePx > 0
+                                          ? Math.max(1, Math.ceil(sliderRangePx / strokeSliderStepPx))
+                                          : 0;
                                         const sliderValue = sliderRangePx === 0
                                           ? 0
                                           : Math.round((getDisplayStrokeWidthPx(selectedText.strokeWidth) - textConstraints.strokeMinWidthPx) / strokeSliderStepPx);
