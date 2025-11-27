@@ -1835,7 +1835,7 @@ export default function ProductBuilderPage() {
                                   cursor: 'pointer',
                                   fontSize: '14px',
                                   fontWeight: '500',
-                                  color: '#111827 !important',
+                                  color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   fontFamily: 'var(--stepn-font-body)',
                                   transition: 'color 0.2s'
@@ -1853,7 +1853,7 @@ export default function ProductBuilderPage() {
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#111827' }}>
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
-                                <span style={{ color: '#111827 !important', WebkitTextFillColor: '#111827' }}>Retour</span>
+                                <span style={{ color: '#111827', WebkitTextFillColor: '#111827' }}>Retour</span>
                               </button>
                               
                               <div style={{
@@ -1864,7 +1864,7 @@ export default function ProductBuilderPage() {
                                 <span style={{
                                   fontSize: '14px',
                                   fontWeight: '500',
-                                  color: '#111827 !important',
+                                  color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   fontFamily: 'var(--stepn-font-body)'
                                 }} className="color-class-card-label">
