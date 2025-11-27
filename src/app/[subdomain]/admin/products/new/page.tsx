@@ -57,6 +57,7 @@ type CustomizationModule = {
   enableTextDeformation?: boolean; // Permettre de déformer le texte
   textColorPaletteId?: string; // Palette à utiliser pour la couleur du texte
   textStrokePaletteId?: string; // Palette à utiliser pour le contour du texte
+  textStrokeMinWidth?: number; // Largeur min du contour (px)
   textMinFontSize?: number; // Taille min (px)
   textMaxFontSize?: number; // Taille max (px)
   textStrokeMaxWidth?: number; // Largeur max du contour (px)
@@ -98,7 +99,6 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
-const TEXT_FONT_SCALE = 0.5;
 
 export default function ProductBuilderPage() {
   const router = useRouter();
@@ -205,13 +205,12 @@ export default function ProductBuilderPage() {
     return customizationModules.find(module => module.contentType === 'text');
   }, [customizationModules, activeCustomizerTab]);
 
-  const pxToBaseFontSize = (px: number) => px / TEXT_FONT_SCALE;
-  const baseFontSizeToPx = (base: number) => base * TEXT_FONT_SCALE;
-
-  const convertLegacyStrokeWidth = (value: number, maxPx: number) => {
-    if (!Number.isFinite(value)) return 0;
-    if (value <= 2 && maxPx > 2) {
-      return Math.min(maxPx, (value / 2) * maxPx);
+  const convertLegacyStrokeWidth = (value: number, minPx: number, maxPx: number) => {
+    if (!Number.isFinite(value)) return minPx;
+    if (value <= 2 && maxPx > minPx) {
+      const ratio = value <= 1 ? value : value / 2;
+      const clampedRatio = Math.max(0, Math.min(1, ratio));
+      return minPx + (maxPx - minPx) * clampedRatio;
     }
     return value;
   };
@@ -229,24 +228,26 @@ export default function ProductBuilderPage() {
       maxFontSizePx = temp;
     }
 
-    const minFontSizeBase = pxToBaseFontSize(minFontSizePx);
-    const maxFontSizeBase = pxToBaseFontSize(maxFontSizePx);
+    let strokeMinWidthPx = Number(module?.textStrokeMinWidth ?? 0);
+    if (!Number.isFinite(strokeMinWidthPx) || strokeMinWidthPx < 0) strokeMinWidthPx = 0;
 
     let strokeMaxWidthPx = Number(module?.textStrokeMaxWidth ?? 50);
-    if (!Number.isFinite(strokeMaxWidthPx) || strokeMaxWidthPx <= 0) strokeMaxWidthPx = 50;
+    if (!Number.isFinite(strokeMaxWidthPx) || strokeMaxWidthPx <= strokeMinWidthPx) {
+      strokeMaxWidthPx = Math.max(strokeMinWidthPx + 1, 50);
+    }
 
-    let baseStrokeWidthPx = Number(module?.textBaseStrokeWidth ?? 2);
-    if (!Number.isFinite(baseStrokeWidthPx) || baseStrokeWidthPx < 0) baseStrokeWidthPx = 2;
-    baseStrokeWidthPx = Math.min(strokeMaxWidthPx, baseStrokeWidthPx);
+    let baseStrokeWidthPx = Number(module?.textBaseStrokeWidth ?? strokeMinWidthPx);
+    if (!Number.isFinite(baseStrokeWidthPx)) baseStrokeWidthPx = strokeMinWidthPx;
+    baseStrokeWidthPx = convertLegacyStrokeWidth(baseStrokeWidthPx, strokeMinWidthPx, strokeMaxWidthPx);
+    baseStrokeWidthPx = Math.min(strokeMaxWidthPx, Math.max(strokeMinWidthPx, baseStrokeWidthPx));
 
     const defaultColor = module?.textDefaultColor || '#000000';
     const defaultStrokeColor = module?.textDefaultStrokeColor || '#000000';
 
     return {
-      minFontSizeBase,
-      maxFontSizeBase,
       minFontSizePx,
       maxFontSizePx,
+      strokeMinWidthPx,
       strokeMaxWidthPx,
       baseStrokeWidthPx,
       defaultColor,
@@ -255,22 +256,22 @@ export default function ProductBuilderPage() {
   }, [getTextModuleConfig]);
 
   const clampFontSize = useCallback((value: number) => {
-    const { minFontSizeBase, maxFontSizeBase } = getTextConstraintValues();
-    if (!Number.isFinite(value)) return minFontSizeBase;
-    return Math.min(maxFontSizeBase, Math.max(minFontSizeBase, value));
+    const { minFontSizePx, maxFontSizePx } = getTextConstraintValues();
+    if (!Number.isFinite(value)) return minFontSizePx;
+    return Math.min(maxFontSizePx, Math.max(minFontSizePx, value));
   }, [getTextConstraintValues]);
 
   const clampStrokeWidth = useCallback((value: number) => {
-    const { strokeMaxWidthPx } = getTextConstraintValues();
-    if (!Number.isFinite(value)) return 0;
-    const pxValue = convertLegacyStrokeWidth(value, strokeMaxWidthPx);
-    return Math.min(strokeMaxWidthPx, Math.max(0, pxValue));
+    const { strokeMinWidthPx, strokeMaxWidthPx } = getTextConstraintValues();
+    if (!Number.isFinite(value)) return strokeMinWidthPx;
+    const pxValue = convertLegacyStrokeWidth(value, strokeMinWidthPx, strokeMaxWidthPx);
+    return Math.min(strokeMaxWidthPx, Math.max(strokeMinWidthPx, pxValue));
   }, [getTextConstraintValues]);
 
   const textConstraints = getTextConstraintValues();
   const getDisplayStrokeWidthPx = (value?: number) => {
     if (value === undefined || value === null) return textConstraints.baseStrokeWidthPx;
-    return convertLegacyStrokeWidth(value, textConstraints.strokeMaxWidthPx);
+    return clampStrokeWidth(value);
   };
 
   useEffect(() => {
@@ -2728,6 +2729,46 @@ export default function ProductBuilderPage() {
                                         ))
                                       )}
                                     </select>
+                                    <div style={{ marginTop: '16px' }}>
+                                      <div style={{
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        color: '#111827',
+                                        marginBottom: '8px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between'
+                                      }}>
+                                        <span>Taille du texte</span>
+                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                                          {Math.round(textConstraints.minFontSizePx)} px – {Math.round(textConstraints.maxFontSizePx)} px
+                                        </span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <input
+                                          type="range"
+                                          min={textConstraints.minFontSizePx}
+                                          max={textConstraints.maxFontSizePx}
+                                          step={1}
+                                          value={selectedText.fontSize}
+                                          onChange={(e) => updateText(selectedTextId, { fontSize: parseFloat(e.target.value) })}
+                                          style={{
+                                            flex: 1,
+                                            accentColor: '#111827'
+                                          }}
+                                        />
+                                        <span style={{
+                                          fontSize: '13px',
+                                          fontWeight: '600',
+                                          color: '#111827',
+                                          minWidth: '48px',
+                                          textAlign: 'right',
+                                          fontFamily: 'var(--stepn-font-body)'
+                                        }}>
+                                          {Math.round(selectedText.fontSize)} px
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
 
@@ -2912,35 +2953,53 @@ export default function ProductBuilderPage() {
                                         }}>
                                           Épaisseur
                                         </div>
-                                        <div style={{
-                                          fontSize: '13px',
-                                          fontWeight: '600',
-                                          color: '#111827',
-                                          fontFamily: 'var(--stepn-font-body)',
-                                          minWidth: '50px',
-                                          textAlign: 'right'
-                                        }}>
-                                          {getDisplayStrokeWidthPx(selectedText.strokeWidth).toFixed(1)} px
-                                        </div>
                                       </div>
-                                      <input
-                                        type="range"
-                                        min="0"
-                                        max={textConstraints.strokeMaxWidthPx}
-                                        step="1"
-                                        value={getDisplayStrokeWidthPx(selectedText.strokeWidth)}
-                                        onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
-                                        style={{
-                                          width: '100%',
-                                          height: '6px',
-                                          borderRadius: '3px',
-                                          background: '#e5e7eb',
-                                          outline: 'none',
-                                          cursor: 'pointer',
-                                          WebkitAppearance: 'none',
-                                          appearance: 'none'
-                                        }}
-                                      />
+                                      {(() => {
+                                        const sliderRangePx = Math.max(0, textConstraints.strokeMaxWidthPx - textConstraints.strokeMinWidthPx);
+                                        const baseStepPx = 10;
+                                        const strokeSliderStepPx = sliderRangePx <= baseStepPx ? Math.max(1, Math.round(sliderRangePx || 1)) : baseStepPx;
+                                        const sliderMax = sliderRangePx > 0 ? Math.max(1, Math.round(sliderRangePx / strokeSliderStepPx)) : 0;
+                                        const sliderValue = sliderRangePx === 0
+                                          ? 0
+                                          : Math.round((getDisplayStrokeWidthPx(selectedText.strokeWidth) - textConstraints.strokeMinWidthPx) / strokeSliderStepPx);
+                                        const clampedValue = Math.min(sliderMax, Math.max(0, sliderValue));
+                                        const sliderId = `text-stroke-slider-${selectedTextId}`;
+                                        return (
+                                          <>
+                                            <input
+                                              type="range"
+                                              min={0}
+                                              max={sliderMax}
+                                              step="1"
+                                              value={clampedValue}
+                                              onChange={(e) => {
+                                                const stepIndex = parseInt(e.target.value, 10);
+                                                const pxValue = textConstraints.strokeMinWidthPx + stepIndex * strokeSliderStepPx;
+                                                updateText(selectedTextId, { strokeWidth: Math.min(textConstraints.strokeMaxWidthPx, pxValue) });
+                                              }}
+                                              list={sliderMax > 0 ? sliderId : undefined}
+                                              style={{
+                                                width: '100%',
+                                                height: '6px',
+                                                borderRadius: '3px',
+                                                background: '#e5e7eb',
+                                                outline: 'none',
+                                                cursor: sliderMax === 0 ? 'not-allowed' : 'pointer',
+                                                WebkitAppearance: 'none',
+                                                appearance: 'none'
+                                              }}
+                                              disabled={sliderMax === 0}
+                                            />
+                                            {sliderMax > 0 && (
+                                              <datalist id={sliderId}>
+                                                {Array.from({ length: sliderMax + 1 }).map((_, idx) => (
+                                                  <option key={idx} value={idx} label={`${idx + 1}`} />
+                                                ))}
+                                              </datalist>
+                                            )}
+                                          </>
+                                        );
+                                      })()}
                                     </div>
                                   </div>
                                 )}
@@ -3266,7 +3325,7 @@ export default function ProductBuilderPage() {
                                   textZones={[]} // Pas de zones prédéfinies dans le builder
                                   onTextPlaced={handleTextPlaced}
                                   onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
-                                  textSizeLimits={{ min: textConstraints.minFontSizeBase, max: textConstraints.maxFontSizeBase }}
+                                  textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
                                 />
                               )}
                             </Suspense>
@@ -4345,13 +4404,43 @@ export default function ProductBuilderPage() {
                       marginBottom: '8px',
                       fontFamily: 'var(--stepn-font-body)'
                     }}>
-                      Épaisseur du contour (max / valeur par défaut)
+                      Épaisseur du contour (min / max / valeur par défaut)
                     </label>
-                    <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
                       <input
                         type="number"
                         min="0"
-                        step="0.1"
+                        step="1"
+                        value={selectedModule.textStrokeMinWidth ?? ''}
+                        placeholder="Min (px)"
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                          const updated = {
+                            ...selectedModule,
+                            textStrokeMinWidth: sanitizedValue
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m =>
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none'
+                        }}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
                         value={selectedModule.textStrokeMaxWidth ?? ''}
                         placeholder="Max (px)"
                         onChange={(e) => {
@@ -4378,37 +4467,37 @@ export default function ProductBuilderPage() {
                           outline: 'none'
                         }}
                       />
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={selectedModule.textBaseStrokeWidth ?? ''}
-                        placeholder="Valeur par défaut"
-                        onChange={(e) => {
-                          const value = e.target.value === '' ? undefined : Number(e.target.value);
-                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
-                          const updated = {
-                            ...selectedModule,
-                            textBaseStrokeWidth: sanitizedValue
-                          };
-                          setSelectedModule(updated);
-                          setCustomizationModules(customizationModules.map(m =>
-                            m.id === selectedModule.id ? updated : m
-                          ));
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '10px 12px',
-                          backgroundColor: '#1a1a1a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '4px',
-                          color: '#ffffff',
-                          fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          outline: 'none'
-                        }}
-                      />
                     </div>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={selectedModule.textBaseStrokeWidth ?? ''}
+                      placeholder="Valeur par défaut (px)"
+                      onChange={(e) => {
+                        const value = e.target.value === '' ? undefined : Number(e.target.value);
+                        const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                        const updated = {
+                          ...selectedModule,
+                          textBaseStrokeWidth: sanitizedValue
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m =>
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
                   </div>
 
                   <div style={{ marginBottom: '20px' }}>
