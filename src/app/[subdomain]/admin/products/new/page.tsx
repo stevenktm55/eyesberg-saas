@@ -188,6 +188,62 @@ export default function ProductBuilderPage() {
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
 
+  const getTextModuleConfig = useCallback(() => {
+    if (!customizationModules || customizationModules.length === 0) return undefined;
+    const activeTextModule = customizationModules.find(
+      module => module.contentType === 'text' && module.id === activeCustomizerTab
+    );
+    if (activeTextModule) return activeTextModule;
+    return customizationModules.find(module => module.contentType === 'text');
+  }, [customizationModules, activeCustomizerTab]);
+
+  const getTextConstraintValues = useCallback(() => {
+    const module = getTextModuleConfig();
+
+    let minFontSize = Number(module?.textMinFontSize ?? 200);
+    let maxFontSize = Number(module?.textMaxFontSize ?? 2000);
+    if (!Number.isFinite(minFontSize) || minFontSize <= 0) minFontSize = 200;
+    if (!Number.isFinite(maxFontSize) || maxFontSize <= 0) maxFontSize = 2000;
+    if (maxFontSize < minFontSize) {
+      const temp = minFontSize;
+      minFontSize = maxFontSize;
+      maxFontSize = temp;
+    }
+
+    let strokeMaxWidth = Number(module?.textStrokeMaxWidth ?? 2);
+    if (!Number.isFinite(strokeMaxWidth) || strokeMaxWidth <= 0) strokeMaxWidth = 2;
+
+    let baseStrokeWidth = Number(module?.textBaseStrokeWidth ?? 0.1);
+    if (!Number.isFinite(baseStrokeWidth) || baseStrokeWidth < 0) baseStrokeWidth = 0.1;
+    baseStrokeWidth = Math.min(strokeMaxWidth, baseStrokeWidth);
+
+    const defaultColor = module?.textDefaultColor || '#000000';
+    const defaultStrokeColor = module?.textDefaultStrokeColor || '#000000';
+
+    return {
+      minFontSize,
+      maxFontSize,
+      strokeMaxWidth,
+      baseStrokeWidth,
+      defaultColor,
+      defaultStrokeColor
+    };
+  }, [getTextModuleConfig]);
+
+  const clampFontSize = useCallback((value: number) => {
+    const { minFontSize, maxFontSize } = getTextConstraintValues();
+    if (!Number.isFinite(value)) return minFontSize;
+    return Math.min(maxFontSize, Math.max(minFontSize, value));
+  }, [getTextConstraintValues]);
+
+  const clampStrokeWidth = useCallback((value: number) => {
+    const { strokeMaxWidth } = getTextConstraintValues();
+    if (!Number.isFinite(value)) return 0;
+    return Math.min(strokeMaxWidth, Math.max(0, value));
+  }, [getTextConstraintValues]);
+
+  const textConstraints = getTextConstraintValues();
+
   useEffect(() => {
     // Récupérer le shop depuis l'URL
     const shop = searchParams.get('shop');
@@ -519,23 +575,27 @@ export default function ProductBuilderPage() {
       ? [position[0], position[1], position[2] ?? 0]
       : [0.5, 0.5, 0];
 
+    const constraints = getTextConstraintValues();
+    const resolvedFontSize = clampFontSize(initialFontSize ?? 700);
+    const resolvedStrokeWidth = clampStrokeWidth(constraints.baseStrokeWidth);
+
     const newText = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       content,
       position: resolvedPosition,
-      fontSize: initialFontSize ?? 700,
-      color: '#000000',
+      fontSize: resolvedFontSize,
+      color: constraints.defaultColor,
       editable: true,
       rotation: initialRotation ?? 0,
       category,
       zoneCategory,
       fontFamily: defaultFontFamily,
-      strokeColor: '#000000',
-      strokeWidth: 0.1,
+      strokeColor: constraints.defaultStrokeColor,
+      strokeWidth: resolvedStrokeWidth,
       deformation: 'none',
       deformationIntensity: 0,
       fillType: 'solid' as const,
-      gradientColors: ['#000000', '#000000'],
+      gradientColors: [constraints.defaultColor, constraints.defaultColor],
       gradientDirection: 'horizontal' as const
     };
     
@@ -545,13 +605,22 @@ export default function ProductBuilderPage() {
   };
 
   const updateText = (id: string, updates: Partial<typeof texts[0]>) => {
+    const sanitizedUpdates = { ...updates };
+
+    if (sanitizedUpdates.fontSize !== undefined) {
+      sanitizedUpdates.fontSize = clampFontSize(sanitizedUpdates.fontSize);
+    }
+    if (sanitizedUpdates.strokeWidth !== undefined) {
+      sanitizedUpdates.strokeWidth = clampStrokeWidth(sanitizedUpdates.strokeWidth);
+    }
+
     setTexts(prev => prev.map(text => 
       text.id === id 
         ? { 
             ...text, 
-            ...updates,
-            position: updates.position
-              ? [updates.position[0], updates.position[1], updates.position[2] ?? 0] as [number, number, number]
+            ...sanitizedUpdates,
+            position: sanitizedUpdates.position
+              ? [sanitizedUpdates.position[0], sanitizedUpdates.position[1], sanitizedUpdates.position[2] ?? 0] as [number, number, number]
               : text.position
           }
         : text
@@ -578,9 +647,7 @@ export default function ProductBuilderPage() {
   };
 
   const updateTextSize = (id: string, fontSize: number) => {
-    setTexts(prev => prev.map(text => 
-      text.id === id ? { ...text, fontSize } : text
-    ));
+    updateText(id, { fontSize });
   };
 
   const selectText = (id: string | null) => {
@@ -1550,7 +1617,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">Sélectionner un modèle 3D</option>
+                  <option value="">>Sélectionner un modèle 3D</option>
                   {models3D.map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.name}
@@ -1586,7 +1653,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">Sélectionner un design 2D</option>
+                  <option value="">>Sélectionner un design 2D</option>
                   {designs2D.map((design) => (
                     <option key={design.id} value={design.id}>
                       {design.name}
@@ -2133,7 +2200,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">Sélectionner un logo</option>
+                              <option value="">>Sélectionner un logo</option>
                               {library.logos?.map((logo: any) => (
                                 <option key={logo.id} value={logo.id}>
                                   {logo.name}
@@ -2160,7 +2227,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">Sélectionner une font</option>
+                              <option value="">>Sélectionner une font</option>
                               {group.fonts?.map((font: any) => (
                                 <option key={font.id} value={font.id}>
                                   {font.name}
@@ -2299,7 +2366,7 @@ export default function ProductBuilderPage() {
                               fontFamily: 'var(--stepn-font-body)',
                               cursor: 'pointer'
                             }}>
-                              <option value="">Sélectionner une taille</option>
+                              <option value="">>Sélectionner une taille</option>
                               {pattern.sizes?.map((size: any) => (
                                 <option key={size.id} value={size.id}>
                                   {size.name}
@@ -2623,7 +2690,7 @@ export default function ProductBuilderPage() {
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     >
-                                      <option value="">Police par défaut</option>
+                                      <option value="">>Police par défaut</option>
                                       {fontGroups.map((group) =>
                                         group.fonts?.map((font: any) => (
                                           <option key={font.id} value={font.id}>
@@ -2824,15 +2891,15 @@ export default function ProductBuilderPage() {
                                           minWidth: '50px',
                                           textAlign: 'right'
                                         }}>
-                                          {(selectedText.strokeWidth || 0.1).toFixed(1)}
+                                          {(selectedText.strokeWidth ?? textConstraints.baseStrokeWidth).toFixed(1)}
                                         </div>
                                       </div>
                                       <input
                                         type="range"
                                         min="0"
-                                        max="2"
+                                        max={textConstraints.strokeMaxWidth}
                                         step="0.1"
-                                        value={selectedText.strokeWidth || 0.1}
+                                        value={Math.min(textConstraints.strokeMaxWidth, selectedText.strokeWidth ?? textConstraints.baseStrokeWidth)}
                                         onChange={(e) => updateText(selectedTextId, { strokeWidth: parseFloat(e.target.value) })}
                                         style={{
                                           width: '100%',
@@ -2883,7 +2950,7 @@ export default function ProductBuilderPage() {
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     >
-                                      <option value="">Aucune</option>
+                                      <option value="">>Aucune</option>
                                       <option value="arc">Arc</option>
                                       <option value="wave">Vague</option>
                                       <option value="bulge">Bombé</option>
@@ -3507,7 +3574,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">Aucun</option>
+                  <option value="">>Aucun</option>
                   <option value="colors">Couleurs</option>
                   <option value="logos">Logos</option>
                   <option value="fonts">Fonts</option>
@@ -3587,7 +3654,7 @@ export default function ProductBuilderPage() {
                           outline: 'none'
                         }}
                       >
-                        <option value="">Sélectionner une palette</option>
+                        <option value="">>Sélectionner une palette</option>
                         {colorPalettes.map((palette) => (
                           <option key={palette.id} value={palette.id}>
                             {palette.name}
@@ -3695,7 +3762,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">Sélectionner une bibliothèque</option>
+                    <option value="">>Sélectionner une bibliothèque</option>
                     {logoLibraries.map((library) => (
                       <option key={library.id} value={library.id}>
                         {library.name}
@@ -3744,7 +3811,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">Sélectionner un groupe</option>
+                    <option value="">>Sélectionner un groupe</option>
                     {fontGroups.map((group) => (
                       <option key={group.id} value={group.id}>
                         {group.name}
@@ -3793,7 +3860,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">Sélectionner un design</option>
+                    <option value="">>Sélectionner un design</option>
                     {designs2D.map((design) => (
                       <option key={design.id} value={design.id}>
                         {design.name}
@@ -3842,7 +3909,7 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="">Sélectionner un groupe</option>
+                    <option value="">>Sélectionner un groupe</option>
                     {sizePatterns.map((pattern) => (
                       <option key={pattern.id} value={pattern.id}>
                         {pattern.name}
@@ -4092,7 +4159,7 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     >
-                      <option value=''>Sélectionner une palette</option>
+                      <option value="">>Sélectionner une palette</option>
                       {colorPalettes.map((palette) => (
                         <option key={palette.id} value={palette.id}>
                           {palette.name}
@@ -4144,7 +4211,7 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     >
-                      <option value=''>Sélectionner une palette</option>
+                      <option value="">>Sélectionner une palette</option>
                       {colorPalettes.map((palette) => (
                         <option key={palette.id} value={palette.id}>
                           {palette.name}
@@ -4160,6 +4227,258 @@ export default function ProductBuilderPage() {
                       Cette palette s'affichera dans l'onglet "Contour" du texte.
                     </p>
                   </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Tailles du texte (min / max)
+                    </label>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <input
+                        type="number"
+                        min="1"
+                        value={selectedModule.textMinFontSize ?? ''}
+                        placeholder="Min (px)"
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                          const updated = {
+                            ...selectedModule,
+                            textMinFontSize: sanitizedValue
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m =>
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none'
+                        }}
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        value={selectedModule.textMaxFontSize ?? ''}
+                        placeholder="Max (px)"
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                          const updated = {
+                            ...selectedModule,
+                            textMaxFontSize: sanitizedValue
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m =>
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#7d7d7d',
+                      marginTop: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Ces valeurs sont utilisées pour limiter le redimensionnement des textes sur le 3D.
+                    </p>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Épaisseur du contour (max / valeur par défaut)
+                    </label>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={selectedModule.textStrokeMaxWidth ?? ''}
+                        placeholder="Max (px)"
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                          const updated = {
+                            ...selectedModule,
+                            textStrokeMaxWidth: sanitizedValue
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m =>
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none'
+                        }}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={selectedModule.textBaseStrokeWidth ?? ''}
+                        placeholder="Valeur par défaut"
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                          const sanitizedValue = value !== undefined && Number.isNaN(value) ? undefined : value;
+                          const updated = {
+                            ...selectedModule,
+                            textBaseStrokeWidth: sanitizedValue
+                          };
+                          setSelectedModule(updated);
+                          setCustomizationModules(customizationModules.map(m =>
+                            m.id === selectedModule.id ? updated : m
+                          ));
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Couleurs par défaut
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ position: 'relative', width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
+                          <input
+                            type="color"
+                            value={selectedModule.textDefaultColor || '#000000'}
+                            onChange={(e) => {
+                              const updated = { ...selectedModule, textDefaultColor: e.target.value };
+                              setSelectedModule(updated);
+                              setCustomizationModules(customizationModules.map(m =>
+                                m.id === selectedModule.id ? updated : m
+                              ));
+                            }}
+                            style={{ position: 'absolute', inset: 0, border: 'none', padding: 0, cursor: 'pointer' }}
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={selectedModule.textDefaultColor || ''}
+                          placeholder="#000000"
+                          onChange={(e) => {
+                            const raw = e.target.value.trim();
+                            const normalized = raw ? (raw.startsWith('#') ? raw : `#${raw}`) : undefined;
+                            const updated = { ...selectedModule, textDefaultColor: normalized };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m =>
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Texte</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ position: 'relative', width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
+                          <input
+                            type="color"
+                            value={selectedModule.textDefaultStrokeColor || '#000000'}
+                            onChange={(e) => {
+                              const updated = { ...selectedModule, textDefaultStrokeColor: e.target.value };
+                              setSelectedModule(updated);
+                              setCustomizationModules(customizationModules.map(m =>
+                                m.id === selectedModule.id ? updated : m
+                              ));
+                            }}
+                            style={{ position: 'absolute', inset: 0, border: 'none', padding: 0, cursor: 'pointer' }}
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={selectedModule.textDefaultStrokeColor || ''}
+                          placeholder="#000000"
+                          onChange={(e) => {
+                            const raw = e.target.value.trim();
+                            const normalized = raw ? (raw.startsWith('#') ? raw : `#${raw}`) : undefined;
+                            const updated = { ...selectedModule, textDefaultStrokeColor: normalized };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m =>
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '10px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Contour</span>
+                      </div>
+                    </div>
+                  </div>
+
                 </>
               )}
 
@@ -4577,7 +4896,7 @@ export default function ProductBuilderPage() {
                     e.currentTarget.style.borderColor = '#2a2a2a';
                   }}
                 >
-                  <option value="">Sélectionner un type...</option>
+                  <option value="">>Sélectionner un type...</option>
                   <option value="colors">Couleurs (Color Palettes)</option>
                   <option value="logos">Logos (Logo Libraries)</option>
                   <option value="fonts">Polices (Font Groups)</option>
