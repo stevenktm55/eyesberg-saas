@@ -4690,26 +4690,23 @@ export default function ProductBuilderPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                position: 'relative',
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                padding: '8px'
                               }}>
                                 {zone.thumbnailUrl && !zone.thumbnailUrl.startsWith('blob:') ? (
                                   <img
                                     src={zone.thumbnailUrl}
                                     alt={zone.name}
                                     style={{
-                                      width: '100%',
-                                      height: '100%',
-                                      objectFit: 'cover',
+                                      maxWidth: '100%',
+                                      maxHeight: '100%',
+                                      objectFit: 'contain',
                                       filter: 'grayscale(100%)',
                                       display: 'block'
                                     }}
                                     onError={(e) => {
                                       console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnailUrl);
                                       e.currentTarget.style.display = 'none';
-                                    }}
-                                    onLoad={() => {
-                                      console.log('✅ Thumbnail loaded for zone:', zone.name, zone.thumbnailUrl);
                                     }}
                                   />
                                 ) : (
@@ -4733,18 +4730,6 @@ export default function ProductBuilderPage() {
                                     )}
                                   </div>
                                 )}
-                                {/* Placeholder rectangle for zone position */}
-                                <div style={{
-                                  position: 'absolute',
-                                  width: '60%',
-                                  height: '30%',
-                                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                                  border: '1px solid rgba(0, 0, 0, 0.5)',
-                                  borderRadius: '2px',
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)'
-                                }} />
                               </div>
                               
                               {/* Zone label */}
