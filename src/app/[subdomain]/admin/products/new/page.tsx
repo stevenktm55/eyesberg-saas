@@ -22,6 +22,12 @@ if (typeof document !== 'undefined') {
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
     }
+    .typography-back-button,
+    .typography-back-button * {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -2484,6 +2490,7 @@ export default function ProductBuilderPage() {
                                     gap: '4px',
                                     fontFamily: 'var(--stepn-font-body)'
                                   }}
+                                  className="typography-back-button"
                                 >
                                   <span style={{ color: '#111827' }}>←</span>
                                   <span style={{ color: '#111827' }}>Retour</span>
