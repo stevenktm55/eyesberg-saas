@@ -4717,7 +4717,8 @@ export default function ProductBuilderPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: '#999999',
+                                    color: '#111827',
+                                    WebkitTextFillColor: '#111827',
                                     fontSize: '12px',
                                     textAlign: 'center',
                                     padding: '8px'
@@ -4742,7 +4743,9 @@ export default function ProductBuilderPage() {
                                   margin: 0,
                                   fontSize: '12px',
                                   fontWeight: '500',
-                                  color: '#000000',
+                                  color: '#111827',
+                                  WebkitTextFillColor: '#111827',
+                                  WebkitTextStrokeColor: '#111827',
                                   fontFamily: 'var(--stepn-font-body)'
                                 }}>
                                   {zone.name}
