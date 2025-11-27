@@ -55,6 +55,8 @@ type CustomizationModule = {
   enableTextColor?: boolean; // Permettre de changer la couleur
   enableTextStroke?: boolean; // Permettre de modifier le contour
   enableTextDeformation?: boolean; // Permettre de déformer le texte
+  textColorPaletteId?: string; // Palette à utiliser pour la couleur du texte
+  textStrokePaletteId?: string; // Palette à utiliser pour le contour du texte
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
@@ -2645,62 +2647,75 @@ export default function ProductBuilderPage() {
                                     }}>
                                       Couleur
                                     </div>
-                                    <div style={{
-                                      display: 'flex',
-                                      gap: '12px',
-                                      alignItems: 'center'
-                                    }}>
-                                      <div style={{
-                                        position: 'relative',
-                                        width: '56px',
-                                        height: '56px',
-                                        borderRadius: '8px',
-                                        overflow: 'hidden',
-                                        border: '2px solid #e5e5e5',
-                                        cursor: 'pointer',
-                                        flexShrink: 0
-                                      }}>
-                                        <input
-                                          type="color"
-                                          value={selectedText.color || '#000000'}
-                                          onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
-                                          style={{
-                                            position: 'absolute',
-                                            width: '100%',
-                                            height: '100%',
-                                            border: 'none',
-                                            padding: '0',
-                                            cursor: 'pointer',
-                                            opacity: '0'
-                                          }}
-                                        />
+                                    {activeModule.textColorPaletteId ? (() => {
+                                      const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
+                                      if (!palette) {
+                                        return (
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                            Palette introuvable. Veuillez en sélectionner une autre.
+                                          </p>
+                                        );
+                                      }
+                                      const paletteColors = palette.colors || [];
+                                      if (paletteColors.length === 0) {
+                                        return (
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                            La palette sélectionnée ne contient aucune couleur.
+                                          </p>
+                                        );
+                                      }
+                                      return (
                                         <div style={{
-                                          position: 'absolute',
-                                          inset: '0',
-                                          backgroundColor: selectedText.color || '#000000',
-                                          pointerEvents: 'none'
-                                        }} />
-                                      </div>
-                                      <input
-                                        type="text"
-                                        value={selectedText.color || '#000000'}
-                                        onChange={(e) => updateText(selectedTextId, { color: e.target.value })}
-                                        style={{
-                                          flex: 1,
-                                          padding: '12px 16px',
-                                          backgroundColor: '#ffffff',
-                                          border: '1px solid #d1d5db',
-                                          borderRadius: '8px',
-                                          color: '#111827',
-                                          fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
-                                          outline: 'none',
-                                          transition: 'border-color 0.2s'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                                      />
-                                    </div>
+                                          display: 'grid',
+                                          gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                                          gap: '12px'
+                                        }}>
+                                          {paletteColors.map((color: any, index: number) => {
+                                            const hex = (color?.hex || '#000000').toLowerCase();
+                                            const isSelected = (selectedText.color || '').toLowerCase() === hex;
+                                            return (
+                                              <button
+                                                key={color?.id || `${palette.id}-${index}`}
+                                                onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
+                                                style={{
+                                                  border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                                  borderRadius: '10px',
+                                                  padding: '10px',
+                                                  backgroundColor: '#ffffff',
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  gap: '6px',
+                                                  cursor: 'pointer',
+                                                  transition: 'border-color 0.2s, transform 0.2s'
+                                                }}
+                                              >
+                                                <span style={{
+                                                  width: '36px',
+                                                  height: '36px',
+                                                  borderRadius: '50%',
+                                                  border: '1px solid #d1d5db',
+                                                  backgroundColor: color?.hex || '#000000',
+                                                  display: 'inline-block'
+                                                }} />
+                                                <span style={{
+                                                  fontSize: '11px',
+                                                  color: '#111827',
+                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  textAlign: 'center'
+                                                }}>
+                                                  {color?.name || (color?.hex || '#000000').toUpperCase()}
+                                                </span>
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })() : (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                        Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
+                                      </p>
+                                    )}
                                   </div>
                                 )}
 
@@ -2716,63 +2731,76 @@ export default function ProductBuilderPage() {
                                     }}>
                                       Contour
                                     </div>
-                                    <div style={{
-                                      display: 'flex',
-                                      gap: '12px',
-                                      alignItems: 'center',
-                                      marginBottom: '20px'
-                                    }}>
-                                      <div style={{
-                                        position: 'relative',
-                                        width: '56px',
-                                        height: '56px',
-                                        borderRadius: '8px',
-                                        overflow: 'hidden',
-                                        border: '2px solid #e5e5e5',
-                                        cursor: 'pointer',
-                                        flexShrink: 0
-                                      }}>
-                                        <input
-                                          type="color"
-                                          value={selectedText.strokeColor || '#000000'}
-                                          onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
-                                          style={{
-                                            position: 'absolute',
-                                            width: '100%',
-                                            height: '100%',
-                                            border: 'none',
-                                            padding: '0',
-                                            cursor: 'pointer',
-                                            opacity: '0'
-                                          }}
-                                        />
+                                    {activeModule.textStrokePaletteId ? (() => {
+                                      const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
+                                      if (!palette) {
+                                        return (
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                            Palette introuvable. Veuillez en sélectionner une autre.
+                                          </p>
+                                        );
+                                      }
+                                      const paletteColors = palette.colors || [];
+                                      if (paletteColors.length === 0) {
+                                        return (
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                            La palette sélectionnée ne contient aucune couleur.
+                                          </p>
+                                        );
+                                      }
+                                      return (
                                         <div style={{
-                                          position: 'absolute',
-                                          inset: '0',
-                                          backgroundColor: selectedText.strokeColor || '#000000',
-                                          pointerEvents: 'none'
-                                        }} />
-                                      </div>
-                                      <input
-                                        type="text"
-                                        value={selectedText.strokeColor || '#000000'}
-                                        onChange={(e) => updateText(selectedTextId, { strokeColor: e.target.value })}
-                                        style={{
-                                          flex: 1,
-                                          padding: '12px 16px',
-                                          backgroundColor: '#ffffff',
-                                          border: '1px solid #d1d5db',
-                                          borderRadius: '8px',
-                                          color: '#111827',
-                                          fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
-                                          outline: 'none',
-                                          transition: 'border-color 0.2s'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                                      />
-                                    </div>
+                                          display: 'grid',
+                                          gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                                          gap: '12px',
+                                          marginBottom: '20px'
+                                        }}>
+                                          {paletteColors.map((color: any, index: number) => {
+                                            const hex = (color?.hex || '#000000').toLowerCase();
+                                            const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
+                                            return (
+                                              <button
+                                                key={color?.id || `${palette.id}-${index}`}
+                                                onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
+                                                style={{
+                                                  border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                                  borderRadius: '10px',
+                                                  padding: '10px',
+                                                  backgroundColor: '#ffffff',
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  gap: '6px',
+                                                  cursor: 'pointer',
+                                                  transition: 'border-color 0.2s, transform 0.2s'
+                                                }}
+                                              >
+                                                <span style={{
+                                                  width: '36px',
+                                                  height: '36px',
+                                                  borderRadius: '50%',
+                                                  border: '1px solid #d1d5db',
+                                                  backgroundColor: color?.hex || '#000000',
+                                                  display: 'inline-block'
+                                                }} />
+                                                <span style={{
+                                                  fontSize: '11px',
+                                                  color: '#111827',
+                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  textAlign: 'center'
+                                                }}>
+                                                  {color?.name || (color?.hex || '#000000').toUpperCase()}
+                                                </span>
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })() : (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
+                                        Sélectionnez une palette de contours dans les réglages du module.
+                                      </p>
+                                    )}
                                     <div>
                                       <div style={{
                                         display: 'flex',
@@ -4027,6 +4055,110 @@ export default function ProductBuilderPage() {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Palette couleur du texte
+                    </label>
+                    <select
+                      value={selectedModule.textColorPaletteId || ''}
+                      onChange={(e) => {
+                        const updated = {
+                          ...selectedModule,
+                          textColorPaletteId: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m =>
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value=''>Sélectionner une palette</option>
+                      {colorPalettes.map((palette) => (
+                        <option key={palette.id} value={palette.id}>
+                          {palette.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#7d7d7d',
+                      marginTop: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Cette palette s'affichera dans l'onglet "Couleur" du texte.
+                    </p>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Palette couleur du contour
+                    </label>
+                    <select
+                      value={selectedModule.textStrokePaletteId || ''}
+                      onChange={(e) => {
+                        const updated = {
+                          ...selectedModule,
+                          textStrokePaletteId: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m =>
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value=''>Sélectionner une palette</option>
+                      {colorPalettes.map((palette) => (
+                        <option key={palette.id} value={palette.id}>
+                          {palette.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#7d7d7d',
+                      marginTop: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Cette palette s'affichera dans l'onglet "Contour" du texte.
+                    </p>
                   </div>
                 </>
               )}
