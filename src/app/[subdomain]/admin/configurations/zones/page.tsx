@@ -54,6 +54,8 @@ export default function ZonesConfigPage() {
   const [isPlacingZone, setIsPlacingZone] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isUploadingZoneThumbnail, setIsUploadingZoneThumbnail] = useState(false);
+  const [zoneThumbnailError, setZoneThumbnailError] = useState<string | null>(null);
 
   // Zone settings (left panel)
   const [zoneSettings, setZoneSettings] = useState<{
@@ -242,6 +244,49 @@ export default function ZonesConfigPage() {
     if (updates.rotation !== undefined) setZoneSettings(prev => ({ ...prev, rotation: updates.rotation! }));
     if (updates.isLogo !== undefined) setZoneSettings(prev => ({ ...prev, isLogo: updates.isLogo! }));
     if (updates.view !== undefined) setZoneSettings(prev => ({ ...prev, view: updates.view! }));
+  }
+
+  async function handleThumbnailUpload(file: File) {
+    if (!selectedZoneId) {
+      alert("Veuillez d'abord sélectionner une zone");
+      return;
+    }
+    if (!file) return;
+
+    try {
+      setIsUploadingZoneThumbnail(true);
+      setZoneThumbnailError(null);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/zone-images', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de l'upload de la vignette");
+      }
+
+      const imageUrl = data.imagePath;
+
+      setZoneSettings(prev => ({
+        ...prev,
+        thumbnailUrl: imageUrl
+      }));
+
+      handleUpdateZone({ thumbnailUrl: imageUrl });
+    } catch (error) {
+      console.error('Error uploading zone thumbnail:', error);
+      const message = (error as Error)?.message || "Erreur lors de l'upload de la vignette";
+      setZoneThumbnailError(message);
+      alert(message);
+    } finally {
+      setIsUploadingZoneThumbnail(false);
+    }
   }
 
   function handleDeleteZone(zoneId: string) {
@@ -761,12 +806,12 @@ export default function ZonesConfigPage() {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => {
+                          disabled={isUploadingZoneThumbnail}
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const url = URL.createObjectURL(file);
-                              setZoneSettings(prev => ({ ...prev, thumbnailUrl: url }));
-                              handleUpdateZone({ thumbnailUrl: url });
+                              await handleThumbnailUpload(file);
+                              e.target.value = '';
                             }
                           }}
                           style={{
@@ -778,9 +823,16 @@ export default function ZonesConfigPage() {
                             color: '#ffffff',
                             fontSize: '12px',
                             fontFamily: 'var(--stepn-font-body)',
-                            cursor: 'pointer'
+                            cursor: isUploadingZoneThumbnail ? 'not-allowed' : 'pointer',
+                            opacity: isUploadingZoneThumbnail ? 0.6 : 1
                           }}
                         />
+                        {isUploadingZoneThumbnail && (
+                          <p style={{ color: '#a0a0a0', fontSize: '12px', marginTop: '8px' }}>Upload de la vignette en cours...</p>
+                        )}
+                        {zoneThumbnailError && (
+                          <p style={{ color: '#f87171', fontSize: '12px', marginTop: '4px' }}>{zoneThumbnailError}</p>
+                        )}
                         {zoneSettings.thumbnailUrl && (
                           <img
                             src={zoneSettings.thumbnailUrl}
