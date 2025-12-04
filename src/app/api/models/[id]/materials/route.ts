@@ -62,7 +62,66 @@ export async function GET(
     });
 
     // Récupérer les material maps
-    const materialMaps = model.material_maps || {};
+    let materialMaps = model.material_maps || {};
+
+    // Enrichir avec les intensités depuis material_map_files via model_parts
+    try {
+      const { data: modelParts, error: partsError } = await supabase
+        .from('model_parts')
+        .select(`
+          name,
+          material_map_id,
+          material_maps!inner (
+            id,
+            material_map_files (
+              map_type,
+              intensity,
+              scale
+            )
+          )
+        `)
+        .eq('model_3d_id', modelId);
+      
+      if (!partsError && modelParts) {
+        console.log('🔍 Model parts trouvés:', modelParts.length);
+        
+        modelParts.forEach((part: any) => {
+          const materialName = part.name;
+          const materialMap = part.material_maps;
+          
+          if (materialMap && materialMap.material_map_files) {
+            // Initialiser le material map si nécessaire
+            if (!materialMaps[materialName]) {
+              materialMaps[materialName] = { materialName };
+            }
+            
+            const files = materialMap.material_map_files || [];
+            
+            // Enrichir avec les intensités depuis material_map_files si elles ne sont pas déjà présentes
+            files.forEach((file: any) => {
+              if (file.map_type === 'normal' && typeof materialMaps[materialName].normalIntensity === 'undefined') {
+                materialMaps[materialName].normalIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+                if (file.scale && typeof materialMaps[materialName].repeatX === 'undefined') {
+                  materialMaps[materialName].repeatX = file.scale;
+                  materialMaps[materialName].repeatY = file.scale;
+                }
+              } else if (file.map_type === 'roughness' && typeof materialMaps[materialName].roughnessValue === 'undefined') {
+                materialMaps[materialName].roughnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+              } else if (file.map_type === 'metallic' && typeof materialMaps[materialName].metalnessValue === 'undefined') {
+                materialMaps[materialName].metalnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+              } else if (file.map_type === 'ao' && typeof materialMaps[materialName].aoIntensity === 'undefined') {
+                materialMaps[materialName].aoIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+              }
+            });
+            
+            console.log(`✅ Material map "${materialName}" enrichi depuis material_map_files`);
+          }
+        });
+      }
+    } catch (enrichError) {
+      console.error('⚠️ Erreur enrichissement material maps:', enrichError);
+      // Continuer même si l'enrichissement échoue
+    }
 
     console.log('📦 Matériaux finaux trouvés pour le modèle', modelId, ':', materials);
     console.log('📦 Material maps pour le modèle', modelId, ':', materialMaps);
