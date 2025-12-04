@@ -3003,15 +3003,20 @@ export default function ProductBuilderPage() {
                                         const sliderRangePx = Math.max(0, textConstraints.strokeMaxWidthPx - textConstraints.strokeMinWidthPx);
                                         const baseStepPx = 2;
                                         const strokeSliderStepPx = sliderRangePx < baseStepPx
-                                          ? Math.max(1, Math.round(sliderRangePx || 1))
+                                          ? Math.max(0.1, sliderRangePx || 0.1)
                                           : baseStepPx;
                                         const sliderMax = sliderRangePx > 0
-                                          ? Math.max(1, Math.ceil(sliderRangePx / strokeSliderStepPx))
+                                          ? Math.max(1, Math.floor(sliderRangePx / strokeSliderStepPx))
                                           : 0;
+                                        
+                                        // Calculer la valeur du slider en s'assurant qu'elle correspond exactement à la valeur px
+                                        const currentPxValue = getDisplayStrokeWidthPx(selectedText.strokeWidth);
+                                        const normalizedValue = currentPxValue - textConstraints.strokeMinWidthPx;
                                         const sliderValue = sliderRangePx === 0
                                           ? 0
-                                          : Math.round((getDisplayStrokeWidthPx(selectedText.strokeWidth) - textConstraints.strokeMinWidthPx) / strokeSliderStepPx);
+                                          : Math.round(normalizedValue / strokeSliderStepPx);
                                         const clampedValue = Math.min(sliderMax, Math.max(0, sliderValue));
+                                        
                                         const sliderId = `text-stroke-slider-${selectedTextId}`;
                                         return (
                                           <>
@@ -3023,8 +3028,14 @@ export default function ProductBuilderPage() {
                                               value={clampedValue}
                                               onChange={(e) => {
                                                 const stepIndex = parseInt(e.target.value, 10);
+                                                // Calculer la valeur px en s'assurant qu'elle reste dans les limites
                                                 const pxValue = textConstraints.strokeMinWidthPx + stepIndex * strokeSliderStepPx;
-                                                updateText(selectedTextId, { strokeWidth: Math.min(textConstraints.strokeMaxWidthPx, pxValue) });
+                                                // Clamper entre min et max pour éviter les erreurs d'arrondi
+                                                const finalPxValue = Math.min(
+                                                  textConstraints.strokeMaxWidthPx,
+                                                  Math.max(textConstraints.strokeMinWidthPx, pxValue)
+                                                );
+                                                updateText(selectedTextId, { strokeWidth: finalPxValue });
                                               }}
                                               list={sliderMax > 0 ? sliderId : undefined}
                                               style={{
