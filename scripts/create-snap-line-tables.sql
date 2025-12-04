@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS snap_lines (
   name TEXT NOT NULL,
   model3d_id UUID REFERENCES models_3d(id) ON DELETE SET NULL,
   start JSONB NOT NULL, -- [u, v] coordinates
-  end JSONB NOT NULL, -- [u, v] coordinates
+  "end" JSONB NOT NULL, -- [u, v] coordinates
   type TEXT NOT NULL CHECK (type IN ('horizontal', 'vertical', 'diagonal')) DEFAULT 'vertical',
   view TEXT CHECK (view IN ('Face', 'Dos', 'Gauche', 'Droite')) DEFAULT 'Face',
   created_at TIMESTAMPTZ DEFAULT NOW(),
