@@ -1694,6 +1694,10 @@ function LogoTab({
   logos,
   isLoadingLogos,
   onOpenZoneSelector,
+  addLogoButtonLabel,
+  logoPlacementMode,
+  logoZoneGroupIds,
+  logoLibraryIds,
 }: {
   placedLogos: Array<{
     id: string;
@@ -1718,6 +1722,10 @@ function LogoTab({
   logos: Logo[];
   isLoadingLogos: boolean;
   onOpenZoneSelector: (data: {logoId: string, variantId: string, variantFile: string} | null) => void;
+  addLogoButtonLabel?: string;
+  logoPlacementMode?: 'zones' | 'free';
+  logoZoneGroupIds?: string[];
+  logoLibraryIds?: string[];
 }) {
   const [activeCategory, setActiveCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
   const [showLibrary, setShowLibrary] = useState(false);
@@ -1732,10 +1740,17 @@ function LogoTab({
   // Filtrer les logos placés selon la catégorie active
   const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
 
-  // Filtrer les zones selon la catégorie active
-  const filteredZones = textZones.filter(zone => 
-    zone.categories && zone.categories.includes(`logo-${activeCategory}`)
-  );
+  // Filtrer les zones selon la catégorie active et les groupes de zones configurés
+  const filteredZones = textZones.filter(zone => {
+    if (!zone.categories || !zone.categories.includes(`logo-${activeCategory}`)) return false;
+    // Si logoPlacementMode est 'zones' et logoZoneGroupIds est défini, filtrer par groupes
+    if (logoPlacementMode === 'zones' && logoZoneGroupIds && logoZoneGroupIds.length > 0) {
+      // Vérifier si la zone appartient à un des groupes configurés
+      // Note: on suppose que zone.zoneGroupId existe (à vérifier selon la structure réelle)
+      return logoZoneGroupIds.some(groupId => (zone as any).zoneGroupId === groupId);
+    }
+    return true;
+  });
   
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
@@ -1745,16 +1760,25 @@ function LogoTab({
   }, [filteredZones, selectedZone]);
 
   // Libellés par catégorie
+  const buttonLabel = addLogoButtonLabel || 'Ajouter un logo';
   const categoryLabels = {
-    'torse': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Torse' },
-    'dos': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Dos' },
-    'bras-gauche': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras gauche' },
-    'bras-droit': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras droit' },
+    'torse': { button: buttonLabel, title: buttonLabel, label: 'Torse' },
+    'dos': { button: buttonLabel, title: buttonLabel, label: 'Dos' },
+    'bras-gauche': { button: buttonLabel, title: buttonLabel, label: 'Bras gauche' },
+    'bras-droit': { button: buttonLabel, title: buttonLabel, label: 'Bras droit' },
   };
   const labels = categoryLabels[activeCategory];
 
-  // Filtrer les logos par recherche
+  // Filtrer les logos par recherche et par bibliothèques configurées
   const filteredLibraryLogos = logos.filter(logo => {
+    // Filtrer par bibliothèques si configuré
+    if (logoLibraryIds && logoLibraryIds.length > 0) {
+      // Note: on suppose que logo.libraryId existe (à vérifier selon la structure réelle)
+      if (!(logo as any).libraryId || !logoLibraryIds.includes((logo as any).libraryId)) {
+        return false;
+      }
+    }
+    // Filtrer par recherche
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -1763,9 +1787,14 @@ function LogoTab({
     );
   });
 
-  // Gérer la sélection d'une variante (ouvre le sélecteur de zone)
+  // Gérer la sélection d'une variante (ouvre le sélecteur de zone si mode zones, sinon placement libre)
   const handleVariantSelect = (logoId: string, variantId: string, variantFile: string) => {
-    onOpenZoneSelector({ logoId, variantId, variantFile });
+    if (logoPlacementMode === 'zones') {
+      onOpenZoneSelector({ logoId, variantId, variantFile });
+    } else {
+      // Placement libre - ajouter directement au centre
+      addLogo(logoId, variantId, variantFile, [0.5, 0.5, 0], activeCategory);
+    }
     setShowVariantSelector(null);
   };
 
@@ -1962,7 +1991,7 @@ function LogoTab({
           </button>
           
           <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-900">Ajouter un logo - {categoryLabels[activeCategory].label}</span>
+            <span className="font-medium text-gray-900">{buttonLabel} - {categoryLabels[activeCategory].label}</span>
           </div>
         </div>
 
@@ -1999,9 +2028,17 @@ function LogoTab({
                   key={logo.id}
                   onClick={() => {
                     if (logo.variants.length === 0) {
-                      onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '' });
+                      if (logoPlacementMode === 'zones') {
+                        onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '' });
+                      } else {
+                        addLogo(logo.id, '', '', [0.5, 0.5, 0], activeCategory);
+                      }
                     } else if (logo.variants.length === 1) {
-                      onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file });
+                      if (logoPlacementMode === 'zones') {
+                        onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file });
+                      } else {
+                        addLogo(logo.id, logo.variants[0].id, logo.variants[0].file, [0.5, 0.5, 0], activeCategory);
+                      }
                     } else {
                       setShowVariantSelector(logo.id);
                     }
@@ -2085,7 +2122,7 @@ function LogoTab({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Ajouter un logo
+            {buttonLabel}
           </button>
         </div>
 
@@ -2159,7 +2196,7 @@ function LogoTab({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p className="text-sm font-medium">Aucun logo ajouté</p>
-            <p className="text-xs mt-1">Cliquez sur "Ajouter un logo" pour commencer</p>
+            <p className="text-xs mt-1">Cliquez sur "{buttonLabel}" pour commencer</p>
           </div>
         )}
       </div>
@@ -2533,6 +2570,10 @@ function Sidebar({
             logos={logos}
             isLoadingLogos={isLoadingLogos}
             onOpenZoneSelector={setShowZoneSelector}
+            addLogoButtonLabel={undefined} // TODO: Récupérer depuis les modules
+            logoPlacementMode={undefined} // TODO: Récupérer depuis les modules
+            logoZoneGroupIds={undefined} // TODO: Récupérer depuis les modules
+            logoLibraryIds={undefined} // TODO: Récupérer depuis les modules
           />
         )}
           

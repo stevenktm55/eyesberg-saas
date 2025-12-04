@@ -49,6 +49,9 @@ type CustomizationModule = {
   addTextButtonLabel?: string; // Texte du bouton "Ajouter un texte" (par défaut: "Ajouter un texte")
   textPlacementMode?: 'zones' | 'free'; // Mode de placement du texte: zones prédéfinies ou placement libre
   zoneGroupIds?: string[]; // IDs des groupes de zones à afficher (si textPlacementMode === 'zones')
+  addLogoButtonLabel?: string; // Texte du bouton "Ajouter un logo" (par défaut: "Ajouter un logo")
+  logoPlacementMode?: 'zones' | 'free'; // Mode de placement du logo: zones prédéfinies ou placement libre
+  logoZoneGroupIds?: string[]; // IDs des groupes de zones à afficher pour les logos (si logoPlacementMode === 'zones')
   // Options d'édition de texte
   enableTextContent?: boolean; // Permettre de modifier le contenu du texte
   enableTextFont?: boolean; // Permettre de changer la police
@@ -69,6 +72,8 @@ type CustomizationModule = {
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
+    // Liste des bibliothèques de logos visibles dans ce module (si vide => tous)
+    logoLibraryIds?: string[];
     fontGroupId?: string;
     // Liste des groupes de fonts visibles dans ce module (si vide => tous)
     fontGroupIds?: string[];
@@ -4314,52 +4319,224 @@ export default function ProductBuilderPage() {
               })()}
 
               {selectedModule.contentType === 'logos' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    color: '#a0a0a0',
-                    marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Bibliothèque de logos
-                  </label>
-                  <select
-                    value={selectedModule.selectedItems?.logoLibraryId || ''}
-                    onChange={(e) => {
-                      const updated = { 
-                        ...selectedModule, 
-                        selectedItems: {
-                          ...selectedModule.selectedItems,
-                          logoLibraryId: e.target.value || undefined
-                        }
-                      };
-                      setSelectedModule(updated);
-                      setCustomizationModules(customizationModules.map(m => 
-                        m.id === selectedModule.id ? updated : m
-                      ));
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      backgroundColor: '#1a1a1a',
+                <>
+                  {/* Mode de placement */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Mode de placement
+                    </label>
+                    <select
+                      value={selectedModule.logoPlacementMode || 'free'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          logoPlacementMode: e.target.value as 'zones' | 'free'
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="free">Placement libre</option>
+                      <option value="zones">Placement par zones</option>
+                    </select>
+                  </div>
+
+                  {/* Groupes de zones (si mode zones) */}
+                  {selectedModule.logoPlacementMode === 'zones' && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Groupes de zones
+                      </label>
+                      <div style={{
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        padding: '8px',
+                        backgroundColor: '#1a1a1a'
+                      }}>
+                        {zoneGroups.length === 0 ? (
+                          <div style={{ color: '#666', fontSize: '12px', padding: '8px' }}>
+                            Aucun groupe de zones disponible
+                          </div>
+                        ) : (
+                          zoneGroups.map((group) => (
+                            <label
+                              key={group.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px',
+                                cursor: 'pointer',
+                                borderRadius: '4px',
+                                marginBottom: '4px',
+                                backgroundColor: (selectedModule.logoZoneGroupIds || []).includes(group.id) ? '#2a2a2a' : 'transparent'
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={(selectedModule.logoZoneGroupIds || []).includes(group.id)}
+                                onChange={(e) => {
+                                  const currentIds = selectedModule.logoZoneGroupIds || [];
+                                  const updatedIds = e.target.checked
+                                    ? [...currentIds, group.id]
+                                    : currentIds.filter(id => id !== group.id);
+                                  const updated = { 
+                                    ...selectedModule, 
+                                    logoZoneGroupIds: updatedIds.length > 0 ? updatedIds : undefined
+                                  };
+                                  setSelectedModule(updated);
+                                  setCustomizationModules(customizationModules.map(m => 
+                                    m.id === selectedModule.id ? updated : m
+                                  ));
+                                }}
+                                style={{
+                                  cursor: 'pointer'
+                                }}
+                              />
+                              <span style={{ color: '#ffffff', fontSize: '14px' }}>{group.name}</span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Texte du bouton */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Texte du bouton
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedModule.addLogoButtonLabel || 'Ajouter un logo'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          addLogoButtonLabel: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      placeholder="Ajouter un logo"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Bibliothèques de logos */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Bibliothèques de logos
+                    </label>
+                    <div style={{
+                      maxHeight: '200px',
+                      overflowY: 'auto',
                       border: '1px solid #2a2a2a',
                       borderRadius: '4px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="">Sélectionner une bibliothèque</option>
-                    {logoLibraries.map((library) => (
-                      <option key={library.id} value={library.id}>
-                        {library.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                      padding: '8px',
+                      backgroundColor: '#1a1a1a'
+                    }}>
+                      {logoLibraries.length === 0 ? (
+                        <div style={{ color: '#666', fontSize: '12px', padding: '8px' }}>
+                          Aucune bibliothèque disponible
+                        </div>
+                      ) : (
+                        logoLibraries.map((library) => (
+                          <label
+                            key={library.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '8px',
+                              cursor: 'pointer',
+                              borderRadius: '4px',
+                              marginBottom: '4px',
+                              backgroundColor: (selectedModule.selectedItems?.logoLibraryIds || []).includes(library.id) ? '#2a2a2a' : 'transparent'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={(selectedModule.selectedItems?.logoLibraryIds || []).includes(library.id)}
+                              onChange={(e) => {
+                                const currentIds = selectedModule.selectedItems?.logoLibraryIds || [];
+                                const updatedIds = e.target.checked
+                                  ? [...currentIds, library.id]
+                                  : currentIds.filter(id => id !== library.id);
+                                const updated = { 
+                                  ...selectedModule, 
+                                  selectedItems: {
+                                    ...selectedModule.selectedItems,
+                                    logoLibraryIds: updatedIds.length > 0 ? updatedIds : undefined
+                                  }
+                                };
+                                setSelectedModule(updated);
+                                setCustomizationModules(customizationModules.map(m => 
+                                  m.id === selectedModule.id ? updated : m
+                                ));
+                              }}
+                              style={{
+                                cursor: 'pointer'
+                              }}
+                            />
+                            <span style={{ color: '#ffffff', fontSize: '14px' }}>{library.name}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
 
               {selectedModule.contentType === 'fonts' && (
