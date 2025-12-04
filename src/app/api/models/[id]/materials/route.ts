@@ -194,12 +194,27 @@ export async function GET(
       });
     });
 
-    return NextResponse.json({
+    // Log final pour debug côté client
+    const responseData = {
       modelId,
       materials,
       materialMaps,
-      material_maps: materialMaps // Alias pour compatibilité
-    });
+      material_maps: materialMaps, // Alias pour compatibilité
+      _debug: {
+        materialMapsCount: Object.keys(materialMaps).length,
+        firstMaterial: Object.keys(materialMaps)[0] || null,
+        firstMaterialValues: Object.keys(materialMaps).length > 0 ? {
+          roughnessValue: materialMaps[Object.keys(materialMaps)[0]]?.roughnessValue,
+          metalnessValue: materialMaps[Object.keys(materialMaps)[0]]?.metalnessValue,
+          aoIntensity: materialMaps[Object.keys(materialMaps)[0]]?.aoIntensity,
+          normalIntensity: materialMaps[Object.keys(materialMaps)[0]]?.normalIntensity,
+        } : null
+      }
+    };
+    
+    console.log('📤 Réponse API /api/models/[id]/materials:', JSON.stringify(responseData._debug, null, 2));
+
+    return NextResponse.json(responseData);
 
   } catch (err) {
     console.error("GET /api/models/[id]/materials error:", err);
