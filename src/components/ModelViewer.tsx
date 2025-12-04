@@ -847,19 +847,41 @@ function SimpleViewer({
             setMap(newMaterial as any, 'aoMap', ao, mm);
             // Shader unchanged; we already remap uv <- uv2 at geometry level above.
             // Intensities/scalars
-            const _rough = (typeof mm.roughness === 'number' ? mm.roughness : (typeof mm.roughnessFactor === 'number' ? mm.roughnessFactor : undefined));
-            const _metal = (typeof mm.metalness === 'number' ? mm.metalness : (typeof mm.metalnessFactor === 'number' ? mm.metalnessFactor : (typeof mm.metallic === 'number' ? mm.metallic : undefined)));
+            // Roughness: prioriser la valeur explicite, sinon roughnessFactor, sinon roughnessValue (admin)
+            const _rough = (
+              typeof mm.roughness === 'number'
+                ? mm.roughness
+                : (typeof mm.roughnessFactor === 'number'
+                    ? mm.roughnessFactor
+                    : (typeof mm.roughnessValue === 'number' ? mm.roughnessValue : undefined))
+            );
+            // Metalness: idem, avec fallback sur metalnessValue (admin)
+            const _metal = (
+              typeof mm.metalness === 'number'
+                ? mm.metalness
+                : (typeof mm.metalnessFactor === 'number'
+                    ? mm.metalnessFactor
+                    : (typeof mm.metallic === 'number'
+                        ? mm.metallic
+                        : (typeof mm.metalnessValue === 'number' ? mm.metalnessValue : undefined)))
+            );
             const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
             const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
             const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
             const _envInt = (typeof mm.envMapIntensity === 'number' ? mm.envMapIntensity : (typeof mm.environmentIntensity === 'number' ? mm.environmentIntensity : undefined));
             (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
+            // Appliquer metalness: prioriser la valeur explicite (_metal), sinon valeur par défaut si map existe
             if (typeof _metal === 'number') {
               (newMaterial as any).metalness = _metal;
             } else if (me) {
               (newMaterial as any).metalness = 0.3;
             }
-            if (r) (newMaterial as any).roughness = (typeof _rough === 'number' ? _rough : 1.0);
+            // Appliquer roughness: prioriser la valeur explicite (_rough), même si la map n'existe pas
+            if (typeof _rough === 'number') {
+              (newMaterial as any).roughness = _rough;
+            } else if (r) {
+              (newMaterial as any).roughness = 1.0;
+            }
             if (typeof _aoInt === 'number') (newMaterial as any).aoMapIntensity = _aoInt;
             if (typeof _envInt === 'number') {
               (newMaterial as any).envMapIntensity = _envInt;
