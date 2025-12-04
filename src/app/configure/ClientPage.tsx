@@ -393,6 +393,47 @@ function useLogos(selectedDesignId?: string | null) {
   return { logos, isLoading };
 }
 
+// Normaliser la structure des material maps venant de l'API/models
+// pour qu'elle corresponde à ce que `ModelViewer` attend (roughnessFactor, metalnessFactor, aoIntensity, normalScale, etc.)
+function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Record<string, any> | null {
+  if (!raw || typeof raw !== 'object') return raw || null;
+  const normalized: Record<string, any> = {};
+
+  Object.entries(raw).forEach(([key, value]) => {
+    const mm: any = { ...(value as any) };
+
+    // Roughness: value (0-1) enregistré sous roughnessValue → roughnessFactor / roughness
+    if (typeof mm.roughnessValue === 'number') {
+      if (typeof mm.roughnessFactor !== 'number') mm.roughnessFactor = mm.roughnessValue;
+      if (typeof mm.roughness !== 'number') mm.roughness = mm.roughnessValue;
+    }
+
+    // Metalness: value (0-1) enregistré sous metalnessValue → metalnessFactor / metallic / metalness
+    if (typeof mm.metalnessValue === 'number') {
+      if (typeof mm.metalnessFactor !== 'number') mm.metalnessFactor = mm.metalnessValue;
+      if (typeof mm.metallic !== 'number') mm.metallic = mm.metalnessValue;
+      if (typeof mm.metalness !== 'number') mm.metalness = mm.metalnessValue;
+    }
+
+    // AO: value (0-1) enregistré sous aoIntensity → aoIntensity
+    if (typeof mm.aoIntensity === 'number') {
+      // rien à faire, ModelViewer lit déjà aoIntensity
+    }
+
+    // Normal: intensité enregistrée sous normalIntensity → normalScale / normalScaleX / normalScaleY
+    if (typeof mm.normalIntensity === 'number') {
+      const n = mm.normalIntensity;
+      if (typeof mm.normalScale !== 'number') mm.normalScale = n;
+      if (typeof mm.normalScaleX !== 'number') mm.normalScaleX = n;
+      if (typeof mm.normalScaleY !== 'number') mm.normalScaleY = n;
+    }
+
+    normalized[key] = mm;
+  });
+
+  return normalized;
+}
+
 // Hook pour charger automatiquement le modèle associé au produit
 function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null) {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
@@ -421,7 +462,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             if (selectedModel) {
               console.log('✅ Modèle trouvé - ID:', selectedModel.id, 'materialMaps:', Object.keys(selectedModel.materialMaps || {}));
               setTextureMaps(selectedModel.textureMaps || null);
-              setMaterialMaps(selectedModel.materialMaps || null);
+              setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
               setModelId(selectedModel.id);
             } else {
               console.warn('⚠️ Modèle non trouvé avec ID:', forcedModelId);
@@ -465,7 +506,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           setModelId(chosen.id);
           setModelUrl(chosen.glbUrl);
           setTextureMaps(chosen.textureMaps || null);
-          setMaterialMaps(chosen.materialMaps || null);
+          setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
         } else {
           console.warn('⚠️ Aucun modèle disponible');
         }
@@ -490,7 +531,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         const current = models.find((m: any) => m.id === modelId);
         if (!current) return;
 
-        const nextMaterialMaps = current.materialMaps || null;
+        const nextMaterialMaps = normalizeMaterialMaps(current.materialMaps) || null;
         const nextTextureMaps = current.textureMaps || null;
 
         const mmChanged = JSON.stringify(nextMaterialMaps) !== JSON.stringify(materialMaps);
