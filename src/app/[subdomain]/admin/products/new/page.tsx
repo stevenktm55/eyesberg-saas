@@ -249,8 +249,8 @@ export default function ProductBuilderPage() {
       
       try {
         // Utiliser directement file_url comme dans la page admin des fonts
-        // Utiliser font.name comme font-family (comme dans la page admin qui fonctionne)
-        const fontFamily = font.name || font.display_name;
+        // Utiliser display_name comme font-family (comme dans ModelViewer qui utilise display_name)
+        const fontFamily = font.display_name || font.name;
         const format = font.file_type === 'woff' ? 'woff' : 
                       font.file_type === 'woff2' ? 'woff2' : 
                       font.file_type === 'otf' ? 'opentype' : 
@@ -2931,8 +2931,8 @@ export default function ProductBuilderPage() {
                                           {/* Polices disponibles */}
                                           {visibleFonts.map((font) => {
                                             const isSelected = selectedText.fontFamily === font.id;
-                                            // Utiliser font.name comme fontFamily (comme dans la page admin qui fonctionne)
-                                            const fontFamilyValue = font.name || font.display_name;
+                                            // Utiliser display_name comme fontFamily (comme dans ModelViewer)
+                                            const fontFamilyValue = font.display_name || font.name;
                                             
                                             return (
                                               <div
