@@ -3001,21 +3001,6 @@ export default function ProductBuilderPage() {
                                       </p>
                                     )}
                                     <div>
-                                      <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        marginBottom: '8px'
-                                      }}>
-                                        <div style={{
-                                          fontSize: '13px',
-                                          fontWeight: '500',
-                                          color: '#111827',
-                                          fontFamily: 'var(--stepn-font-body)'
-                                        }}>
-                                          Épaisseur
-                                        </div>
-                                      </div>
                                       {(() => {
                                         const sliderMin = textConstraints.strokeMinWidthPx;
                                         const sliderMax = textConstraints.strokeMaxWidthPx;
@@ -3034,6 +3019,24 @@ export default function ProductBuilderPage() {
                                         // S'assurer que la valeur ne dépasse jamais les limites après arrondi
                                         if (currentPxValue < sliderMin) currentPxValue = sliderMin;
                                         if (currentPxValue > sliderMax) currentPxValue = sliderMax;
+                                        
+                                        return (
+                                          <>
+                                            <div style={{
+                                              display: 'flex',
+                                              justifyContent: 'space-between',
+                                              alignItems: 'center',
+                                              marginBottom: '8px'
+                                            }}>
+                                              <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: '#111827',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Épaisseur {currentPxValue}
+                                              </div>
+                                            </div>
                                         
                                         const sliderId = `stroke-slider-${selectedTextId}`;
                                         
@@ -3119,14 +3122,15 @@ export default function ProductBuilderPage() {
                                               marginTop: '6px',
                                               paddingTop: '4px',
                                               fontSize: '11px',
-                                              color: '#6b7280',
+                                              color: '#111827',
                                               fontFamily: 'var(--stepn-font-body)',
                                               fontWeight: '400'
                                             }}>
-                                              <span style={{ flex: '0 0 auto' }}>Min: {sliderMin}px</span>
-                                              <span style={{ flex: '0 0 auto' }}>Max: {sliderMax}px</span>
+                                              <span style={{ flex: '0 0 auto' }}>Min.</span>
+                                              <span style={{ flex: '0 0 auto' }}>Max.</span>
                                             </div>
                                           </div>
+                                          </>
                                         );
                                       })()}
                                     </div>
