@@ -550,6 +550,10 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             if (matsRes.ok) {
               const matsData = await matsRes.json();
               console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
+              console.log('🔍 DEBUG API Response:', matsData._debug || 'No debug info');
+              if (matsData._debug?.firstMaterialValues) {
+                console.log('📊 Valeurs du premier matériau depuis API:', matsData._debug.firstMaterialValues);
+              }
                   // Debug: log AVANT normalisation - chercher spécifiquement mesh_FRONT
                   const meshFrontKey = Object.keys(matsData.materialMaps || {}).find(k => 
                     k.toLowerCase().includes('mesh') && k.toLowerCase().includes('front')
@@ -616,6 +620,10 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         const matsRes = await fetch(`/api/models/${modelId}/materials`);
         if (!matsRes.ok) return;
         const matsData = await matsRes.json();
+        console.log('🔄 Sync - DEBUG API Response:', matsData._debug || 'No debug info');
+        if (matsData._debug?.firstMaterialValues) {
+          console.log('🔄 Sync - Valeurs du premier matériau:', matsData._debug.firstMaterialValues);
+        }
         const nextMaterialMaps = normalizeMaterialMaps(matsData.materialMaps) || null;
 
         // Les textureMaps ne sont pas gérées par cet endpoint, ne synchroniser que les materialMaps ici
