@@ -2172,24 +2172,6 @@ function LogoTab({
     );
   }
 
-  // Labels des vues
-  const viewLabels = {
-    'front': logoViewFrontLabel || 'Torse',
-    'back': logoViewBackLabel || 'Dos',
-    'left': logoViewLeftLabel || 'Bras gauche',
-    'right': logoViewRightLabel || 'Bras droit'
-  };
-
-  // Gérer le changement de vue
-  const handleViewChange = (view: 'front' | 'back' | 'left' | 'right') => {
-    setActiveView(view);
-    if (onCameraViewChange) {
-      onCameraViewChange(view);
-    }
-    // Émettre un événement pour changer la vue de la caméra
-    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
-  };
-
   // Vue par défaut : Liste des logos placés
   return (
     <div className="h-full flex flex-col">
