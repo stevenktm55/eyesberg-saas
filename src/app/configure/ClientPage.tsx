@@ -1816,8 +1816,9 @@ function LogoTab({
   const filteredLibraryLogos = logos.filter(logo => {
     // Filtrer par bibliothèques si configuré
     if (logoLibraryIds && logoLibraryIds.length > 0) {
-      // Note: on suppose que logo.libraryId existe (à vérifier selon la structure réelle)
-      if (!(logo as any).libraryId || !logoLibraryIds.includes((logo as any).libraryId)) {
+      // Vérifier si le logo a une bibliothèque associée (plusieurs champs possibles)
+      const logoLibId = (logo as any).libraryId || (logo as any).logo_library_id || (logo as any).logoLibraryId;
+      if (!logoLibId || !logoLibraryIds.includes(logoLibId)) {
         return false;
       }
     }
@@ -1828,6 +1829,14 @@ function LogoTab({
       logo.name.toLowerCase().includes(query) ||
       (logo.tags && logo.tags.some(tag => tag.toLowerCase().includes(query)))
     );
+  });
+  
+  console.log('📚 Logos filtrés:', { 
+    total: logos.length, 
+    filtered: filteredLibraryLogos.length, 
+    logoLibraryIds, 
+    hasFilter: !!logoLibraryIds && logoLibraryIds.length > 0,
+    sampleLogo: logos[0] ? { id: logos[0].id, libraryId: (logos[0] as any).libraryId || (logos[0] as any).logo_library_id || (logos[0] as any).logoLibraryId } : null
   });
 
   // Gérer la sélection d'une variante (ouvre le sélecteur de zone si mode zones, sinon placement libre)
