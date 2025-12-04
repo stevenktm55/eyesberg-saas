@@ -3225,6 +3225,7 @@ export default function ProductBuilderPage() {
                                         ));
                                       })()}
                                       </select>
+                                    </div>
                                     {selectedText.deformation && (() => {
                                       const sliderId = `deformation-slider-${selectedTextId}`;
                                       const intensity = selectedText.deformationIntensity ?? 0;
