@@ -555,7 +555,47 @@ export function UVMapViewer({
       
       ctx.restore();
     });
-  }, [zones, selectedZoneId]);
+
+    // Draw snap lines
+    snapLines.forEach(snapLine => {
+      const startX = snapLine.start[0] * zonesCanvas.width;
+      const startY = (1 - snapLine.start[1]) * zonesCanvas.height;
+      const endX = snapLine.end[0] * zonesCanvas.width;
+      const endY = (1 - snapLine.end[1]) * zonesCanvas.height;
+      
+      const isSelected = selectedSnapLineId === snapLine.id;
+      ctx.strokeStyle = isSelected ? "#8eff36" : "rgba(255, 255, 255, 0.5)";
+      ctx.lineWidth = isSelected ? 3 : 2;
+      ctx.setLineDash(isSelected ? [] : [5, 5]);
+      
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Draw start and end points
+      ctx.fillStyle = isSelected ? "#8eff36" : "#ffffff";
+      ctx.beginPath();
+      ctx.arc(startX, startY, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(endX, endY, 4, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Draw placing start point if placing snap line
+    if (isPlacingSnapLine && placingStart) {
+      const startX = placingStart[0] * zonesCanvas.width;
+      const startY = (1 - placingStart[1]) * zonesCanvas.height;
+      ctx.strokeStyle = "#8eff36";
+      ctx.fillStyle = "#8eff36";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(startX, startY, 6, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }, [zones, snapLines, selectedZoneId, selectedSnapLineId, isPlacingSnapLine, placingStart]);
 
   return (
     <div
