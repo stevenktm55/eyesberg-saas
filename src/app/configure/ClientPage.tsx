@@ -550,13 +550,22 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             if (matsRes.ok) {
               const matsData = await matsRes.json();
               console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
-                  // Debug: log AVANT normalisation
-                  console.log('🔍 Debug AVANT normalisation (forcedModelId):', {
-                    materialMapsKeys: Object.keys(matsData.materialMaps || {}),
-                    firstMatRaw: matsData.materialMaps && Object.keys(matsData.materialMaps).length > 0 
-                      ? matsData.materialMaps[Object.keys(matsData.materialMaps)[0]]
-                      : null
-                  });
+                  // Debug: log AVANT normalisation - chercher spécifiquement mesh_FRONT
+                  const meshFrontKey = Object.keys(matsData.materialMaps || {}).find(k => 
+                    k.toLowerCase().includes('mesh') && k.toLowerCase().includes('front')
+                  );
+                  if (meshFrontKey) {
+                    console.log('🔍 Debug AVANT normalisation (forcedModelId) - mesh_FRONT trouvé:', {
+                      key: meshFrontKey,
+                      rawData: matsData.materialMaps[meshFrontKey],
+                      hasNormalIntensity: typeof matsData.materialMaps[meshFrontKey].normalIntensity !== 'undefined',
+                      hasRoughnessValue: typeof matsData.materialMaps[meshFrontKey].roughnessValue !== 'undefined',
+                      hasMetalnessValue: typeof matsData.materialMaps[meshFrontKey].metalnessValue !== 'undefined',
+                      allKeys: Object.keys(matsData.materialMaps[meshFrontKey])
+                    });
+                  } else {
+                    console.log('⚠️ mesh_FRONT non trouvé dans materialMaps, keys disponibles:', Object.keys(matsData.materialMaps || {}));
+                  }
                   const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
                   // Debug: log les valeurs d'intensité pour le premier matériau APRÈS normalisation
                   if (normalized && Object.keys(normalized).length > 0) {
