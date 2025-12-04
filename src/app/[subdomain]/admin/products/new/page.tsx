@@ -3119,12 +3119,19 @@ export default function ProductBuilderPage() {
                                               marginTop: '6px',
                                               paddingTop: '4px',
                                               fontSize: '11px',
-                                              color: '#111827',
                                               fontFamily: 'var(--stepn-font-body)',
                                               fontWeight: '400'
                                             }}>
-                                              <span style={{ flex: '0 0 auto' }}>Min.</span>
-                                              <span style={{ flex: '0 0 auto' }}>Max.</span>
+                                              <span style={{ 
+                                                flex: '0 0 auto',
+                                                color: '#111827',
+                                                WebkitTextFillColor: '#111827'
+                                              }}>Min.</span>
+                                              <span style={{ 
+                                                flex: '0 0 auto',
+                                                color: '#111827',
+                                                WebkitTextFillColor: '#111827'
+                                              }}>Max.</span>
                                             </div>
                                           </div>
                                         );
