@@ -3036,6 +3036,16 @@ export default function ProductBuilderPage() {
                                               );
                                               updateText(selectedTextId, { strokeWidth: clampedValue });
                                             }}
+                                            onInput={(e) => {
+                                              // Handler pour une meilleure réactivité pendant le drag
+                                              const pxValue = parseFloat((e.target as HTMLInputElement).value);
+                                              const roundedValue = Math.round(pxValue * 10) / 10;
+                                              const clampedValue = Math.min(
+                                                sliderMax,
+                                                Math.max(sliderMin, roundedValue)
+                                              );
+                                              updateText(selectedTextId, { strokeWidth: clampedValue });
+                                            }}
                                             style={{
                                               width: '100%',
                                               height: '6px',
@@ -3044,7 +3054,9 @@ export default function ProductBuilderPage() {
                                               outline: 'none',
                                               cursor: sliderRange <= 0 ? 'not-allowed' : 'pointer',
                                               WebkitAppearance: 'none',
-                                              appearance: 'none'
+                                              appearance: 'none',
+                                              padding: 0,
+                                              margin: 0
                                             }}
                                             disabled={sliderRange <= 0}
                                           />
