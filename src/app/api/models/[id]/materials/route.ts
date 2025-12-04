@@ -66,6 +66,21 @@ export async function GET(
 
     console.log('📦 Matériaux finaux trouvés pour le modèle', modelId, ':', materials);
     console.log('📦 Material maps pour le modèle', modelId, ':', materialMaps);
+    
+    // Debug: log les valeurs d'intensité pour chaque matériau
+    Object.entries(materialMaps).forEach(([matName, matConfig]: [string, any]) => {
+      console.log(`🔍 Material map "${matName}":`, {
+        roughnessValue: matConfig.roughnessValue,
+        metalnessValue: matConfig.metalnessValue,
+        aoIntensity: matConfig.aoIntensity,
+        normalIntensity: matConfig.normalIntensity,
+        normalScale: matConfig.normalScale,
+        normalScaleX: matConfig.normalScaleX,
+        normalScaleY: matConfig.normalScaleY,
+        repeatX: matConfig.repeatX,
+        repeatY: matConfig.repeatY
+      });
+    });
 
     return NextResponse.json({
       modelId,

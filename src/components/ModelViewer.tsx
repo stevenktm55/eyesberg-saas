@@ -608,6 +608,13 @@ function SimpleViewer({
               };
               const mm = resolveMaterialConfig(materialName, m.name || '');
           if (mm) {
+            console.log('🔍 Material config résolu pour:', materialName, '→', Object.keys(materialMaps || {}).find(k => materialMaps?.[k] === mm) || 'unknown key', {
+              hasRoughnessValue: typeof mm.roughnessValue === 'number',
+              hasMetalnessValue: typeof mm.metalnessValue === 'number',
+              hasAoIntensity: typeof mm.aoIntensity === 'number',
+              hasNormalIntensity: typeof mm.normalIntensity === 'number',
+              allKeys: Object.keys(mm)
+            });
             const maxAniso = gl.capabilities.getMaxAnisotropy?.() || 8;
             const applyTransform = (tex: THREE.Texture) => {
               const getNum = (v: any, d: number) => (typeof v === 'number' && isFinite(v) ? v : d);
