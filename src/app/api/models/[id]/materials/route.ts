@@ -66,6 +66,25 @@ export async function GET(
 
     // Enrichir avec les intensités depuis material_map_files via model_parts
     try {
+      console.log('🔍 Tentative récupération model_parts pour modèle:', modelId);
+      
+      // D'abord, vérifier si des model_parts existent
+      const { data: allParts, error: checkError } = await supabase
+        .from('model_parts')
+        .select('id, name, material_map_id, model_3d_id')
+        .eq('model_3d_id', modelId);
+      
+      console.log('🔍 Résultat check model_parts:', {
+        count: allParts?.length || 0,
+        error: checkError,
+        parts: allParts
+      });
+      
+      if (checkError) {
+        console.error('❌ Erreur lors de la vérification model_parts:', checkError);
+      }
+      
+      // Ensuite, récupérer avec la jointure
       const { data: modelParts, error: partsError } = await supabase
         .from('model_parts')
         .select(`
@@ -82,7 +101,13 @@ export async function GET(
         `)
         .eq('model_3d_id', modelId);
       
-      if (!partsError && modelParts) {
+      console.log('🔍 Résultat jointure model_parts:', {
+        count: modelParts?.length || 0,
+        error: partsError,
+        parts: modelParts
+      });
+      
+      if (!partsError && modelParts && modelParts.length > 0) {
         console.log('🔍 Model parts trouvés:', modelParts.length, 'parts:', JSON.stringify(modelParts, null, 2));
         
         modelParts.forEach((part: any) => {
