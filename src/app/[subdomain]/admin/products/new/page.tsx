@@ -64,6 +64,7 @@ type CustomizationModule = {
   textBaseStrokeWidth?: number; // Largeur par défaut du contour (px)
   textDefaultColor?: string; // Couleur par défaut du texte
   textDefaultStrokeColor?: string; // Couleur par défaut du contour
+  textDefaultFontId?: string; // ID de la police par défaut
   textEnabledDeformations?: string[]; // IDs des déformations activées
   selectedItems?: {
     colorPaletteId?: string;
@@ -725,6 +726,11 @@ export default function ProductBuilderPage() {
       : [0.5, 0.5, 0];
 
     const constraints = getTextConstraintValues();
+    const module = getTextModuleConfig();
+    
+    // Utiliser la police par défaut du module si aucune n'est fournie
+    const resolvedFontFamily = defaultFontFamily || module?.textDefaultFontId;
+    
     const resolvedFontSize = clampFontSize(initialFontSize ?? 700);
     // Utiliser directement baseStrokeWidthPx sans conversion legacy (déjà converti dans getTextConstraintValues)
     const resolvedStrokeWidth = Math.min(
@@ -742,7 +748,7 @@ export default function ProductBuilderPage() {
       rotation: initialRotation ?? 0,
       category,
       zoneCategory,
-      fontFamily: defaultFontFamily,
+      fontFamily: resolvedFontFamily,
       strokeColor: constraints.defaultStrokeColor,
       strokeWidth: resolvedStrokeWidth,
       strokeWidthUnit: 'px' as const,
@@ -5197,6 +5203,77 @@ export default function ProductBuilderPage() {
                         );
                       })}
                     </div>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Police par défaut
+                    </label>
+                    <select
+                      value={selectedModule.textDefaultFontId || ''}
+                      onChange={(e) => {
+                        const updated = {
+                          ...selectedModule,
+                          textDefaultFontId: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m =>
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Aucune (première police disponible)</option>
+                      {(() => {
+                        const allowedGroupIds = selectedModule.selectedItems?.fontGroupIds;
+                        const availableFonts: Array<{ id: string; name: string; display_name?: string }> = [];
+                        
+                        fontGroups.forEach(group => {
+                          if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
+                            group.fonts.forEach((font: any) => {
+                              if (font.name || font.display_name) {
+                                availableFonts.push({
+                                  id: font.id,
+                                  name: font.name || font.display_name,
+                                  display_name: font.display_name || font.name
+                                });
+                              }
+                            });
+                          }
+                        });
+                        
+                        return availableFonts.map(font => (
+                          <option key={font.id} value={font.id}>
+                            {font.display_name || font.name}
+                          </option>
+                        ));
+                      })()}
+                    </select>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#7d7d7d',
+                      marginTop: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      La police sélectionnée sera utilisée par défaut pour les nouveaux textes.
+                    </p>
                   </div>
 
                   <div style={{ marginBottom: '20px' }}>
