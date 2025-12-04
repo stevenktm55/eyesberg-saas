@@ -3320,10 +3320,12 @@ export default function ProductBuilderPage() {
                                 transformedMap.normalScale = modelSpecificMap.normalIntensity;
                                 transformedMap.normalScaleX = modelSpecificMap.normalIntensity;
                                 transformedMap.normalScaleY = modelSpecificMap.normalIntensity;
-                              } else if (scale !== 1) {
-                                transformedMap.normalScale = scale;
-                                transformedMap.normalScaleX = scale;
-                                transformedMap.normalScaleY = scale;
+                              } else {
+                                // Utiliser l'intensité depuis les fichiers globaux (pas le scale qui est pour le repeat)
+                                transformedMap.normalIntensity = intensity;
+                                transformedMap.normalScale = intensity;
+                                transformedMap.normalScaleX = intensity;
+                                transformedMap.normalScaleY = intensity;
                               }
                             } else if (mapType === 'roughness' || mapType === 'roughnessmap') {
                               transformedMap.roughnessMap = fileUrl;
