@@ -3221,10 +3221,10 @@ export default function ProductBuilderPage() {
                                           : allDeformations; // Si aucune restriction, afficher toutes
                                         
                                         return filteredDeformations.map(def => (
-                                          <option key={def.value} value={def.value}>{def.label}</option>
+                                          <option key={def.value} value={def.value} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{def.label}</option>
                                         ));
                                       })()}
-                                    </select>
+                                      </select>
                                     {selectedText.deformation && (() => {
                                       const sliderId = `deformation-slider-${selectedTextId}`;
                                       const intensity = selectedText.deformationIntensity ?? 0;
