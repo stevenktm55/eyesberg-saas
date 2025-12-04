@@ -214,9 +214,9 @@ export default function ProductBuilderPage() {
     return customizationModules.find(module => module.contentType === 'text');
   }, [customizationModules, activeCustomizerTab]);
 
-  // Charger les fonts pour la prévisualisation quand l'onglet police est actif
+  // Charger les fonts pour la prévisualisation et le 3D
   useEffect(() => {
-    if (activeTextTab !== 'police' || !selectedTextId) return;
+    if (fontGroups.length === 0) return;
     
     const activeModule = getTextModuleConfig();
     const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
@@ -263,10 +263,10 @@ export default function ProductBuilderPage() {
         
         setLoadedFonts(prev => new Set([...prev, font.id]));
       } catch (err) {
-        console.error('Failed to load font for preview:', font.name || font.display_name, err);
+        console.error('Failed to load font:', font.name || font.display_name, err);
       }
     });
-  }, [activeTextTab, selectedTextId, fontGroups, customizationModules, activeCustomizerTab, loadedFonts]);
+  }, [fontGroups, customizationModules, activeCustomizerTab, loadedFonts, getTextModuleConfig]);
 
   const convertLegacyStrokeWidth = (value: number, minPx: number, maxPx: number) => {
     if (!Number.isFinite(value)) return minPx;
