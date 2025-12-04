@@ -3000,10 +3000,16 @@ export default function ProductBuilderPage() {
                                         </div>
                                       </div>
                                       {(() => {
-                                        const currentPxValue = getDisplayStrokeWidthPx(selectedText.strokeWidth);
                                         const sliderMin = textConstraints.strokeMinWidthPx;
                                         const sliderMax = textConstraints.strokeMaxWidthPx;
                                         const sliderRange = sliderMax - sliderMin;
+                                        
+                                        // Utiliser directement la valeur stockée, clampée simplement sans conversion legacy
+                                        const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
+                                        const currentPxValue = Math.min(
+                                          sliderMax,
+                                          Math.max(sliderMin, Number.isFinite(rawValue) ? rawValue : sliderMin)
+                                        );
                                         
                                         return (
                                           <input
