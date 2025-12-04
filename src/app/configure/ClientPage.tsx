@@ -1680,6 +1680,496 @@ function Viewer3D({
     </div>
   );
 }
+
+// Composant LogoTab - Reprend exactement le système de configurator.stretchmx.com
+function LogoTab({
+  placedLogos,
+  addLogo,
+  updateLogo,
+  removeLogo,
+  selectedLogoId,
+  selectLogo,
+  textZones,
+  isLoadingZones,
+  logos,
+  isLoadingLogos,
+  onOpenZoneSelector,
+}: {
+  placedLogos: Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+    width?: number;
+    height?: number;
+  }>;
+  addLogo: (logoId: string, variantId: string, variantFile: string, position?: [number, number, number], category?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit', initialPixelWidth?: number, initialPixelHeight?: number, initialRotation?: number) => void;
+  updateLogo: (id: string, updates: Partial<any>) => void;
+  removeLogo: (id: string) => void;
+  selectedLogoId: string | null;
+  selectLogo: (id: string | null) => void;
+  textZones: TextZone[];
+  isLoadingZones: boolean;
+  logos: Logo[];
+  isLoadingLogos: boolean;
+  onOpenZoneSelector: (data: {logoId: string, variantId: string, variantFile: string} | null) => void;
+}) {
+  const [activeCategory, setActiveCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [selectedZone, setSelectedZone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showVariantSelector, setShowVariantSelector] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [logoName, setLogoName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Filtrer les logos placés selon la catégorie active
+  const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
+
+  // Filtrer les zones selon la catégorie active
+  const filteredZones = textZones.filter(zone => 
+    zone.categories && zone.categories.includes(`logo-${activeCategory}`)
+  );
+  
+  // Mettre à jour la zone sélectionnée quand les zones sont chargées
+  useEffect(() => {
+    if (filteredZones.length > 0 && !selectedZone) {
+      setSelectedZone(filteredZones[0].id);
+    }
+  }, [filteredZones, selectedZone]);
+
+  // Libellés par catégorie
+  const categoryLabels = {
+    'torse': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Torse' },
+    'dos': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Dos' },
+    'bras-gauche': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras gauche' },
+    'bras-droit': { button: 'Ajouter un logo', title: 'Ajouter un logo', label: 'Bras droit' },
+  };
+  const labels = categoryLabels[activeCategory];
+
+  // Filtrer les logos par recherche
+  const filteredLibraryLogos = logos.filter(logo => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      logo.name.toLowerCase().includes(query) ||
+      (logo.tags && logo.tags.some(tag => tag.toLowerCase().includes(query)))
+    );
+  });
+
+  // Gérer la sélection d'une variante (ouvre le sélecteur de zone)
+  const handleVariantSelect = (logoId: string, variantId: string, variantFile: string) => {
+    onOpenZoneSelector({ logoId, variantId, variantFile });
+    setShowVariantSelector(null);
+  };
+
+  // Gérer l'upload d'un logo personnalisé (envoi direct vers sélection de zone)
+  const handleUploadLogo = async () => {
+    if (!selectedFile || !logoName.trim()) {
+      alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('name', logoName);
+      formData.append('variantName', 'Original');
+
+      const response = await fetch('/api/logos', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Récupérer le logo et sa variante créés
+        const uploadedLogos = data.logos;
+        const uploadedLogo = uploadedLogos[uploadedLogos.length - 1];
+        const uploadedVariant = uploadedLogo.variants[0];
+
+        // Fermer le modal d'import
+        setShowImportModal(false);
+        setSelectedFile(null);
+        setLogoName('');
+
+        // Ouvrir directement le sélecteur de zone avec le logo uploadé
+        onOpenZoneSelector({
+          logoId: uploadedLogo.id,
+          variantId: uploadedVariant.id,
+          variantFile: uploadedVariant.file
+        });
+      } else {
+        alert('Erreur lors de l\'upload du logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Erreur lors de l\'upload');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Si on est en mode sélecteur de variantes
+  if (showVariantSelector) {
+    const selectedLibraryLogo = logos.find(l => l.id === showVariantSelector);
+    if (!selectedLibraryLogo) {
+      setShowVariantSelector(null);
+      return null;
+    }
+
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowVariantSelector(null)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Choisir une variante</span>
+          </div>
+        </div>
+        
+        {/* Contenu des variantes */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{selectedLibraryLogo.name}</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {selectedLibraryLogo.variants.map((variant) => (
+              <button
+                key={variant.id}
+                onClick={() => handleVariantSelect(selectedLibraryLogo.id, variant.id, variant.file)}
+                className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="relative w-full h-24 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                  {variant.file.endsWith('.svg') ? (
+                    <img
+                      src={variant.file}
+                      alt={variant.name}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <Image
+                      src={variant.file}
+                      alt={variant.name}
+                      width={96}
+                      height={96}
+                      className="object-contain"
+                    />
+                  )}
+                </div>
+                <p className="text-sm font-medium text-gray-900 text-center">{variant.name}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Modal d'import de logo
+  const importModal = showImportModal && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Importer un logo</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Nom du logo
+              </label>
+              <input
+                type="text"
+                value={logoName}
+                onChange={(e) => setLogoName(e.target.value)}
+                placeholder="Ex: Mon logo"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Fichier (SVG, PNG, JPG, JPEG)
+              </label>
+              <input
+                type="file"
+                accept=".svg,.png,.jpg,.jpeg"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            {selectedFile && (
+              <div className="text-sm text-gray-600">
+                Fichier sélectionné : {selectedFile.name}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => {
+                setShowImportModal(false);
+                setSelectedFile(null);
+                setLogoName('');
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleUploadLogo}
+              disabled={!selectedFile || !logoName.trim() || isUploading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              {isUploading ? 'Upload...' : 'Importer'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Si on est en mode bibliothèque
+  if (showLibrary) {
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={() => setShowLibrary(false)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">Ajouter un logo - {categoryLabels[activeCategory].label}</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Bouton d'importation */}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Importer un logo
+            </button>
+          </div>
+
+          {/* Barre de recherche */}
+          <input
+            type="text"
+            placeholder="Rechercher un logo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+          />
+
+          {/* Bibliothèque de logos */}
+          {isLoadingLogos ? (
+            <div className="text-center py-4 text-gray-500">Chargement...</div>
+          ) : filteredLibraryLogos.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {filteredLibraryLogos.map((logo) => (
+                <button
+                  key={logo.id}
+                  onClick={() => {
+                    if (logo.variants.length === 0) {
+                      onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '' });
+                    } else if (logo.variants.length === 1) {
+                      onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file });
+                    } else {
+                      setShowVariantSelector(logo.id);
+                    }
+                  }}
+                  className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="relative w-full h-20 bg-gray-100 rounded mb-2 flex items-center justify-center">
+                    {logo.variants.length > 0 ? (
+                      logo.variants[0].file.endsWith('.svg') ? (
+                        <img
+                          src={logo.variants[0].file}
+                          alt={logo.name}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      ) : (
+                        <Image
+                          src={logo.variants[0].file}
+                          alt={logo.name}
+                          width={80}
+                          height={80}
+                          className="object-contain"
+                        />
+                      )
+                    ) : (
+                      <span className="text-gray-400 text-xs">Pas d'image</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-gray-900 text-center truncate">
+                    {logo.name}
+                  </p>
+                  {logo.variants.length > 1 && (
+                    <p className="text-xs text-gray-500 text-center">
+                      {logo.variants.length} variantes
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              {searchQuery ? 'Aucun logo trouvé' : 'Aucun logo disponible. Ajoutez des logos dans l\'admin.'}
+            </div>
+          )}
+        </div>
+        
+        {/* Modals */}
+        {importModal}
+      </div>
+    );
+  }
+
+  // Vue par défaut : Liste des logos placés
+  return (
+    <div className="h-full flex flex-col">
+      {/* Onglets de catégories */}
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+        <div className="flex">
+          {(['torse', 'dos', 'bras-gauche', 'bras-droit'] as const).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                activeCategory === cat
+                  ? 'border-blue-500 text-blue-600 bg-blue-50'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              {categoryLabels[cat].label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Bouton Ajouter un logo */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowLibrary(true)}
+            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter un logo
+          </button>
+        </div>
+
+        {/* Liste des logos placés */}
+        <div className="mb-3">
+          <h3 className="text-base font-semibold text-gray-900">Logos placés ({activeCategoryLogos.length})</h3>
+        </div>
+        
+        {activeCategoryLogos.length > 0 ? (
+          <div className="space-y-3">
+            {activeCategoryLogos.map((logo) => {
+              const libraryLogo = logos.find(l => l.id === logo.logoId);
+              const variant = libraryLogo?.variants.find(v => v.id === logo.variantId);
+              
+              return (
+                <div 
+                  key={logo.id}
+                  onClick={() => selectLogo(logo.id)}
+                  className={`flex items-center gap-3 p-3 bg-white border-2 rounded-lg transition-colors cursor-pointer ${
+                    selectedLogoId === logo.id ? 'border-blue-500' : 'border-gray-200'
+                  }`}
+                >
+                  {/* Aperçu du logo */}
+                  <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                    {logo.variantFile.endsWith('.svg') ? (
+                      <img
+                        src={logo.variantFile}
+                        alt={libraryLogo?.name || 'Logo'}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    ) : (
+                      <Image
+                        src={logo.variantFile}
+                        alt={libraryLogo?.name || 'Logo'}
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    )}
+                  </div>
+
+                  {/* Infos du logo */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {libraryLogo?.name || 'Logo'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {variant?.name || 'Variante'}
+                    </p>
+                  </div>
+
+                  {/* Bouton supprimer */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeLogo(logo.id);
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-sm font-medium">Aucun logo ajouté</p>
+            <p className="text-xs mt-1">Cliquez sur "Ajouter un logo" pour commencer</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Modals */}
+      {importModal}
+    </div>
+  );
+}
+
 function Sidebar({
   selectedDesign,
   selectDesign,
@@ -1811,6 +2301,150 @@ function Sidebar({
   setIsPlacingText?: (value: 'nom' | 'numero' | null) => void;
 }) {
   // Sidebar RENDU avec activeTab
+  
+  // Gestion du sélecteur de zone pour les logos
+  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string} | null>(null);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+  const [activeCategoryForZone, setActiveCategoryForZone] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
+
+  // Filtrer les zones selon la catégorie active pour le sélecteur de zone
+  const filteredZonesForSelector = textZones.filter(zone => 
+    zone.categories && zone.categories.includes(`logo-${activeCategoryForZone}`)
+  );
+
+  // Mettre à jour la zone sélectionnée quand les zones sont chargées
+  useEffect(() => {
+    if (filteredZonesForSelector.length > 0 && !selectedZone) {
+      setSelectedZone(filteredZonesForSelector[0].id);
+    }
+  }, [filteredZonesForSelector, selectedZone]);
+
+  // Modal de sélection de zone pour les logos
+  const zoneModal = showZoneSelector && (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
+          
+          {/* Sélection de catégorie */}
+          <div className="mb-4">
+            <div className="flex gap-2">
+              {(['torse', 'dos', 'bras-gauche', 'bras-droit'] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setActiveCategoryForZone(cat);
+                    setSelectedZone('');
+                  }}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    activeCategoryForZone === cat
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat === 'torse' ? 'Torse' : cat === 'dos' ? 'Dos' : cat === 'bras-gauche' ? 'Bras gauche' : 'Bras droit'}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Sélection de zone par vignettes */}
+          <div className="mb-6">
+            {isLoadingZones ? (
+              <div className="text-center py-4 text-gray-500">Chargement...</div>
+            ) : filteredZonesForSelector.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                {filteredZonesForSelector.map((zone) => (
+                  <button
+                    key={zone.id}
+                    onClick={() => setSelectedZone(zone.id)}
+                    className={`relative rounded-lg border-2 overflow-hidden transition-all ${
+                      selectedZone === zone.id
+                        ? 'border-blue-500 ring-2 ring-blue-200'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {zone.image ? (
+                      <div className="relative h-32 bg-gray-100">
+                        <Image
+                          src={zone.image}
+                          alt={zone.name}
+                          width={160}
+                          height={128}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
+                            <span className="text-xs font-bold text-black">LOGO</span>
+                          </div>
+                          <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedZone === zone.id && (
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
+              </div>
+            )}
+          </div>
+
+          {/* Boutons */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowZoneSelector(null);
+                setSelectedZone('');
+              }}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={() => {
+                if (showZoneSelector && selectedZone) {
+                  const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
+                  if (zone) {
+                    // Si pas de variante, utiliser le logo principal
+                    let variantId = showZoneSelector.variantId;
+                    let variantFile = showZoneSelector.variantFile;
+                    
+                    if (!variantId || !variantFile) {
+                      const logo = logos.find(l => l.id === showZoneSelector.logoId);
+                      if (logo && logo.variants.length > 0) {
+                        variantId = logo.variants[0].id;
+                        variantFile = logo.variants[0].file;
+                      }
+                    }
+                    
+                    addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
+                    setShowZoneSelector(null);
+                    setSelectedZone('');
+                  }
+                }
+              }}
+              disabled={!selectedZone}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              Confirmer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const tabs = [
     { id: 'design', label: 'Design', title: 'Sélectionner le design', iconUrl: '/icons/design.svg', iconUrlWhite: '/icons/design-white.svg?v=2', bgColor: 'bg-black', textColor: 'text-black' },
@@ -1886,10 +2520,28 @@ function Sidebar({
           />
         )}
         {activeTab === 'color' && <ColorTab colors={colors} updateColor={updateColor} />}
+        {activeTab === 'logo' && (
+          <LogoTab
+            placedLogos={placedLogos}
+            addLogo={addLogo}
+            updateLogo={updateLogo}
+            removeLogo={removeLogo}
+            selectedLogoId={selectedLogoId}
+            selectLogo={selectLogo}
+            textZones={textZones}
+            isLoadingZones={isLoadingZones}
+            logos={logos}
+            isLoadingLogos={isLoadingLogos}
+            onOpenZoneSelector={setShowZoneSelector}
+          />
+        )}
           
           {/* Onglets motif / dégradé retirés */}
         </div>
       </div>
+      
+      {/* Modal de sélection de zone */}
+      {zoneModal}
     </div>
   );
 }
