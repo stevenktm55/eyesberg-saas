@@ -142,6 +142,7 @@ export default function ProductBuilderPage() {
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
   const [materialMaps, setMaterialMaps] = useState<any[]>([]);
   const [modelMaterialMaps, setModelMaterialMaps] = useState<Record<string, any>>({}); // material_map_id -> material map avec fichiers
+  const [modelSpecificMaterialMaps, setModelSpecificMaterialMaps] = useState<Record<string, any>>({}); // Material maps spécifiques au modèle depuis /api/models/[id]/materials
   const [show3DSettings, setShow3DSettings] = useState(false);
   const [zoomSpeed, setZoomSpeed] = useState(1);
   const [rotateSpeed, setRotateSpeed] = useState(1);
@@ -474,12 +475,14 @@ export default function ProductBuilderPage() {
   useEffect(() => {
     if (!selectedModel3DId || models3D.length === 0) {
       setModelMaterialMaps({});
+      setModelSpecificMaterialMaps({});
       return;
     }
 
     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
     if (!selectedModel || !(selectedModel as any).model_parts) {
       setModelMaterialMaps({});
+      setModelSpecificMaterialMaps({});
       return;
     }
 
@@ -497,6 +500,27 @@ export default function ProductBuilderPage() {
     });
 
     setModelMaterialMaps(materialMapMap);
+    
+    // Charger les material maps spécifiques au modèle depuis /api/models/[id]/materials
+    async function loadModelSpecificMaterialMaps() {
+      try {
+        console.log('🔍 Admin: Chargement material maps spécifiques pour modèle:', selectedModel3DId);
+        const res = await fetch(`/api/models/${selectedModel3DId}/materials`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log('🔍 Admin: Material maps spécifiques reçus:', data.materialMaps);
+          setModelSpecificMaterialMaps(data.materialMaps || {});
+        } else {
+          console.warn('⚠️ Admin: Erreur chargement material maps spécifiques');
+          setModelSpecificMaterialMaps({});
+        }
+      } catch (error) {
+        console.error('❌ Admin: Erreur chargement material maps spécifiques:', error);
+        setModelSpecificMaterialMaps({});
+      }
+    }
+    
+    loadModelSpecificMaterialMaps();
   }, [selectedModel3DId, models3D, materialMaps]);
 
   // Fonction de sauvegarde automatique avec debounce
@@ -3247,6 +3271,18 @@ export default function ProductBuilderPage() {
                           const materialMap = modelMaterialMaps[part.material_map_id];
                           const materialMapFiles = materialMap.material_map_files || [];
                           
+                          // Récupérer les valeurs spécifiques au modèle depuis modelSpecificMaterialMaps
+                          const partName = part.name || '';
+                          const modelSpecificMap = modelSpecificMaterialMaps[partName] || {};
+                          
+                          console.log('🔍 Admin: Material map pour partie', partName, {
+                            depuisModelSpecific: modelSpecificMap,
+                            hasNormalIntensity: typeof modelSpecificMap.normalIntensity !== 'undefined',
+                            hasRoughnessValue: typeof modelSpecificMap.roughnessValue !== 'undefined',
+                            hasMetalnessValue: typeof modelSpecificMap.metalnessValue !== 'undefined',
+                            hasAoIntensity: typeof modelSpecificMap.aoIntensity !== 'undefined'
+                          });
+                          
                           // Transformer la structure pour ModelViewer
                           const transformedMap: any = {
                             materialName: part.name, // Utiliser le nom de la partie comme materialName
@@ -3261,31 +3297,43 @@ export default function ProductBuilderPage() {
                           materialMapFiles.forEach((file: any) => {
                             const mapType = file.map_type?.toLowerCase();
                             const fileUrl = file.file_url;
+                            // Utiliser les valeurs spécifiques au modèle si disponibles, sinon utiliser celles des fichiers globaux
                             const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
                             const scale = file.scale !== undefined ? file.scale : 1;
                             
                             if (!fileUrl) return;
                             
                             // Appliquer les dimensions (repeat) globalement - utiliser le scale du premier fichier trouvé
-                            if (scale !== 1 && globalRepeatX === undefined) {
+                            // Priorité aux valeurs spécifiques au modèle (repeatX/repeatY)
+                            if (modelSpecificMap.repeatX !== undefined) {
+                              globalRepeatX = modelSpecificMap.repeatX;
+                              globalRepeatY = modelSpecificMap.repeatY !== undefined ? modelSpecificMap.repeatY : modelSpecificMap.repeatX;
+                              transformedMap.repeatX = globalRepeatX;
+                              transformedMap.repeatY = globalRepeatY;
+                            } else if (scale !== 1 && globalRepeatX === undefined) {
                               globalRepeatX = scale;
                               globalRepeatY = scale;
                               transformedMap.repeatX = scale;
                               transformedMap.repeatY = scale;
-                              transformedMap.scaleX = scale;
-                              transformedMap.scaleY = scale;
-                              transformedMap.tilingX = scale;
-                              transformedMap.tilingY = scale;
                             }
+                            transformedMap.scaleX = globalRepeatX || scale;
+                            transformedMap.scaleY = globalRepeatY || scale;
+                            transformedMap.tilingX = globalRepeatX || scale;
+                            transformedMap.tilingY = globalRepeatY || scale;
                             
                             // Mapper les types de fichiers vers les propriétés attendues par ModelViewer
                             if (mapType === 'normal' || mapType === 'normalmap') {
                               transformedMap.normalMap = fileUrl;
                               transformedMap.normal = fileUrl;
                               transformedMap.normalTexture = fileUrl;
-                              // Pour normal, le scale est utilisé pour normalScale (intensité du normal)
-                              // Mais on garde aussi le repeat global
-                              if (scale !== 1) {
+                              // Priorité aux valeurs spécifiques au modèle (normalIntensity)
+                              if (typeof modelSpecificMap.normalIntensity === 'number') {
+                                transformedMap.normalIntensity = modelSpecificMap.normalIntensity;
+                                transformedMap.normalScale = modelSpecificMap.normalIntensity;
+                                transformedMap.normalScaleX = modelSpecificMap.normalIntensity;
+                                transformedMap.normalScaleY = modelSpecificMap.normalIntensity;
+                                console.log('✅ Admin: Utilisation normalIntensity spécifique:', modelSpecificMap.normalIntensity);
+                              } else if (scale !== 1) {
                                 transformedMap.normalScale = scale;
                                 transformedMap.normalScaleX = scale;
                                 transformedMap.normalScaleY = scale;
@@ -3294,23 +3342,44 @@ export default function ProductBuilderPage() {
                               transformedMap.roughnessMap = fileUrl;
                               transformedMap.roughness = fileUrl;
                               transformedMap.roughnessTexture = fileUrl;
-                              // L'intensité est utilisée pour roughnessFactor (0-1) - toujours appliquer
-                              transformedMap.roughnessFactor = intensity;
+                              // Priorité aux valeurs spécifiques au modèle (roughnessValue)
+                              if (typeof modelSpecificMap.roughnessValue === 'number') {
+                                transformedMap.roughnessValue = modelSpecificMap.roughnessValue;
+                                transformedMap.roughnessFactor = modelSpecificMap.roughnessValue;
+                                transformedMap.roughness = modelSpecificMap.roughnessValue;
+                                console.log('✅ Admin: Utilisation roughnessValue spécifique:', modelSpecificMap.roughnessValue);
+                              } else {
+                                transformedMap.roughnessFactor = intensity;
+                              }
                             } else if (mapType === 'metalness' || mapType === 'metallic' || mapType === 'metalnessmap') {
                               transformedMap.metalnessMap = fileUrl;
                               transformedMap.metallicMap = fileUrl;
                               transformedMap.metalness = fileUrl;
                               transformedMap.metalnessTexture = fileUrl;
-                              // L'intensité est utilisée pour metalnessFactor (0-1) - toujours appliquer
-                              transformedMap.metalnessFactor = intensity;
-                              transformedMap.metallic = intensity;
+                              // Priorité aux valeurs spécifiques au modèle (metalnessValue)
+                              if (typeof modelSpecificMap.metalnessValue === 'number') {
+                                transformedMap.metalnessValue = modelSpecificMap.metalnessValue;
+                                transformedMap.metalnessFactor = modelSpecificMap.metalnessValue;
+                                transformedMap.metallic = modelSpecificMap.metalnessValue;
+                                transformedMap.metalness = modelSpecificMap.metalnessValue;
+                                console.log('✅ Admin: Utilisation metalnessValue spécifique:', modelSpecificMap.metalnessValue);
+                              } else {
+                                transformedMap.metalnessFactor = intensity;
+                                transformedMap.metallic = intensity;
+                              }
                             } else if (mapType === 'ao' || mapType === 'ambientocclusion' || mapType === 'occlusion' || mapType === 'aomap') {
                               transformedMap.aoMap = fileUrl;
                               transformedMap.ambientOcclusionMap = fileUrl;
                               transformedMap.occlusionMap = fileUrl;
-                              // L'intensité est utilisée pour aoIntensity (0-1) - toujours appliquer
-                              transformedMap.aoIntensity = intensity;
-                              transformedMap.occlusionIntensity = intensity;
+                              // Priorité aux valeurs spécifiques au modèle (aoIntensity)
+                              if (typeof modelSpecificMap.aoIntensity === 'number') {
+                                transformedMap.aoIntensity = modelSpecificMap.aoIntensity;
+                                transformedMap.occlusionIntensity = modelSpecificMap.aoIntensity;
+                                console.log('✅ Admin: Utilisation aoIntensity spécifique:', modelSpecificMap.aoIntensity);
+                              } else {
+                                transformedMap.aoIntensity = intensity;
+                                transformedMap.occlusionIntensity = intensity;
+                              }
                             } else if (mapType === 'orm' || mapType === 'occlusionroughnessmetalness') {
                               transformedMap.ormMap = fileUrl;
                               transformedMap.occlusionRoughnessMetalnessMap = fileUrl;
@@ -3320,7 +3389,6 @@ export default function ProductBuilderPage() {
                           
                           // Indexer par nom de partie (qui correspond au nom de matériau dans le modèle)
                           // Utiliser plusieurs variantes du nom pour faciliter la correspondance
-                          const partName = part.name || '';
                           if (partName) {
                             materialMapsForModel[partName] = transformedMap;
                             materialMapsForModel[partName.toLowerCase()] = transformedMap;
