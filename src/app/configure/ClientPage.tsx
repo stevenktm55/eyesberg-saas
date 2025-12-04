@@ -403,29 +403,36 @@ function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Rec
     const mm: any = { ...(value as any) };
 
     // Roughness: value (0-1) enregistré sous roughnessValue → roughnessFactor / roughness
+    // IMPORTANT: Préserver roughnessValue pour que ModelViewer puisse le lire
     if (typeof mm.roughnessValue === 'number') {
       if (typeof mm.roughnessFactor !== 'number') mm.roughnessFactor = mm.roughnessValue;
       if (typeof mm.roughness !== 'number') mm.roughness = mm.roughnessValue;
+      // Préserver la valeur originale
     }
 
     // Metalness: value (0-1) enregistré sous metalnessValue → metalnessFactor / metallic / metalness
+    // IMPORTANT: Préserver metalnessValue pour que ModelViewer puisse le lire
     if (typeof mm.metalnessValue === 'number') {
       if (typeof mm.metalnessFactor !== 'number') mm.metalnessFactor = mm.metalnessValue;
       if (typeof mm.metallic !== 'number') mm.metallic = mm.metalnessValue;
       if (typeof mm.metalness !== 'number') mm.metalness = mm.metalnessValue;
+      // Préserver la valeur originale
     }
 
     // AO: value (0-1) enregistré sous aoIntensity → aoIntensity
+    // IMPORTANT: Préserver aoIntensity (déjà présent, rien à faire)
     if (typeof mm.aoIntensity === 'number') {
       // rien à faire, ModelViewer lit déjà aoIntensity
     }
 
     // Normal: intensité enregistrée sous normalIntensity → normalScale / normalScaleX / normalScaleY
+    // IMPORTANT: Préserver normalIntensity pour que ModelViewer puisse le lire
     if (typeof mm.normalIntensity === 'number') {
       const n = mm.normalIntensity;
       if (typeof mm.normalScale !== 'number') mm.normalScale = n;
       if (typeof mm.normalScaleX !== 'number') mm.normalScaleX = n;
       if (typeof mm.normalScaleY !== 'number') mm.normalScaleY = n;
+      // Préserver la valeur originale (déjà présente dans mm.normalIntensity)
     }
 
     normalized[key] = mm;
