@@ -2310,19 +2310,28 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
       
-      if (!shop) return;
+      console.log('🔍 useProductModules - shop:', shop, 'product:', product);
+      
+      if (!shop) {
+        console.warn('⚠️ Pas de shop dans l\'URL, impossible de charger les modules');
+        return;
+      }
       
       try {
         const url = product 
           ? `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`
           : `/api/product-builder?shop=${encodeURIComponent(shop)}`;
         
+        console.log('📡 Chargement des modules depuis:', url);
         const response = await fetch(url);
+        
         if (response.ok) {
-          const product = await response.json();
-          const modules = product.builder_data?.customizationModules || [];
+          const productData = await response.json();
+          console.log('✅ Produit chargé:', productData);
+          const modules = productData.builder_data?.customizationModules || [];
           
           console.log('📦 Modules chargés:', modules);
+          console.log('📦 Nombre de modules:', modules.length);
           
           // Trouver le module logo
           const logoModule = modules.find((m: any) => m.contentType === 'logos');
@@ -2340,15 +2349,17 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
               logoViewRightLabel: logoModule.logoViewRightLabel,
             };
             console.log('⚙️ Configuration logo module:', config);
+            console.log('📚 logoLibraryIds:', config.logoLibraryIds);
             setLogoModuleConfig(config);
           } else {
             console.warn('⚠️ Aucun module logo trouvé dans les modules');
           }
         } else {
-          console.error('❌ Erreur lors du chargement des modules:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('❌ Erreur lors du chargement des modules:', response.status, response.statusText, errorText);
         }
       } catch (error) {
-        console.error('Erreur lors du chargement des modules:', error);
+        console.error('❌ Erreur lors du chargement des modules:', error);
       }
     }
     
