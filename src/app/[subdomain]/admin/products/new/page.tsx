@@ -3006,10 +3006,18 @@ export default function ProductBuilderPage() {
                                         
                                         // Utiliser directement la valeur stockée, clampée simplement sans conversion legacy
                                         const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                        const currentPxValue = Math.min(
-                                          sliderMax,
-                                          Math.max(sliderMin, Number.isFinite(rawValue) ? rawValue : sliderMin)
-                                        );
+                                        let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                        
+                                        // Clamper la valeur entre min et max
+                                        currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
+                                        
+                                        // Arrondir à 1 décimale pour éviter les problèmes de précision flottante
+                                        currentPxValue = Math.round(currentPxValue * 10) / 10;
+                                        
+                                        // Si la valeur est très proche du minimum (à 0.1 près), l'arrondir exactement au minimum
+                                        if (Math.abs(currentPxValue - sliderMin) < 0.15) {
+                                          currentPxValue = sliderMin;
+                                        }
                                         
                                         return (
                                           <input
@@ -3020,9 +3028,11 @@ export default function ProductBuilderPage() {
                                             value={currentPxValue}
                                             onChange={(e) => {
                                               const pxValue = parseFloat(e.target.value);
+                                              // Arrondir à 1 décimale
+                                              const roundedValue = Math.round(pxValue * 10) / 10;
                                               const clampedValue = Math.min(
                                                 sliderMax,
-                                                Math.max(sliderMin, pxValue)
+                                                Math.max(sliderMin, roundedValue)
                                               );
                                               updateText(selectedTextId, { strokeWidth: clampedValue });
                                             }}
