@@ -467,13 +467,66 @@ export function UVMapViewer({
       }
     }
     
+    // Check if clicking on a snap line
+    let clickedSnapLine: SnapLine | null = null;
+    const snapLineClickThreshold = 5; // pixels
+    
+    for (const snapLine of snapLines) {
+      const startX = snapLine.start[0] * canvasRef.current.width;
+      const startY = (1 - snapLine.start[1]) * canvasRef.current.height;
+      const endX = snapLine.end[0] * canvasRef.current.width;
+      const endY = (1 - snapLine.end[1]) * canvasRef.current.height;
+      
+      // Calculate distance from point to line segment
+      const A = canvasMouseX - startX;
+      const B = canvasMouseY - startY;
+      const C = endX - startX;
+      const D = endY - startY;
+      
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      let param = -1;
+      if (lenSq !== 0) param = dot / lenSq;
+      
+      let xx: number, yy: number;
+      if (param < 0) {
+        xx = startX;
+        yy = startY;
+      } else if (param > 1) {
+        xx = endX;
+        yy = endY;
+      } else {
+        xx = startX + param * C;
+        yy = startY + param * D;
+      }
+      
+      const dx = canvasMouseX - xx;
+      const dy = canvasMouseY - yy;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance < snapLineClickThreshold) {
+        clickedSnapLine = snapLine;
+        break;
+      }
+    }
+    
     if (clickedZone) {
       // Select the zone and start dragging
       // Use container-relative coordinates for drag (not canvas-relative)
       const mouseX = e.clientX - containerRect.left;
       const mouseY = e.clientY - containerRect.top;
-      onZoneSelect(clickedZone.id);
+      if (onZoneSelect) onZoneSelect(clickedZone.id);
       setDragZoneId(clickedZone.id);
+      setDragStart({ x: mouseX, y: mouseY });
+      setIsDragging(true);
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (clickedSnapLine) {
+      // Select the snap line and start dragging
+      const mouseX = e.clientX - containerRect.left;
+      const mouseY = e.clientY - containerRect.top;
+      if (onSnapLineSelect) onSnapLineSelect(clickedSnapLine.id);
+      setDragSnapLineId(clickedSnapLine.id);
       setDragStart({ x: mouseX, y: mouseY });
       setIsDragging(true);
       e.preventDefault();
@@ -502,11 +555,25 @@ export function UVMapViewer({
       if (onZoneSelect) onZoneSelect(null);
       if (onSnapLineSelect) onSnapLineSelect(null);
     }
-  }, [zones, snapLines, screenToUV, isPlacingZone, isPlacingSnapLine, onZoneSelect, onSnapLineSelect, onZonePlaced, onSnapLinePlaced, pan, scale, isPointInRotatedRect, placingStart]);
+  }, [zones, snapLines, screenToUV, isPlacingZone, isPlacingSnapLine, onZoneSelect, onSnapLineSelect, onZonePlaced, onSnapLinePlaced, pan, scale, isPointInRotatedRect, placingStart, snapLineSettings]);
 
-  // Handle mouse move - drag zone if dragging
+  // Helper function to constrain snap line end point based on type
+  const constrainSnapLineEnd = useCallback((start: [number, number], end: [number, number], type: "horizontal" | "vertical" | "diagonal"): [number, number] => {
+    if (type === "horizontal") {
+      // Force same Y coordinate
+      return [end[0], start[1]];
+    } else if (type === "vertical") {
+      // Force same X coordinate
+      return [start[0], end[1]];
+    } else {
+      // Diagonal - allow free movement
+      return end;
+    }
+  }, []);
+
+  // Handle mouse move - drag zone or snap line if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !dragStart || !dragZoneId || !containerRef.current || !canvasRef.current) return;
+    if (!isDragging || !dragStart || (!dragZoneId && !dragSnapLineId) || !containerRef.current || !canvasRef.current) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
@@ -525,18 +592,38 @@ export function UVMapViewer({
     const uvDx = (dx / scale) * scaleX / canvasRef.current.width;
     const uvDy = (dy / scale) * scaleY / canvasRef.current.height;
     
-    // Get current zone position
-    const zone = zones.find(z => z.id === dragZoneId);
-    if (!zone) return;
-    
-    // Update zone position (invert vertical delta because of vertical axis inversion)
-    const newU = Math.max(0, Math.min(1, zone.position[0] + uvDx));
-    const newV = Math.max(0, Math.min(1, zone.position[1] - uvDy)); // Invert sign for vertical
-    
-    onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
+    if (dragZoneId && onZoneUpdate) {
+      // Get current zone position
+      const zone = zones.find(z => z.id === dragZoneId);
+      if (!zone) return;
+      
+      // Update zone position (invert vertical delta because of vertical axis inversion)
+      const newU = Math.max(0, Math.min(1, zone.position[0] + uvDx));
+      const newV = Math.max(0, Math.min(1, zone.position[1] - uvDy)); // Invert sign for vertical
+      
+      onZoneUpdate(dragZoneId, { position: [newU, newV, 0] });
+    } else if (dragSnapLineId && onSnapLineUpdate) {
+      // Get current snap line
+      const snapLine = snapLines.find(sl => sl.id === dragSnapLineId);
+      if (!snapLine) return;
+      
+      // Update snap line position (move both start and end by the same delta)
+      const newStartU = Math.max(0, Math.min(1, snapLine.start[0] + uvDx));
+      const newStartV = Math.max(0, Math.min(1, snapLine.start[1] - uvDy)); // Invert sign for vertical
+      const newEndU = Math.max(0, Math.min(1, snapLine.end[0] + uvDx));
+      const newEndV = Math.max(0, Math.min(1, snapLine.end[1] - uvDy)); // Invert sign for vertical
+      
+      // Apply constraint based on type
+      const constrainedEnd = constrainSnapLineEnd([newStartU, newStartV], [newEndU, newEndV], snapLine.type);
+      
+      onSnapLineUpdate(dragSnapLineId, { 
+        start: [newStartU, newStartV],
+        end: constrainedEnd
+      });
+    }
     
     setDragStart({ x: mouseX, y: mouseY });
-  }, [isDragging, dragStart, dragZoneId, zones, onZoneUpdate, scale]);
+  }, [isDragging, dragStart, dragZoneId, dragSnapLineId, zones, snapLines, onZoneUpdate, onSnapLineUpdate, scale, constrainSnapLineEnd]);
 
   // Handle mouse up - stop dragging
   const handleMouseUp = useCallback(() => {
