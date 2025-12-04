@@ -221,15 +221,16 @@ export default function ProductBuilderPage() {
     const activeModule = getTextModuleConfig();
     const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
     
-    const fontsToLoad: Array<{ id: string; display_name: string; font_url: string }> = [];
+    const fontsToLoad: Array<{ id: string; display_name: string; file_url: string; file_type?: string }> = [];
     fontGroups.forEach(group => {
       if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
         group.fonts.forEach((font: any) => {
-          if (font.display_name && font.font_url) {
+          if (font.display_name && font.file_url) {
             fontsToLoad.push({
               id: font.id,
               display_name: font.display_name,
-              font_url: font.font_url
+              file_url: font.file_url,
+              file_type: font.file_type || font.format
             });
           }
         });
@@ -246,16 +247,22 @@ export default function ProductBuilderPage() {
       }
       
       try {
-        const response = await fetch(font.font_url);
+        const response = await fetch(font.file_url);
         if (!response.ok) return;
         
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
         
+        // Utiliser display_name comme font-family (comme dans ModelViewer)
         const fontFamily = font.display_name;
+        const format = font.file_type === 'woff' ? 'woff' : 
+                      font.file_type === 'woff2' ? 'woff2' : 
+                      font.file_type === 'otf' ? 'opentype' : 
+                      'truetype';
+        
         const style = document.createElement('style');
         style.setAttribute('data-font-id', font.id);
-        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${blobUrl}'); }`;
+        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${blobUrl}') format('${format}'); }`;
         document.head.appendChild(style);
         
         const fontFace = new FontFace(fontFamily, `url('${blobUrl}')`);
@@ -2818,7 +2825,8 @@ export default function ProductBuilderPage() {
                                             id: font.id,
                                             name: font.name || font.id,
                                             display_name: font.display_name,
-                                            font_url: font.font_url,
+                                            file_url: font.file_url,
+                                            file_type: font.file_type || font.format,
                                             groupId: group.id
                                           });
                                         });
@@ -3831,11 +3839,11 @@ export default function ProductBuilderPage() {
                                 fontGroups.forEach(group => {
                                   if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
                                     group.fonts.forEach((font: any) => {
-                                      if (font.display_name && font.font_url) {
+                                      if (font.display_name && font.file_url) {
                                         allFontsForViewer.push({
                                           id: font.id,
                                           display_name: font.display_name,
-                                          font_url: font.font_url
+                                          font_url: font.file_url // ModelViewer attend font_url
                                         });
                                       }
                                     });
