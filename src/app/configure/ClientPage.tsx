@@ -2004,6 +2004,25 @@ function LogoTab({
   if (showLibrary) {
     return (
       <div className="h-full flex flex-col">
+        {/* Boutons de vue en haut */}
+        <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+          <div className="grid grid-cols-4 gap-1 p-1">
+            {(['front', 'back', 'left', 'right'] as const).map((view) => (
+              <button
+                key={view}
+                onClick={() => handleViewChange(view)}
+                className={`px-3 py-2 text-sm font-medium transition-colors rounded ${
+                  activeView === view
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {viewLabels[view]}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Header avec bouton retour */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <button
@@ -2017,7 +2036,7 @@ function LogoTab({
           </button>
           
           <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-900">{buttonLabel} - {categoryLabels[activeCategory].label}</span>
+            <span className="font-medium text-gray-900">{buttonLabel}</span>
           </div>
         </div>
 
