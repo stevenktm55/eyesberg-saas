@@ -2032,11 +2032,12 @@ function SimpleViewer({
             ctx.scale(scale, scale);
           }
           ctx.globalAlpha = opacity;
+          // Désactiver l'anti-aliasing pour éviter les bords noirs
+          ctx.imageSmoothingEnabled = false;
           ctx.strokeStyle = text.strokeColor;
           ctx.lineWidth = strokePx;
           ctx.lineJoin = 'round';
           ctx.lineCap = 'round';
-          // Désactiver les ombres pour éviter les bords noirs
           ctx.shadowBlur = 0;
           ctx.shadowColor = 'transparent';
           ctx.strokeText(ch, 0, 0);
@@ -2051,29 +2052,35 @@ function SimpleViewer({
             ctx.scale(scale, scale);
           }
           ctx.globalAlpha = opacity;
+          // Réactiver l'anti-aliasing pour le fill
+          ctx.imageSmoothingEnabled = true;
           ctx.fillStyle = fillStyle;
           ctx.fillText(ch, 0, 0);
           ctx.restore();
         };
 
         if (deformation === 'none' || content.length <= 1) {
-          // Simple draw for full string - stroke d'abord, puis fill
+          // Simple draw for full string - utiliser une technique qui évite les bords noirs
           if (strokePx > 0 && text.strokeColor) {
             ctx.save();
+            // Désactiver l'anti-aliasing pour le stroke pour éviter les bords noirs
+            ctx.imageSmoothingEnabled = false;
             ctx.strokeStyle = text.strokeColor;
             ctx.lineWidth = strokePx;
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
-            // Désactiver les ombres pour éviter les bords noirs
             ctx.shadowBlur = 0;
             ctx.shadowColor = 'transparent';
             ctx.strokeText(content, 0, 0);
             ctx.restore();
           }
           ctx.save();
+          // Réactiver l'anti-aliasing pour le fill pour un rendu propre
+          ctx.imageSmoothingEnabled = true;
           ctx.fillStyle = fillStyle;
           ctx.globalAlpha = 1.0; // Ensure full opacity
           ctx.globalCompositeOperation = 'source-over';
+          // Dessiner le fill par-dessus pour couvrir les bords noirs du stroke
           ctx.fillText(content, 0, 0);
           ctx.restore();
         } else {
