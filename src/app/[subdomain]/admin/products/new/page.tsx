@@ -3000,64 +3000,38 @@ export default function ProductBuilderPage() {
                                         </div>
                                       </div>
                                       {(() => {
-                                        const sliderRangePx = Math.max(0, textConstraints.strokeMaxWidthPx - textConstraints.strokeMinWidthPx);
-                                        const baseStepPx = 2;
-                                        const strokeSliderStepPx = sliderRangePx < baseStepPx
-                                          ? Math.max(0.1, sliderRangePx || 0.1)
-                                          : baseStepPx;
-                                        const sliderMax = sliderRangePx > 0
-                                          ? Math.max(1, Math.floor(sliderRangePx / strokeSliderStepPx))
-                                          : 0;
-                                        
-                                        // Calculer la valeur du slider en s'assurant qu'elle correspond exactement à la valeur px
                                         const currentPxValue = getDisplayStrokeWidthPx(selectedText.strokeWidth);
-                                        const normalizedValue = currentPxValue - textConstraints.strokeMinWidthPx;
-                                        const sliderValue = sliderRangePx === 0
-                                          ? 0
-                                          : Math.round(normalizedValue / strokeSliderStepPx);
-                                        const clampedValue = Math.min(sliderMax, Math.max(0, sliderValue));
+                                        const sliderMin = textConstraints.strokeMinWidthPx;
+                                        const sliderMax = textConstraints.strokeMaxWidthPx;
+                                        const sliderRange = sliderMax - sliderMin;
                                         
-                                        const sliderId = `text-stroke-slider-${selectedTextId}`;
                                         return (
-                                          <>
-                                            <input
-                                              type="range"
-                                              min={0}
-                                              max={sliderMax}
-                                              step="1"
-                                              value={clampedValue}
-                                              onChange={(e) => {
-                                                const stepIndex = parseInt(e.target.value, 10);
-                                                // Calculer la valeur px en s'assurant qu'elle reste dans les limites
-                                                const pxValue = textConstraints.strokeMinWidthPx + stepIndex * strokeSliderStepPx;
-                                                // Clamper entre min et max pour éviter les erreurs d'arrondi
-                                                const finalPxValue = Math.min(
-                                                  textConstraints.strokeMaxWidthPx,
-                                                  Math.max(textConstraints.strokeMinWidthPx, pxValue)
-                                                );
-                                                updateText(selectedTextId, { strokeWidth: finalPxValue });
-                                              }}
-                                              list={sliderMax > 0 ? sliderId : undefined}
-                                              style={{
-                                                width: '100%',
-                                                height: '6px',
-                                                borderRadius: '3px',
-                                                background: '#e5e7eb',
-                                                outline: 'none',
-                                                cursor: sliderMax === 0 ? 'not-allowed' : 'pointer',
-                                                WebkitAppearance: 'none',
-                                                appearance: 'none'
-                                              }}
-                                              disabled={sliderMax === 0}
-                                            />
-                                            {sliderMax > 0 && (
-                                              <datalist id={sliderId}>
-                                                {Array.from({ length: sliderMax + 1 }).map((_, idx) => (
-                                                  <option key={idx} value={idx} label={`${idx + 1}`} />
-                                                ))}
-                                              </datalist>
-                                            )}
-                                          </>
+                                          <input
+                                            type="range"
+                                            min={sliderMin}
+                                            max={sliderMax}
+                                            step="0.1"
+                                            value={currentPxValue}
+                                            onChange={(e) => {
+                                              const pxValue = parseFloat(e.target.value);
+                                              const clampedValue = Math.min(
+                                                sliderMax,
+                                                Math.max(sliderMin, pxValue)
+                                              );
+                                              updateText(selectedTextId, { strokeWidth: clampedValue });
+                                            }}
+                                            style={{
+                                              width: '100%',
+                                              height: '6px',
+                                              borderRadius: '3px',
+                                              background: '#e5e7eb',
+                                              outline: 'none',
+                                              cursor: sliderRange <= 0 ? 'not-allowed' : 'pointer',
+                                              WebkitAppearance: 'none',
+                                              appearance: 'none'
+                                            }}
+                                            disabled={sliderRange <= 0}
+                                          />
                                         );
                                       })()}
                                     </div>
