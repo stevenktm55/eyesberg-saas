@@ -2122,6 +2122,11 @@ function LogoTab({
           {/* Bibliothèque de logos */}
           {isLoadingLogos ? (
             <div className="text-center py-4 text-gray-500">Chargement...</div>
+          ) : logos.length === 0 ? (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              <p>Aucun logo disponible.</p>
+              <p className="text-xs mt-1">Ajoutez des logos dans l'admin.</p>
+            </div>
           ) : filteredLibraryLogos.length > 0 ? (
             <div className="grid grid-cols-3 gap-3">
               {filteredLibraryLogos.map((logo) => (
