@@ -1851,3 +1851,8 @@ function Sidebar({
         {activeTab === 'color' && <ColorTab colors={colors} updateColor={updateColor} />}
           
           {/* Onglets motif / dégradé retirés */}
+        </div>
+      </div>
+    </div>
+  );
+}
