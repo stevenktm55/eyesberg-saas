@@ -949,6 +949,7 @@ export default function SnapLinesConfigPage() {
                     isPlacingZone={false}
                     isPlacingSnapLine={isPlacingSnapLine}
                     placingStart={placingStart}
+                    snapLineSettings={snapLineSettings}
                     design2DUrl={designUrl}
                     onZoneConfirm={() => {}}
                   />

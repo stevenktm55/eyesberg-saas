@@ -37,6 +37,7 @@ type UVMapViewerProps = {
   isPlacingZone?: boolean;
   isPlacingSnapLine?: boolean;
   placingStart?: [number, number] | null;
+  snapLineSettings?: { type?: "horizontal" | "vertical" | "diagonal" };
   canvasSize?: number; // Size of the UV map canvas (default: 2048)
   design2DUrl?: string | null; // Optional 2D design SVG to overlay on UV map
   onZoneConfirm?: () => void; // Callback when zone is confirmed
@@ -57,6 +58,7 @@ export function UVMapViewer({
   isPlacingZone = false,
   isPlacingSnapLine = false,
   placingStart = null,
+  snapLineSettings,
   canvasSize = 2048,
   design2DUrl,
   onZoneConfirm
@@ -72,6 +74,7 @@ export function UVMapViewer({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [dragZoneId, setDragZoneId] = useState<string | null>(null);
+  const [dragSnapLineId, setDragSnapLineId] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [scale, setScale] = useState(1);
@@ -482,17 +485,24 @@ export function UVMapViewer({
         onZonePlaced([uv[0], uv[1], 0]);
       }
     } else if (isPlacingSnapLine && onSnapLinePlaced) {
-      // Place snap line point
+      // Place snap line point with constraint based on type
       const uv = screenToUV(e.clientX, e.clientY);
       if (uv) {
-        onSnapLinePlaced(uv);
+        if (placingStart) {
+          // Second click - constrain based on type
+          const constrainedUV = constrainSnapLineEnd(placingStart, uv, snapLineSettings?.type || 'vertical');
+          onSnapLinePlaced(constrainedUV);
+        } else {
+          // First click
+          onSnapLinePlaced(uv);
+        }
       }
     } else {
       // Deselect
       if (onZoneSelect) onZoneSelect(null);
       if (onSnapLineSelect) onSnapLineSelect(null);
     }
-  }, [zones, snapLines, screenToUV, isPlacingZone, isPlacingSnapLine, onZoneSelect, onSnapLineSelect, onZonePlaced, onSnapLinePlaced, pan, scale, isPointInRotatedRect]);
+  }, [zones, snapLines, screenToUV, isPlacingZone, isPlacingSnapLine, onZoneSelect, onSnapLineSelect, onZonePlaced, onSnapLinePlaced, pan, scale, isPointInRotatedRect, placingStart]);
 
   // Handle mouse move - drag zone if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -533,6 +543,7 @@ export function UVMapViewer({
     setIsDragging(false);
     setDragStart(null);
     setDragZoneId(null);
+    setDragSnapLineId(null);
   }, []);
 
   // Draw zones on canvas (separate layer for zones to allow pan/zoom)
