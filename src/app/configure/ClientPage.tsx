@@ -451,7 +451,11 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
   const [modelId, setModelId] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🚀 ===== useAutoLoadModel HOOK EXECUTÉ =====');
+    console.log('🚀 Paramètres:', { forcedModelId, forcedModelUrl, productId });
+    
     async function loadModel() {
+      console.log('🚀 ===== loadModel() FONCTION APPELÉE =====');
       try {
         // Chargement des modèles
         
@@ -546,11 +550,15 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           setTextureMaps(chosen.textureMaps || null);
           // Charger les material maps normalisés via /api/models/[id]/materials (comme l'admin)
           try {
+            console.log('🚀 ===== APPEL API /api/models/${chosen.id}/materials =====');
             const matsRes = await fetch(`/api/models/${chosen.id}/materials`);
+            console.log('🚀 Réponse API status:', matsRes.status, matsRes.ok);
             if (matsRes.ok) {
               const matsData = await matsRes.json();
+              console.log('🚀 ===== DONNÉES REÇUES DE L\'API =====');
               console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
               console.log('🔍 DEBUG API Response:', matsData._debug || 'No debug info');
+              console.log('🔍 MaterialMaps complet:', JSON.stringify(matsData.materialMaps, null, 2));
               if (matsData._debug?.firstMaterialValues) {
                 console.log('📊 Valeurs du premier matériau depuis API:', matsData._debug.firstMaterialValues);
               }
