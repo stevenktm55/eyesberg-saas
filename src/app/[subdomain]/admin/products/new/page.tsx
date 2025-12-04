@@ -69,6 +69,8 @@ type CustomizationModule = {
     colorPaletteId?: string;
     logoLibraryId?: string;
     fontGroupId?: string;
+    // Liste des groupes de fonts visibles dans ce module (si vide => tous)
+    fontGroupIds?: string[];
     design2DId?: string;
     // Liste des designs 2D visibles dans ce module (si vide => tous)
     design2DIds?: string[];
@@ -2748,49 +2750,202 @@ export default function ProductBuilderPage() {
                                 )}
 
                                 {/* Onglet Police */}
-                                {activeTextTab === 'police' && (
-                                  <div>
-                                    <div style={{
-                                      fontSize: '13px',
-                                      fontWeight: '500',
-                                      color: '#111827',
-                                      marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
-                                    }}>
-                                      Police
-                                    </div>
-                                    <select
-                                      value={selectedText.fontFamily || ''}
-                                      onChange={(e) => {
-                                        updateText(selectedTextId, { 
-                                          fontFamily: e.target.value || undefined 
+                                {activeTextTab === 'police' && (() => {
+                                  // Filtrer les polices selon les groupes sélectionnés
+                                  const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+                                  const visibleFonts = (() => {
+                                    const allFonts: Array<{ id: string; name: string; display_name?: string; fontFamily?: string; groupId: string }> = [];
+                                    fontGroups.forEach(group => {
+                                      if (group.fonts) {
+                                        group.fonts.forEach((font: any) => {
+                                          allFonts.push({
+                                            id: font.id,
+                                            name: font.name || font.id,
+                                            display_name: font.display_name,
+                                            fontFamily: font.font_family || font.fontFamily,
+                                            groupId: group.id
+                                          });
                                         });
-                                      }}
-                                      style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        backgroundColor: '#ffffff',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
+                                      }
+                                    });
+                                    
+                                    if (allowedGroupIds && allowedGroupIds.length > 0) {
+                                      return allFonts.filter(font => allowedGroupIds.includes(font.groupId));
+                                    }
+                                    return allFonts;
+                                  })();
+                                  
+                                  // Texte de prévisualisation (utiliser le contenu du texte sélectionné ou "ZG" par défaut)
+                                  const previewText = selectedText.content && selectedText.content.trim() !== '' 
+                                    ? selectedText.content 
+                                    : 'ZG';
+                                  
+                                  return (
+                                    <div>
+                                      <div style={{
+                                        fontSize: '13px',
+                                        fontWeight: '500',
                                         color: '#111827',
-                                        fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        cursor: 'pointer',
-                                        outline: 'none',
-                                        transition: 'border-color 0.2s'
-                                      }}
-                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                                    >
-                                      <option value="">Police par défaut</option>
-                                      {fontGroups.map((group) =>
-                                        group.fonts?.map((font: any) => (
-                                          <option key={font.id} value={font.id}>
-                                            {font.display_name || font.name || font.id}
-                                          </option>
-                                        ))
+                                        marginBottom: '12px',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        Police
+                                      </div>
+                                      {visibleFonts.length === 0 ? (
+                                        <p style={{ 
+                                          color: '#6b7280', 
+                                          fontSize: '12px', 
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          padding: '12px',
+                                          backgroundColor: '#f9fafb',
+                                          borderRadius: '8px'
+                                        }}>
+                                          Aucune police disponible. Cochez des groupes de polices dans les settings du module.
+                                        </p>
+                                      ) : (
+                                        <div style={{
+                                          display: 'grid',
+                                          gridTemplateColumns: 'repeat(5, 1fr)',
+                                          gap: '12px',
+                                          maxHeight: '400px',
+                                          overflowY: 'auto',
+                                          padding: '4px'
+                                        }}>
+                                          {/* Option "Police par défaut" */}
+                                          <div
+                                            onClick={() => updateText(selectedTextId, { fontFamily: undefined })}
+                                            style={{
+                                              padding: '12px',
+                                              backgroundColor: !selectedText.fontFamily ? '#f0f0f0' : '#ffffff',
+                                              borderRadius: '8px',
+                                              border: !selectedText.fontFamily ? '2px solid #111827' : '1px solid #e5e7eb',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              gap: '8px',
+                                              minHeight: '100px',
+                                              position: 'relative'
+                                            }}
+                                          >
+                                            <div style={{
+                                              width: '100%',
+                                              padding: '8px',
+                                              backgroundColor: '#f5f5f5',
+                                              borderRadius: '4px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              minHeight: '60px',
+                                              fontFamily: 'var(--stepn-font-body), sans-serif',
+                                              fontSize: '18px',
+                                              fontWeight: 'bold',
+                                              color: '#111827'
+                                            }}>
+                                              {previewText}
+                                            </div>
+                                            <span style={{
+                                              fontSize: '11px',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              textAlign: 'center',
+                                              fontWeight: '500'
+                                            }}>
+                                              Par défaut
+                                            </span>
+                                            {!selectedText.fontFamily && (
+                                              <div style={{
+                                                position: 'absolute',
+                                                bottom: '8px',
+                                                right: '8px',
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#111827',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                              }}>
+                                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                                  <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          {/* Polices disponibles */}
+                                          {visibleFonts.map((font) => {
+                                            const isSelected = selectedText.fontFamily === font.id;
+                                            const fontFamilyValue = font.fontFamily || font.name;
+                                            
+                                            return (
+                                              <div
+                                                key={font.id}
+                                                onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
+                                                style={{
+                                                  padding: '12px',
+                                                  backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                                  borderRadius: '8px',
+                                                  border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
+                                                  cursor: 'pointer',
+                                                  transition: 'all 0.2s',
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  gap: '8px',
+                                                  minHeight: '100px',
+                                                  position: 'relative'
+                                                }}
+                                              >
+                                                <div style={{
+                                                  width: '100%',
+                                                  padding: '8px',
+                                                  backgroundColor: '#f5f5f5',
+                                                  borderRadius: '4px',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  minHeight: '60px',
+                                                  fontFamily: fontFamilyValue ? `${fontFamilyValue}, sans-serif` : 'sans-serif',
+                                                  fontSize: '18px',
+                                                  fontWeight: 'bold',
+                                                  color: '#111827'
+                                                }}>
+                                                  {previewText}
+                                                </div>
+                                                <span style={{
+                                                  fontSize: '11px',
+                                                  color: '#111827',
+                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  textAlign: 'center',
+                                                  fontWeight: '500'
+                                                }}>
+                                                  {font.display_name || font.name}
+                                                </span>
+                                                {isSelected && (
+                                                  <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '8px',
+                                                    right: '8px',
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: '#111827',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                  }}>
+                                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                                      <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    </svg>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
                                       )}
-                                    </select>
                                     <div style={{ marginTop: '16px' }}>
                                       <div style={{
                                         fontSize: '13px',
@@ -4931,6 +5086,98 @@ export default function ProductBuilderPage() {
                         />
                         <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Contour</span>
                       </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Groupes de polices disponibles
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      padding: '8px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px'
+                    }}>
+                      {fontGroups.map((group) => {
+                        const currentGroups = selectedModule.selectedItems?.fontGroupIds;
+                        const isChecked = currentGroups ? currentGroups.includes(group.id) : true;
+                        const handleToggle = () => {
+                          setSelectedModule(prev => {
+                            const current = prev.selectedItems?.fontGroupIds || [];
+                            const currentlyChecked = current.includes(group.id);
+                            const updated = currentlyChecked
+                              ? current.filter(id => id !== group.id)
+                              : [...current, group.id];
+                            const updatedModule = { 
+                              ...prev, 
+                              selectedItems: {
+                                ...prev.selectedItems,
+                                fontGroupIds: updated.length > 0 ? updated : undefined
+                              }
+                            };
+                            
+                            // Mettre à jour les modules immédiatement
+                            setCustomizationModules(prevModules =>
+                              prevModules.map(m =>
+                                m.id === prev.id ? updatedModule : m
+                              )
+                            );
+                            
+                            return updatedModule;
+                          });
+                        };
+                        return (
+                          <label
+                            key={group.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleToggle();
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '6px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '4px',
+                              backgroundColor: isChecked ? '#2a2a2a' : 'transparent',
+                              transition: 'background-color 0.2s',
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}}
+                              style={{
+                                cursor: 'pointer',
+                                width: '16px',
+                                height: '16px'
+                              }}
+                            />
+                            <span style={{
+                              color: '#ffffff',
+                              fontSize: '13px',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              {group.name || group.id}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
 
