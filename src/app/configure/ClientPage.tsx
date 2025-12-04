@@ -1721,7 +1721,7 @@ function LogoTab({
   isLoadingZones: boolean;
   logos: Logo[];
   isLoadingLogos: boolean;
-  onOpenZoneSelector: (data: {logoId: string, variantId: string, variantFile: string} | null) => void;
+  onOpenZoneSelector: (data: {logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null) => void;
   addLogoButtonLabel?: string;
   logoPlacementMode?: 'zones' | 'free';
   logoZoneGroupIds?: string[];
@@ -1815,7 +1815,7 @@ function LogoTab({
   // Gérer la sélection d'une variante (ouvre le sélecteur de zone si mode zones, sinon placement libre)
   const handleVariantSelect = (logoId: string, variantId: string, variantFile: string) => {
     if (logoPlacementMode === 'zones') {
-      onOpenZoneSelector({ logoId, variantId, variantFile });
+      onOpenZoneSelector({ logoId, variantId, variantFile, view: activeView });
     } else {
       // Placement libre - ajouter directement au centre
       addLogo(logoId, variantId, variantFile, [0.5, 0.5, 0], activeCategory);
@@ -2054,13 +2054,13 @@ function LogoTab({
                   onClick={() => {
                     if (logo.variants.length === 0) {
                       if (logoPlacementMode === 'zones') {
-                        onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '' });
+                        onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '', view: activeView });
                       } else {
                         addLogo(logo.id, '', '', [0.5, 0.5, 0], activeCategory);
                       }
                     } else if (logo.variants.length === 1) {
                       if (logoPlacementMode === 'zones') {
-                        onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file });
+                        onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file, view: activeView });
                       } else {
                         addLogo(logo.id, logo.variants[0].id, logo.variants[0].file, [0.5, 0.5, 0], activeCategory);
                       }
@@ -2383,14 +2383,28 @@ function Sidebar({
   // Sidebar RENDU avec activeTab
   
   // Gestion du sélecteur de zone pour les logos
-  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string} | null>(null);
+  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
-  const [activeCategoryForZone, setActiveCategoryForZone] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
+  
+  // Mapper la vue vers la catégorie
+  const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+    'front': 'torse',
+    'back': 'dos',
+    'left': 'bras-gauche',
+    'right': 'bras-droit'
+  };
 
-  // Filtrer les zones selon la catégorie active pour le sélecteur de zone
-  const filteredZonesForSelector = textZones.filter(zone => 
-    zone.categories && zone.categories.includes(`logo-${activeCategoryForZone}`)
-  );
+  // Déterminer la catégorie active pour le sélecteur de zone
+  const activeCategoryForZone = showZoneSelector?.view ? viewToCategory[showZoneSelector.view] : 'torse';
+
+  // Filtrer les zones selon la vue active pour le sélecteur de zone
+  const filteredZonesForSelector = textZones.filter(zone => {
+    const categoryForView = activeCategoryForZone;
+    if (!zone.categories || !zone.categories.includes(`logo-${categoryForView}`)) return false;
+    // Filtrer par view si disponible et si showZoneSelector a une vue
+    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) return false;
+    return true;
+  });
 
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
