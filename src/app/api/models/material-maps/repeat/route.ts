@@ -21,8 +21,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
-    console.log('🔄 Mise à jour repeat/intensités:', { modelId, materialName, repeatX, repeatY });
-
+    console.log('🔄 Mise à jour repeat/intensités:', { 
+      modelId, 
+      materialName, 
+      repeatX, 
+      repeatY,
+      normalIntensity,
+      roughnessValue,
+      metalnessValue,
+      aoIntensity
+    });
+    
     // Récupérer le modèle depuis Supabase
     const { data: model, error: modelError } = await supabaseAdmin
       .from('models_3d')
@@ -49,10 +58,32 @@ export async function POST(request: Request) {
     };
     
     // Ajouter les intensités si elles sont définies
-    if (normalIntensity !== undefined) materialMaps[materialName].normalIntensity = normalIntensity;
-    if (roughnessValue !== undefined) materialMaps[materialName].roughnessValue = roughnessValue;
-    if (metalnessValue !== undefined) materialMaps[materialName].metalnessValue = metalnessValue;
-    if (aoIntensity !== undefined) materialMaps[materialName].aoIntensity = aoIntensity;
+    if (normalIntensity !== undefined) {
+      materialMaps[materialName].normalIntensity = normalIntensity;
+      console.log('✅ Sauvegarde normalIntensity:', normalIntensity, 'pour', materialName);
+    } else {
+      console.log('⚠️ normalIntensity est undefined, pas sauvegardé pour', materialName);
+    }
+    if (roughnessValue !== undefined) {
+      materialMaps[materialName].roughnessValue = roughnessValue;
+      console.log('✅ Sauvegarde roughnessValue:', roughnessValue, 'pour', materialName);
+    } else {
+      console.log('⚠️ roughnessValue est undefined, pas sauvegardé pour', materialName);
+    }
+    if (metalnessValue !== undefined) {
+      materialMaps[materialName].metalnessValue = metalnessValue;
+      console.log('✅ Sauvegarde metalnessValue:', metalnessValue, 'pour', materialName);
+    } else {
+      console.log('⚠️ metalnessValue est undefined, pas sauvegardé pour', materialName);
+    }
+    if (aoIntensity !== undefined) {
+      materialMaps[materialName].aoIntensity = aoIntensity;
+      console.log('✅ Sauvegarde aoIntensity:', aoIntensity, 'pour', materialName);
+    } else {
+      console.log('⚠️ aoIntensity est undefined, pas sauvegardé pour', materialName);
+    }
+
+    console.log('📦 Material map final pour', materialName, ':', JSON.stringify(materialMaps[materialName], null, 2));
 
     // Sauvegarder dans Supabase
     const { error: updateError } = await supabaseAdmin
