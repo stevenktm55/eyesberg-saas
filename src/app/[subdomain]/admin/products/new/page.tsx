@@ -3152,28 +3152,42 @@ export default function ProductBuilderPage() {
                                     }}>
                                       Type de déformation
                                     </div>
-                                    <select
-                                      value={selectedText.deformation || ''}
-                                      onChange={(e) => updateText(selectedTextId, { 
-                                        deformation: e.target.value || undefined 
-                                      })}
-                                      style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        backgroundColor: '#ffffff',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        color: '#111827',
-                                        fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        cursor: 'pointer',
-                                        outline: 'none',
-                                        marginBottom: selectedText.deformation ? '20px' : '0',
-                                        transition: 'border-color 0.2s'
-                                      }}
-                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                                    >
+                                    <div>
+                                      <style>{`
+                                        select.deformation-select {
+                                          color: #111827 !important;
+                                        }
+                                        select.deformation-select option {
+                                          color: #111827 !important;
+                                          background-color: #ffffff !important;
+                                        }
+                                        select.deformation-select:focus {
+                                          color: #111827 !important;
+                                        }
+                                      `}</style>
+                                      <select
+                                        className="deformation-select"
+                                        value={selectedText.deformation || ''}
+                                        onChange={(e) => updateText(selectedTextId, { 
+                                          deformation: e.target.value || undefined 
+                                        })}
+                                        style={{
+                                          width: '100%',
+                                          padding: '12px 16px',
+                                          backgroundColor: '#ffffff',
+                                          border: '1px solid #d1d5db',
+                                          borderRadius: '8px',
+                                          color: '#111827',
+                                          fontSize: '14px',
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          cursor: 'pointer',
+                                          outline: 'none',
+                                          marginBottom: selectedText.deformation ? '20px' : '0',
+                                          transition: 'border-color 0.2s'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                        onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                      >
                                       {(() => {
                                         // Liste complète des déformations avec leurs labels
                                         const allDeformations = [
@@ -3251,7 +3265,7 @@ export default function ProductBuilderPage() {
                                               width: 100%;
                                               height: 6px;
                                               border-radius: 3px;
-                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                              background: #e5e7eb;
                                               outline: none;
                                               padding: 0;
                                               margin: 0;
@@ -3280,13 +3294,13 @@ export default function ProductBuilderPage() {
                                               width: 100%;
                                               height: 6px;
                                               border-radius: 3px;
-                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                              background: #e5e7eb;
                                             }
                                             #${sliderId}::-moz-range-track {
                                               width: 100%;
                                               height: 6px;
                                               border-radius: 3px;
-                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                              background: #e5e7eb;
                                             }
                                           `}</style>
                                           <input
