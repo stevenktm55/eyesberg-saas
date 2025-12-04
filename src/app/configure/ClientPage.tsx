@@ -468,7 +468,24 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
                 if (matsRes.ok) {
                   const matsData = await matsRes.json();
                   console.log('🎯 Material maps (configure, forcedModelId) depuis /materials:', Object.keys(matsData.materialMaps || {}));
-                  setMaterialMaps(normalizeMaterialMaps(matsData.materialMaps) || null);
+                  const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
+                  // Debug: log les valeurs d'intensité pour le premier matériau
+                  if (normalized && Object.keys(normalized).length > 0) {
+                    const firstMat = normalized[Object.keys(normalized)[0]];
+                    console.log('🔍 Debug intensités (forcedModelId):', {
+                      materialName: Object.keys(normalized)[0],
+                      roughnessValue: firstMat.roughnessValue,
+                      metalnessValue: firstMat.metalnessValue,
+                      aoIntensity: firstMat.aoIntensity,
+                      normalIntensity: firstMat.normalIntensity,
+                      normalized: {
+                        roughnessFactor: firstMat.roughnessFactor,
+                        metalnessFactor: firstMat.metalnessFactor,
+                        normalScale: firstMat.normalScale
+                      }
+                    });
+                  }
+                  setMaterialMaps(normalized);
                 } else {
                   console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
                   setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
@@ -526,7 +543,24 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             if (matsRes.ok) {
               const matsData = await matsRes.json();
               console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
-              setMaterialMaps(normalizeMaterialMaps(matsData.materialMaps) || null);
+              const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
+              // Debug: log les valeurs d'intensité pour le premier matériau
+              if (normalized && Object.keys(normalized).length > 0) {
+                const firstMat = normalized[Object.keys(normalized)[0]];
+                console.log('🔍 Debug intensités:', {
+                  materialName: Object.keys(normalized)[0],
+                  roughnessValue: firstMat.roughnessValue,
+                  metalnessValue: firstMat.metalnessValue,
+                  aoIntensity: firstMat.aoIntensity,
+                  normalIntensity: firstMat.normalIntensity,
+                  normalized: {
+                    roughnessFactor: firstMat.roughnessFactor,
+                    metalnessFactor: firstMat.metalnessFactor,
+                    normalScale: firstMat.normalScale
+                  }
+                });
+              }
+              setMaterialMaps(normalized);
             } else {
               console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
               setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);

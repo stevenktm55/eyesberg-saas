@@ -671,13 +671,36 @@ function SimpleViewer({
                 ? mm.aoIntensity
                 : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined)
             );
-            const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
-            const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+            // Normal scale: prioriser normalScaleX/Y, sinon normalScale, sinon normalIntensity (admin)
+            const _nScaleX = (
+              typeof mm.normalScaleX === 'number'
+                ? mm.normalScaleX
+                : (typeof mm.normalScale === 'number'
+                    ? mm.normalScale
+                    : (typeof mm.normalIntensity === 'number' ? mm.normalIntensity : 1))
+            );
+            const _nScaleY = (
+              typeof mm.normalScaleY === 'number'
+                ? mm.normalScaleY
+                : (typeof mm.normalScale === 'number'
+                    ? mm.normalScale
+                    : (typeof mm.normalIntensity === 'number' ? mm.normalIntensity : 1))
+            );
             (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
             if ((newMaterial as any).metalnessMap) (newMaterial as any).metalness = (typeof _metal === 'number' ? _metal : 1.0);
             if (typeof _metal === 'number') (newMaterial as any).metalness = _metal;
             if (typeof _rough === 'number') (newMaterial as any).roughness = _rough;
             if (typeof _aoInt === 'number') (newMaterial as any).aoMapIntensity = _aoInt;
+            
+            // Debug: log les valeurs appliquées
+            console.log('🎨 Material config applied (no design):', {
+              materialName,
+              roughness: _rough,
+              metalness: _metal,
+              aoIntensity: _aoInt,
+              normalScale: [_nScaleX, _nScaleY],
+              raw: { roughnessValue: mm.roughnessValue, metalnessValue: mm.metalnessValue, aoIntensity: mm.aoIntensity, normalIntensity: mm.normalIntensity }
+            });
           } else {
               console.log('ℹ️ No admin maps matched for material:', materialName);
             }
@@ -866,8 +889,21 @@ function SimpleViewer({
                         : (typeof mm.metalnessValue === 'number' ? mm.metalnessValue : undefined)))
             );
             const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
-            const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
-            const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
+            // Normal scale: prioriser normalScaleX/Y, sinon normalScale, sinon normalIntensity (admin)
+            const _nScaleX = (
+              typeof mm.normalScaleX === 'number'
+                ? mm.normalScaleX
+                : (typeof mm.normalScale === 'number'
+                    ? mm.normalScale
+                    : (typeof mm.normalIntensity === 'number' ? mm.normalIntensity : 1))
+            );
+            const _nScaleY = (
+              typeof mm.normalScaleY === 'number'
+                ? mm.normalScaleY
+                : (typeof mm.normalScale === 'number'
+                    ? mm.normalScale
+                    : (typeof mm.normalIntensity === 'number' ? mm.normalIntensity : 1))
+            );
             const _envInt = (typeof mm.envMapIntensity === 'number' ? mm.envMapIntensity : (typeof mm.environmentIntensity === 'number' ? mm.environmentIntensity : undefined));
             (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
             // Appliquer metalness: prioriser la valeur explicite (_metal), sinon valeur par défaut si map existe
@@ -883,6 +919,16 @@ function SimpleViewer({
               (newMaterial as any).roughness = 1.0;
             }
             if (typeof _aoInt === 'number') (newMaterial as any).aoMapIntensity = _aoInt;
+            
+            // Debug: log les valeurs appliquées
+            console.log('🎨 Material config applied (with design):', {
+              materialName: (newMaterial as any).name,
+              roughness: _rough,
+              metalness: _metal,
+              aoIntensity: _aoInt,
+              normalScale: [_nScaleX, _nScaleY],
+              raw: { roughnessValue: mm.roughnessValue, metalnessValue: mm.metalnessValue, aoIntensity: mm.aoIntensity, normalIntensity: mm.normalIntensity }
+            });
             if (typeof _envInt === 'number') {
               (newMaterial as any).envMapIntensity = _envInt;
             } else {
