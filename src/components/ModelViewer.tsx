@@ -562,18 +562,24 @@ function SimpleViewer({
      
     // If there is no design texture to load, still apply admin material maps to existing materials
     if (!designSrc) {
+      console.log('🎨 Applying material maps (no design), materialMaps keys:', materialMaps ? Object.keys(materialMaps) : 'null');
       const loader = new THREE.TextureLoader();
       meshes.forEach((m: any) => {
         const oldMaterial = m.material as THREE.Material | undefined;
         const materialName = (oldMaterial as any)?.name || m.name || '';
         const isBack = materialName ? /(^|[^a-z])back([^a-z]|$)/i.test(materialName) : false;
+        console.log('🎨 Processing mesh:', m.name, 'material:', materialName, 'isBack:', isBack);
         // For back, force plain white and skip maps as per spec
         let newMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
         if (!isBack) {
           // Try to resolve admin maps
               const resolveMaterialConfig = (matName: string, meshName?: string) => {
                 const maps: any = materialMaps as any;
-                if (!maps) return null;
+                if (!maps) {
+                  console.log('⚠️ No materialMaps provided to resolveMaterialConfig');
+                  return null;
+                }
+                console.log('🔍 resolveMaterialConfig called for:', matName, 'meshName:', meshName, 'available keys:', Object.keys(maps));
                 const normalize = (name?: string) => (name || '').trim();
                 const mirrorFrontBack = (name: string) => {
                   if (/\bback\b/i.test(name)) return name.replace(/back/i, 'FRONT');
@@ -604,9 +610,11 @@ function SimpleViewer({
                   const hit = values.find((v: any) => (v?.materialName || '').toLowerCase() === c.toLowerCase());
                   if (hit) return hit;
                 }
+                console.log('❌ No material config found for:', matName);
                 return null;
               };
               const mm = resolveMaterialConfig(materialName, m.name || '');
+          console.log('🔍 resolveMaterialConfig result for', materialName, ':', mm ? 'FOUND' : 'NOT FOUND', mm ? Object.keys(mm) : '');
           if (mm) {
             console.log('🔍 Material config résolu pour:', materialName, '→', Object.keys(materialMaps || {}).find(k => materialMaps?.[k] === mm) || 'unknown key', {
               hasRoughnessValue: typeof mm.roughnessValue === 'number',
@@ -815,7 +823,11 @@ function SimpleViewer({
       };
             const resolveMaterialConfig = (matName: string, meshName?: string) => {
               const maps: any = materialMaps as any;
-              if (!maps) return null;
+              if (!maps) {
+                console.log('⚠️ No materialMaps provided to resolveMaterialConfig (with design)');
+                return null;
+              }
+              console.log('🔍 resolveMaterialConfig called (with design) for:', matName, 'meshName:', meshName, 'available keys:', Object.keys(maps));
               const normalize = (name?: string) => (name || '').trim();
         const mirrorFrontBack = (name: string) => (/back/i.test(name) ? name.replace(/back/i, 'FRONT') : name);
         const stripSuffixes = (name: string) => { let n = name.replace(/_[0-9]+(?:\.[0-9]+)?$/i, ''); n = n.replace(/(\.|_)[0-9]{2,}$/i, ''); return n; };
@@ -837,9 +849,13 @@ function SimpleViewer({
           const hit = values.find((v: any) => (v?.materialName || '').toLowerCase() === c2.toLowerCase());
                 if (hit) return hit;
               }
+              console.log('❌ No material config found (with design) for:', matName);
               return null;
             };
+      console.log('🎨 Applying material maps (WITH design), materialMaps keys:', materialMaps ? Object.keys(materialMaps) : 'null');
       meshes.forEach((m) => {
+        const materialName = ((m.material as any)?.name) || (m as any)?.userData?.materialName || '';
+        console.log('🎨 Processing mesh (with design):', m.name, 'material:', materialName);
         if (isBack(m)) {
           const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
           (whiteMat as any).map = null;
@@ -858,7 +874,9 @@ function SimpleViewer({
           const newMaterial = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.6, metalness: 0.0, transparent: false });
           (newMaterial as any).name = ((m.material as any)?.name) || (m as any)?.userData?.materialName || (m.name ? `${m.name}_FRONT` : 'FRONT');
           // Apply admin maps if any
-          const mm = resolveMaterialConfig(((m.material as any)?.name) || (m as any)?.userData?.materialName || '', m.name || '');
+          console.log('🔍 Resolving material config for:', materialName, 'mesh:', m.name, 'available keys:', materialMaps ? Object.keys(materialMaps) : 'null');
+          const mm = resolveMaterialConfig(materialName, m.name || '');
+          console.log('🔍 resolveMaterialConfig result (with design) for', materialName, ':', mm ? 'FOUND' : 'NOT FOUND', mm ? Object.keys(mm) : '');
           if (mm) {
             // Always use UV2 for PBR maps if available: remap uv <- uv2 to guarantee alignment
             const g2 = m.geometry as THREE.BufferGeometry;
