@@ -646,10 +646,31 @@ function SimpleViewer({
             setMap(newMaterial as any, 'roughnessMap', mm.roughnessMap || mm.roughness || mm.roughnessTexture);
             setMap(newMaterial as any, 'metalnessMap', mm.metalnessMap || mm.metallicMap || mm.metalness || mm.metalnessTexture);
             setMap(newMaterial as any, 'aoMap', mm.aoMap || mm.ambientOcclusionMap || mm.occlusionMap);
-            // Intensities/scalars
-            const _rough = (typeof mm.roughness === 'number' ? mm.roughness : (typeof mm.roughnessFactor === 'number' ? mm.roughnessFactor : undefined));
-            const _metal = (typeof mm.metalness === 'number' ? mm.metalness : (typeof mm.metalnessFactor === 'number' ? mm.metalnessFactor : (typeof mm.metallic === 'number' ? mm.metallic : undefined)));
-            const _aoInt = (typeof mm.aoIntensity === 'number' ? mm.aoIntensity : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined));
+            // Intensités / scalaires
+            // Roughness: prioriser la valeur explicite, sinon roughnessFactor, sinon roughnessValue (admin)
+            const _rough = (
+              typeof mm.roughness === 'number'
+                ? mm.roughness
+                : (typeof mm.roughnessFactor === 'number'
+                    ? mm.roughnessFactor
+                    : (typeof mm.roughnessValue === 'number' ? mm.roughnessValue : undefined))
+            );
+            // Metalness: idem, avec fallback sur metalnessValue (admin)
+            const _metal = (
+              typeof mm.metalness === 'number'
+                ? mm.metalness
+                : (typeof mm.metalnessFactor === 'number'
+                    ? mm.metalnessFactor
+                    : (typeof mm.metallic === 'number'
+                        ? mm.metallic
+                        : (typeof mm.metalnessValue === 'number' ? mm.metalnessValue : undefined)))
+            );
+            // AO: lire aoIntensity ou occlusionIntensity
+            const _aoInt = (
+              typeof mm.aoIntensity === 'number'
+                ? mm.aoIntensity
+                : (typeof mm.occlusionIntensity === 'number' ? mm.occlusionIntensity : undefined)
+            );
             const _nScaleX = (typeof mm.normalScaleX === 'number' ? mm.normalScaleX : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
             const _nScaleY = (typeof mm.normalScaleY === 'number' ? mm.normalScaleY : (typeof mm.normalScale === 'number' ? mm.normalScale : 1));
             (newMaterial as any).normalScale = new THREE.Vector2(_nScaleX, _nScaleY);
