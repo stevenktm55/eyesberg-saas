@@ -213,6 +213,55 @@ export default function ProductBuilderPage() {
     return customizationModules.find(module => module.contentType === 'text');
   }, [customizationModules, activeCustomizerTab]);
 
+  // Charger les fonts pour la prévisualisation quand l'onglet police est actif
+  useEffect(() => {
+    if (activeTextTab !== 'police' || !selectedTextId) return;
+    
+    const activeModule = getTextModuleConfig();
+    const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+    
+    const fontsToLoad: Array<{ id: string; display_name: string; font_url: string }> = [];
+    fontGroups.forEach(group => {
+      if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
+        group.fonts.forEach((font: any) => {
+          if (font.display_name && font.font_url) {
+            fontsToLoad.push({
+              id: font.id,
+              display_name: font.display_name,
+              font_url: font.font_url
+            });
+          }
+        });
+      }
+    });
+    
+    fontsToLoad.forEach(async (font) => {
+      // Vérifier si la font est déjà chargée
+      const existingStyle = document.querySelector(`style[data-font-id="${font.id}"]`);
+      if (existingStyle) return;
+      
+      try {
+        const response = await fetch(font.font_url);
+        if (!response.ok) return;
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const fontFamily = font.display_name;
+        const style = document.createElement('style');
+        style.setAttribute('data-font-id', font.id);
+        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${blobUrl}'); }`;
+        document.head.appendChild(style);
+        
+        const fontFace = new FontFace(fontFamily, `url('${blobUrl}')`);
+        await fontFace.load();
+        document.fonts.add(fontFace);
+      } catch (err) {
+        console.error('Failed to load font for preview:', font.display_name, err);
+      }
+    });
+  }, [activeTextTab, selectedTextId, fontGroups, customizationModules, activeCustomizerTab]);
+
   const convertLegacyStrokeWidth = (value: number, minPx: number, maxPx: number) => {
     if (!Number.isFinite(value)) return minPx;
     if (value <= 2 && maxPx > minPx) {
@@ -2754,7 +2803,7 @@ export default function ProductBuilderPage() {
                                   // Filtrer les polices selon les groupes sélectionnés
                                   const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
                                   const visibleFonts = (() => {
-                                    const allFonts: Array<{ id: string; name: string; display_name?: string; fontFamily?: string; groupId: string }> = [];
+                                    const allFonts: Array<{ id: string; name: string; display_name?: string; font_url?: string; groupId: string }> = [];
                                     fontGroups.forEach(group => {
                                       if (group.fonts) {
                                         group.fonts.forEach((font: any) => {
@@ -2762,7 +2811,7 @@ export default function ProductBuilderPage() {
                                             id: font.id,
                                             name: font.name || font.id,
                                             display_name: font.display_name,
-                                            fontFamily: font.font_family || font.fontFamily,
+                                            font_url: font.font_url,
                                             groupId: group.id
                                           });
                                         });
@@ -2877,7 +2926,8 @@ export default function ProductBuilderPage() {
                                           {/* Polices disponibles */}
                                           {visibleFonts.map((font) => {
                                             const isSelected = selectedText.fontFamily === font.id;
-                                            const fontFamilyValue = font.fontFamily || font.name;
+                                            // Utiliser display_name comme fontFamily (comme dans ModelViewer)
+                                            const fontFamilyValue = font.display_name || font.name;
                                             
                                             return (
                                               <div
@@ -2907,7 +2957,7 @@ export default function ProductBuilderPage() {
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
                                                   minHeight: '60px',
-                                                  fontFamily: fontFamilyValue ? `${fontFamilyValue}, sans-serif` : 'sans-serif',
+                                                  fontFamily: fontFamilyValue ? `'${fontFamilyValue}', sans-serif` : 'sans-serif',
                                                   fontSize: '18px',
                                                   fontWeight: 'bold',
                                                   color: '#111827'
@@ -2917,9 +2967,11 @@ export default function ProductBuilderPage() {
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
+                                                  WebkitTextFillColor: '#111827',
                                                   fontFamily: 'var(--stepn-font-body)',
                                                   textAlign: 'center',
-                                                  fontWeight: '500'
+                                                  fontWeight: '500',
+                                                  backgroundColor: 'transparent'
                                                 }}>
                                                   {font.display_name || font.name}
                                                 </span>
