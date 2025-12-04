@@ -914,7 +914,7 @@ export default function SnapLinesConfigPage() {
                 </div>
               </div>
 
-              {/* Center: UV Map Viewer - TODO: Adapter pour afficher les snap lines */}
+              {/* Center: UV Map Viewer avec snap lines */}
               <div style={{
                 flex: 1,
                 position: 'relative',
@@ -924,9 +924,34 @@ export default function SnapLinesConfigPage() {
                 justifyContent: 'center'
               }}>
                 {modelUrl ? (
-                  <div style={{ color: '#a0a0a0', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                    UV Map Viewer - À adapter pour les snap lines
-                  </div>
+                  <UVMapViewer
+                    modelUrl={modelUrl}
+                    zones={[]}
+                    snapLines={editingSnapLines.map(sl => ({
+                      id: sl.id,
+                      name: sl.name,
+                      start: sl.start,
+                      end: sl.end,
+                      type: sl.type
+                    }))}
+                    selectedZoneId={null}
+                    selectedSnapLineId={selectedSnapLineId}
+                    onZoneSelect={() => {}}
+                    onSnapLineSelect={handleSelectSnapLine}
+                    onZonePlaced={() => {}}
+                    onSnapLinePlaced={handleSnapLinePlaced}
+                    onZoneUpdate={() => {}}
+                    onSnapLineUpdate={(id, updates) => {
+                      if (updates.start || updates.end) {
+                        handleUpdateSnapLine(updates);
+                      }
+                    }}
+                    isPlacingZone={false}
+                    isPlacingSnapLine={isPlacingSnapLine}
+                    placingStart={placingStart}
+                    design2DUrl={designUrl}
+                    onZoneConfirm={() => {}}
+                  />
                 ) : (
                   <div style={{
                     color: '#a0a0a0',

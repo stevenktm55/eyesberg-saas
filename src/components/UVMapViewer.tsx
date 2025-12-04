@@ -14,14 +14,29 @@ type Zone = {
   isLogo?: boolean; // true for logo, false for text
 };
 
+type SnapLine = {
+  id: string;
+  name: string;
+  start: [number, number]; // UV coordinates [u, v]
+  end: [number, number]; // UV coordinates [u, v]
+  type: "horizontal" | "vertical" | "diagonal";
+};
+
 type UVMapViewerProps = {
   modelUrl: string;
-  zones: Zone[];
-  selectedZoneId: string | null;
-  onZoneSelect: (id: string | null) => void;
-  onZonePlaced: (position: [number, number, number]) => void;
-  onZoneUpdate: (id: string, updates: Partial<Zone>) => void;
-  isPlacingZone: boolean;
+  zones?: Zone[];
+  snapLines?: SnapLine[];
+  selectedZoneId?: string | null;
+  selectedSnapLineId?: string | null;
+  onZoneSelect?: (id: string | null) => void;
+  onSnapLineSelect?: (id: string | null) => void;
+  onZonePlaced?: (position: [number, number, number]) => void;
+  onSnapLinePlaced?: (position: [number, number]) => void;
+  onZoneUpdate?: (id: string, updates: Partial<Zone>) => void;
+  onSnapLineUpdate?: (id: string, updates: Partial<SnapLine>) => void;
+  isPlacingZone?: boolean;
+  isPlacingSnapLine?: boolean;
+  placingStart?: [number, number] | null;
   canvasSize?: number; // Size of the UV map canvas (default: 2048)
   design2DUrl?: string | null; // Optional 2D design SVG to overlay on UV map
   onZoneConfirm?: () => void; // Callback when zone is confirmed
@@ -29,12 +44,19 @@ type UVMapViewerProps = {
 
 export function UVMapViewer({
   modelUrl,
-  zones,
-  selectedZoneId,
+  zones = [],
+  snapLines = [],
+  selectedZoneId = null,
+  selectedSnapLineId = null,
   onZoneSelect,
+  onSnapLineSelect,
   onZonePlaced,
+  onSnapLinePlaced,
   onZoneUpdate,
-  isPlacingZone,
+  onSnapLineUpdate,
+  isPlacingZone = false,
+  isPlacingSnapLine = false,
+  placingStart = null,
   canvasSize = 2048,
   design2DUrl,
   onZoneConfirm
@@ -426,17 +448,24 @@ export function UVMapViewer({
       setIsDragging(true);
       e.preventDefault();
       e.stopPropagation();
-    } else if (isPlacingZone) {
+    } else if (isPlacingZone && onZonePlaced) {
       // Place new zone using screenToUV (which works correctly)
       const uv = screenToUV(e.clientX, e.clientY);
       if (uv) {
         onZonePlaced([uv[0], uv[1], 0]);
       }
+    } else if (isPlacingSnapLine && onSnapLinePlaced) {
+      // Place snap line point
+      const uv = screenToUV(e.clientX, e.clientY);
+      if (uv) {
+        onSnapLinePlaced(uv);
+      }
     } else {
       // Deselect
-      onZoneSelect(null);
+      if (onZoneSelect) onZoneSelect(null);
+      if (onSnapLineSelect) onSnapLineSelect(null);
     }
-  }, [zones, screenToUV, isPlacingZone, onZoneSelect, onZonePlaced, pan, scale, isPointInRotatedRect]);
+  }, [zones, snapLines, screenToUV, isPlacingZone, isPlacingSnapLine, onZoneSelect, onSnapLineSelect, onZonePlaced, onSnapLinePlaced, pan, scale, isPointInRotatedRect]);
 
   // Handle mouse move - drag zone if dragging
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -537,7 +566,7 @@ export function UVMapViewer({
         position: "relative",
         overflow: "hidden",
         backgroundColor: "#0a0a0a",
-        cursor: isPlacingZone ? "crosshair" : isDragging ? "grabbing" : "default"
+          cursor: (isPlacingZone || isPlacingSnapLine) ? "crosshair" : isDragging ? "grabbing" : "default"
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -612,7 +641,7 @@ export function UVMapViewer({
           transformOrigin: "top left"
         }}
       />
-      {isPlacingZone && (
+      {(isPlacingZone || isPlacingSnapLine) && (
         <div style={{
           position: "absolute",
           top: "20px",
@@ -626,7 +655,9 @@ export function UVMapViewer({
           pointerEvents: "none",
           zIndex: 10
         }}>
-          Cliquez sur l'UV map pour placer la zone
+          {isPlacingSnapLine 
+            ? (placingStart ? "Cliquez pour terminer la ligne" : "Cliquez pour commencer la ligne")
+            : "Cliquez sur l'UV map pour placer la zone"}
         </div>
       )}
     </div>
