@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       name: snapLine.name,
       model3d_id: snapLine.model3d_id || model3d_id,
       start: snapLine.start,
-      end: snapLine.end,
+      "end": snapLine.end, // "end" is a SQL reserved word, must be quoted
       type: snapLine.type || 'vertical',
       view: snapLine.view || 'Face'
     }));
@@ -217,7 +217,7 @@ export async function PATCH(request: NextRequest) {
           name: snapLine.name,
           model3d_id: snapLine.model3d_id || model3d_id,
           start: snapLine.start,
-          end: snapLine.end,
+          "end": snapLine.end, // "end" is a SQL reserved word, must be quoted
           type: snapLine.type || 'vertical',
           view: snapLine.view || 'Face'
         }));
