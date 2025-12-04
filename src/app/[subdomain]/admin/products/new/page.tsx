@@ -3011,55 +3011,105 @@ export default function ProductBuilderPage() {
                                         // Clamper la valeur entre min et max
                                         currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
                                         
-                                        // Arrondir à 1 décimale pour éviter les problèmes de précision flottante
-                                        currentPxValue = Math.round(currentPxValue * 10) / 10;
-                                        
-                                        // Si la valeur est très proche du minimum (à 0.1 près), l'arrondir exactement au minimum
-                                        if (Math.abs(currentPxValue - sliderMin) < 0.15) {
+                                        // Si la valeur est exactement au minimum (0), la garder à 0 exactement
+                                        if (currentPxValue === sliderMin || currentPxValue < sliderMin + 0.05) {
                                           currentPxValue = sliderMin;
+                                        } else {
+                                          // Arrondir à 1 décimale pour les autres valeurs
+                                          currentPxValue = Math.round(currentPxValue * 10) / 10;
                                         }
                                         
+                                        const sliderId = `stroke-slider-${selectedTextId}`;
+                                        
                                         return (
-                                          <input
-                                            type="range"
-                                            min={sliderMin}
-                                            max={sliderMax}
-                                            step="0.1"
-                                            value={currentPxValue}
-                                            onChange={(e) => {
-                                              const pxValue = parseFloat(e.target.value);
-                                              // Arrondir à 1 décimale
-                                              const roundedValue = Math.round(pxValue * 10) / 10;
-                                              const clampedValue = Math.min(
-                                                sliderMax,
-                                                Math.max(sliderMin, roundedValue)
-                                              );
-                                              updateText(selectedTextId, { strokeWidth: clampedValue });
-                                            }}
-                                            onInput={(e) => {
-                                              // Handler pour une meilleure réactivité pendant le drag
-                                              const pxValue = parseFloat((e.target as HTMLInputElement).value);
-                                              const roundedValue = Math.round(pxValue * 10) / 10;
-                                              const clampedValue = Math.min(
-                                                sliderMax,
-                                                Math.max(sliderMin, roundedValue)
-                                              );
-                                              updateText(selectedTextId, { strokeWidth: clampedValue });
-                                            }}
-                                            style={{
-                                              width: '100%',
-                                              height: '6px',
-                                              borderRadius: '3px',
-                                              background: '#e5e7eb',
-                                              outline: 'none',
-                                              cursor: sliderRange <= 0 ? 'not-allowed' : 'pointer',
-                                              WebkitAppearance: 'none',
-                                              appearance: 'none',
-                                              padding: 0,
-                                              margin: 0
-                                            }}
-                                            disabled={sliderRange <= 0}
-                                          />
+                                          <>
+                                            <style>{`
+                                              #${sliderId} {
+                                                -webkit-appearance: none;
+                                                appearance: none;
+                                                width: 100%;
+                                                height: 6px;
+                                                border-radius: 3px;
+                                                background: #e5e7eb;
+                                                outline: none;
+                                                padding: 0;
+                                                margin: 0;
+                                              }
+                                              #${sliderId}::-webkit-slider-thumb {
+                                                -webkit-appearance: none;
+                                                appearance: none;
+                                                width: 18px;
+                                                height: 18px;
+                                                border-radius: 50%;
+                                                background: #3b82f6;
+                                                cursor: pointer;
+                                                border: none;
+                                                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                              }
+                                              #${sliderId}::-moz-range-thumb {
+                                                width: 18px;
+                                                height: 18px;
+                                                border-radius: 50%;
+                                                background: #3b82f6;
+                                                cursor: pointer;
+                                                border: none;
+                                                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                              }
+                                              #${sliderId}::-webkit-slider-runnable-track {
+                                                width: 100%;
+                                                height: 6px;
+                                                background: #e5e7eb;
+                                                border-radius: 3px;
+                                              }
+                                              #${sliderId}::-moz-range-track {
+                                                width: 100%;
+                                                height: 6px;
+                                                background: #e5e7eb;
+                                                border-radius: 3px;
+                                                border: none;
+                                              }
+                                            `}</style>
+                                            <input
+                                              id={sliderId}
+                                              type="range"
+                                              min={sliderMin}
+                                              max={sliderMax}
+                                              step="0.1"
+                                              value={currentPxValue}
+                                              onChange={(e) => {
+                                                const pxValue = parseFloat(e.target.value);
+                                                // Si la valeur est très proche du minimum, la forcer exactement au minimum
+                                                let finalValue = pxValue;
+                                                if (pxValue < sliderMin + 0.05) {
+                                                  finalValue = sliderMin;
+                                                } else {
+                                                  finalValue = Math.round(pxValue * 10) / 10;
+                                                }
+                                                const clampedValue = Math.min(
+                                                  sliderMax,
+                                                  Math.max(sliderMin, finalValue)
+                                                );
+                                                updateText(selectedTextId, { strokeWidth: clampedValue });
+                                              }}
+                                              onInput={(e) => {
+                                                // Handler pour une meilleure réactivité pendant le drag
+                                                const pxValue = parseFloat((e.target as HTMLInputElement).value);
+                                                // Si la valeur est très proche du minimum, la forcer exactement au minimum
+                                                let finalValue = pxValue;
+                                                if (pxValue < sliderMin + 0.05) {
+                                                  finalValue = sliderMin;
+                                                } else {
+                                                  finalValue = Math.round(pxValue * 10) / 10;
+                                                }
+                                                const clampedValue = Math.min(
+                                                  sliderMax,
+                                                  Math.max(sliderMin, finalValue)
+                                                );
+                                                updateText(selectedTextId, { strokeWidth: clampedValue });
+                                              }}
+                                              disabled={sliderRange <= 0}
+                                            />
+                                          </>
                                         );
                                       })()}
                                     </div>
