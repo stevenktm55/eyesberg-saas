@@ -2380,7 +2380,7 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
               addLogoButtonLabel: logoModule.addLogoButtonLabel,
               logoPlacementMode: logoModule.logoPlacementMode,
               logoZoneGroupIds: logoModule.logoZoneGroupIds,
-              logoLibraryIds: logoModule.selectedItems?.logoLibraryIds,
+              logoLibraryIds: logoModule.selectedItems?.logoLibraryIds || [],
               logoViewFrontLabel: logoModule.logoViewFrontLabel,
               logoViewBackLabel: logoModule.logoViewBackLabel,
               logoViewLeftLabel: logoModule.logoViewLeftLabel,
@@ -2388,9 +2388,21 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
             };
             console.log('⚙️ Configuration logo module:', config);
             console.log('📚 logoLibraryIds:', config.logoLibraryIds);
+            console.log('📚 logoLibraryIds type:', typeof config.logoLibraryIds, 'length:', config.logoLibraryIds?.length);
             setLogoModuleConfig(config);
           } else {
             console.warn('⚠️ Aucun module logo trouvé dans les modules');
+            // Si aucun module logo n'est trouvé, créer une config par défaut pour permettre l'affichage de tous les logos
+            setLogoModuleConfig({
+              addLogoButtonLabel: undefined,
+              logoPlacementMode: undefined,
+              logoZoneGroupIds: undefined,
+              logoLibraryIds: undefined, // undefined = afficher tous les logos
+              logoViewFrontLabel: undefined,
+              logoViewBackLabel: undefined,
+              logoViewLeftLabel: undefined,
+              logoViewRightLabel: undefined,
+            });
           }
         } else {
           const errorText = await response.text();
