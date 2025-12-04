@@ -1859,7 +1859,8 @@ function LogoTab({
         onOpenZoneSelector({
           logoId: uploadedLogo.id,
           variantId: uploadedVariant.id,
-          variantFile: uploadedVariant.file
+          variantFile: uploadedVariant.file,
+          view: activeView
         });
       } else {
         alert('Erreur lors de l\'upload du logo');
