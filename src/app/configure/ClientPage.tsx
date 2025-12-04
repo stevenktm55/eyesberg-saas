@@ -2321,10 +2321,14 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
           const product = await response.json();
           const modules = product.builder_data?.customizationModules || [];
           
+          console.log('📦 Modules chargés:', modules);
+          
           // Trouver le module logo
           const logoModule = modules.find((m: any) => m.contentType === 'logos');
+          console.log('🎯 Module logo trouvé:', logoModule);
+          
           if (logoModule) {
-            setLogoModuleConfig({
+            const config = {
               addLogoButtonLabel: logoModule.addLogoButtonLabel,
               logoPlacementMode: logoModule.logoPlacementMode,
               logoZoneGroupIds: logoModule.logoZoneGroupIds,
@@ -2333,8 +2337,14 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
               logoViewBackLabel: logoModule.logoViewBackLabel,
               logoViewLeftLabel: logoModule.logoViewLeftLabel,
               logoViewRightLabel: logoModule.logoViewRightLabel,
-            });
+            };
+            console.log('⚙️ Configuration logo module:', config);
+            setLogoModuleConfig(config);
+          } else {
+            console.warn('⚠️ Aucun module logo trouvé dans les modules');
           }
+        } else {
+          console.error('❌ Erreur lors du chargement des modules:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des modules:', error);
