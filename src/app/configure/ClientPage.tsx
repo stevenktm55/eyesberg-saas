@@ -1813,12 +1813,25 @@ function LogoTab({
   const labels = categoryLabels[activeCategory];
 
   // Filtrer les logos par recherche et par bibliothèques configurées
+  console.log('🔍 Filtrage des logos - Paramètres:', { 
+    totalLogos: logos.length, 
+    logoLibraryIds, 
+    hasFilter: !!logoLibraryIds && logoLibraryIds.length > 0,
+    sampleLogo: logos[0] ? { 
+      id: logos[0].id, 
+      name: logos[0].name,
+      logo_library_id: (logos[0] as any).logo_library_id,
+      allKeys: Object.keys(logos[0] as any)
+    } : null
+  });
+  
   const filteredLibraryLogos = logos.filter(logo => {
     // Filtrer par bibliothèques si configuré
     if (logoLibraryIds && logoLibraryIds.length > 0) {
       // Le champ dans la base de données est logo_library_id (snake_case)
       const logoLibId = (logo as any).logo_library_id || (logo as any).libraryId || (logo as any).logoLibraryId || (logo as any).logo_library?.id;
-      if (!logoLibId || !logoLibraryIds.includes(logoLibId)) {
+      const matches = logoLibId && logoLibraryIds.includes(logoLibId);
+      if (!matches) {
         return false;
       }
     }
@@ -1829,6 +1842,11 @@ function LogoTab({
       logo.name.toLowerCase().includes(query) ||
       (logo.tags && logo.tags.some(tag => tag.toLowerCase().includes(query)))
     );
+  });
+  
+  console.log('📚 Résultat du filtrage:', { 
+    total: logos.length, 
+    filtered: filteredLibraryLogos.length
   });
 
   // Gérer la sélection d'une variante (ouvre le sélecteur de zone si mode zones, sinon placement libre)
