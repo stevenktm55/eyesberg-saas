@@ -659,15 +659,23 @@ export default function MaterialMapsPage() {
                                 value={config.normalIntensity || 3.0}
                                 onChange={(e) => {
                                   const newValue = parseFloat(e.target.value);
+                                  console.log('🎚️ Slider normalIntensity changé:', {
+                                    materialName,
+                                    newValue,
+                                    oldConfig: config,
+                                    hasNormalIntensity: typeof config.normalIntensity !== 'undefined'
+                                  });
                                   const updatedConfig = {
                                     ...config,
                                     normalIntensity: newValue
                                   };
+                                  console.log('📦 updatedConfig:', updatedConfig);
                                   setMaterialConfigs(prev => ({
                                     ...prev,
                                     [materialName]: updatedConfig
                                   }));
                                   // Sauvegarder automatiquement
+                                  console.log('💾 Appel saveMaterialConfig avec:', materialName, updatedConfig);
                                   saveMaterialConfig(materialName, updatedConfig);
                                 }}
                                 className="w-full"
