@@ -221,14 +221,15 @@ export default function ProductBuilderPage() {
     const activeModule = getTextModuleConfig();
     const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
     
-    const fontsToLoad: Array<{ id: string; display_name: string; file_url: string; file_type?: string }> = [];
+    const fontsToLoad: Array<{ id: string; name: string; display_name: string; file_url: string; file_type?: string }> = [];
     fontGroups.forEach(group => {
       if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
         group.fonts.forEach((font: any) => {
-          if (font.display_name && font.file_url) {
+          if (font.file_url && (font.name || font.display_name)) {
             fontsToLoad.push({
               id: font.id,
-              display_name: font.display_name,
+              name: font.name || font.display_name,
+              display_name: font.display_name || font.name,
               file_url: font.file_url,
               file_type: font.file_type || font.format
             });
@@ -247,14 +248,9 @@ export default function ProductBuilderPage() {
       }
       
       try {
-        const response = await fetch(font.file_url);
-        if (!response.ok) return;
-        
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // Utiliser display_name comme font-family (comme dans ModelViewer)
-        const fontFamily = font.display_name;
+        // Utiliser directement file_url comme dans la page admin des fonts
+        // Utiliser font.name comme font-family (comme dans la page admin qui fonctionne)
+        const fontFamily = font.name || font.display_name;
         const format = font.file_type === 'woff' ? 'woff' : 
                       font.file_type === 'woff2' ? 'woff2' : 
                       font.file_type === 'otf' ? 'opentype' : 
@@ -262,16 +258,12 @@ export default function ProductBuilderPage() {
         
         const style = document.createElement('style');
         style.setAttribute('data-font-id', font.id);
-        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${blobUrl}') format('${format}'); }`;
+        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${font.file_url}') format('${format}'); }`;
         document.head.appendChild(style);
-        
-        const fontFace = new FontFace(fontFamily, `url('${blobUrl}')`);
-        await fontFace.load();
-        document.fonts.add(fontFace);
         
         setLoadedFonts(prev => new Set([...prev, font.id]));
       } catch (err) {
-        console.error('Failed to load font for preview:', font.display_name, err);
+        console.error('Failed to load font for preview:', font.name || font.display_name, err);
       }
     });
   }, [activeTextTab, selectedTextId, fontGroups, customizationModules, activeCustomizerTab, loadedFonts]);
@@ -2939,8 +2931,8 @@ export default function ProductBuilderPage() {
                                           {/* Polices disponibles */}
                                           {visibleFonts.map((font) => {
                                             const isSelected = selectedText.fontFamily === font.id;
-                                            // Utiliser display_name comme fontFamily (comme dans ModelViewer)
-                                            const fontFamilyValue = font.display_name || font.name;
+                                            // Utiliser font.name comme fontFamily (comme dans la page admin qui fonctionne)
+                                            const fontFamilyValue = font.name || font.display_name;
                                             
                                             return (
                                               <div
@@ -2970,7 +2962,7 @@ export default function ProductBuilderPage() {
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
                                                   minHeight: '60px',
-                                                  fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `'${fontFamilyValue}', sans-serif` : 'sans-serif',
+                                                  fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
                                                   fontSize: '18px',
                                                   fontWeight: 'bold',
                                                   color: '#111827'
