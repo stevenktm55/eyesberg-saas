@@ -148,13 +148,24 @@ export default function MaterialMapsConfigPage() {
     setting: 'intensity' | 'scale',
     value: number
   ) {
-    setMapSettings((prev) => ({
-      ...prev,
-      [mapType]: {
-        ...prev[mapType],
-        [setting]: value,
-      },
-    }));
+    console.log('🎚️ updateMapSetting appelé:', {
+      mapType,
+      setting,
+      value,
+      selectedMap: selectedMap?.id,
+      selectedMapName: selectedMap?.name
+    });
+    setMapSettings((prev) => {
+      const updated = {
+        ...prev,
+        [mapType]: {
+          ...prev[mapType],
+          [setting]: value,
+        },
+      };
+      console.log('📦 mapSettings mis à jour:', updated);
+      return updated;
+    });
   }
 
   async function handleFileUpload(mapType: keyof MapSettings, file: File) {
@@ -226,6 +237,12 @@ export default function MaterialMapsConfigPage() {
         { mapType: 'metallic', intensity: mapSettings.metallic.intensity, scale: mapSettings.metallic.scale },
         { mapType: 'ao', intensity: mapSettings.ao.intensity, scale: mapSettings.ao.scale },
       ];
+
+      console.log('💾 saveMap appelé:', {
+        selectedMapId: selectedMap.id,
+        selectedMapName: selectedMap.name,
+        settings
+      });
 
       const res = await fetch("/api/material-maps", {
         method: "PUT",
