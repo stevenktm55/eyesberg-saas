@@ -83,40 +83,68 @@ export async function GET(
         .eq('model_3d_id', modelId);
       
       if (!partsError && modelParts) {
-        console.log('🔍 Model parts trouvés:', modelParts.length);
+        console.log('🔍 Model parts trouvés:', modelParts.length, 'parts:', JSON.stringify(modelParts, null, 2));
         
         modelParts.forEach((part: any) => {
           const materialName = part.name;
           const materialMap = part.material_maps;
           
+          console.log(`🔍 Processing part "${materialName}":`, {
+            hasMaterialMap: !!materialMap,
+            materialMapId: materialMap?.id,
+            hasFiles: !!materialMap?.material_map_files,
+            files: materialMap?.material_map_files
+          });
+          
           if (materialMap && materialMap.material_map_files) {
             // Initialiser le material map si nécessaire
             if (!materialMaps[materialName]) {
               materialMaps[materialName] = { materialName };
+              console.log(`📦 Créé material map pour "${materialName}"`);
             }
             
             const files = materialMap.material_map_files || [];
+            console.log(`📁 Fichiers trouvés pour "${materialName}":`, files);
             
             // Enrichir avec les intensités depuis material_map_files si elles ne sont pas déjà présentes
             files.forEach((file: any) => {
-              if (file.map_type === 'normal' && typeof materialMaps[materialName].normalIntensity === 'undefined') {
-                materialMaps[materialName].normalIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+              console.log(`🔍 Processing file:`, { mapType: file.map_type, intensity: file.intensity, scale: file.scale });
+              
+              if (file.map_type === 'normal') {
+                if (typeof materialMaps[materialName].normalIntensity === 'undefined') {
+                  materialMaps[materialName].normalIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+                  console.log(`✅ Ajouté normalIntensity: ${materialMaps[materialName].normalIntensity} pour "${materialName}"`);
+                }
                 if (file.scale && typeof materialMaps[materialName].repeatX === 'undefined') {
                   materialMaps[materialName].repeatX = file.scale;
                   materialMaps[materialName].repeatY = file.scale;
+                  console.log(`✅ Ajouté repeatX/Y: ${file.scale} pour "${materialName}"`);
                 }
-              } else if (file.map_type === 'roughness' && typeof materialMaps[materialName].roughnessValue === 'undefined') {
-                materialMaps[materialName].roughnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
-              } else if (file.map_type === 'metallic' && typeof materialMaps[materialName].metalnessValue === 'undefined') {
-                materialMaps[materialName].metalnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
-              } else if (file.map_type === 'ao' && typeof materialMaps[materialName].aoIntensity === 'undefined') {
-                materialMaps[materialName].aoIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+              } else if (file.map_type === 'roughness') {
+                if (typeof materialMaps[materialName].roughnessValue === 'undefined') {
+                  materialMaps[materialName].roughnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+                  console.log(`✅ Ajouté roughnessValue: ${materialMaps[materialName].roughnessValue} pour "${materialName}"`);
+                }
+              } else if (file.map_type === 'metallic') {
+                if (typeof materialMaps[materialName].metalnessValue === 'undefined') {
+                  materialMaps[materialName].metalnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+                  console.log(`✅ Ajouté metalnessValue: ${materialMaps[materialName].metalnessValue} pour "${materialName}"`);
+                }
+              } else if (file.map_type === 'ao') {
+                if (typeof materialMaps[materialName].aoIntensity === 'undefined') {
+                  materialMaps[materialName].aoIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+                  console.log(`✅ Ajouté aoIntensity: ${materialMaps[materialName].aoIntensity} pour "${materialName}"`);
+                }
               }
             });
             
-            console.log(`✅ Material map "${materialName}" enrichi depuis material_map_files`);
+            console.log(`✅ Material map "${materialName}" enrichi depuis material_map_files:`, materialMaps[materialName]);
+          } else {
+            console.log(`⚠️ Pas de material_map_files pour "${materialName}"`);
           }
         });
+      } else if (partsError) {
+        console.error('❌ Erreur récupération model_parts:', partsError);
       }
     } catch (enrichError) {
       console.error('⚠️ Erreur enrichissement material maps:', enrichError);
