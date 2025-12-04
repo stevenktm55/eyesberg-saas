@@ -294,28 +294,55 @@ export function UVMapViewer({
     ctx.restore(); // Restore after rotation
   };
 
-  // Convert screen coordinates to UV coordinates (accounting for 180° rotation + horizontal mirror)
+  // Convert screen coordinates to UV coordinates (accounting for objectFit: contain and pan/scale)
   const screenToUV = useCallback((screenX: number, screenY: number): [number, number] | null => {
     if (!containerRef.current || !canvasRef.current) return null;
     
-    const rect = containerRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
     const canvas = canvasRef.current;
     
-    // Get canvas display size (may be different from actual canvas size due to CSS)
-    const canvasDisplayWidth = rect.width;
-    const canvasDisplayHeight = rect.height;
+    // Calculate the actual displayed size of the canvas (accounting for objectFit: contain)
+    const containerAspect = containerRect.width / containerRect.height;
+    const canvasAspect = canvas.width / canvas.height;
+    
+    let canvasDisplayWidth: number;
+    let canvasDisplayHeight: number;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    if (containerAspect > canvasAspect) {
+      // Container is wider - canvas height limits, centered horizontally
+      canvasDisplayHeight = containerRect.height;
+      canvasDisplayWidth = canvasDisplayHeight * canvasAspect;
+      offsetX = (containerRect.width - canvasDisplayWidth) / 2;
+    } else {
+      // Container is taller - canvas width limits, centered vertically
+      canvasDisplayWidth = containerRect.width;
+      canvasDisplayHeight = canvasDisplayWidth / canvasAspect;
+      offsetY = (containerRect.height - canvasDisplayHeight) / 2;
+    }
+    
+    // Mouse position relative to container
+    const mouseX = screenX - containerRect.left;
+    const mouseY = screenY - containerRect.top;
+    
+    // Account for objectFit: contain offset
+    const mouseXInCanvas = mouseX - offsetX;
+    const mouseYInCanvas = mouseY - offsetY;
+    
+    // Convert to canvas pixel coordinates
+    // Account for pan and scale transformations
     const scaleX = canvas.width / canvasDisplayWidth;
     const scaleY = canvas.height / canvasDisplayHeight;
     
-    // Account for pan and scale
-    const x = (screenX - rect.left - pan.x) / scale * scaleX;
-    const y = (screenY - rect.top - pan.y) / scale * scaleY;
+    const canvasMouseX = ((mouseXInCanvas - pan.x) / scale) * scaleX;
+    const canvasMouseY = ((mouseYInCanvas - pan.y) / scale) * scaleY;
     
     // Convert to UV coordinates (0-1)
-    const u = Math.max(0, Math.min(1, x / canvas.width));
-    const v = Math.max(0, Math.min(1, y / canvas.height));
+    const u = Math.max(0, Math.min(1, canvasMouseX / canvas.width));
+    const v = Math.max(0, Math.min(1, canvasMouseY / canvas.height));
     
-    // Invert vertical axis: (u, v) -> (u, 1-v)
+    // Invert vertical axis: (u, v) -> (u, 1-v) to match drawing convention
     const finalU = u;
     const finalV = 1 - v;
     
