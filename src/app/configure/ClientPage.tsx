@@ -2304,12 +2304,17 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
 
   useEffect(() => {
     async function loadModules() {
-      if (!shopDomain) return;
+      // Récupérer shopDomain et productId depuis l'URL si non fournis
+      const urlParams = new URLSearchParams(window.location.search);
+      const shop = shopDomain || urlParams.get('shop');
+      const product = productId || urlParams.get('productId');
+      
+      if (!shop) return;
       
       try {
-        const url = productId 
-          ? `/api/product-builder?shop=${encodeURIComponent(shopDomain)}&id=${encodeURIComponent(productId)}`
-          : `/api/product-builder?shop=${encodeURIComponent(shopDomain)}`;
+        const url = product 
+          ? `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`
+          : `/api/product-builder?shop=${encodeURIComponent(shop)}`;
         
         const response = await fetch(url);
         if (response.ok) {
@@ -2720,7 +2725,7 @@ function Sidebar({
             addLogoButtonLabel={logoModuleConfig?.addLogoButtonLabel}
             logoPlacementMode={logoModuleConfig?.logoPlacementMode}
             logoZoneGroupIds={logoModuleConfig?.logoZoneGroupIds}
-            logoLibraryIds={logoModuleConfig?.selectedItems?.logoLibraryIds}
+            logoLibraryIds={logoModuleConfig?.logoLibraryIds}
             logoViewFrontLabel={logoModuleConfig?.logoViewFrontLabel}
             logoViewBackLabel={logoModuleConfig?.logoViewBackLabel}
             logoViewLeftLabel={logoModuleConfig?.logoViewLeftLabel}
