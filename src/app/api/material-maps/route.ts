@@ -2,6 +2,116 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin, uploadFile, deleteFile } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
+// Synchroniser les intensités d'un material map vers tous les modèles qui l'utilisent
+async function syncMaterialMapIntensitiesToModels(materialMapId: string, settings: Array<{ mapType: string; intensity: number; scale: number }>) {
+  console.log('🔄 Synchronisation des intensités vers models_3d.material_maps pour material map:', materialMapId);
+  
+  // Trouver tous les model_parts qui utilisent ce material map
+  const { data: modelParts, error: partsError } = await supabaseAdmin
+    .from('model_parts')
+    .select(`
+      id,
+      name,
+      model_3d_id,
+      models_3d!inner (
+        id,
+        material_maps
+      )
+    `)
+    .eq('material_map_id', materialMapId);
+  
+  if (partsError) {
+    console.error('Error fetching model parts:', partsError);
+    return;
+  }
+  
+  if (!modelParts || modelParts.length === 0) {
+    console.log('ℹ️ Aucun model_part n\'utilise ce material map');
+    return;
+  }
+  
+  // Créer un mapping des intensités par type de map
+  const intensityMap: Record<string, number> = {};
+  const scaleMap: Record<string, number> = {};
+  
+  settings.forEach(setting => {
+    if (setting.mapType === 'normal') {
+      intensityMap.normalIntensity = setting.intensity / 100; // Convertir de 0-100 à 0-1
+      scaleMap.repeatX = setting.scale;
+      scaleMap.repeatY = setting.scale;
+    } else if (setting.mapType === 'roughness') {
+      intensityMap.roughnessValue = setting.intensity / 100; // Convertir de 0-100 à 0-1
+    } else if (setting.mapType === 'metallic') {
+      intensityMap.metalnessValue = setting.intensity / 100; // Convertir de 0-100 à 0-1
+    } else if (setting.mapType === 'ao') {
+      intensityMap.aoIntensity = setting.intensity / 100; // Convertir de 0-100 à 0-1
+    }
+  });
+  
+  // Grouper les parties par modèle
+  const modelsMap = new Map<string, any>();
+  
+  modelParts.forEach((part: any) => {
+    const modelId = part.model_3d_id;
+    if (!modelsMap.has(modelId)) {
+      modelsMap.set(modelId, {
+        model: part.models_3d,
+        parts: []
+      });
+    }
+    modelsMap.get(modelId).parts.push(part);
+  });
+  
+  // Mettre à jour chaque modèle
+  for (const [modelId, { model, parts }] of modelsMap.entries()) {
+    const materialMaps = model.material_maps || {};
+    let updated = false;
+    
+    // Pour chaque partie qui utilise ce material map, mettre à jour les intensités
+    parts.forEach((part: any) => {
+      const materialName = part.name;
+      if (!materialMaps[materialName]) {
+        materialMaps[materialName] = { materialName };
+      }
+      
+      // Mettre à jour les intensités si elles sont définies
+      Object.entries(intensityMap).forEach(([key, value]) => {
+        if (value !== undefined) {
+          materialMaps[materialName][key] = value;
+          updated = true;
+        }
+      });
+      
+      // Mettre à jour les scales si elles sont définies
+      if (scaleMap.repeatX !== undefined) {
+        materialMaps[materialName].repeatX = scaleMap.repeatX;
+        updated = true;
+      }
+      if (scaleMap.repeatY !== undefined) {
+        materialMaps[materialName].repeatY = scaleMap.repeatY;
+        updated = true;
+      }
+    });
+    
+    if (updated) {
+      console.log(`📦 Mise à jour material_maps pour modèle ${modelId}, matériaux:`, parts.map((p: any) => p.name).join(', '));
+      
+      const { error: updateError } = await supabaseAdmin
+        .from('models_3d')
+        .update({ material_maps: materialMaps })
+        .eq('id', modelId);
+      
+      if (updateError) {
+        console.error(`❌ Erreur mise à jour modèle ${modelId}:`, updateError);
+      } else {
+        console.log(`✅ Modèle ${modelId} mis à jour avec succès`);
+      }
+    }
+  }
+  
+  console.log('✅ Synchronisation terminée');
+}
+
 // GET - Récupérer tous les Material Maps avec leurs fichiers
 export async function GET(request: NextRequest) {
   try {
@@ -165,6 +275,14 @@ export async function PUT(request: NextRequest) {
             // Continuer avec les autres settings
           }
         }
+      }
+      
+      // Synchroniser les intensités vers models_3d.material_maps pour tous les modèles qui utilisent ce material map
+      try {
+        await syncMaterialMapIntensitiesToModels(id, settings);
+      } catch (syncError) {
+        console.error('Error syncing intensities to models:', syncError);
+        // Ne pas bloquer la sauvegarde si la sync échoue
       }
     }
 
