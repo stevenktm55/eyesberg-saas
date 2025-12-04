@@ -699,7 +699,16 @@ export default function ProductBuilderPage() {
       sanitizedUpdates.fontSize = clampFontSize(sanitizedUpdates.fontSize);
     }
     if (sanitizedUpdates.strokeWidth !== undefined) {
-      sanitizedUpdates.strokeWidth = clampStrokeWidth(sanitizedUpdates.strokeWidth);
+      // Ne pas utiliser clampStrokeWidth qui fait la conversion legacy
+      // Clamper directement la valeur entre min et max sans conversion
+      const { strokeMinWidthPx, strokeMaxWidthPx } = getTextConstraintValues();
+      const rawValue = sanitizedUpdates.strokeWidth;
+      if (Number.isFinite(rawValue)) {
+        // Clamper directement sans conversion legacy
+        sanitizedUpdates.strokeWidth = Math.min(strokeMaxWidthPx, Math.max(strokeMinWidthPx, rawValue));
+      } else {
+        sanitizedUpdates.strokeWidth = strokeMinWidthPx;
+      }
       (sanitizedUpdates as any).strokeWidthUnit = 'px';
     }
 
