@@ -44,7 +44,23 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(product);
     } else if (shopDomain) {
-      // Créer un nouveau produit
+      // Rechercher un produit existant pour ce shop
+      const { data: existingProduct, error: existingError } = await supabaseAdmin
+        .from('product_builder')
+        .select('*')
+        .eq('subdomain', subdomain)
+        .eq('shop_domain', shopDomain)
+        .maybeSingle();
+
+      if (existingError && existingError.code !== 'PGRST116') {
+        throw existingError;
+      }
+
+      if (existingProduct) {
+        return NextResponse.json(existingProduct);
+      }
+
+      // Créer un nouveau produit si aucun n'existe
       const { data: newProduct, error } = await supabaseAdmin
         .from('product_builder')
         .insert({

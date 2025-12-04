@@ -82,3 +82,5 @@ CREATE POLICY "Users can delete zones"
   ON zones FOR DELETE
   USING (true);
 
+
+

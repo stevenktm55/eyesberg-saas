@@ -49,6 +49,8 @@ export default function ZonesConfigPage() {
   const [selectedGroup, setSelectedGroup] = useState<ZoneGroup | null>(null);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
+  // Liste des designs 2D associés au groupe (un ou plusieurs)
+  const [selectedDesign2DIdsForGroup, setSelectedDesign2DIdsForGroup] = useState<string[]>([]);
   const [editingZones, setEditingZones] = useState<Zone[]>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isPlacingZone, setIsPlacingZone] = useState(false);
@@ -146,6 +148,7 @@ export default function ZonesConfigPage() {
     setSelectedZoneId(null);
     setSelectedModel3DId(null);
     setSelectedDesign2DId(null);
+    setSelectedDesign2DIdsForGroup([]);
     setIsPlacingZone(false);
   }
 
@@ -156,6 +159,8 @@ export default function ZonesConfigPage() {
     setEditingZones([...group.zones]);
     setSelectedZoneId(null);
     setSelectedModel3DId(group.zones[0]?.model3d_id || null);
+    // Pré-charger les designs 2D liés au groupe (sélection multiple)
+    setSelectedDesign2DIdsForGroup(group.design2dIds || []);
     setSelectedDesign2DId(null);
     setIsPlacingZone(false);
   }
@@ -167,6 +172,7 @@ export default function ZonesConfigPage() {
     setSelectedZoneId(null);
     setSelectedModel3DId(null);
     setSelectedDesign2DId(null);
+    setSelectedDesign2DIdsForGroup([]);
     setIsPlacingZone(false);
     setNewGroupName("");
     setIsCreatingGroup(false);
@@ -336,7 +342,7 @@ export default function ZonesConfigPage() {
             name: groupName,
             zones: zonesToSave,
             model3d_id: selectedModel3DId,
-            design2dIds: []
+            design2dIds: selectedDesign2DIdsForGroup
           })
         });
 
@@ -356,7 +362,7 @@ export default function ZonesConfigPage() {
             name: groupName,
             zones: zonesToSave,
             model3d_id: selectedModel3DId,
-            design2dIds: selectedGroup?.design2dIds || []
+            design2dIds: selectedDesign2DIdsForGroup
           })
         });
 
@@ -717,7 +723,7 @@ export default function ZonesConfigPage() {
                     marginBottom: '8px',
                     fontFamily: 'var(--stepn-font-body)'
                   }}>
-                    Design 2D (optionnel)
+                    Design 2D pour l'aperçu (optionnel)
                   </label>
                   <select
                     value={selectedDesign2DId || ''}
@@ -742,6 +748,70 @@ export default function ZonesConfigPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Sélection multi-designs pour le groupe */}
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    color: '#a0a0a0',
+                    marginBottom: '8px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Designs 2D autorisés pour ce groupe
+                  </label>
+                  <div style={{
+                    maxHeight: '180px',
+                    overflowY: 'auto',
+                    padding: '8px',
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '4px',
+                    border: '1px solid #2a2a2a',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    {designs2D.length === 0 ? (
+                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>
+                        Aucun design 2D disponible.
+                      </span>
+                    ) : (
+                      designs2D.map((design) => {
+                        const checked = selectedDesign2DIdsForGroup.includes(design.id);
+                        return (
+                          <label
+                            key={design.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              fontSize: '12px',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                setSelectedDesign2DIdsForGroup((prev) => {
+                                  if (e.target.checked) {
+                                    if (prev.includes(design.id)) return prev;
+                                    return [...prev, design.id];
+                                  }
+                                  return prev.filter((id) => id !== design.id);
+                                });
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            <span>{design.name}</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
 
                 {selectedZoneId && (

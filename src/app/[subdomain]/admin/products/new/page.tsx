@@ -64,6 +64,7 @@ type CustomizationModule = {
   textBaseStrokeWidth?: number; // Largeur par défaut du contour (px)
   textDefaultColor?: string; // Couleur par défaut du texte
   textDefaultStrokeColor?: string; // Couleur par défaut du contour
+  textEnabledDeformations?: string[]; // IDs des déformations activées
   selectedItems?: {
     colorPaletteId?: string;
     logoLibraryId?: string;
@@ -123,6 +124,7 @@ export default function ProductBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const deformationsSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
   const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
@@ -178,6 +180,7 @@ export default function ProductBuilderPage() {
     fontFamily?: string;
     strokeColor?: string;
     strokeWidth?: number;
+    strokeWidthUnit?: 'px';
     deformation?: string;
     deformationIntensity?: number;
     fillType?: 'solid' | 'gradient';
@@ -286,8 +289,9 @@ export default function ProductBuilderPage() {
         }
         const rawStroke = text.strokeWidth ?? textConstraints.baseStrokeWidthPx;
         const clampedStroke = clampStrokeWidth(rawStroke);
-        if (clampedStroke !== text.strokeWidth) {
-          next = { ...next, strokeWidth: clampedStroke };
+        const strokeUnit = (text as any).strokeWidthUnit === 'px' ? 'px' : 'legacy';
+        if (clampedStroke !== text.strokeWidth || strokeUnit !== 'px') {
+          next = { ...next, strokeWidth: clampedStroke, strokeWidthUnit: 'px' as const };
           changed = true;
         }
         return next;
@@ -653,6 +657,7 @@ export default function ProductBuilderPage() {
       fontFamily: defaultFontFamily,
       strokeColor: constraints.defaultStrokeColor,
       strokeWidth: resolvedStrokeWidth,
+      strokeWidthUnit: 'px' as const,
       deformation: 'none',
       deformationIntensity: 0,
       fillType: 'solid' as const,
@@ -673,6 +678,7 @@ export default function ProductBuilderPage() {
     }
     if (sanitizedUpdates.strokeWidth !== undefined) {
       sanitizedUpdates.strokeWidth = clampStrokeWidth(sanitizedUpdates.strokeWidth);
+      (sanitizedUpdates as any).strokeWidthUnit = 'px';
     }
 
     setTexts(prev => prev.map(text => 
@@ -3200,11 +3206,13 @@ export default function ProductBuilderPage() {
                       const selectedDesign = designs2D.find(d => d.id === designIdToUse);
                       const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
                       
-                      // Récupérer les color_mappings du design et construire l'objet colors
+                      // Récupérer les color_mappings du design et construire les couleurs par classe
                       const designColorMappings = selectedDesign?.color_mappings || null;
+                      
+                      // Map intermédiaire: colorId -> { hex, name }
                       const colorsMap: Record<string, { hex: string; name: string }> = {};
-                      if (designColorMappings && colorPalettes.length > 0) {
-                        // Construire une map de toutes les couleurs disponibles
+                      if (colorPalettes.length > 0) {
+                        // Construire une map de toutes les couleurs disponibles (toutes palettes confondues)
                         colorPalettes.forEach((palette) => {
                           if (palette.colors) {
                             palette.colors.forEach((color: any, index: number) => {
@@ -3218,6 +3226,29 @@ export default function ProductBuilderPage() {
                           }
                         });
                       }
+
+                      // Map final passé au ModelViewer: class CSS -> hex
+                      const colorsForViewer: Record<string, string> = {};
+
+                      // 1) Appliquer les color_mappings du design (valeur = colorId)
+                      if (designColorMappings) {
+                        Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+                          // Priorité aux overrides locaux (designColors) si présents
+                          const effectiveColorId = designColors[colorClass] || mappedColorId;
+                          const color = colorsMap[effectiveColorId];
+                          if (color?.hex) {
+                            colorsForViewer[colorClass] = color.hex;
+                          }
+                        });
+                      }
+
+                      // 2) Appliquer aussi les overrides définis seulement dans designColors
+                      Object.entries(designColors).forEach(([colorClass, colorId]) => {
+                        const color = colorsMap[colorId];
+                        if (color?.hex) {
+                          colorsForViewer[colorClass] = color.hex;
+                        }
+                      });
                       
                       // Préparer les material maps pour chaque partie du modèle
                       // ModelViewer attend les material maps indexés par nom de matériau
@@ -3340,7 +3371,7 @@ export default function ProductBuilderPage() {
                                   color="#ffffff"
                                   designTexture={designUrl || undefined}
                                   materialMaps={materialMapsForModel}
-                                  colors={Object.keys(colorsMap).length > 0 ? Object.fromEntries(Object.entries(colorsMap).map(([k, v]) => [k, v.hex])) : undefined}
+                                  colors={Object.keys(colorsForViewer).length > 0 ? colorsForViewer : undefined}
                                   selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
                                   texts={texts}
                                   updateTextPosition={updateTextPosition}
@@ -4631,6 +4662,146 @@ export default function ProductBuilderPage() {
                         <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Contour</span>
                       </div>
                     </div>
+                  </div>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Déformations disponibles
+                    </label>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                      gap: '8px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      padding: '8px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px'
+                    }}>
+                      {[
+                        { id: 'none', name: 'Aucune déformation' },
+                        { id: 'arc', name: 'Arc' },
+                        { id: 'flag', name: 'Drapeau' },
+                        { id: 'wave', name: 'Vague' },
+                        { id: 'bulge', name: 'Bombé' },
+                        { id: 'pinch', name: 'Pinçage' },
+                        { id: 'fisheye', name: 'Fisheye' },
+                        { id: 'squeeze', name: 'Compression' },
+                        { id: 'skew', name: 'Inclinaison' },
+                        { id: 'spiral', name: 'Spirale' },
+                        { id: 'rotate', name: 'Rotation progressive' },
+                        { id: 'tilt', name: 'Tilt' },
+                        { id: 'perspective', name: 'Perspective' },
+                        { id: 'fade', name: 'Fondu' },
+                        { id: 'ribbon', name: 'Ruban' },
+                        { id: 'incline', name: 'Montée/descente' },
+                        { id: 'staircase', name: 'Escalier' },
+                        { id: 'wave-arc', name: 'Vague + Arc' },
+                        { id: 'pulse', name: 'Pulse' },
+                      ].map((def) => {
+                        const currentDeformations = selectedModule.textEnabledDeformations;
+                        const isChecked = currentDeformations ? currentDeformations.includes(def.id) : true;
+                        const handleToggle = () => {
+                          setSelectedModule(prev => {
+                            const current = prev.textEnabledDeformations || [];
+                            const currentlyChecked = current.includes(def.id);
+                            const updated = currentlyChecked
+                              ? current.filter(id => id !== def.id)
+                              : [...current, def.id];
+                            const updatedModule = { 
+                              ...prev, 
+                              textEnabledDeformations: updated.length > 0 ? updated : undefined 
+                            };
+                            console.log('🔄 Toggle déformation (local):', def.id, 'checked:', !currentlyChecked, 'updated:', updated);
+                            
+                            // Annuler le timeout précédent
+                            if (deformationsSaveTimeoutRef.current) {
+                              clearTimeout(deformationsSaveTimeoutRef.current);
+                            }
+                            
+                            // Mettre à jour les modules après 3 secondes d'inactivité
+                            deformationsSaveTimeoutRef.current = setTimeout(() => {
+                              setCustomizationModules(prevModules => {
+                                const newModules = prevModules.map(m =>
+                                  m.id === prev.id ? updatedModule : m
+                                );
+                                console.log('💾 Modules mis à jour (sauvegarde différée):', newModules.find(m => m.id === prev.id)?.textEnabledDeformations);
+                                return newModules;
+                              });
+                            }, 3000); // 3 secondes d'inactivité
+                            
+                            return updatedModule;
+                          });
+                        };
+                        return (
+                          <label
+                            key={def.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleToggle();
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '6px 8px',
+                              cursor: 'pointer',
+                              borderRadius: '4px',
+                              backgroundColor: isChecked ? '#2a2a2a' : 'transparent',
+                              transition: 'background-color 0.2s',
+                              userSelect: 'none',
+                              WebkitUserSelect: 'none'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleToggle();
+                              }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleToggle();
+                              }}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                cursor: 'pointer',
+                                accentColor: '#111827',
+                                pointerEvents: 'auto',
+                                margin: 0,
+                                flexShrink: 0
+                              }}
+                            />
+                            <span style={{
+                              fontSize: '12px',
+                              color: '#ffffff',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              {def.name}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#7d7d7d',
+                      marginTop: '6px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Cochez les déformations que vous souhaitez rendre disponibles dans le configurateur.
+                    </p>
                   </div>
 
                 </>

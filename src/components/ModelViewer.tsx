@@ -85,6 +85,7 @@ function SimpleViewer({
     fontFamily?: string;
     strokeColor?: string;
     strokeWidth?: number;
+    strokeWidthUnit?: 'px';
     deformation?: string;
     deformationIntensity?: number;
     fillType?: 'solid' | 'gradient';
@@ -130,6 +131,10 @@ function SimpleViewer({
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
   textSizeLimits?: { min: number; max: number };
 }) {
+  const textSizeLimitsRef = useRef<{ min: number; max: number } | undefined>(textSizeLimits);
+  useEffect(() => {
+    textSizeLimitsRef.current = textSizeLimits;
+  }, [textSizeLimits?.min, textSizeLimits?.max]);
   const gltf = useGLTF(url) as any;
   const { scene, gl, camera } = useThree();
   
@@ -1872,9 +1877,15 @@ function SimpleViewer({
         // Prepare stroke width in px
         let strokePx = 0;
         if (text.strokeColor != null && text.strokeWidth != null) {
-          let lw = Number(text.strokeWidth) || 0;
-          if (lw <= 1) lw = lw * 150; else if (lw <= 2) lw = (lw / 2) * 150; else if (lw <= 100) lw = (lw / 100) * 150;
-          strokePx = Math.min(150, Math.max(0, lw));
+          if ((text as any).strokeWidthUnit === 'px') {
+            strokePx = Math.min(150, Math.max(0, Number(text.strokeWidth) || 0));
+          } else {
+            let lw = Number(text.strokeWidth) || 0;
+            if (lw <= 1) lw = lw * 150;
+            else if (lw <= 2) lw = (lw / 2) * 150;
+            else if (lw <= 100) lw = (lw / 100) * 150;
+            strokePx = Math.min(150, Math.max(0, lw));
+          }
         }
 
         // Deformation
@@ -3332,8 +3343,9 @@ function SimpleViewer({
             const scaleRatio = currentDistance / initialDistance;
             const newFontSize = initialTextScaleRef.current * 120 * scaleRatio;
             
-            const MIN_FONT_SIZE = textSizeLimits?.min ?? 60;
-            const MAX_FONT_SIZE = textSizeLimits?.max ?? 750;
+            const currentLimits = textSizeLimitsRef.current;
+            const MIN_FONT_SIZE = currentLimits?.min ?? 60;
+            const MAX_FONT_SIZE = currentLimits?.max ?? 750;
             const constrainedSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, newFontSize));
             
             text.fontSize = constrainedSize;
@@ -3637,6 +3649,7 @@ type Props = ThreeElements['group'] & {
     fontFamily?: string;
     strokeColor?: string;
     strokeWidth?: number;
+    strokeWidthUnit?: 'px';
     deformation?: string;
     deformationIntensity?: number;
     fillType?: 'solid' | 'gradient';
