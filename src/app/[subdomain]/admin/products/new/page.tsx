@@ -244,7 +244,11 @@ export default function ProductBuilderPage() {
 
     let baseStrokeWidthPx = Number(module?.textBaseStrokeWidth ?? strokeMinWidthPx);
     if (!Number.isFinite(baseStrokeWidthPx)) baseStrokeWidthPx = strokeMinWidthPx;
-    baseStrokeWidthPx = convertLegacyStrokeWidth(baseStrokeWidthPx, strokeMinWidthPx, strokeMaxWidthPx);
+    // Ne pas utiliser convertLegacyStrokeWidth pour les valeurs déjà en px (si >= min, c'est déjà en px)
+    // Seulement convertir si la valeur est < min (ancien format legacy)
+    if (baseStrokeWidthPx < strokeMinWidthPx) {
+      baseStrokeWidthPx = convertLegacyStrokeWidth(baseStrokeWidthPx, strokeMinWidthPx, strokeMaxWidthPx);
+    }
     baseStrokeWidthPx = Math.min(strokeMaxWidthPx, Math.max(strokeMinWidthPx, baseStrokeWidthPx));
 
     const defaultColor = module?.textDefaultColor || '#000000';
@@ -664,7 +668,11 @@ export default function ProductBuilderPage() {
 
     const constraints = getTextConstraintValues();
     const resolvedFontSize = clampFontSize(initialFontSize ?? 700);
-    const resolvedStrokeWidth = clampStrokeWidth(constraints.baseStrokeWidthPx);
+    // Utiliser directement baseStrokeWidthPx sans conversion legacy (déjà converti dans getTextConstraintValues)
+    const resolvedStrokeWidth = Math.min(
+      constraints.strokeMaxWidthPx,
+      Math.max(constraints.strokeMinWidthPx, constraints.baseStrokeWidthPx)
+    );
 
     const newText = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -3107,13 +3115,16 @@ export default function ProductBuilderPage() {
                                             <div style={{
                                               display: 'flex',
                                               justifyContent: 'space-between',
-                                              marginTop: '4px',
+                                              alignItems: 'center',
+                                              marginTop: '6px',
+                                              paddingTop: '4px',
                                               fontSize: '11px',
                                               color: '#6b7280',
-                                              fontFamily: 'var(--stepn-font-body)'
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontWeight: '400'
                                             }}>
-                                              <span>Min: {sliderMin}px</span>
-                                              <span>Max: {sliderMax}px</span>
+                                              <span style={{ flex: '0 0 auto' }}>Min: {sliderMin}px</span>
+                                              <span style={{ flex: '0 0 auto' }}>Max: {sliderMax}px</span>
                                             </div>
                                           </div>
                                         );
