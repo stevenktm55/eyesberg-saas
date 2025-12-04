@@ -52,6 +52,10 @@ type CustomizationModule = {
   addLogoButtonLabel?: string; // Texte du bouton "Ajouter un logo" (par défaut: "Ajouter un logo")
   logoPlacementMode?: 'zones' | 'free'; // Mode de placement du logo: zones prédéfinies ou placement libre
   logoZoneGroupIds?: string[]; // IDs des groupes de zones à afficher pour les logos (si logoPlacementMode === 'zones')
+  logoViewFrontLabel?: string; // Label personnalisé pour la vue "front" (par défaut: "Front")
+  logoViewBackLabel?: string; // Label personnalisé pour la vue "back" (par défaut: "Back")
+  logoViewLeftLabel?: string; // Label personnalisé pour la vue "left" (par défaut: "Left")
+  logoViewRightLabel?: string; // Label personnalisé pour la vue "right" (par défaut: "Right")
   // Options d'édition de texte
   enableTextContent?: boolean; // Permettre de modifier le contenu du texte
   enableTextFont?: boolean; // Permettre de changer la police
@@ -4466,6 +4470,137 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     />
+                  </div>
+
+                  {/* Labels des vues */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Labels des vues
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Front:</span>
+                        <input
+                          type="text"
+                          value={selectedModule.logoViewFrontLabel || 'Front'}
+                          onChange={(e) => {
+                            const updated = { 
+                              ...selectedModule, 
+                              logoViewFrontLabel: e.target.value || undefined
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m => 
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          placeholder="Front"
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Back:</span>
+                        <input
+                          type="text"
+                          value={selectedModule.logoViewBackLabel || 'Back'}
+                          onChange={(e) => {
+                            const updated = { 
+                              ...selectedModule, 
+                              logoViewBackLabel: e.target.value || undefined
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m => 
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          placeholder="Back"
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Left:</span>
+                        <input
+                          type="text"
+                          value={selectedModule.logoViewLeftLabel || 'Left'}
+                          onChange={(e) => {
+                            const updated = { 
+                              ...selectedModule, 
+                              logoViewLeftLabel: e.target.value || undefined
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m => 
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          placeholder="Left"
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Right:</span>
+                        <input
+                          type="text"
+                          value={selectedModule.logoViewRightLabel || 'Right'}
+                          onChange={(e) => {
+                            const updated = { 
+                              ...selectedModule, 
+                              logoViewRightLabel: e.target.value || undefined
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m => 
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          placeholder="Right"
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #2a2a2a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Bibliothèques de logos */}

@@ -1726,7 +1726,13 @@ function LogoTab({
   logoPlacementMode?: 'zones' | 'free';
   logoZoneGroupIds?: string[];
   logoLibraryIds?: string[];
+  logoViewFrontLabel?: string;
+  logoViewBackLabel?: string;
+  logoViewLeftLabel?: string;
+  logoViewRightLabel?: string;
+  onCameraViewChange?: (view: 'front' | 'back' | 'left' | 'right') => void;
 }) {
+  const [activeView, setActiveView] = useState<'front' | 'back' | 'left' | 'right'>('front');
   const [activeCategory, setActiveCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
   const [showLibrary, setShowLibrary] = useState(false);
   const [selectedZone, setSelectedZone] = useState('');
@@ -1740,9 +1746,28 @@ function LogoTab({
   // Filtrer les logos placés selon la catégorie active
   const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
 
-  // Filtrer les zones selon la catégorie active et les groupes de zones configurés
+  // Mapper la vue active vers la catégorie
+  const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+    'front': 'torse',
+    'back': 'dos',
+    'left': 'bras-gauche',
+    'right': 'bras-droit'
+  };
+
+  // Synchroniser activeCategory avec activeView
+  useEffect(() => {
+    setActiveCategory(viewToCategory[activeView]);
+  }, [activeView]);
+
+  // Filtrer les zones selon la vue active et les groupes de zones configurés
   const filteredZones = textZones.filter(zone => {
-    if (!zone.categories || !zone.categories.includes(`logo-${activeCategory}`)) return false;
+    // Filtrer par vue (catégorie correspondante)
+    const categoryForView = viewToCategory[activeView];
+    if (!zone.categories || !zone.categories.includes(`logo-${categoryForView}`)) return false;
+    
+    // Filtrer par view si disponible
+    if (zone.view && zone.view !== activeView) return false;
+    
     // Si logoPlacementMode est 'zones' et logoZoneGroupIds est défini, filtrer par groupes
     if (logoPlacementMode === 'zones' && logoZoneGroupIds && logoZoneGroupIds.length > 0) {
       // Vérifier si la zone appartient à un des groupes configurés
@@ -2090,23 +2115,41 @@ function LogoTab({
     );
   }
 
+  // Labels des vues
+  const viewLabels = {
+    'front': logoViewFrontLabel || 'Front',
+    'back': logoViewBackLabel || 'Back',
+    'left': logoViewLeftLabel || 'Left',
+    'right': logoViewRightLabel || 'Right'
+  };
+
+  // Gérer le changement de vue
+  const handleViewChange = (view: 'front' | 'back' | 'left' | 'right') => {
+    setActiveView(view);
+    if (onCameraViewChange) {
+      onCameraViewChange(view);
+    }
+    // Émettre un événement pour changer la vue de la caméra
+    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+  };
+
   // Vue par défaut : Liste des logos placés
   return (
     <div className="h-full flex flex-col">
-      {/* Onglets de catégories */}
+      {/* Boutons de vue en haut */}
       <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-        <div className="flex">
-          {(['torse', 'dos', 'bras-gauche', 'bras-droit'] as const).map((cat) => (
+        <div className="grid grid-cols-4 gap-1 p-1">
+          {(['front', 'back', 'left', 'right'] as const).map((view) => (
             <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-                activeCategory === cat
-                  ? 'border-blue-500 text-blue-600 bg-blue-50'
-                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              key={view}
+              onClick={() => handleViewChange(view)}
+              className={`px-3 py-2 text-sm font-medium transition-colors rounded ${
+                activeView === view
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {categoryLabels[cat].label}
+              {viewLabels[view]}
             </button>
           ))}
         </div>
@@ -2574,6 +2617,14 @@ function Sidebar({
             logoPlacementMode={undefined} // TODO: Récupérer depuis les modules
             logoZoneGroupIds={undefined} // TODO: Récupérer depuis les modules
             logoLibraryIds={undefined} // TODO: Récupérer depuis les modules
+            logoViewFrontLabel={undefined} // TODO: Récupérer depuis les modules
+            logoViewBackLabel={undefined} // TODO: Récupérer depuis les modules
+            logoViewLeftLabel={undefined} // TODO: Récupérer depuis les modules
+            logoViewRightLabel={undefined} // TODO: Récupérer depuis les modules
+            onCameraViewChange={(view) => {
+              // Émettre un événement pour changer la vue de la caméra
+              window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+            }}
           />
         )}
           
