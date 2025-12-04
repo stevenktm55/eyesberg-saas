@@ -1826,12 +1826,12 @@ function LogoTab({
   });
   
   const filteredLibraryLogos = logos.filter(logo => {
-    // Filtrer par bibliothèques si configuré
-    if (logoLibraryIds && logoLibraryIds.length > 0) {
+    // Filtrer par bibliothèques si configuré (si logoLibraryIds est défini ET non vide)
+    // Si logoLibraryIds est undefined ou vide, on affiche tous les logos
+    if (logoLibraryIds !== undefined && logoLibraryIds !== null && Array.isArray(logoLibraryIds) && logoLibraryIds.length > 0) {
       // Le champ dans la base de données est logo_library_id (snake_case)
       const logoLibId = (logo as any).logo_library_id || (logo as any).libraryId || (logo as any).logoLibraryId || (logo as any).logo_library?.id;
-      const matches = logoLibId && logoLibraryIds.includes(logoLibId);
-      if (!matches) {
+      if (!logoLibId || !logoLibraryIds.includes(logoLibId)) {
         return false;
       }
     }
@@ -1842,6 +1842,13 @@ function LogoTab({
       logo.name.toLowerCase().includes(query) ||
       (logo.tags && logo.tags.some(tag => tag.toLowerCase().includes(query)))
     );
+  });
+  
+  console.log('📚 Logos filtrés:', { 
+    total: logos.length, 
+    filtered: filteredLibraryLogos.length, 
+    logoLibraryIds, 
+    hasFilter: logoLibraryIds !== undefined && logoLibraryIds !== null && Array.isArray(logoLibraryIds) && logoLibraryIds.length > 0
   });
   
   console.log('📚 Résultat du filtrage:', { 
