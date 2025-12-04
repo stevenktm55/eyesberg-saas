@@ -1816,8 +1816,16 @@ function LogoTab({
   const filteredLibraryLogos = logos.filter(logo => {
     // Filtrer par bibliothèques si configuré
     if (logoLibraryIds && logoLibraryIds.length > 0) {
-      // Vérifier si le logo a une bibliothèque associée (plusieurs champs possibles)
-      const logoLibId = (logo as any).libraryId || (logo as any).logo_library_id || (logo as any).logoLibraryId;
+      // Vérifier si le logo a une bibliothèque associée (plusieurs champs possibles selon la structure de l'API)
+      const logoLibId = (logo as any).libraryId || (logo as any).logo_library_id || (logo as any).logoLibraryId || (logo as any).logo_library?.id;
+      console.log('🔍 Filtrage logo:', { 
+        logoId: logo.id, 
+        logoName: logo.name,
+        logoLibId, 
+        logoLibraryIds, 
+        match: logoLibId && logoLibraryIds.includes(logoLibId),
+        logoKeys: Object.keys(logo as any)
+      });
       if (!logoLibId || !logoLibraryIds.includes(logoLibId)) {
         return false;
       }
@@ -1836,7 +1844,12 @@ function LogoTab({
     filtered: filteredLibraryLogos.length, 
     logoLibraryIds, 
     hasFilter: !!logoLibraryIds && logoLibraryIds.length > 0,
-    sampleLogo: logos[0] ? { id: logos[0].id, libraryId: (logos[0] as any).libraryId || (logos[0] as any).logo_library_id || (logos[0] as any).logoLibraryId } : null
+    sampleLogo: logos[0] ? { 
+      id: logos[0].id, 
+      name: logos[0].name,
+      libraryId: (logos[0] as any).libraryId || (logos[0] as any).logo_library_id || (logos[0] as any).logoLibraryId || (logos[0] as any).logo_library?.id,
+      allKeys: Object.keys(logos[0] as any)
+    } : null
   });
 
   // Gérer la sélection d'une variante (ouvre le sélecteur de zone si mode zones, sinon placement libre)
