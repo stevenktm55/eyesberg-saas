@@ -2624,22 +2624,28 @@ function Sidebar({
         </div>
 
         {/* Contenu scrollable */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {/* Contenu spécifique à chaque onglet */}
         {activeTab === 'design' && (
-          <DesignTab
-            selectedDesign={selectedDesign}
-            selectDesign={selectDesign}
-            colors={colors}
-            updateColor={updateColor}
-            replaceColors={replaceColors}
-            resetColors={resetColors}
-            allowedDesignIds={configDesignIds || undefined}
-            isLinkedPrefillActive={isLinkedPrefillActive}
-            hasPendingLinkedPrefill={hasPendingLinkedPrefill}
-          />
+          <div className="flex-1 overflow-y-auto p-4">
+            <DesignTab
+              selectedDesign={selectedDesign}
+              selectDesign={selectDesign}
+              colors={colors}
+              updateColor={updateColor}
+              replaceColors={replaceColors}
+              resetColors={resetColors}
+              allowedDesignIds={configDesignIds || undefined}
+              isLinkedPrefillActive={isLinkedPrefillActive}
+              hasPendingLinkedPrefill={hasPendingLinkedPrefill}
+            />
+          </div>
         )}
-        {activeTab === 'color' && <ColorTab colors={colors} updateColor={updateColor} />}
+        {activeTab === 'color' && (
+          <div className="flex-1 overflow-y-auto p-4">
+            <ColorTab colors={colors} updateColor={updateColor} />
+          </div>
+        )}
         {activeTab === 'logo' && (
           <LogoTab
             placedLogos={placedLogos}
