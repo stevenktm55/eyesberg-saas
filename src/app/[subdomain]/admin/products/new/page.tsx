@@ -3211,55 +3211,124 @@ export default function ProductBuilderPage() {
                                         ));
                                       })()}
                                     </select>
-                                    {selectedText.deformation && (
-                                      <div style={{ marginTop: '20px' }}>
-                                        <div style={{
-                                          display: 'flex',
-                                          justifyContent: 'space-between',
-                                          alignItems: 'center',
-                                          marginBottom: '8px'
-                                        }}>
+                                    {selectedText.deformation && (() => {
+                                      const sliderId = `deformation-slider-${selectedTextId}`;
+                                      const intensity = selectedText.deformationIntensity ?? 0;
+                                      // Calculer la position en pourcentage pour le gradient (0 à 100% de la plage -100 à +100)
+                                      const positionPercent = ((intensity + 100) / 200) * 100;
+                                      
+                                      return (
+                                        <div style={{ marginTop: '20px' }}>
                                           <div style={{
-                                            fontSize: '13px',
-                                            fontWeight: '500',
-                                            color: '#111827',
-                                            fontFamily: 'var(--stepn-font-body)'
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginBottom: '8px'
                                           }}>
-                                            Intensité
+                                            <div style={{
+                                              fontSize: '13px',
+                                              fontWeight: '500',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}>
+                                              Intensité
+                                            </div>
+                                            <div style={{
+                                              fontSize: '13px',
+                                              fontWeight: '600',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              minWidth: '60px',
+                                              textAlign: 'right'
+                                            }}>
+                                              {intensity > 0 ? `+${intensity}` : intensity.toString()}
+                                            </div>
                                           </div>
+                                          <style>{`
+                                            #${sliderId} {
+                                              -webkit-appearance: none;
+                                              appearance: none;
+                                              width: 100%;
+                                              height: 6px;
+                                              border-radius: 3px;
+                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                              outline: none;
+                                              padding: 0;
+                                              margin: 0;
+                                            }
+                                            #${sliderId}::-webkit-slider-thumb {
+                                              -webkit-appearance: none;
+                                              appearance: none;
+                                              width: 18px;
+                                              height: 18px;
+                                              border-radius: 50%;
+                                              background: #8eff36;
+                                              border: 2px solid #ffffff;
+                                              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                                              cursor: pointer;
+                                            }
+                                            #${sliderId}::-moz-range-thumb {
+                                              width: 18px;
+                                              height: 18px;
+                                              border-radius: 50%;
+                                              background: #8eff36;
+                                              border: 2px solid #ffffff;
+                                              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                                              cursor: pointer;
+                                            }
+                                            #${sliderId}::-webkit-slider-runnable-track {
+                                              width: 100%;
+                                              height: 6px;
+                                              border-radius: 3px;
+                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                            }
+                                            #${sliderId}::-moz-range-track {
+                                              width: 100%;
+                                              height: 6px;
+                                              border-radius: 3px;
+                                              background: linear-gradient(to right, #ef4444 0%, #ef4444 50%, #e5e7eb 50%, #22c55e 50%, #22c55e 100%);
+                                            }
+                                          `}</style>
+                                          <input
+                                            id={sliderId}
+                                            type="range"
+                                            min="-100"
+                                            max="100"
+                                            step="1"
+                                            value={intensity}
+                                            onChange={(e) => updateText(selectedTextId, { 
+                                              deformationIntensity: parseInt(e.target.value) 
+                                            })}
+                                          />
                                           <div style={{
-                                            fontSize: '13px',
-                                            fontWeight: '600',
-                                            color: '#111827',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            marginTop: '6px',
+                                            paddingTop: '4px',
+                                            fontSize: '11px',
                                             fontFamily: 'var(--stepn-font-body)',
-                                            minWidth: '50px',
-                                            textAlign: 'right'
+                                            fontWeight: '400'
                                           }}>
-                                            {selectedText.deformationIntensity || 50}%
+                                            <span style={{ 
+                                              flex: '0 0 auto',
+                                              color: '#111827',
+                                              WebkitTextFillColor: '#111827'
+                                            }}>-100</span>
+                                            <span style={{ 
+                                              flex: '0 0 auto',
+                                              color: '#111827',
+                                              WebkitTextFillColor: '#111827'
+                                            }}>0</span>
+                                            <span style={{ 
+                                              flex: '0 0 auto',
+                                              color: '#111827',
+                                              WebkitTextFillColor: '#111827'
+                                            }}>+100</span>
                                           </div>
                                         </div>
-                                        <input
-                                          type="range"
-                                          min="0"
-                                          max="100"
-                                          step="1"
-                                          value={selectedText.deformationIntensity || 50}
-                                          onChange={(e) => updateText(selectedTextId, { 
-                                            deformationIntensity: parseInt(e.target.value) 
-                                          })}
-                                          style={{
-                                            width: '100%',
-                                            height: '6px',
-                                            borderRadius: '3px',
-                                            background: '#e5e7eb',
-                                            outline: 'none',
-                                            cursor: 'pointer',
-                                            WebkitAppearance: 'none',
-                                            appearance: 'none'
-                                          }}
-                                        />
-                                      </div>
-                                    )}
+                                      );
+                                    })()}
                                   </div>
                                 )}
                               </div>
