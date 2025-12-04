@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Environment } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
 import { ShopifyAddToCart } from "@/components/ShopifyAddToCart";
 import { useShopifyIntegration, AddToCartSuccess } from "@/hooks/useShopifyIntegration";
@@ -1555,84 +1555,24 @@ function Viewer3D({
         className="flex-1 bg-gray-100 relative"
         onContextMenu={(e) => e.preventDefault()}
       >
-        <Canvas 
+        <Canvas
           camera={{ position: cameraPosition, fov: 50 }}
-          gl={{ preserveDrawingBuffer: true }}
-          style={{ 
-            background: 'linear-gradient(to bottom, #f8fafc, #e2e8f0)',
+          gl={{
+            preserveDrawingBuffer: true,
+            antialias: true,
+            alpha: false,
+          }}
+          style={{
+            background: '#0a0a0a',
             width: '100%',
-            height: '100%'
+            height: '100%',
           }}
         >
-          {/* Éclairage professionnel type studio photo */}
-          {/* Lumière ambiante douce - base uniforme */}
-          <ambientLight intensity={0.4} color="#f5f5f5" />
-          
-          {/* KEY LIGHT - Lumière principale 45° - révèle les détails et textures */}
-          <directionalLight 
-            position={[12, 18, 12]} 
-            intensity={2.0}
-            color="#ffffff"
-            castShadow={false}
-          />
-          
-          {/* FILL LIGHT - Lumière de remplissage opposée - adoucit les ombres */}
-          <directionalLight 
-            position={[-8, 12, 8]} 
-            intensity={1.0}
-            color="#f8f8ff"
-          />
-          
-          {/* BACK/RIM LIGHT - Lumière de contour arrière - détache le sujet */}
-          <directionalLight 
-            position={[0, 8, -15]} 
-            intensity={1.2}
-            color="#fafafa"
-          />
-          
-          {/* SIDE LIGHTS - Lumières latérales pour le relief des textures */}
-          <directionalLight 
-            position={[20, 2, 0]} 
-            intensity={0.7}
-            color="#ffffff"
-          />
-          <directionalLight 
-            position={[-20, 2, 0]} 
-            intensity={0.7}
-            color="#ffffff"
-          />
-          
-          {/* TOP LIGHT - Lumière du haut pour les reflets naturels */}
-          <directionalLight 
-            position={[0, 25, 0]} 
-            intensity={0.6}
-            color="#ffffff"
-          />
-          
-          {/* ACCENT LIGHTS - Points lumineux pour créer de la profondeur */}
-          <pointLight 
-            position={[5, 15, 8]} 
-            intensity={1.5}
-            distance={40}
-            decay={1.8}
-            color="#ffffff"
-          />
-          <pointLight 
-            position={[-5, 12, 8]} 
-            intensity={1.2}
-            distance={40}
-            decay={1.8}
-            color="#f8f9fa"
-          />
-          
-          {/* KICKER LIGHT - Lumière d'accentuation basse pour le relief */}
-          <spotLight 
-            position={[0, -5, 10]} 
-            intensity={0.8}
-            angle={Math.PI / 4}
-            penumbra={0.5}
-            color="#fafafa"
-          />
+          {/* Éclairage aligné sur le viewer des Material Maps */}
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+          <Environment preset="city" />
           
           {/* Modèle 3D */}
           {modelUrl ? (
