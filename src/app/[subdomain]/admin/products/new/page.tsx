@@ -3831,10 +3831,10 @@ export default function ProductBuilderPage() {
                                 fontGroups.forEach(group => {
                                   if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
                                     group.fonts.forEach((font: any) => {
-                                      if (font.display_name && font.file_url) {
+                                      if (font.file_url && (font.name || font.display_name)) {
                                         allFontsForViewer.push({
                                           id: font.id,
-                                          display_name: font.display_name,
+                                          display_name: font.display_name || font.name, // ModelViewer utilise display_name
                                           font_url: font.file_url // ModelViewer attend font_url
                                         });
                                       }
