@@ -2118,10 +2118,10 @@ function LogoTab({
 
   // Labels des vues
   const viewLabels = {
-    'front': logoViewFrontLabel || 'Front',
-    'back': logoViewBackLabel || 'Back',
-    'left': logoViewLeftLabel || 'Left',
-    'right': logoViewRightLabel || 'Right'
+    'front': logoViewFrontLabel || 'Torse',
+    'back': logoViewBackLabel || 'Dos',
+    'left': logoViewLeftLabel || 'Bras gauche',
+    'right': logoViewRightLabel || 'Bras droit'
   };
 
   // Gérer le changement de vue
