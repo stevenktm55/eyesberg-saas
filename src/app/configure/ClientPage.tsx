@@ -443,6 +443,8 @@ function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Rec
 
 // Hook pour charger automatiquement le modèle associé au produit
 function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null) {
+  console.log('🚀 ===== useAutoLoadModel INITIALISÉ =====', { forcedModelId, forcedModelUrl, productId });
+  
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [textureMaps, setTextureMaps] = useState<Record<string, string> | null>(null);
   const [materialMaps, setMaterialMaps] = useState<Record<string, any> | null>(null);
