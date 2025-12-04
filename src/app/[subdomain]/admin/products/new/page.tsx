@@ -3174,11 +3174,42 @@ export default function ProductBuilderPage() {
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     >
-                                      <option value="">Aucune</option>
-                                      <option value="arc">Arc</option>
-                                      <option value="wave">Vague</option>
-                                      <option value="bulge">Bombé</option>
-                                      <option value="pinch">Pincement</option>
+                                      {(() => {
+                                        // Liste complète des déformations avec leurs labels
+                                        const allDeformations = [
+                                          { value: '', label: 'Aucune' },
+                                          { value: 'arc', label: 'Arc' },
+                                          { value: 'wave', label: 'Vague' },
+                                          { value: 'bulge', label: 'Bombé' },
+                                          { value: 'pinch', label: 'Pincement' },
+                                          { value: 'flag', label: 'Drapeau' },
+                                          { value: 'fisheye', label: 'Fisheye' },
+                                          { value: 'squeeze', label: 'Compression' },
+                                          { value: 'skew', label: 'Inclinaison' },
+                                          { value: 'spiral', label: 'Spirale' },
+                                          { value: 'rotate', label: 'Rotation progressive' },
+                                          { value: 'tilt', label: 'Tilt' },
+                                          { value: 'perspective', label: 'Perspective' },
+                                          { value: 'fade', label: 'Fondu' },
+                                          { value: 'ribbon', label: 'Ruban' },
+                                          { value: 'incline', label: 'Montée/descente' },
+                                          { value: 'staircase', label: 'Escalier' },
+                                          { value: 'wave-arc', label: 'Vague + Arc' },
+                                          { value: 'pulse', label: 'Pulse' },
+                                        ];
+                                        
+                                        // Filtrer selon textEnabledDeformations du module actif
+                                        const enabledDeformations = activeModule?.textEnabledDeformations;
+                                        const filteredDeformations = enabledDeformations && enabledDeformations.length > 0
+                                          ? allDeformations.filter(def => 
+                                              def.value === '' || enabledDeformations.includes(def.value)
+                                            )
+                                          : allDeformations; // Si aucune restriction, afficher toutes
+                                        
+                                        return filteredDeformations.map(def => (
+                                          <option key={def.value} value={def.value}>{def.label}</option>
+                                        ));
+                                      })()}
                                     </select>
                                     {selectedText.deformation && (
                                       <div style={{ marginTop: '20px' }}>
