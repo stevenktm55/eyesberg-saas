@@ -462,7 +462,21 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             if (selectedModel) {
               console.log('✅ Modèle trouvé - ID:', selectedModel.id, 'materialMaps:', Object.keys(selectedModel.materialMaps || {}));
               setTextureMaps(selectedModel.textureMaps || null);
-              setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
+              // Charger les material maps normalisés depuis l'endpoint dédié (même logique que l'admin)
+              try {
+                const matsRes = await fetch(`/api/models/${selectedModel.id}/materials`);
+                if (matsRes.ok) {
+                  const matsData = await matsRes.json();
+                  console.log('🎯 Material maps (configure, forcedModelId) depuis /materials:', Object.keys(matsData.materialMaps || {}));
+                  setMaterialMaps(normalizeMaterialMaps(matsData.materialMaps) || null);
+                } else {
+                  console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
+                  setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
+                }
+              } catch (e) {
+                console.warn('⚠️ Erreur chargement /api/models/[id]/materials (forcedModelId):', e);
+                setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
+              }
               setModelId(selectedModel.id);
             } else {
               console.warn('⚠️ Modèle non trouvé avec ID:', forcedModelId);
@@ -506,7 +520,21 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           setModelId(chosen.id);
           setModelUrl(chosen.glbUrl);
           setTextureMaps(chosen.textureMaps || null);
-          setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
+          // Charger les material maps normalisés via /api/models/[id]/materials (comme l'admin)
+          try {
+            const matsRes = await fetch(`/api/models/${chosen.id}/materials`);
+            if (matsRes.ok) {
+              const matsData = await matsRes.json();
+              console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
+              setMaterialMaps(normalizeMaterialMaps(matsData.materialMaps) || null);
+            } else {
+              console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
+              setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
+            }
+          } catch (e) {
+            console.warn('⚠️ Erreur chargement /api/models/[id]/materials:', e);
+            setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
+          }
         } else {
           console.warn('⚠️ Aucun modèle disponible');
         }
@@ -526,21 +554,18 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
     let mounted = true;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/models');
-        const models = await res.json();
-        const current = models.find((m: any) => m.id === modelId);
-        if (!current) return;
+        // Utiliser l'endpoint /api/models/[id]/materials pour rester aligné avec l'admin
+        const matsRes = await fetch(`/api/models/${modelId}/materials`);
+        if (!matsRes.ok) return;
+        const matsData = await matsRes.json();
+        const nextMaterialMaps = normalizeMaterialMaps(matsData.materialMaps) || null;
 
-        const nextMaterialMaps = normalizeMaterialMaps(current.materialMaps) || null;
-        const nextTextureMaps = current.textureMaps || null;
-
+        // Les textureMaps ne sont pas gérées par cet endpoint, ne synchroniser que les materialMaps ici
         const mmChanged = JSON.stringify(nextMaterialMaps) !== JSON.stringify(materialMaps);
-        const tmChanged = JSON.stringify(nextTextureMaps) !== JSON.stringify(textureMaps);
 
-        if (mounted && (mmChanged || tmChanged)) {
-          console.log('🔄 Sync materialMaps/textureMaps depuis API (configure)');
-          if (tmChanged) setTextureMaps(nextTextureMaps);
-          if (mmChanged) setMaterialMaps(nextMaterialMaps);
+        if (mounted && mmChanged) {
+          console.log('🔄 Sync materialMaps depuis /api/models/[id]/materials (configure)');
+          setMaterialMaps(nextMaterialMaps);
         }
       } catch (e) {
         console.warn('⚠️ Sync materialMaps échoué:', e);
@@ -551,7 +576,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
       mounted = false;
       clearInterval(interval);
     };
-  }, [modelId, materialMaps, textureMaps]);
+  }, [modelId, materialMaps]);
 
   return { modelUrl, textureMaps, materialMaps, modelId, isLoading };
 }
