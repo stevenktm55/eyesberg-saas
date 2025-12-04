@@ -443,8 +443,6 @@ function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Rec
 
 // Hook pour charger automatiquement le modèle associé au produit
 function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null) {
-  console.log('🚀 ===== useAutoLoadModel INITIALISÉ =====', { forcedModelId, forcedModelUrl, productId });
-  
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [textureMaps, setTextureMaps] = useState<Record<string, string> | null>(null);
   const [materialMaps, setMaterialMaps] = useState<Record<string, any> | null>(null);
@@ -453,17 +451,12 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
   const [modelId, setModelId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🚀 ===== useAutoLoadModel HOOK EXECUTÉ =====');
-    console.log('🚀 Paramètres:', { forcedModelId, forcedModelUrl, productId });
-    
     async function loadModel() {
-      console.log('🚀 ===== loadModel() FONCTION APPELÉE =====');
       try {
         // Chargement des modèles
         
         // Si on a une URL de modèle forcée (depuis une config sauvegardée), l'utiliser directement
         if (forcedModelUrl) {
-          console.log('🔍 Chargement modèle depuis configuration - URL:', forcedModelUrl, 'ID:', forcedModelId);
           // Utilisation du modèle depuis la configuration sauvegardée
           setModelUrl(forcedModelUrl);
           
@@ -473,48 +466,26 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
             const models = await res.json();
             const selectedModel = models.find((m: any) => m.id === forcedModelId);
             if (selectedModel) {
-              console.log('✅ Modèle trouvé - ID:', selectedModel.id, 'materialMaps:', Object.keys(selectedModel.materialMaps || {}));
               setTextureMaps(selectedModel.textureMaps || null);
               // Charger les material maps normalisés depuis l'endpoint dédié (même logique que l'admin)
               try {
                 const matsRes = await fetch(`/api/models/${selectedModel.id}/materials`);
                 if (matsRes.ok) {
                   const matsData = await matsRes.json();
-                  console.log('🎯 Material maps (configure, forcedModelId) depuis /materials:', Object.keys(matsData.materialMaps || {}));
                   const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
-                  // Debug: log les valeurs d'intensité pour le premier matériau
-                  if (normalized && Object.keys(normalized).length > 0) {
-                    const firstMat = normalized[Object.keys(normalized)[0]];
-                    console.log('🔍 Debug intensités (forcedModelId):', {
-                      materialName: Object.keys(normalized)[0],
-                      roughnessValue: firstMat.roughnessValue,
-                      metalnessValue: firstMat.metalnessValue,
-                      aoIntensity: firstMat.aoIntensity,
-                      normalIntensity: firstMat.normalIntensity,
-                      normalized: {
-                        roughnessFactor: firstMat.roughnessFactor,
-                        metalnessFactor: firstMat.metalnessFactor,
-                        normalScale: firstMat.normalScale
-                      }
-                    });
-                  }
                   setMaterialMaps(normalized);
                 } else {
-                  console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
                   setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
                 }
               } catch (e) {
-                console.warn('⚠️ Erreur chargement /api/models/[id]/materials (forcedModelId):', e);
                 setMaterialMaps(normalizeMaterialMaps(selectedModel.materialMaps) || null);
               }
               setModelId(selectedModel.id);
             } else {
-              console.warn('⚠️ Modèle non trouvé avec ID:', forcedModelId);
               setTextureMaps(null);
               setMaterialMaps(null);
             }
           } else {
-            console.warn('⚠️ Aucun modelId fourni pour charger les materialMaps');
             setTextureMaps(null);
             setMaterialMaps(null);
           }
@@ -552,63 +523,17 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           setTextureMaps(chosen.textureMaps || null);
           // Charger les material maps normalisés via /api/models/[id]/materials (comme l'admin)
           try {
-            console.log('🚀 ===== APPEL API /api/models/${chosen.id}/materials =====');
             const matsRes = await fetch(`/api/models/${chosen.id}/materials`);
-            console.log('🚀 Réponse API status:', matsRes.status, matsRes.ok);
             if (matsRes.ok) {
               const matsData = await matsRes.json();
-              console.log('🚀 ===== DONNÉES REÇUES DE L\'API =====');
-              console.log('🎯 Material maps (configure) depuis /materials:', Object.keys(matsData.materialMaps || {}));
-              console.log('🔍 DEBUG API Response:', matsData._debug || 'No debug info');
-              console.log('🔍 MaterialMaps complet:', JSON.stringify(matsData.materialMaps, null, 2));
-              if (matsData._debug?.firstMaterialValues) {
-                console.log('📊 Valeurs du premier matériau depuis API:', matsData._debug.firstMaterialValues);
-              }
-                  // Debug: log AVANT normalisation - chercher spécifiquement mesh_FRONT
-                  const meshFrontKey = Object.keys(matsData.materialMaps || {}).find(k => 
-                    k.toLowerCase().includes('mesh') && k.toLowerCase().includes('front')
-                  );
-                  if (meshFrontKey) {
-                    console.log('🔍 Debug AVANT normalisation (forcedModelId) - mesh_FRONT trouvé:', {
-                      key: meshFrontKey,
-                      rawData: matsData.materialMaps[meshFrontKey],
-                      hasNormalIntensity: typeof matsData.materialMaps[meshFrontKey].normalIntensity !== 'undefined',
-                      hasRoughnessValue: typeof matsData.materialMaps[meshFrontKey].roughnessValue !== 'undefined',
-                      hasMetalnessValue: typeof matsData.materialMaps[meshFrontKey].metalnessValue !== 'undefined',
-                      allKeys: Object.keys(matsData.materialMaps[meshFrontKey])
-                    });
-                  } else {
-                    console.log('⚠️ mesh_FRONT non trouvé dans materialMaps, keys disponibles:', Object.keys(matsData.materialMaps || {}));
-                  }
-                  const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
-                  // Debug: log les valeurs d'intensité pour le premier matériau APRÈS normalisation
-                  if (normalized && Object.keys(normalized).length > 0) {
-                    const firstMat = normalized[Object.keys(normalized)[0]];
-                    console.log('🔍 Debug intensités APRÈS normalisation (forcedModelId):', {
-                      materialName: Object.keys(normalized)[0],
-                      roughnessValue: firstMat.roughnessValue,
-                      metalnessValue: firstMat.metalnessValue,
-                      aoIntensity: firstMat.aoIntensity,
-                      normalIntensity: firstMat.normalIntensity,
-                      normalized: {
-                        roughnessFactor: firstMat.roughnessFactor,
-                        metalnessFactor: firstMat.metalnessFactor,
-                        normalScale: firstMat.normalScale
-                      },
-                      allKeys: Object.keys(firstMat)
-                    });
-                  }
-                  setMaterialMaps(normalized);
+              const normalized = normalizeMaterialMaps(matsData.materialMaps) || null;
+              setMaterialMaps(normalized);
             } else {
-              console.warn('⚠️ /api/models/[id]/materials a échoué, fallback sur model.material_maps');
               setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
             }
           } catch (e) {
-            console.warn('⚠️ Erreur chargement /api/models/[id]/materials:', e);
             setMaterialMaps(normalizeMaterialMaps(chosen.materialMaps) || null);
           }
-        } else {
-          console.warn('⚠️ Aucun modèle disponible');
         }
       } catch (error) {
         console.error('Erreur lors du chargement des modèles:', error);
@@ -630,21 +555,16 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         const matsRes = await fetch(`/api/models/${modelId}/materials`);
         if (!matsRes.ok) return;
         const matsData = await matsRes.json();
-        console.log('🔄 Sync - DEBUG API Response:', matsData._debug || 'No debug info');
-        if (matsData._debug?.firstMaterialValues) {
-          console.log('🔄 Sync - Valeurs du premier matériau:', matsData._debug.firstMaterialValues);
-        }
         const nextMaterialMaps = normalizeMaterialMaps(matsData.materialMaps) || null;
 
         // Les textureMaps ne sont pas gérées par cet endpoint, ne synchroniser que les materialMaps ici
         const mmChanged = JSON.stringify(nextMaterialMaps) !== JSON.stringify(materialMaps);
 
         if (mounted && mmChanged) {
-          console.log('🔄 Sync materialMaps depuis /api/models/[id]/materials (configure)');
           setMaterialMaps(nextMaterialMaps);
         }
       } catch (e) {
-        console.warn('⚠️ Sync materialMaps échoué:', e);
+        // Silently fail
       }
     }, 2000);
 

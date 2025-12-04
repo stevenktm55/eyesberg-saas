@@ -504,18 +504,14 @@ export default function ProductBuilderPage() {
     // Charger les material maps spécifiques au modèle depuis /api/models/[id]/materials
     async function loadModelSpecificMaterialMaps() {
       try {
-        console.log('🔍 Admin: Chargement material maps spécifiques pour modèle:', selectedModel3DId);
         const res = await fetch(`/api/models/${selectedModel3DId}/materials`);
         if (res.ok) {
           const data = await res.json();
-          console.log('🔍 Admin: Material maps spécifiques reçus:', data.materialMaps);
           setModelSpecificMaterialMaps(data.materialMaps || {});
         } else {
-          console.warn('⚠️ Admin: Erreur chargement material maps spécifiques');
           setModelSpecificMaterialMaps({});
         }
       } catch (error) {
-        console.error('❌ Admin: Erreur chargement material maps spécifiques:', error);
         setModelSpecificMaterialMaps({});
       }
     }
@@ -3275,14 +3271,6 @@ export default function ProductBuilderPage() {
                           const partName = part.name || '';
                           const modelSpecificMap = modelSpecificMaterialMaps[partName] || {};
                           
-                          console.log('🔍 Admin: Material map pour partie', partName, {
-                            depuisModelSpecific: modelSpecificMap,
-                            hasNormalIntensity: typeof modelSpecificMap.normalIntensity !== 'undefined',
-                            hasRoughnessValue: typeof modelSpecificMap.roughnessValue !== 'undefined',
-                            hasMetalnessValue: typeof modelSpecificMap.metalnessValue !== 'undefined',
-                            hasAoIntensity: typeof modelSpecificMap.aoIntensity !== 'undefined'
-                          });
-                          
                           // Transformer la structure pour ModelViewer
                           const transformedMap: any = {
                             materialName: part.name, // Utiliser le nom de la partie comme materialName
@@ -3332,7 +3320,6 @@ export default function ProductBuilderPage() {
                                 transformedMap.normalScale = modelSpecificMap.normalIntensity;
                                 transformedMap.normalScaleX = modelSpecificMap.normalIntensity;
                                 transformedMap.normalScaleY = modelSpecificMap.normalIntensity;
-                                console.log('✅ Admin: Utilisation normalIntensity spécifique:', modelSpecificMap.normalIntensity);
                               } else if (scale !== 1) {
                                 transformedMap.normalScale = scale;
                                 transformedMap.normalScaleX = scale;
@@ -3347,7 +3334,6 @@ export default function ProductBuilderPage() {
                                 transformedMap.roughnessValue = modelSpecificMap.roughnessValue;
                                 transformedMap.roughnessFactor = modelSpecificMap.roughnessValue;
                                 transformedMap.roughness = modelSpecificMap.roughnessValue;
-                                console.log('✅ Admin: Utilisation roughnessValue spécifique:', modelSpecificMap.roughnessValue);
                               } else {
                                 transformedMap.roughnessFactor = intensity;
                               }
@@ -3362,7 +3348,6 @@ export default function ProductBuilderPage() {
                                 transformedMap.metalnessFactor = modelSpecificMap.metalnessValue;
                                 transformedMap.metallic = modelSpecificMap.metalnessValue;
                                 transformedMap.metalness = modelSpecificMap.metalnessValue;
-                                console.log('✅ Admin: Utilisation metalnessValue spécifique:', modelSpecificMap.metalnessValue);
                               } else {
                                 transformedMap.metalnessFactor = intensity;
                                 transformedMap.metallic = intensity;
@@ -3375,7 +3360,6 @@ export default function ProductBuilderPage() {
                               if (typeof modelSpecificMap.aoIntensity === 'number') {
                                 transformedMap.aoIntensity = modelSpecificMap.aoIntensity;
                                 transformedMap.occlusionIntensity = modelSpecificMap.aoIntensity;
-                                console.log('✅ Admin: Utilisation aoIntensity spécifique:', modelSpecificMap.aoIntensity);
                               } else {
                                 transformedMap.aoIntensity = intensity;
                                 transformedMap.occlusionIntensity = intensity;
