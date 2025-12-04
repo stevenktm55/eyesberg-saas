@@ -194,6 +194,7 @@ export default function ProductBuilderPage() {
   }>>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [activeTextTab, setActiveTextTab] = useState<'contenu' | 'police' | 'couleur' | 'contour' | 'deformation'>('contenu');
+  const [loadedFonts, setLoadedFonts] = useState<Set<string>>(new Set());
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
@@ -237,8 +238,12 @@ export default function ProductBuilderPage() {
     
     fontsToLoad.forEach(async (font) => {
       // Vérifier si la font est déjà chargée
+      if (loadedFonts.has(font.id)) return;
       const existingStyle = document.querySelector(`style[data-font-id="${font.id}"]`);
-      if (existingStyle) return;
+      if (existingStyle) {
+        setLoadedFonts(prev => new Set([...prev, font.id]));
+        return;
+      }
       
       try {
         const response = await fetch(font.font_url);
@@ -256,11 +261,13 @@ export default function ProductBuilderPage() {
         const fontFace = new FontFace(fontFamily, `url('${blobUrl}')`);
         await fontFace.load();
         document.fonts.add(fontFace);
+        
+        setLoadedFonts(prev => new Set([...prev, font.id]));
       } catch (err) {
         console.error('Failed to load font for preview:', font.display_name, err);
       }
     });
-  }, [activeTextTab, selectedTextId, fontGroups, customizationModules, activeCustomizerTab]);
+  }, [activeTextTab, selectedTextId, fontGroups, customizationModules, activeCustomizerTab, loadedFonts]);
 
   const convertLegacyStrokeWidth = (value: number, minPx: number, maxPx: number) => {
     if (!Number.isFinite(value)) return minPx;
@@ -2854,10 +2861,8 @@ export default function ProductBuilderPage() {
                                       ) : (
                                         <div style={{
                                           display: 'grid',
-                                          gridTemplateColumns: 'repeat(5, 1fr)',
+                                          gridTemplateColumns: 'repeat(4, 1fr)',
                                           gap: '12px',
-                                          maxHeight: '400px',
-                                          overflowY: 'auto',
                                           padding: '4px'
                                         }}>
                                           {/* Option "Police par défaut" */}
@@ -2957,7 +2962,7 @@ export default function ProductBuilderPage() {
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
                                                   minHeight: '60px',
-                                                  fontFamily: fontFamilyValue ? `'${fontFamilyValue}', sans-serif` : 'sans-serif',
+                                                  fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `'${fontFamilyValue}', sans-serif` : 'sans-serif',
                                                   fontSize: '18px',
                                                   fontWeight: 'bold',
                                                   color: '#111827'
@@ -3817,35 +3822,57 @@ export default function ProductBuilderPage() {
                                 <meshStandardMaterial color="#3b82f6" wireframe />
                               </mesh>
                             }>
-                              {modelUrl && (
-                                <ModelViewer
-                                  url={modelUrl}
-                                  color="#ffffff"
-                                  designTexture={designUrl || undefined}
-                                  materialMaps={materialMapsForModel}
-                                  colors={Object.keys(colorsForViewer).length > 0 ? colorsForViewer : undefined}
-                                  selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
-                                  texts={texts}
-                                  updateTextPosition={updateTextPosition}
-                                  updateTextRotation={updateTextRotation}
-                                  updateTextSize={updateTextSize}
-                                  toggleTextLock={toggleTextLock}
-                                  removeText={removeText}
-                                  selectedTextId={selectedTextId}
-                                  selectText={selectText}
-                                  isDraggingText={isDraggingText}
-                                  setIsDraggingText={setIsDraggingText}
-                                  isRotatingText={isRotatingText}
-                                  setIsRotatingText={setIsRotatingText}
-                                  isResizingText={isResizingText}
-                                  setIsResizingText={setIsResizingText}
-                                  isPlacingText={isPlacingText}
-                                  textZones={[]} // Pas de zones prédéfinies dans le builder
-                                  onTextPlaced={handleTextPlaced}
-                                  onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
-                                  textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
-                                />
-                              )}
+                              {modelUrl && (() => {
+                                // Créer un tableau de toutes les fonts disponibles pour ModelViewer
+                                const allFontsForViewer: Array<{ id: string; display_name: string; font_url: string }> = [];
+                                const activeModule = getTextModuleConfig();
+                                const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+                                
+                                fontGroups.forEach(group => {
+                                  if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
+                                    group.fonts.forEach((font: any) => {
+                                      if (font.display_name && font.font_url) {
+                                        allFontsForViewer.push({
+                                          id: font.id,
+                                          display_name: font.display_name,
+                                          font_url: font.font_url
+                                        });
+                                      }
+                                    });
+                                  }
+                                });
+                                
+                                return (
+                                  <ModelViewer
+                                    url={modelUrl}
+                                    color="#ffffff"
+                                    designTexture={designUrl || undefined}
+                                    materialMaps={materialMapsForModel}
+                                    colors={Object.keys(colorsForViewer).length > 0 ? colorsForViewer : undefined}
+                                    selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
+                                    texts={texts}
+                                    fonts={allFontsForViewer}
+                                    updateTextPosition={updateTextPosition}
+                                    updateTextRotation={updateTextRotation}
+                                    updateTextSize={updateTextSize}
+                                    toggleTextLock={toggleTextLock}
+                                    removeText={removeText}
+                                    selectedTextId={selectedTextId}
+                                    selectText={selectText}
+                                    isDraggingText={isDraggingText}
+                                    setIsDraggingText={setIsDraggingText}
+                                    isRotatingText={isRotatingText}
+                                    setIsRotatingText={setIsRotatingText}
+                                    isResizingText={isResizingText}
+                                    setIsResizingText={setIsResizingText}
+                                    isPlacingText={isPlacingText}
+                                    textZones={[]} // Pas de zones prédéfinies dans le builder
+                                    onTextPlaced={handleTextPlaced}
+                                    onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
+                                    textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
+                                  />
+                                );
+                              })()}
                             </Suspense>
                             <OrbitControls
                               ref={(controls) => {
