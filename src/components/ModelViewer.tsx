@@ -210,11 +210,32 @@ function SimpleViewer({
     }
     (async () => {
       try {
-        const res = await fetch(`/api/snap-lines?designId=${encodeURIComponent(designId)}`);
+        // Fetch snap line groups and filter by design
+        const res = await fetch('/api/snap-line-groups');
         if (!res.ok) return;
-        const data = await res.json();
-        // Expect items like { position: [u,v], type: 'vertical'|'horizontal' }
-        snapLinesUVRef.current = (data || []).map((ln: any) => {
+        const groups = await res.json();
+        // Flatten snap lines from all groups that match the design
+        const allSnapLines: any[] = [];
+        groups.forEach((group: any) => {
+          if (group.snapLines && Array.isArray(group.snapLines)) {
+            // Filter by design if specified
+            if (!designId || !group.design2dIds || group.design2dIds.length === 0 || group.design2dIds.includes(designId)) {
+              allSnapLines.push(...group.snapLines);
+            }
+          }
+        });
+        // Convert start/end format to type/u/v format for compatibility
+        snapLinesUVRef.current = (allSnapLines || []).map((ln: any) => {
+          if (ln.start && Array.isArray(ln.start) && ln.end && Array.isArray(ln.end) && ln.type) {
+            if (ln.type === 'vertical') {
+              // Vertical line: use X coordinate (u) from start
+              return { type: 'vertical' as const, u: Number(ln.start[0]) };
+            } else if (ln.type === 'horizontal') {
+              // Horizontal line: use Y coordinate (v) from start
+              return { type: 'horizontal' as const, v: Number(ln.start[1]) };
+            }
+          }
+          // Fallback for old format
           let pos: any = ln.position;
           if (Array.isArray(pos)) {
             // [u, v]
