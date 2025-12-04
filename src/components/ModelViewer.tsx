@@ -952,7 +952,18 @@ function SimpleViewer({
               metalness: _metal,
               aoIntensity: _aoInt,
               normalScale: [_nScaleX, _nScaleY],
-              raw: { roughnessValue: mm.roughnessValue, metalnessValue: mm.metalnessValue, aoIntensity: mm.aoIntensity, normalIntensity: mm.normalIntensity }
+              raw: { 
+                roughnessValue: mm.roughnessValue, 
+                metalnessValue: mm.metalnessValue, 
+                aoIntensity: mm.aoIntensity, 
+                normalIntensity: mm.normalIntensity,
+                normalScale: mm.normalScale,
+                normalScaleX: mm.normalScaleX,
+                normalScaleY: mm.normalScaleY,
+                repeatX: mm.repeatX,
+                repeatY: mm.repeatY
+              },
+              allKeys: Object.keys(mm)
             });
             if (typeof _envInt === 'number') {
               (newMaterial as any).envMapIntensity = _envInt;
