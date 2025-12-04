@@ -1743,8 +1743,13 @@ function LogoTab({
   const [logoName, setLogoName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  // Filtrer les logos placés selon la catégorie active
-  const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
+  // Labels des vues (définis en premier pour être accessibles partout)
+  const viewLabels = {
+    'front': logoViewFrontLabel || 'Torse',
+    'back': logoViewBackLabel || 'Dos',
+    'left': logoViewLeftLabel || 'Bras gauche',
+    'right': logoViewRightLabel || 'Bras droit'
+  };
 
   // Mapper la vue active vers la catégorie
   const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
@@ -1758,6 +1763,19 @@ function LogoTab({
   useEffect(() => {
     setActiveCategory(viewToCategory[activeView]);
   }, [activeView]);
+
+  // Gérer le changement de vue
+  const handleViewChange = (view: 'front' | 'back' | 'left' | 'right') => {
+    setActiveView(view);
+    if (onCameraViewChange) {
+      onCameraViewChange(view);
+    }
+    // Émettre un événement pour changer la vue de la caméra
+    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+  };
+
+  // Filtrer les logos placés selon la catégorie active
+  const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
 
   // Filtrer les zones selon la vue active et les groupes de zones configurés
   const filteredZones = textZones.filter(zone => {
