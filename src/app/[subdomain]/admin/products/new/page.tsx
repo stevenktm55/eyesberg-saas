@@ -70,6 +70,8 @@ type CustomizationModule = {
     logoLibraryId?: string;
     fontGroupId?: string;
     design2DId?: string;
+    // Liste des designs 2D visibles dans ce module (si vide => tous)
+    design2DIds?: string[];
     sizePatternId?: string;
   };
   colorClassLabels?: Record<string, string>; // Labels personnalisés pour les classes de couleurs (ex: { primary: 'Principal', secondary: 'Secondaire' })
@@ -1631,7 +1633,7 @@ export default function ProductBuilderPage() {
               )}
             </div>
 
-            {/* Behind the scene */}
+            {/* Behind the scene (modèle 3D + design par défaut) */}
             <div style={{
               padding: '16px',
               borderTop: '1px solid #1a1a1a',
@@ -1639,24 +1641,6 @@ export default function ProductBuilderPage() {
               flexDirection: 'column',
               gap: '12px'
             }}>
-              <div>
-                <div style={{
-                  fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  color: '#ffffff',
-                  marginBottom: '4px'
-                }}>
-                  Behind the scene
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  color: '#a0a0a0'
-                }}>
-                  Not shown in question panel
-                </div>
-              </div>
-              
               {/* 3D Model Selector */}
               <div>
                 <label style={{
@@ -1693,7 +1677,7 @@ export default function ProductBuilderPage() {
                 </select>
               </div>
 
-              {/* 2D Design Selector */}
+              {/* 2D Design Selector (optionnel) */}
               <div>
                 <label style={{
                   display: 'block',
@@ -1702,7 +1686,7 @@ export default function ProductBuilderPage() {
                   color: '#a0a0a0',
                   marginBottom: '6px'
                 }}>
-                  Design 2D
+                  Design 2D par défaut (optionnel)
                 </label>
                 <select
                   value={selectedDesign2DId || ''}
@@ -1720,7 +1704,7 @@ export default function ProductBuilderPage() {
                     outline: 'none'
                   }}
                 >
-                  <option value="">Sélectionner un design 2D</option>
+                  <option value="">Aucun design 2D</option>
                   {designs2D.map((design) => (
                     <option key={design.id} value={design.id}>
                       {design.name}
@@ -2305,14 +2289,18 @@ export default function ProductBuilderPage() {
                         </div>
                       );
                     })() : activeModule.contentType === 'designs-2d' ? (() => {
-                      // Afficher tous les designs disponibles dans une grille de 2 colonnes
+                      // Afficher uniquement les designs autorisés pour ce module (si défini)
+                      const allowedIds = activeModule.selectedItems?.design2DIds;
+                      const visibleDesigns = Array.isArray(allowedIds) && allowedIds.length > 0
+                        ? designs2D.filter(d => allowedIds.includes(d.id))
+                        : designs2D;
                       const selectedDesignId = activeModule.selectedItems?.design2DId;
                       
                       return (
                         <div>
-                          {designs2D.length === 0 ? (
+                          {visibleDesigns.length === 0 ? (
                             <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                              Aucun design disponible. Sélectionnez un design dans les settings.
+                              Aucun design disponible. Cochez des designs dans les settings du module.
                             </p>
                           ) : (
                             <div style={{
@@ -2320,7 +2308,7 @@ export default function ProductBuilderPage() {
                               gridTemplateColumns: 'repeat(2, 1fr)',
                               gap: '12px'
                             }}>
-                              {designs2D.map((design) => {
+                              {visibleDesigns.map((design) => {
                                 const isSelected = design.id === selectedDesignId;
                                 return (
                                   <div
@@ -3985,43 +3973,69 @@ export default function ProductBuilderPage() {
                     marginBottom: '8px',
                     fontFamily: 'var(--stepn-font-body)'
                   }}>
-                    Design 2D
+                    Designs 2D à proposer dans ce bloc
                   </label>
-                  <select
-                    value={selectedModule.selectedItems?.design2DId || ''}
-                    onChange={(e) => {
-                      const updated = { 
-                        ...selectedModule, 
-                        selectedItems: {
-                          ...selectedModule.selectedItems,
-                          design2DId: e.target.value || undefined
-                        }
-                      };
-                      setSelectedModule(updated);
-                      setCustomizationModules(customizationModules.map(m => 
-                        m.id === selectedModule.id ? updated : m
-                      ));
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      backgroundColor: '#1a1a1a',
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="">Sélectionner un design</option>
-                    {designs2D.map((design) => (
-                      <option key={design.id} value={design.id}>
-                        {design.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                    padding: '8px',
+                    backgroundColor: '#0a0a0a',
+                    borderRadius: '4px',
+                    border: '1px solid #2a2a2a',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    {designs2D.length === 0 ? (
+                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>
+                        Aucun design 2D disponible.
+                      </span>
+                    ) : (
+                      designs2D.map((design) => {
+                        const checked = selectedModule.selectedItems?.design2DIds?.includes(design.id) ?? false;
+                        return (
+                          <label
+                            key={design.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              fontSize: '12px',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                const current = selectedModule.selectedItems?.design2DIds || [];
+                                const nextIds = e.target.checked
+                                  ? (current.includes(design.id) ? current : [...current, design.id])
+                                  : current.filter((id: string) => id !== design.id);
+                                const updated = {
+                                  ...selectedModule,
+                                  selectedItems: {
+                                    ...selectedModule.selectedItems,
+                                    design2DIds: nextIds.length > 0 ? nextIds : undefined,
+                                  },
+                                };
+                                setSelectedModule(updated);
+                                setCustomizationModules(
+                                  customizationModules.map((m) =>
+                                    m.id === selectedModule.id ? updated : m
+                                  )
+                                );
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            />
+                            <span>{design.name}</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               )}
 
