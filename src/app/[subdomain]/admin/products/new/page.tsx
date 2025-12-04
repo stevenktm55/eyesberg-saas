@@ -3020,8 +3020,8 @@ export default function ProductBuilderPage() {
                                         // Clamper strictement entre min et max
                                         currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
                                         
-                                        // Arrondir à 1 décimale
-                                        currentPxValue = Math.round(currentPxValue * 10) / 10;
+                                        // Arrondir à l'entier le plus proche (step de 1px)
+                                        currentPxValue = Math.round(currentPxValue);
                                         
                                         // S'assurer que la valeur ne dépasse jamais les limites après arrondi
                                         if (currentPxValue < sliderMin) currentPxValue = sliderMin;
@@ -3030,7 +3030,7 @@ export default function ProductBuilderPage() {
                                         const sliderId = `stroke-slider-${selectedTextId}`;
                                         
                                         return (
-                                          <>
+                                          <div style={{ width: '100%' }}>
                                             <style>{`
                                               #${sliderId} {
                                                 -webkit-appearance: none;
@@ -3082,7 +3082,7 @@ export default function ProductBuilderPage() {
                                               type="range"
                                               min={sliderMin}
                                               max={sliderMax}
-                                              step="0.1"
+                                              step="1"
                                               value={currentPxValue}
                                               onChange={(e) => {
                                                 const pxValue = parseFloat(e.target.value);
@@ -3093,8 +3093,8 @@ export default function ProductBuilderPage() {
                                                 // Clamper strictement entre min et max
                                                 let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
                                                 
-                                                // Arrondir à 1 décimale
-                                                clampedValue = Math.round(clampedValue * 10) / 10;
+                                                // Arrondir à l'entier le plus proche (step de 1px)
+                                                clampedValue = Math.round(clampedValue);
                                                 
                                                 // Double vérification après arrondi
                                                 if (clampedValue < sliderMin) clampedValue = sliderMin;
@@ -3104,7 +3104,18 @@ export default function ProductBuilderPage() {
                                               }}
                                               disabled={sliderRange <= 0}
                                             />
-                                          </>
+                                            <div style={{
+                                              display: 'flex',
+                                              justifyContent: 'space-between',
+                                              marginTop: '4px',
+                                              fontSize: '11px',
+                                              color: '#6b7280',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}>
+                                              <span>Min: {sliderMin}px</span>
+                                              <span>Max: {sliderMax}px</span>
+                                            </div>
+                                          </div>
                                         );
                                       })()}
                                     </div>
