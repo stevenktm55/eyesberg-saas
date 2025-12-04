@@ -2289,6 +2289,59 @@ function LogoTab({
   );
 }
 
+// Hook pour charger les modules de configuration depuis l'API
+function useProductModules(shopDomain?: string | null, productId?: string | null) {
+  const [logoModuleConfig, setLogoModuleConfig] = useState<{
+    addLogoButtonLabel?: string;
+    logoPlacementMode?: 'zones' | 'free';
+    logoZoneGroupIds?: string[];
+    logoLibraryIds?: string[];
+    logoViewFrontLabel?: string;
+    logoViewBackLabel?: string;
+    logoViewLeftLabel?: string;
+    logoViewRightLabel?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadModules() {
+      if (!shopDomain) return;
+      
+      try {
+        const url = productId 
+          ? `/api/product-builder?shop=${encodeURIComponent(shopDomain)}&id=${encodeURIComponent(productId)}`
+          : `/api/product-builder?shop=${encodeURIComponent(shopDomain)}`;
+        
+        const response = await fetch(url);
+        if (response.ok) {
+          const product = await response.json();
+          const modules = product.builder_data?.customizationModules || [];
+          
+          // Trouver le module logo
+          const logoModule = modules.find((m: any) => m.contentType === 'logos');
+          if (logoModule) {
+            setLogoModuleConfig({
+              addLogoButtonLabel: logoModule.addLogoButtonLabel,
+              logoPlacementMode: logoModule.logoPlacementMode,
+              logoZoneGroupIds: logoModule.logoZoneGroupIds,
+              logoLibraryIds: logoModule.selectedItems?.logoLibraryIds,
+              logoViewFrontLabel: logoModule.logoViewFrontLabel,
+              logoViewBackLabel: logoModule.logoViewBackLabel,
+              logoViewLeftLabel: logoModule.logoViewLeftLabel,
+              logoViewRightLabel: logoModule.logoViewRightLabel,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des modules:', error);
+      }
+    }
+    
+    loadModules();
+  }, [shopDomain, productId]);
+
+  return logoModuleConfig;
+}
+
 function Sidebar({
   selectedDesign,
   selectDesign,
@@ -2418,8 +2471,13 @@ function Sidebar({
   isLoading: boolean;
   isPlacingText?: 'nom' | 'numero' | null;
   setIsPlacingText?: (value: 'nom' | 'numero' | null) => void;
+  shopDomain?: string | null;
+  productId?: string | null;
 }) {
   // Sidebar RENDU avec activeTab
+  
+  // Charger les modules de configuration
+  const logoModuleConfig = useProductModules(shopDomain, productId);
   
   // Gestion du sélecteur de zone pour les logos
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
@@ -2659,14 +2717,14 @@ function Sidebar({
             logos={logos}
             isLoadingLogos={isLoadingLogos}
             onOpenZoneSelector={setShowZoneSelector}
-            addLogoButtonLabel={undefined} // TODO: Récupérer depuis les modules
-            logoPlacementMode={undefined} // TODO: Récupérer depuis les modules
-            logoZoneGroupIds={undefined} // TODO: Récupérer depuis les modules
-            logoLibraryIds={undefined} // TODO: Récupérer depuis les modules
-            logoViewFrontLabel={undefined} // TODO: Récupérer depuis les modules
-            logoViewBackLabel={undefined} // TODO: Récupérer depuis les modules
-            logoViewLeftLabel={undefined} // TODO: Récupérer depuis les modules
-            logoViewRightLabel={undefined} // TODO: Récupérer depuis les modules
+            addLogoButtonLabel={logoModuleConfig?.addLogoButtonLabel}
+            logoPlacementMode={logoModuleConfig?.logoPlacementMode}
+            logoZoneGroupIds={logoModuleConfig?.logoZoneGroupIds}
+            logoLibraryIds={logoModuleConfig?.selectedItems?.logoLibraryIds}
+            logoViewFrontLabel={logoModuleConfig?.logoViewFrontLabel}
+            logoViewBackLabel={logoModuleConfig?.logoViewBackLabel}
+            logoViewLeftLabel={logoModuleConfig?.logoViewLeftLabel}
+            logoViewRightLabel={logoModuleConfig?.logoViewRightLabel}
             onCameraViewChange={(view) => {
               // Émettre un événement pour changer la vue de la caméra
               window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
