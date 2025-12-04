@@ -2180,7 +2180,19 @@ function LogoTab({
             </div>
           ) : (
             <div className="text-center py-4 text-gray-500 text-sm">
-              {searchQuery ? 'Aucun logo trouvé' : 'Aucun logo disponible. Ajoutez des logos dans l\'admin.'}
+              {searchQuery ? (
+                'Aucun logo trouvé'
+              ) : logoLibraryIds && logoLibraryIds.length > 0 ? (
+                <>
+                  <p>Aucun logo disponible dans les bibliothèques sélectionnées.</p>
+                  <p className="text-xs mt-1">Vérifiez les settings du module ou ajoutez des logos dans l'admin.</p>
+                </>
+              ) : (
+                <>
+                  <p>Aucun logo disponible.</p>
+                  <p className="text-xs mt-1">Sélectionnez des bibliothèques dans les settings du module ou ajoutez des logos dans l'admin.</p>
+                </>
+              )}
             </div>
           )}
         </div>
