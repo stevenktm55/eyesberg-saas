@@ -2176,8 +2176,8 @@ function LogoTab({
   return (
     <div className="h-full flex flex-col">
       {/* Boutons de vue en haut */}
-      <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-        <div className="grid grid-cols-4 gap-1 p-1">
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white p-1">
+        <div className="grid grid-cols-4 gap-1">
           {(['front', 'back', 'left', 'right'] as const).map((view) => (
             <button
               key={view}
@@ -2188,7 +2188,7 @@ function LogoTab({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {viewLabels[view]}
+              {viewLabels[view] || view}
             </button>
           ))}
         </div>
