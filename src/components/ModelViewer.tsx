@@ -2032,8 +2032,6 @@ function SimpleViewer({
             ctx.scale(scale, scale);
           }
           ctx.globalAlpha = opacity;
-          // Désactiver l'anti-aliasing pour éviter les bords noirs
-          ctx.imageSmoothingEnabled = false;
           ctx.strokeStyle = text.strokeColor;
           ctx.lineWidth = strokePx;
           ctx.lineJoin = 'round';
@@ -2052,36 +2050,32 @@ function SimpleViewer({
             ctx.scale(scale, scale);
           }
           ctx.globalAlpha = opacity;
-          // Réactiver l'anti-aliasing pour le fill
-          ctx.imageSmoothingEnabled = true;
           ctx.fillStyle = fillStyle;
           ctx.fillText(ch, 0, 0);
           ctx.restore();
         };
 
         if (deformation === 'none' || content.length <= 1) {
-          // Simple draw for full string - utiliser une technique qui évite les bords noirs
+          // Simple draw for full string - dessiner stroke et fill ensemble pour éviter les bords noirs
+          ctx.save();
+          ctx.shadowBlur = 0;
+          ctx.shadowColor = 'transparent';
+          ctx.globalAlpha = 1.0;
+          
+          // Dessiner le stroke d'abord
           if (strokePx > 0 && text.strokeColor) {
-            ctx.save();
-            // Désactiver l'anti-aliasing pour le stroke pour éviter les bords noirs
-            ctx.imageSmoothingEnabled = false;
             ctx.strokeStyle = text.strokeColor;
             ctx.lineWidth = strokePx;
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
-            ctx.shadowBlur = 0;
-            ctx.shadowColor = 'transparent';
             ctx.strokeText(content, 0, 0);
-            ctx.restore();
           }
-          ctx.save();
-          // Réactiver l'anti-aliasing pour le fill pour un rendu propre
-          ctx.imageSmoothingEnabled = true;
-          ctx.fillStyle = fillStyle;
-          ctx.globalAlpha = 1.0; // Ensure full opacity
-          ctx.globalCompositeOperation = 'source-over';
+          
           // Dessiner le fill par-dessus pour couvrir les bords noirs du stroke
+          ctx.fillStyle = fillStyle;
+          ctx.globalCompositeOperation = 'source-over';
           ctx.fillText(content, 0, 0);
+          
           ctx.restore();
         } else {
           // Per-character layout avec déformation - calculer positions d'abord
@@ -2219,25 +2213,33 @@ function SimpleViewer({
             cursor += w;
           }
 
-          // Étape 2: Dessiner TOUS les strokes (contours) en premier
-          if (strokePx > 0 && text.strokeColor) {
+          // Dessiner stroke et fill ensemble pour chaque caractère pour éviter les bords noirs
+          for (const pos of charPositions) {
             ctx.save();
-            ctx.strokeStyle = text.strokeColor;
-            ctx.lineWidth = strokePx;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            // Désactiver les ombres pour éviter les bords noirs
+            ctx.translate(pos.x, pos.y);
+            if (!isNaN(pos.angle) && pos.angle !== 0) ctx.rotate(pos.angle);
+            if (pos.scale && pos.scale !== 1) {
+              ctx.scale(pos.scale, pos.scale);
+            }
+            ctx.globalAlpha = pos.opacity || 1;
             ctx.shadowBlur = 0;
             ctx.shadowColor = 'transparent';
-            for (const pos of charPositions) {
-              drawCharStroke(pos.ch, pos.x, pos.y, pos.angle, pos.scale || 1, pos.opacity || 1);
+            
+            // Dessiner le stroke d'abord
+            if (strokePx > 0 && text.strokeColor) {
+              ctx.strokeStyle = text.strokeColor;
+              ctx.lineWidth = strokePx;
+              ctx.lineJoin = 'round';
+              ctx.lineCap = 'round';
+              ctx.strokeText(pos.ch, 0, 0);
             }
+            
+            // Dessiner le fill par-dessus pour couvrir les bords noirs
+            ctx.fillStyle = fillStyle;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillText(pos.ch, 0, 0);
+            
             ctx.restore();
-          }
-
-          // Étape 3: Dessiner TOUS les fills (texte) par-dessus
-          for (const pos of charPositions) {
-            drawCharFill(pos.ch, pos.x, pos.y, pos.angle, pos.scale || 1, pos.opacity || 1);
           }
         }
         
