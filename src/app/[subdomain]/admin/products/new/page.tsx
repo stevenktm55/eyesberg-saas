@@ -238,7 +238,8 @@ export default function ProductBuilderPage() {
       }
     });
     
-    fontsToLoad.forEach(async (font) => {
+    // Charger toutes les fonts en parallèle
+    Promise.all(fontsToLoad.map(async (font) => {
       // Vérifier si la font est déjà chargée
       if (loadedFonts.has(font.id)) return;
       const existingStyle = document.querySelector(`style[data-font-id="${font.id}"]`);
@@ -265,8 +266,8 @@ export default function ProductBuilderPage() {
       } catch (err) {
         console.error('Failed to load font:', font.name || font.display_name, err);
       }
-    });
-  }, [fontGroups, customizationModules, activeCustomizerTab, loadedFonts, getTextModuleConfig]);
+    }));
+  }, [fontGroups, customizationModules, activeCustomizerTab]);
 
   const convertLegacyStrokeWidth = (value: number, minPx: number, maxPx: number) => {
     if (!Number.isFinite(value)) return minPx;
