@@ -2987,7 +2987,8 @@ export default function ProductBuilderPage() {
                                       </div>
                                     </div>
                                   </div>
-                                )}
+                                  );
+                                })()}
 
                                 {/* Onglet Couleur */}
                                 {activeTextTab === 'couleur' && (
