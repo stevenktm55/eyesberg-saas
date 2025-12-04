@@ -3004,20 +3004,19 @@ export default function ProductBuilderPage() {
                                         const sliderMax = textConstraints.strokeMaxWidthPx;
                                         const sliderRange = sliderMax - sliderMin;
                                         
-                                        // Utiliser directement la valeur stockée, clampée simplement sans conversion legacy
+                                        // Utiliser directement la valeur stockée
                                         const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
                                         let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
                                         
-                                        // Clamper la valeur entre min et max
+                                        // Clamper strictement entre min et max
                                         currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
                                         
-                                        // Si la valeur est exactement au minimum (0), la garder à 0 exactement
-                                        if (currentPxValue === sliderMin || currentPxValue < sliderMin + 0.05) {
-                                          currentPxValue = sliderMin;
-                                        } else {
-                                          // Arrondir à 1 décimale pour les autres valeurs
-                                          currentPxValue = Math.round(currentPxValue * 10) / 10;
-                                        }
+                                        // Arrondir à 1 décimale
+                                        currentPxValue = Math.round(currentPxValue * 10) / 10;
+                                        
+                                        // S'assurer que la valeur ne dépasse jamais les limites après arrondi
+                                        if (currentPxValue < sliderMin) currentPxValue = sliderMin;
+                                        if (currentPxValue > sliderMax) currentPxValue = sliderMax;
                                         
                                         const sliderId = `stroke-slider-${selectedTextId}`;
                                         
@@ -3078,33 +3077,20 @@ export default function ProductBuilderPage() {
                                               value={currentPxValue}
                                               onChange={(e) => {
                                                 const pxValue = parseFloat(e.target.value);
-                                                // Si la valeur est très proche du minimum, la forcer exactement au minimum
-                                                let finalValue = pxValue;
-                                                if (pxValue < sliderMin + 0.05) {
-                                                  finalValue = sliderMin;
-                                                } else {
-                                                  finalValue = Math.round(pxValue * 10) / 10;
-                                                }
-                                                const clampedValue = Math.min(
-                                                  sliderMax,
-                                                  Math.max(sliderMin, finalValue)
-                                                );
-                                                updateText(selectedTextId, { strokeWidth: clampedValue });
-                                              }}
-                                              onInput={(e) => {
-                                                // Handler pour une meilleure réactivité pendant le drag
-                                                const pxValue = parseFloat((e.target as HTMLInputElement).value);
-                                                // Si la valeur est très proche du minimum, la forcer exactement au minimum
-                                                let finalValue = pxValue;
-                                                if (pxValue < sliderMin + 0.05) {
-                                                  finalValue = sliderMin;
-                                                } else {
-                                                  finalValue = Math.round(pxValue * 10) / 10;
-                                                }
-                                                const clampedValue = Math.min(
-                                                  sliderMax,
-                                                  Math.max(sliderMin, finalValue)
-                                                );
+                                                
+                                                // Vérifier que la valeur est valide
+                                                if (!Number.isFinite(pxValue)) return;
+                                                
+                                                // Clamper strictement entre min et max
+                                                let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                                
+                                                // Arrondir à 1 décimale
+                                                clampedValue = Math.round(clampedValue * 10) / 10;
+                                                
+                                                // Double vérification après arrondi
+                                                if (clampedValue < sliderMin) clampedValue = sliderMin;
+                                                if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                                
                                                 updateText(selectedTextId, { strokeWidth: clampedValue });
                                               }}
                                               disabled={sliderRange <= 0}
