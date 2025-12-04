@@ -2420,27 +2420,14 @@ function Sidebar({
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
           
-          {/* Sélection de catégorie */}
-          <div className="mb-4">
-            <div className="flex gap-2">
-              {(['torse', 'dos', 'bras-gauche', 'bras-droit'] as const).map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setActiveCategoryForZone(cat);
-                    setSelectedZone('');
-                  }}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    activeCategoryForZone === cat
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {cat === 'torse' ? 'Torse' : cat === 'dos' ? 'Dos' : cat === 'bras-gauche' ? 'Bras gauche' : 'Bras droit'}
-                </button>
-              ))}
+          {/* Affichage de la vue active (non modifiable depuis le modal) */}
+          {showZoneSelector?.view && (
+            <div className="mb-4">
+              <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
+                Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Sélection de zone par vignettes */}
           <div className="mb-6">
