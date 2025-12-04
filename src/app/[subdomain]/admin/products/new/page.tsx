@@ -2817,7 +2817,7 @@ export default function ProductBuilderPage() {
                                   // Filtrer les polices selon les groupes sélectionnés
                                   const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
                                   const visibleFonts = (() => {
-                                    const allFonts: Array<{ id: string; name: string; display_name?: string; font_url?: string; groupId: string }> = [];
+                                    const allFonts: Array<{ id: string; name: string; display_name?: string; file_url?: string; file_type?: string; groupId: string }> = [];
                                     fontGroups.forEach(group => {
                                       if (group.fonts) {
                                         group.fonts.forEach((font: any) => {
