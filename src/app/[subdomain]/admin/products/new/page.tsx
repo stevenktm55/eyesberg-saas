@@ -3020,8 +3020,10 @@ export default function ProductBuilderPage() {
                                         if (currentPxValue < sliderMin) currentPxValue = sliderMin;
                                         if (currentPxValue > sliderMax) currentPxValue = sliderMax;
                                         
+                                        const sliderId = `stroke-slider-${selectedTextId}`;
+                                        
                                         return (
-                                          <>
+                                          <div style={{ width: '100%' }}>
                                             <div style={{
                                               display: 'flex',
                                               justifyContent: 'space-between',
@@ -3037,11 +3039,6 @@ export default function ProductBuilderPage() {
                                                 Épaisseur {currentPxValue}
                                               </div>
                                             </div>
-                                        
-                                        const sliderId = `stroke-slider-${selectedTextId}`;
-                                        
-                                        return (
-                                          <div style={{ width: '100%' }}>
                                             <style>{`
                                               #${sliderId} {
                                                 -webkit-appearance: none;
@@ -3130,7 +3127,6 @@ export default function ProductBuilderPage() {
                                               <span style={{ flex: '0 0 auto' }}>Max.</span>
                                             </div>
                                           </div>
-                                          </>
                                         );
                                       })()}
                                     </div>
