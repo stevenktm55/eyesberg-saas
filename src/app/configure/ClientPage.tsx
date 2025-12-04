@@ -2322,6 +2322,8 @@ function LogoTab({
 
 // Hook pour charger les modules de configuration depuis l'API
 function useProductModules(shopDomain?: string | null, productId?: string | null) {
+  console.log('🚀 useProductModules appelé avec:', { shopDomain, productId });
+  
   const [logoModuleConfig, setLogoModuleConfig] = useState<{
     addLogoButtonLabel?: string;
     logoPlacementMode?: 'zones' | 'free';
@@ -2334,6 +2336,7 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
   } | null>(null);
 
   useEffect(() => {
+    console.log('🔄 useProductModules useEffect déclenché');
     async function loadModules() {
       // Récupérer shopDomain et productId depuis l'URL si non fournis
       const urlParams = new URLSearchParams(window.location.search);
