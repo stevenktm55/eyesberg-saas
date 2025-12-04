@@ -10,7 +10,6 @@ type SnapLine = {
   start: [number, number]; // UV coordinates [u, v]
   end: [number, number]; // UV coordinates [u, v]
   type: "horizontal" | "vertical" | "diagonal";
-  view?: "Face" | "Dos" | "Gauche" | "Droite";
   createdAt?: string;
 };
 
@@ -57,10 +56,8 @@ export default function SnapLinesConfigPage() {
   // Snap line settings (left panel)
   const [snapLineSettings, setSnapLineSettings] = useState<{
     type: "horizontal" | "vertical" | "diagonal";
-    view?: "Face" | "Dos" | "Gauche" | "Droite";
   }>({
-    type: "vertical",
-    view: "Face"
+    type: "vertical"
   });
 
   useEffect(() => {
@@ -197,7 +194,6 @@ export default function SnapLinesConfigPage() {
       start: placingStart,
       end: position,
       type: snapLineSettings.type,
-      view: snapLineSettings.view || "Face"
     };
     setEditingSnapLines([...editingSnapLines, newSnapLine]);
     setSelectedSnapLineId(newSnapLine.id);
@@ -206,8 +202,7 @@ export default function SnapLinesConfigPage() {
     
     // Reset settings to defaults
     setSnapLineSettings({
-      type: "vertical",
-      view: "Face"
+      type: "vertical"
     });
   }
 
@@ -216,8 +211,7 @@ export default function SnapLinesConfigPage() {
     const snapLine = editingSnapLines.find(sl => sl.id === snapLineId);
     if (snapLine) {
       setSnapLineSettings({
-        type: snapLine.type,
-        view: snapLine.view || "Face"
+        type: snapLine.type
       });
     }
   }
@@ -233,7 +227,6 @@ export default function SnapLinesConfigPage() {
     
     // Update settings if they match
     if (updates.type !== undefined) setSnapLineSettings(prev => ({ ...prev, type: updates.type! }));
-    if (updates.view !== undefined) setSnapLineSettings(prev => ({ ...prev, view: updates.view! }));
   }
 
   function handleDeleteSnapLine(snapLineId: string) {
@@ -241,8 +234,7 @@ export default function SnapLinesConfigPage() {
     if (selectedSnapLineId === snapLineId) {
       setSelectedSnapLineId(null);
       setSnapLineSettings({
-        type: "vertical",
-        view: "Face"
+        type: "vertical"
       });
     }
   }
@@ -822,42 +814,6 @@ export default function SnapLinesConfigPage() {
                         </select>
                       </div>
 
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '12px',
-                          color: '#a0a0a0',
-                          marginBottom: '8px',
-                          fontFamily: 'var(--stepn-font-body)'
-                        }}>
-                          Vue
-                        </label>
-                        <select
-                          value={snapLineSettings.view || "Face"}
-                          onChange={(e) => {
-                            const view = e.target.value as "Face" | "Dos" | "Gauche" | "Droite";
-                            setSnapLineSettings(prev => ({ ...prev, view }));
-                            handleUpdateSnapLine({ view });
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            cursor: 'pointer',
-                            outline: 'none'
-                          }}
-                        >
-                          <option value="Face">Face</option>
-                          <option value="Dos">Dos</option>
-                          <option value="Gauche">Gauche</option>
-                          <option value="Droite">Droite</option>
-                        </select>
-                      </div>
                     </div>
                   </>
                 )}
@@ -871,7 +827,6 @@ export default function SnapLinesConfigPage() {
                         setPlacingStart(null);
                         setSnapLineSettings({
                           type: "vertical",
-                          view: "Face"
                         });
                       }}
                       style={{

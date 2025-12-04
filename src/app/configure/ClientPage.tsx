@@ -108,6 +108,41 @@ function useTextZones(selectedDesignId?: string | null) {
   return { zones, isLoading };
 }
 
+// Hook pour charger les snap lines depuis l'API
+function useSnapLines(selectedDesignId?: string | null) {
+  const [snapLines, setSnapLines] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadSnapLines() {
+      try {
+        const response = await fetch('/api/snap-line-groups');
+        if (response.ok) {
+          const data = await response.json();
+          // Flatten all snap lines from all groups
+          const allSnapLines: any[] = [];
+          data.forEach((group: any) => {
+            if (group.snapLines && Array.isArray(group.snapLines)) {
+              // Filter by design if specified
+              if (!selectedDesignId || !group.design2dIds || group.design2dIds.length === 0 || group.design2dIds.includes(selectedDesignId)) {
+                allSnapLines.push(...group.snapLines);
+              }
+            }
+          });
+          setSnapLines(allSnapLines);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des snap lines:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadSnapLines();
+  }, [selectedDesignId]);
+
+  return { snapLines, isLoading };
+}
+
 // Interface pour les polices
 interface FontItem {
   id: string;
