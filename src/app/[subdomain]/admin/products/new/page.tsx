@@ -729,7 +729,19 @@ export default function ProductBuilderPage() {
     const module = getTextModuleConfig();
     
     // Utiliser la police par défaut du module si aucune n'est fournie
-    const resolvedFontFamily = defaultFontFamily || module?.textDefaultFontId;
+    let resolvedFontFamily = defaultFontFamily;
+    if (!resolvedFontFamily && module?.textDefaultFontId) {
+      // Chercher la police par son ID dans les groupes de fonts disponibles
+      for (const group of fontGroups) {
+        if (group.fonts) {
+          const font = group.fonts.find((f: any) => f.id === module.textDefaultFontId);
+          if (font) {
+            resolvedFontFamily = font.display_name || font.name;
+            break;
+          }
+        }
+      }
+    }
     
     const resolvedFontSize = clampFontSize(initialFontSize ?? 700);
     // Utiliser directement baseStrokeWidthPx sans conversion legacy (déjà converti dans getTextConstraintValues)
