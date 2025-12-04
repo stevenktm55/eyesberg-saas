@@ -290,21 +290,36 @@ export default function MaterialMapsPage() {
     if (!selectedModelId) return;
     
     try {
-      console.log('💾 Sauvegarde automatique pour:', materialName, config);
+      console.log('💾 Sauvegarde automatique pour:', materialName, {
+        materialName,
+        config: {
+          normalIntensity: config.normalIntensity,
+          roughnessValue: config.roughnessValue,
+          metalnessValue: config.metalnessValue,
+          aoIntensity: config.aoIntensity,
+          repeatX: config.repeatX,
+          repeatY: config.repeatY
+        },
+        allConfigKeys: Object.keys(config)
+      });
+      
+      const payload = {
+        modelId: selectedModelId, 
+        materialName, 
+        repeatX: config.repeatX || 1, 
+        repeatY: config.repeatY || 1,
+        normalIntensity: config.normalIntensity,
+        roughnessValue: config.roughnessValue,
+        metalnessValue: config.metalnessValue,
+        aoIntensity: config.aoIntensity
+      };
+      
+      console.log('📤 Payload envoyé à /api/models/material-maps/repeat:', payload);
       
       const res = await fetch("/api/models/material-maps/repeat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          modelId: selectedModelId, 
-          materialName, 
-          repeatX: config.repeatX || 1, 
-          repeatY: config.repeatY || 1,
-          normalIntensity: config.normalIntensity,
-          roughnessValue: config.roughnessValue,
-          metalnessValue: config.metalnessValue,
-          aoIntensity: config.aoIntensity
-        })
+        body: JSON.stringify(payload)
       });
       
       if (!res.ok) throw new Error("Update failed");
