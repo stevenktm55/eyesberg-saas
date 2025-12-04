@@ -2866,69 +2866,6 @@ export default function ProductBuilderPage() {
                                           gap: '12px',
                                           padding: '4px'
                                         }}>
-                                          {/* Option "Police par défaut" */}
-                                          <div
-                                            onClick={() => updateText(selectedTextId, { fontFamily: undefined })}
-                                            style={{
-                                              padding: '12px',
-                                              backgroundColor: !selectedText.fontFamily ? '#f0f0f0' : '#ffffff',
-                                              borderRadius: '8px',
-                                              border: !selectedText.fontFamily ? '2px solid #111827' : '1px solid #e5e7eb',
-                                              cursor: 'pointer',
-                                              transition: 'all 0.2s',
-                                              display: 'flex',
-                                              flexDirection: 'column',
-                                              alignItems: 'center',
-                                              gap: '8px',
-                                              minHeight: '100px',
-                                              position: 'relative'
-                                            }}
-                                          >
-                                            <div style={{
-                                              width: '100%',
-                                              padding: '8px',
-                                              backgroundColor: '#f5f5f5',
-                                              borderRadius: '4px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              minHeight: '60px',
-                                              fontFamily: 'var(--stepn-font-body), sans-serif',
-                                              fontSize: '18px',
-                                              fontWeight: 'bold',
-                                              color: '#111827'
-                                            }}>
-                                              {previewText}
-                                            </div>
-                                            <span style={{
-                                              fontSize: '11px',
-                                              color: '#111827',
-                                              fontFamily: 'var(--stepn-font-body)',
-                                              textAlign: 'center',
-                                              fontWeight: '500'
-                                            }}>
-                                              Par défaut
-                                            </span>
-                                            {!selectedText.fontFamily && (
-                                              <div style={{
-                                                position: 'absolute',
-                                                bottom: '8px',
-                                                right: '8px',
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#111827',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                              }}>
-                                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                                  <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                              </div>
-                                            )}
-                                          </div>
-                                          
                                           {/* Polices disponibles */}
                                           {visibleFonts.map((font) => {
                                             const isSelected = selectedText.fontFamily === font.id;
