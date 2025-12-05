@@ -2380,6 +2380,13 @@ export default function ProductBuilderPage() {
                         console.log('⚠️ Aucun logo trouvé dans les bibliothèques sélectionnées');
                         return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo disponible dans les bibliothèques sélectionnées</p>;
                       }
+                      
+                      console.log('✅ Affichage des logos:', {
+                        totalLogos: allLogos.length,
+                        inputType: activeModule.inputType,
+                        willShowThumbnail: activeModule.inputType === 'thumbnail',
+                        willShowDropdown: activeModule.inputType === 'dropdown'
+                      });
                     
                       return (
                         <div>
