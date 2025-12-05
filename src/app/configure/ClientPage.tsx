@@ -1822,7 +1822,6 @@ function LogoTab({
   }, [filteredZones, selectedZone]);
 
   // Libellés par catégorie
-  const buttonLabel = addLogoButtonLabel || 'Ajouter un logo';
   const categoryLabels = {
     'torse': { button: buttonLabel, title: buttonLabel, label: 'Torse' },
     'dos': { button: buttonLabel, title: buttonLabel, label: 'Dos' },
