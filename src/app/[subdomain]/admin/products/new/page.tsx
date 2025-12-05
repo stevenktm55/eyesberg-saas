@@ -181,6 +181,21 @@ export default function ProductBuilderPage() {
       setUv2PreviewUrl(null);
     }
   }, [uv2Canvas]);
+  const [placedLogos, setPlacedLogos] = useState<Array<{
+    id: string;
+    logoId: string;
+    variantId: string;
+    variantFile: string;
+    position: [number, number, number];
+    scale: number;
+    rotation: number;
+    locked?: boolean;
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit';
+    width?: number;
+    height?: number;
+  }>>([]);
+  const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
   const [texts, setTexts] = useState<Array<{
     id: string;
     content: string;
@@ -3997,6 +4012,15 @@ export default function ProductBuilderPage() {
                                     onTextPlaced={handleTextPlaced}
                                     onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
                                     textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
+                                    placedLogos={placedLogos}
+                                    updateLogoPosition={updateLogoPosition}
+                                    updateLogoScale={updateLogoScale}
+                                    updateLogoRotation={updateLogoRotation}
+                                    selectedLogoId={selectedLogoId}
+                                    selectLogo={setSelectedLogoId}
+                                    onRequestLogoDelete={removeLogo}
+                                    toggleLogoLock={toggleLogoLock}
+                                    setIsDraggingLogo={setIsDraggingLogo}
                                   />
                                 );
                               })()}
@@ -6900,38 +6924,6 @@ export default function ProductBuilderPage() {
         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
         if (!activeModule || activeModule.contentType !== 'logos') return null;
         
-        // Filtrer les zones selon la vue active et les groupes de zones configurés
-        const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-          'front': 'torse',
-          'back': 'dos',
-          'left': 'bras-gauche',
-          'right': 'bras-droit'
-        };
-        
-        const categoryForView = viewToCategory[activeLogoView];
-        const viewLabels: Record<string, string> = {
-          'Face': 'front',
-          'Dos': 'back',
-          'Gauche': 'left',
-          'Droite': 'right'
-        };
-        
-        let filteredZones = zoneGroups
-          .filter(group => {
-            // Si logoZoneGroupIds est défini, filtrer par groupes
-            if (activeModule.logoZoneGroupIds && activeModule.logoZoneGroupIds.length > 0) {
-              return activeModule.logoZoneGroupIds.includes(group.id);
-            }
-            return true;
-          })
-          .flatMap(group => group.zones)
-          .filter(zone => {
-            // Filtrer par catégorie (logo-torse, logo-dos, etc.)
-            const zoneView = zone.view ? viewLabels[zone.view] : undefined;
-            if (zoneView && zoneView !== activeLogoView) return false;
-            return true;
-          });
-        
         return (
           <div
             style={{
@@ -6956,90 +6948,33 @@ export default function ProductBuilderPage() {
           >
             <div
               style={{
-                backgroundColor: '#1a1a1a',
+                backgroundColor: '#ffffff',
                 borderRadius: '8px',
-                padding: '24px',
-                maxWidth: '600px',
+                padding: '32px',
                 width: '90%',
-                maxHeight: '80vh',
+                maxWidth: '700px',
+                maxHeight: '90vh',
                 overflowY: 'auto',
-                border: '1px solid #2a2a2a'
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', margin: 0 }}>
-                  Sélectionner une zone pour le logo
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '32px'
+              }}>
+                <h2 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)',
+                  margin: 0
+                }}>
+                  {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
                 </h2>
-                <button
-                  onClick={() => {
-                    setShowLogoZoneModal(false);
-                    setSelectedLogoForZone(null);
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ffffff',
-                    fontSize: '24px',
-                    cursor: 'pointer',
-                    padding: '0',
-                    width: '30px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              
-              {filteredZones.length === 0 ? (
-                <p style={{ color: '#666', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                  Aucune zone disponible pour cette vue. Vérifiez les groupes de zones dans les settings du module.
-                </p>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                  {filteredZones.map((zone) => {
-                    const isSelected = selectedLogoZoneId === zone.id;
-                    return (
-                      <div
-                        key={zone.id}
-                        onClick={() => setSelectedLogoZoneId(zone.id)}
-                        style={{
-                          padding: '12px',
-                          backgroundColor: isSelected ? '#2a2a2a' : '#0a0a0a',
-                          borderRadius: '6px',
-                          border: isSelected ? '2px solid #3b82f6' : '1px solid #2a2a2a',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}
-                      >
-                        {zone.thumbnailUrl && (
-                          <img
-                            src={zone.thumbnailUrl}
-                            alt={zone.name}
-                            style={{
-                              width: '100%',
-                              height: '100px',
-                              objectFit: 'cover',
-                              borderRadius: '4px'
-                            }}
-                          />
-                        )}
-                        <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
-                          {zone.name}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button
                   onClick={() => {
                     setShowLogoZoneModal(false);
@@ -7047,54 +6982,316 @@ export default function ProductBuilderPage() {
                     setSelectedLogoZoneId('');
                   }}
                   style={{
-                    padding: '12px 24px',
-                    backgroundColor: '#2a2a2a',
+                    background: 'none',
                     border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer'
+                    color: '#666666',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    padding: '0',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: '1'
                   }}
                 >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => {
-                    if (selectedLogoZoneId && selectedLogoForZone) {
-                      const selectedZone = filteredZones.find(z => z.id === selectedLogoZoneId);
-                      if (selectedZone) {
-                        // Ici, vous pouvez ajouter la logique pour placer le logo sur la zone
-                        console.log('Logo placé sur la zone:', {
-                          logoId: selectedLogoForZone.logoId,
-                          zoneId: selectedZone.id,
-                          position: selectedZone.position,
-                          view: activeLogoView
-                        });
-                        // TODO: Implémenter la logique de placement du logo
-                        setShowLogoZoneModal(false);
-                        setSelectedLogoForZone(null);
-                        setSelectedLogoZoneId('');
-                        setShowLogoLibrary(false);
-                      }
-                    }
-                  }}
-                  disabled={!selectedLogoZoneId}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: selectedLogoZoneId ? '#3b82f6' : '#4a4a4a',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
-                    opacity: selectedLogoZoneId ? 1 : 0.5
-                  }}
-                >
-                  Confirmer
+                  ×
                 </button>
               </div>
+
+              {(() => {
+                // Récupérer les zones des groupes sélectionnés
+                const availableZones = zoneGroups
+                  .filter(group => activeModule.logoZoneGroupIds?.includes(group.id))
+                  .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+              
+                // Filtrer par vue active
+                const viewLabels: Record<string, string> = {
+                  'Face': 'front',
+                  'Dos': 'back',
+                  'Gauche': 'left',
+                  'Droite': 'right'
+                };
+                
+                const filteredZones = availableZones.filter(zone => {
+                  const zoneView = zone.view ? viewLabels[zone.view] : undefined;
+                  if (zoneView && zoneView !== activeLogoView) return false;
+                  return true;
+                });
+              
+                if (filteredZones.length === 0) {
+                  return (
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                      Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
+                    </p>
+                  );
+                }
+                
+                return (
+                  <div>
+                    {/* Section: Choisissez une position standard */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#000000',
+                        fontFamily: 'var(--stepn-font-body)',
+                        marginBottom: '16px'
+                      }}>
+                        Choisissez une position standard
+                      </h3>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '16px'
+                      }}>
+                        {filteredZones.map((zone) => {
+                          const isSelected = selectedLogoZoneId === zone.id;
+                          return (
+                            <div
+                              key={zone.id}
+                              onClick={() => {
+                                setSelectedLogoZoneId(zone.id);
+                              }}
+                              style={{
+                                position: 'relative',
+                                cursor: 'pointer',
+                                border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                backgroundColor: '#ffffff',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.borderColor = '#999999';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isSelected) {
+                                  e.currentTarget.style.borderColor = '#e0e0e0';
+                                }
+                              }}
+                            >
+                              {/* Checkmark icon */}
+                              {isSelected && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '8px',
+                                  right: '8px',
+                                  width: '24px',
+                                  height: '24px',
+                                  backgroundColor: '#000000',
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  zIndex: 10
+                                }}>
+                                  <span style={{
+                                    color: '#ffffff',
+                                    fontSize: '14px',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    ✓
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Zone thumbnail */}
+                              <div style={{
+                                width: '100%',
+                                height: '140px',
+                                backgroundColor: '#f5f5f5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                padding: '8px'
+                              }}>
+                                {zone.thumbnailUrl && !zone.thumbnailUrl.startsWith('blob:') ? (
+                                  <img
+                                    src={zone.thumbnailUrl}
+                                    alt={zone.name}
+                                    style={{
+                                      maxWidth: '100%',
+                                      maxHeight: '100%',
+                                      objectFit: 'contain',
+                                      filter: 'grayscale(100%)',
+                                      display: 'block'
+                                    }}
+                                    onError={(e) => {
+                                      console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnailUrl);
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: '#e0e0e0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#111827',
+                                    WebkitTextFillColor: '#111827',
+                                    fontSize: '12px',
+                                    textAlign: 'center',
+                                    padding: '8px'
+                                  }}>
+                                    {zone.name}
+                                    {!zone.thumbnailUrl && (
+                                      <div style={{ fontSize: '10px', marginTop: '4px', color: '#999' }}>
+                                        (Pas de vignette)
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Zone label */}
+                              <div style={{
+                                padding: '12px',
+                                textAlign: 'center',
+                                backgroundColor: '#ffffff'
+                              }}>
+                                <p style={{
+                                  margin: 0,
+                                  fontSize: '12px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  WebkitTextFillColor: '#111827',
+                                  WebkitTextStrokeColor: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  {zone.name}
+                                  {zone.view && ` (${zone.view})`}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '12px'
+                    }}>
+                      <button
+                        onClick={() => {
+                          setShowLogoZoneModal(false);
+                          setSelectedLogoForZone(null);
+                          setSelectedLogoZoneId('');
+                        }}
+                        style={{
+                          padding: '12px 24px',
+                          backgroundColor: '#f5f5f5',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#000000',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#e8e8e8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f5f5f5';
+                        }}
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        onClick={() => {
+                          const selectedZone = filteredZones.find(z => z.id === selectedLogoZoneId);
+                          if (selectedZone && selectedLogoForZone) {
+                            const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                              'Face': 'torse',
+                              'Dos': 'dos',
+                              'Gauche': 'bras-gauche',
+                              'Droite': 'bras-droit'
+                            };
+                            const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
+                            
+                            // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                            // IMPORTANT: Les zones sont stockées avec inversion verticale (comme dans UVMapViewer)
+                            // Mais ModelViewer utilise des coordonnées directes, donc on doit inverser v
+                            const zonePosition: [number, number, number] = [
+                              selectedZone.position[0],
+                              1 - selectedZone.position[1], // Inverser v pour correspondre à ModelViewer
+                              selectedZone.position[2] || 0
+                            ];
+                            
+                            // Convertir la rotation de degrés à radians si nécessaire
+                            const zoneRotationRaw = (selectedZone as any).rotation;
+                            const zoneRotation = zoneRotationRaw !== undefined && zoneRotationRaw !== null 
+                              ? zoneRotationRaw * (Math.PI / 180) 
+                              : 0;
+                            
+                            // Récupérer les dimensions de la zone
+                            const zoneWidth = (selectedZone as any).width || 0.1;
+                            const zoneHeight = (selectedZone as any).height || 0.1;
+                            
+                            // Ajouter le logo sur la zone
+                            addLogo(
+                              selectedLogoForZone.logoId,
+                              selectedLogoForZone.variantId || '',
+                              selectedLogoForZone.variantFile || '',
+                              zonePosition,
+                              zoneCategory || 'torse',
+                              zoneWidth,
+                              zoneHeight,
+                              zoneRotation
+                            );
+                            
+                            // Positionner la caméra sur la vue de la zone
+                            if (zoneCategory) {
+                              setTargetView(zoneCategory);
+                            }
+                            
+                            setShowLogoZoneModal(false);
+                            setSelectedLogoForZone(null);
+                            setSelectedLogoZoneId('');
+                            setShowLogoLibrary(false);
+                          }
+                        }}
+                        disabled={!selectedLogoZoneId}
+                        style={{
+                          padding: '12px 24px',
+                          backgroundColor: selectedLogoZoneId ? '#000000' : '#cccccc',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#ffffff',
+                          cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedLogoZoneId) {
+                            e.currentTarget.style.backgroundColor = '#333333';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedLogoZoneId) {
+                            e.currentTarget.style.backgroundColor = '#000000';
+                          }
+                        }}
+                      >
+                        {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
