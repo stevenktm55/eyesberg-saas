@@ -114,6 +114,52 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
+// Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial
+function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
+  const { camera } = useThree();
+  const initializedRef = useRef(false);
+  const valuesRef = useRef({ initialZoom, initialRotation });
+  
+  // Stocker les valeurs initiales
+  useEffect(() => {
+    valuesRef.current = { initialZoom, initialRotation };
+  }, [initialZoom, initialRotation]);
+  
+  useEffect(() => {
+    // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
+    if (initializedRef.current || viewHasBeenSetRef.current) return;
+    
+    // Attendre un peu pour s'assurer que OrbitControls est prêt
+    const timer = setTimeout(() => {
+      // Vérifier à nouveau si une vue a été définie entre-temps
+      if (initializedRef.current || viewHasBeenSetRef.current) return;
+      
+      const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
+      
+      // Appliquer le zoom initial
+      const distance = zoom || 5;
+      camera.position.set(0, 0, distance);
+      
+      // Appliquer la rotation initiale en faisant tourner la position autour du target
+      if (rotation !== 0) {
+        const angleRad = (rotation * Math.PI) / 180;
+        // Rotation autour de l'axe Y
+        const x = 0;
+        const z = distance;
+        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+        camera.position.set(newX, camera.position.y, newZ);
+      }
+      
+      camera.updateProjectionMatrix();
+      initializedRef.current = true;
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, [camera, viewHasBeenSetRef]);
+  
+  return null;
+}
 
 export default function ProductBuilderPage() {
   const router = useRouter();
@@ -1357,7 +1403,7 @@ export default function ProductBuilderPage() {
                 if (!productId) return;
                 const shop = searchParams.get('shop') || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
                 const configuratorUrl = `/configure?shop=${shop}&productId=${productId}&variantId=1`;
-                window.open(configuratorUrl, '_blank', 'width=1200,height=800');
+                window.open(configuratorUrl, '_blank');
               }}
               disabled={!productId}
               style={{
@@ -1386,7 +1432,7 @@ export default function ProductBuilderPage() {
                   e.currentTarget.style.color = '#a0a0a0';
                 }
               }}
-              title="Prévisualiser le configurateur dans une nouvelle fenêtre"
+              title="Prévisualiser le configurateur dans un nouvel onglet"
             >
               👁
             </button>
@@ -4961,55 +5007,7 @@ export default function ProductBuilderPage() {
                             style={{ width: '100%', height: '100%' }}
                           >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
-                            {(() => {
-                              function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
-                                const { camera } = useThree();
-                                const initializedRef = useRef(false);
-                                const valuesRef = useRef({ initialZoom, initialRotation });
-                                
-                                // Stocker les valeurs initiales
-                                useEffect(() => {
-                                  valuesRef.current = { initialZoom, initialRotation };
-                                }, [initialZoom, initialRotation]);
-                                
-                                useEffect(() => {
-                                  // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
-                                  if (initializedRef.current || viewHasBeenSetRef.current) return;
-                                  
-                                  // Attendre un peu pour s'assurer que OrbitControls est prêt
-                                  const timer = setTimeout(() => {
-                                    // Vérifier à nouveau si une vue a été définie entre-temps
-                                    if (initializedRef.current || viewHasBeenSetRef.current) return;
-                                    
-                                    const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
-                                    
-                                    // Appliquer le zoom initial
-                                    const distance = zoom || 5;
-                                    camera.position.set(0, 0, distance);
-                                    
-                                    // Appliquer la rotation initiale en faisant tourner la position autour du target
-                                    if (rotation !== 0) {
-                                      const angleRad = (rotation * Math.PI) / 180;
-                                      // Rotation autour de l'axe Y
-                                      const x = 0;
-                                      const z = distance;
-                                      const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                      const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                      camera.position.set(newX, camera.position.y, newZ);
-                                    }
-                                    
-                                    camera.updateProjectionMatrix();
-                                    initializedRef.current = true;
-                                  }, 200);
-                                  
-                                  return () => clearTimeout(timer);
-                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
-                                
-                                return null;
-                              }
-                              // Passer le ref persistant pour savoir si une vue a été définie
-                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
-                            })()}
+                            <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
                             <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
