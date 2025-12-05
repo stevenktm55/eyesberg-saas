@@ -2744,7 +2744,39 @@ export default function ProductBuilderPage() {
                                               console.error('Erreur lors du calcul des dimensions du logo:', error);
                                             }
                                             
-                                            // Remplacer le logo en conservant position, scale, rotation, category, et mettre à jour les dimensions
+                                            // Calculer le nouveau scale pour conserver la même taille visuelle
+                                            let newScale = logoToReplaceData.scale;
+                                            if (logoWidth && logoHeight && logoToReplaceData.width && logoToReplaceData.height) {
+                                              // Taille visuelle actuelle = width * scale * SCALE_FACTOR
+                                              // On veut que le nouveau logo ait la même taille visuelle
+                                              // nouvelle_taille_visuelle = newWidth * newScale * SCALE_FACTOR
+                                              // Donc: newScale = (oldWidth * oldScale) / newWidth
+                                              
+                                              // Calculer la taille visuelle actuelle (en pixels)
+                                              const SCALE_FACTOR = 0.50;
+                                              const currentVisualWidth = logoToReplaceData.width * logoToReplaceData.scale * SCALE_FACTOR;
+                                              const currentVisualHeight = logoToReplaceData.height * logoToReplaceData.scale * SCALE_FACTOR;
+                                              
+                                              // Calculer le scale nécessaire pour le nouveau logo
+                                              const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
+                                              const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
+                                              
+                                              // Prendre le minimum pour garder les proportions
+                                              newScale = Math.min(scaleX, scaleY);
+                                              
+                                              console.log('📐 Scale adjustment:', {
+                                                oldWidth: logoToReplaceData.width,
+                                                oldHeight: logoToReplaceData.height,
+                                                oldScale: logoToReplaceData.scale,
+                                                newWidth: logoWidth,
+                                                newHeight: logoHeight,
+                                                newScale: newScale,
+                                                currentVisualWidth,
+                                                currentVisualHeight
+                                              });
+                                            }
+                                            
+                                            // Remplacer le logo en conservant position, rotation, category, et ajuster le scale
                                             setPlacedLogos(prev => prev.map(l => 
                                               l.id === logoToReplace 
                                                 ? {
@@ -2753,7 +2785,8 @@ export default function ProductBuilderPage() {
                                                     variantId: variant.id === 'base' ? undefined : variant.id,
                                                     variantFile: fileToUse,
                                                     width: logoWidth,
-                                                    height: logoHeight
+                                                    height: logoHeight,
+                                                    scale: newScale
                                                   }
                                                 : l
                                             ));
@@ -2971,7 +3004,39 @@ export default function ProductBuilderPage() {
                                               console.error('Erreur lors du calcul des dimensions du logo:', error);
                                             }
                                             
-                                            // Remplacer le logo en conservant position, scale, rotation, category, et mettre à jour les dimensions
+                                            // Calculer le nouveau scale pour conserver la même taille visuelle
+                                            let newScale = logoToReplaceData.scale;
+                                            if (logoWidth && logoHeight && logoToReplaceData.width && logoToReplaceData.height) {
+                                              // Taille visuelle actuelle = width * scale * SCALE_FACTOR
+                                              // On veut que le nouveau logo ait la même taille visuelle
+                                              // nouvelle_taille_visuelle = newWidth * newScale * SCALE_FACTOR
+                                              // Donc: newScale = (oldWidth * oldScale) / newWidth
+                                              
+                                              // Calculer la taille visuelle actuelle (en pixels)
+                                              const SCALE_FACTOR = 0.50;
+                                              const currentVisualWidth = logoToReplaceData.width * logoToReplaceData.scale * SCALE_FACTOR;
+                                              const currentVisualHeight = logoToReplaceData.height * logoToReplaceData.scale * SCALE_FACTOR;
+                                              
+                                              // Calculer le scale nécessaire pour le nouveau logo
+                                              const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
+                                              const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
+                                              
+                                              // Prendre le minimum pour garder les proportions
+                                              newScale = Math.min(scaleX, scaleY);
+                                              
+                                              console.log('📐 Scale adjustment:', {
+                                                oldWidth: logoToReplaceData.width,
+                                                oldHeight: logoToReplaceData.height,
+                                                oldScale: logoToReplaceData.scale,
+                                                newWidth: logoWidth,
+                                                newHeight: logoHeight,
+                                                newScale: newScale,
+                                                currentVisualWidth,
+                                                currentVisualHeight
+                                              });
+                                            }
+                                            
+                                            // Remplacer le logo en conservant position, rotation, category, et ajuster le scale
                                             setPlacedLogos(prev => prev.map(l => 
                                               l.id === logoToReplace 
                                                 ? {
@@ -2980,7 +3045,8 @@ export default function ProductBuilderPage() {
                                                     variantId: undefined,
                                                     variantFile: logo.file_url,
                                                     width: logoWidth,
-                                                    height: logoHeight
+                                                    height: logoHeight,
+                                                    scale: newScale
                                                   }
                                                 : l
                                             ));
