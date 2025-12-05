@@ -219,6 +219,7 @@ export default function ProductBuilderPage() {
   const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
   const [selectedLogoForZone, setSelectedLogoForZone] = useState<{logoId: string, variantId?: string, variantFile?: string} | null>(null);
   const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right'>('front');
+  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
@@ -6947,6 +6948,7 @@ export default function ProductBuilderPage() {
               if (e.target === e.currentTarget) {
                 setShowLogoZoneModal(false);
                 setSelectedLogoForZone(null);
+                setSelectedLogoZoneId('');
               }
             }}
           >
@@ -7040,6 +7042,7 @@ export default function ProductBuilderPage() {
                   onClick={() => {
                     setShowLogoZoneModal(false);
                     setSelectedLogoForZone(null);
+                    setSelectedLogoZoneId('');
                   }}
                   style={{
                     padding: '12px 24px',
@@ -7069,6 +7072,7 @@ export default function ProductBuilderPage() {
                         // TODO: Implémenter la logique de placement du logo
                         setShowLogoZoneModal(false);
                         setSelectedLogoForZone(null);
+                        setSelectedLogoZoneId('');
                         setShowLogoLibrary(false);
                       }
                     }
