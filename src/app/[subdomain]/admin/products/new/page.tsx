@@ -6927,7 +6927,7 @@ export default function ProductBuilderPage() {
             return true;
           });
         
-        const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
+        const [selectedLogoZoneId, setSelectedLogoZoneId] = React.useState<string>('');
         
         return (
           <div
