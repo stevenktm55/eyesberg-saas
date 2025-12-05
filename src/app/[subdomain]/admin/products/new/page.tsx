@@ -2303,15 +2303,29 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : activeModule.contentType === 'logos' && activeModule.selectedItems?.logoLibraryId ? (() => {
-                      const library = logoLibraries.find(l => l.id === activeModule.selectedItems?.logoLibraryId);
-                      if (!library) return <p style={{ color: '#666', fontSize: '14px' }}>Bibliothèque non trouvée</p>;
+                    })() : activeModule.contentType === 'logos' && activeModule.selectedItems?.logoLibraryIds && Array.isArray(activeModule.selectedItems.logoLibraryIds) && activeModule.selectedItems.logoLibraryIds.length > 0 ? (() => {
+                      // Récupérer toutes les bibliothèques sélectionnées
+                      const selectedLibraries = logoLibraries.filter(l => 
+                        activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
+                      );
+                      
+                      // Récupérer tous les logos de toutes les bibliothèques sélectionnées
+                      const allLogos: any[] = [];
+                      selectedLibraries.forEach(library => {
+                        if (library.logos && Array.isArray(library.logos)) {
+                          allLogos.push(...library.logos);
+                        }
+                      });
+                      
+                      if (selectedLibraries.length === 0) {
+                        return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucune bibliothèque trouvée</p>;
+                      }
                       
                       return (
                         <div>
                           {activeModule.inputType === 'thumbnail' && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
-                              {library.logos?.map((logo: any) => (
+                              {allLogos.map((logo: any) => (
                                 <div
                                   key={logo.id}
                                   style={{
@@ -2374,7 +2388,7 @@ export default function ProductBuilderPage() {
                               cursor: 'pointer'
                             }}>
                               <option value="">Sélectionner un logo</option>
-                              {library.logos?.map((logo: any) => (
+                              {allLogos.map((logo: any) => (
                                 <option key={logo.id} value={logo.id}>
                                   {logo.name}
                                 </option>
