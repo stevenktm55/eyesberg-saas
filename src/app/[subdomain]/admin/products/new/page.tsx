@@ -2303,16 +2303,27 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : activeModule.contentType === 'logos' ? (() => {
-                      // Debug: vérifier les valeurs
-                      console.log('🔍 Module logos - activeModule:', {
+                    })() : (() => {
+                      // Debug: vérifier TOUS les modules pour comprendre pourquoi logos n'est pas détecté
+                      console.log('🔍 DEBUG - activeModule:', {
+                        id: activeModule.id,
                         contentType: activeModule.contentType,
+                        contentTypeType: typeof activeModule.contentType,
                         selectedItems: activeModule.selectedItems,
-                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
-                        logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
-                        logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
-                        logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
+                        allKeys: Object.keys(activeModule)
                       });
+                      
+                      if (activeModule.contentType === 'logos') {
+                        console.log('✅ Module logos détecté!');
+                        // Debug: vérifier les valeurs
+                        console.log('🔍 Module logos - activeModule:', {
+                          contentType: activeModule.contentType,
+                          selectedItems: activeModule.selectedItems,
+                          logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
+                          logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
+                          logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
+                          logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
+                        });
                       
                       // Vérifier si des bibliothèques sont sélectionnées
                       const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
