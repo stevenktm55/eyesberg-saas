@@ -114,6 +114,26 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
+// Composant pour l'iframe de prévisualisation (côté client uniquement)
+function PreviewIframe({ productId, shop }: { productId: string; shop: string | null }) {
+  const configuratorUrl = useMemo(() => {
+    const shopParam = shop || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
+    return `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+  }, [productId, shop]);
+
+  return (
+    <iframe
+      src={configuratorUrl}
+      style={{
+        flex: 1,
+        width: '100%',
+        border: 'none',
+        backgroundColor: '#ffffff'
+      }}
+      title="Configurateur Preview"
+    />
+  );
+}
 
 export default function ProductBuilderPage() {
   const router = useRouter();
@@ -1195,10 +1215,7 @@ export default function ProductBuilderPage() {
       fontFamily: 'var(--stepn-font-body), sans-serif'
     }}>
       {/* Preview Mode - Show only configurator */}
-      {previewMode && productId ? (() => {
-        const shop = searchParams.get('shop') || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-        const configuratorUrl = `/configure?shop=${shop}&productId=${productId}&variantId=1`;
-        return (
+      {previewMode && productId && (
           <div style={{
             position: 'fixed',
             top: 0,
@@ -1257,19 +1274,9 @@ export default function ProductBuilderPage() {
               </button>
             </div>
             {/* Configurator iframe */}
-            <iframe
-              src={configuratorUrl}
-              style={{
-                flex: 1,
-                width: '100%',
-                border: 'none',
-                backgroundColor: '#ffffff'
-              }}
-              title="Configurateur Preview"
-            />
+            <PreviewIframe productId={productId} searchParams={searchParams} />
           </div>
-        );
-      })() : null}
+      )}
       
       {/* Main Content */}
       <div style={{
