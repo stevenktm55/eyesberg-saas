@@ -3389,8 +3389,8 @@ export default function ProductBuilderPage() {
                                     const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                                       'front': 'torse',
                                       'back': 'dos',
-                                      'left': 'bras-gauche',
-                                      'right': 'bras-droit'
+                                      'left': 'bras-droit', // Inversé
+                                      'right': 'bras-gauche' // Inversé
                                     };
                                     setTargetView(viewToCategory[view]);
                                   }}
@@ -7805,8 +7805,8 @@ export default function ProductBuilderPage() {
                             const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                               'Face': 'torse',
                               'Dos': 'dos',
-                              'Gauche': 'bras-gauche',
-                              'Droite': 'bras-droit'
+                              'Gauche': 'bras-droit', // Inversé
+                              'Droite': 'bras-gauche' // Inversé
                             };
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
@@ -8212,8 +8212,8 @@ export default function ProductBuilderPage() {
                             const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                               'Face': 'torse',
                               'Dos': 'dos',
-                              'Gauche': 'bras-gauche',
-                              'Droite': 'bras-droit'
+                              'Gauche': 'bras-droit', // Inversé
+                              'Droite': 'bras-gauche' // Inversé
                             };
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
