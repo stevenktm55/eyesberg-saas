@@ -241,6 +241,21 @@ export default function ProductBuilderPage() {
   // États pour le modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
+  
+  // Ouvrir la bibliothèque quand un logo est sélectionné depuis le modèle 3D
+  useEffect(() => {
+    // Vérifier si on est dans le module logos
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+    if (activeModule?.contentType === 'logos' && selectedLogoId && !logoToReplace) {
+      // Vérifier que le logo existe dans placedLogos
+      const logo = placedLogos.find(l => l.id === selectedLogoId);
+      if (logo && !showLogoLibrary) {
+        // Ouvrir la bibliothèque pour remplacer le logo
+        setLogoToReplace(selectedLogoId);
+        setShowLogoLibrary(true);
+      }
+    }
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
