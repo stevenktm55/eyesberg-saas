@@ -5102,6 +5102,26 @@ export default function ProductBuilderPage() {
                                 setTargetView: (view: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null) => void;
                               }) {
                                 const controlsRef = useRef<any>(null);
+                                const rotationInitializedRef = useRef(false);
+                                
+                                // Appliquer la rotation initiale une fois que OrbitControls est prêt
+                                useEffect(() => {
+                                  if (controlsRef.current && !rotationInitializedRef.current && initialRotation !== 0) {
+                                    const camera = controlsRef.current.object;
+                                    const distance = camera.position.length();
+                                    const angleRad = (initialRotation * Math.PI) / 180;
+                                    
+                                    // Rotation autour de l'axe Y (rotation horizontale)
+                                    const x = camera.position.x;
+                                    const z = camera.position.z;
+                                    const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                    const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                    
+                                    camera.position.set(newX, camera.position.y, newZ);
+                                    controlsRef.current.update();
+                                    rotationInitializedRef.current = true;
+                                  }
+                                }, [initialRotation]);
                                 
                                 // Mettre à jour les réglages quand ils changent
                                 useEffect(() => {
