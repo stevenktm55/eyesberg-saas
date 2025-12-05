@@ -4963,11 +4963,17 @@ export default function ProductBuilderPage() {
                             gl={{ preserveDrawingBuffer: true }}
                             style={{ width: '100%', height: '100%' }}
                           >
-                            {/* Composant pour initialiser la caméra avec les réglages */}
+                            {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
                               function CameraInitializer({ initialZoom, initialRotation }: { initialZoom: number; initialRotation: number }) {
                                 const { camera } = useThree();
                                 const initializedRef = useRef(false);
+                                const valuesRef = useRef({ initialZoom, initialRotation });
+                                
+                                // Stocker les valeurs initiales une seule fois
+                                useEffect(() => {
+                                  valuesRef.current = { initialZoom, initialRotation };
+                                }, [initialZoom, initialRotation]);
                                 
                                 useEffect(() => {
                                   // Ne s'exécuter qu'une seule fois au montage
@@ -4977,13 +4983,15 @@ export default function ProductBuilderPage() {
                                   const timer = setTimeout(() => {
                                     if (initializedRef.current) return;
                                     
+                                    const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
+                                    
                                     // Appliquer le zoom initial
-                                    const distance = initialZoom || 5;
+                                    const distance = zoom || 5;
                                     camera.position.set(0, 0, distance);
                                     
                                     // Appliquer la rotation initiale en faisant tourner la position autour du target
-                                    if (initialRotation !== 0) {
-                                      const angleRad = (initialRotation * Math.PI) / 180;
+                                    if (rotation !== 0) {
+                                      const angleRad = (rotation * Math.PI) / 180;
                                       // Rotation autour de l'axe Y
                                       const x = 0;
                                       const z = distance;
