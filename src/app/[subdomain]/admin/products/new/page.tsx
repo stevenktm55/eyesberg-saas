@@ -2699,7 +2699,7 @@ export default function ProductBuilderPage() {
                                   {allVariants.map((variant: any, index: number) => (
                                     <div
                                       key={variant.id || `base-${index}`}
-                                      onClick={() => {
+                                      onClick={async () => {
                                         // Si on est en mode remplacement, remplacer directement le logo
                                         if (logoToReplace) {
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
@@ -2709,14 +2709,51 @@ export default function ProductBuilderPage() {
                                               ? selectedLogoForVariants.file_url 
                                               : (variant.file_url || selectedLogoForVariants.file_url);
                                             
-                                            // Remplacer le logo en conservant position, scale, rotation, category
+                                            // Calculer les dimensions du nouveau logo
+                                            let logoWidth: number | undefined = undefined;
+                                            let logoHeight: number | undefined = undefined;
+                                            
+                                            try {
+                                              const response = await fetch(fileToUse);
+                                              const svgText = await response.text();
+                                              const parser = new DOMParser();
+                                              const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                                              const svgElement = svgDoc.querySelector('svg');
+                                              if (svgElement) {
+                                                const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+                                                const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+                                                const viewBox = svgElement.getAttribute('viewBox');
+                                                
+                                                let actualWidth = svgWidth;
+                                                let actualHeight = svgHeight;
+                                                
+                                                if (viewBox) {
+                                                  const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+                                                  if (vbWidth && vbHeight) {
+                                                    actualWidth = vbWidth;
+                                                    actualHeight = vbHeight;
+                                                  }
+                                                }
+                                                
+                                                if (actualWidth > 0 && actualHeight > 0) {
+                                                  logoWidth = actualWidth;
+                                                  logoHeight = actualHeight;
+                                                }
+                                              }
+                                            } catch (error) {
+                                              console.error('Erreur lors du calcul des dimensions du logo:', error);
+                                            }
+                                            
+                                            // Remplacer le logo en conservant position, scale, rotation, category, et mettre à jour les dimensions
                                             setPlacedLogos(prev => prev.map(l => 
                                               l.id === logoToReplace 
                                                 ? {
                                                     ...l,
                                                     logoId: selectedLogoForVariants.id,
                                                     variantId: variant.id === 'base' ? undefined : variant.id,
-                                                    variantFile: fileToUse
+                                                    variantFile: fileToUse,
+                                                    width: logoWidth,
+                                                    height: logoHeight
                                                   }
                                                 : l
                                             ));
@@ -2888,7 +2925,7 @@ export default function ProductBuilderPage() {
                                   return (
                                     <div
                                       key={logo.id}
-                                      onClick={() => {
+                                      onClick={async () => {
                                         // Si le logo a des variantes, toujours ouvrir la vue des variantes (même en mode remplacement)
                                         if (hasVariants) {
                                           setSelectedLogoForVariants(logo);
@@ -2899,14 +2936,51 @@ export default function ProductBuilderPage() {
                                         if (logoToReplace) {
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
                                           if (logoToReplaceData) {
-                                            // Remplacer le logo en conservant position, scale, rotation, category
+                                            // Calculer les dimensions du nouveau logo
+                                            let logoWidth: number | undefined = undefined;
+                                            let logoHeight: number | undefined = undefined;
+                                            
+                                            try {
+                                              const response = await fetch(logo.file_url);
+                                              const svgText = await response.text();
+                                              const parser = new DOMParser();
+                                              const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                                              const svgElement = svgDoc.querySelector('svg');
+                                              if (svgElement) {
+                                                const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+                                                const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+                                                const viewBox = svgElement.getAttribute('viewBox');
+                                                
+                                                let actualWidth = svgWidth;
+                                                let actualHeight = svgHeight;
+                                                
+                                                if (viewBox) {
+                                                  const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+                                                  if (vbWidth && vbHeight) {
+                                                    actualWidth = vbWidth;
+                                                    actualHeight = vbHeight;
+                                                  }
+                                                }
+                                                
+                                                if (actualWidth > 0 && actualHeight > 0) {
+                                                  logoWidth = actualWidth;
+                                                  logoHeight = actualHeight;
+                                                }
+                                              }
+                                            } catch (error) {
+                                              console.error('Erreur lors du calcul des dimensions du logo:', error);
+                                            }
+                                            
+                                            // Remplacer le logo en conservant position, scale, rotation, category, et mettre à jour les dimensions
                                             setPlacedLogos(prev => prev.map(l => 
                                               l.id === logoToReplace 
                                                 ? {
                                                     ...l,
                                                     logoId: logo.id,
                                                     variantId: undefined,
-                                                    variantFile: logo.file_url
+                                                    variantFile: logo.file_url,
+                                                    width: logoWidth,
+                                                    height: logoHeight
                                                   }
                                                 : l
                                             ));
