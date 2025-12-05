@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
@@ -1274,7 +1274,7 @@ export default function ProductBuilderPage() {
               </button>
             </div>
             {/* Configurator iframe */}
-            <PreviewIframe productId={productId} searchParams={searchParams} />
+            <PreviewIframe productId={productId} shop={searchParams.get('shop')} />
           </div>
       )}
       
