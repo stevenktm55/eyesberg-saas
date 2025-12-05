@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
         },
         // Ajouter un timeout
         signal: AbortSignal.timeout(10000), // 10 secondes
+        // Ne pas suivre les redirections automatiquement pour détecter les pages de mot de passe
+        redirect: 'manual',
       });
     } catch (fetchError) {
       console.error('❌ Fetch error:', fetchError);
@@ -67,9 +69,65 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Vérifier si la boutique est protégée par un mot de passe (redirection 302 vers /password)
+    if (response.status === 302 || response.status === 301) {
+      const location = response.headers.get('location') || '';
+      if (location.includes('/password')) {
+        return NextResponse.json(
+          { 
+            error: 'La boutique Shopify est protégée par un mot de passe',
+            hint: 'Pour utiliser l\'API publique JSON, vous devez désactiver la protection par mot de passe dans les paramètres de votre boutique Shopify (Settings > Password protection)',
+            attemptedUrl: url,
+            solution: 'Allez dans Shopify Admin > Settings > Password protection et désactivez la protection par mot de passe'
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Si la réponse n'est pas OK, suivre la redirection manuellement
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('🔄 Following redirect to:', location);
+        try {
+          response = await fetch(location, {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (compatible; StretchMX-Configurator/1.0)',
+            },
+            signal: AbortSignal.timeout(10000),
+          });
+        } catch (redirectError) {
+          console.error('❌ Redirect fetch error:', redirectError);
+          return NextResponse.json(
+            { 
+              error: 'Failed to follow redirect',
+              message: redirectError instanceof Error ? redirectError.message : 'Unknown error',
+              hint: 'Please verify the shop domain is correct and accessible'
+            },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => response.statusText);
       console.error('❌ Shopify API error:', response.status, errorText);
+      
+      // Vérifier si c'est une page de mot de passe
+      if (response.status === 200 && errorText.includes('password') || response.url?.includes('/password')) {
+        return NextResponse.json(
+          { 
+            error: 'La boutique Shopify est protégée par un mot de passe',
+            hint: 'Pour utiliser l\'API publique JSON, vous devez désactiver la protection par mot de passe dans les paramètres de votre boutique Shopify (Settings > Password protection)',
+            attemptedUrl: url,
+            solution: 'Allez dans Shopify Admin > Settings > Password protection et désactivez la protection par mot de passe'
+          },
+          { status: 403 }
+        );
+      }
       
       // Si l'API publique ne fonctionne pas, retourner un message d'erreur explicite
       if (response.status === 404) {

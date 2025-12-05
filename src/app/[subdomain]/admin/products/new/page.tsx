@@ -308,15 +308,30 @@ function ConnectTabContent({
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', marginBottom: '8px', color: '#ef4444', fontSize: '14px' }}>Erreur</div>
                 <div style={{ color: '#ef4444', fontSize: '14px', whiteSpace: 'pre-line' }}>{error}</div>
-                <div style={{ marginTop: '12px', fontSize: '12px', color: '#888888' }}>
-                  <strong>Conseils :</strong>
-                  <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
-                    <li>Vérifiez que le domaine est correct (ex: <code style={{ color: '#8eff36' }}>votre-boutique.myshopify.com</code>)</li>
-                    <li>Assurez-vous que la boutique Shopify est accessible publiquement</li>
-                    <li>Vérifiez que l'API publique JSON est activée (par défaut activée)</li>
-                    <li>Essayez d'accéder directement à : <code style={{ color: '#8eff36' }}>https://{shopDomain || 'votre-boutique.myshopify.com'}/products.json</code></li>
-                  </ul>
-                </div>
+                {error.includes('protégée par un mot de passe') && (
+                  <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#1a2a1a', borderRadius: '6px', border: '1px solid #8eff36' }}>
+                    <div style={{ fontSize: '12px', color: '#8eff36', fontWeight: '600', marginBottom: '8px' }}>💡 Solution :</div>
+                    <div style={{ fontSize: '12px', color: '#ffffff' }}>
+                      <ol style={{ margin: 0, paddingLeft: '20px' }}>
+                        <li>Connectez-vous à votre admin Shopify</li>
+                        <li>Allez dans <strong>Settings</strong> → <strong>Password protection</strong></li>
+                        <li>Désactivez la protection par mot de passe</li>
+                        <li>Rechargez les produits ici</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+                {!error.includes('protégée par un mot de passe') && (
+                  <div style={{ marginTop: '12px', fontSize: '12px', color: '#888888' }}>
+                    <strong>Conseils :</strong>
+                    <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                      <li>Vérifiez que le domaine est correct (ex: <code style={{ color: '#8eff36' }}>votre-boutique.myshopify.com</code>)</li>
+                      <li>Assurez-vous que la boutique Shopify est accessible publiquement</li>
+                      <li>Vérifiez que l'API publique JSON est activée (par défaut activée)</li>
+                      <li>Essayez d'accéder directement à : <code style={{ color: '#8eff36' }}>https://{shopDomain || 'votre-boutique.myshopify.com'}/products.json</code></li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
