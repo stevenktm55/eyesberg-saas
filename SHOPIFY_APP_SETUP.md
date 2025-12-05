@@ -89,7 +89,30 @@ read_orders,read_products,write_products,write_script_tags,read_customers
 2. Cliquez sur le bouton **"Release"** en haut à droite
 3. La version sera créée et activée
 
-⚠️ **Note importante** : Après avoir créé la version, vous devrez peut-être attendre quelques minutes pour que les changements soient pris en compte.
+### Étape 7 : Configurer le mode de distribution
+
+**⚠️ IMPORTANT :** Même après avoir créé une version, vous devez configurer le mode de distribution :
+
+1. Dans le **Partner Dashboard**, allez dans votre application "Eyesberg"
+2. Dans le menu de gauche, cliquez sur **"Distribution"**
+3. Vous verrez les options de distribution :
+   - **Custom app** (pour le développement et les installations privées)
+   - **Public app** (pour l'App Store - nécessite une soumission)
+   - **Unlisted app** (pour les installations via lien direct)
+
+4. Pour le développement et les installations privées, choisissez **"Custom app"** ou **"Unlisted app"**
+5. Configurez les options demandées
+6. **Sauvegardez** la configuration
+
+**Alternative :** Si vous ne trouvez pas "Distribution" dans le menu :
+- Retournez à la page "Aperçu" (Overview)
+- Cherchez la carte **"Préparer la phase de production"**
+- Cliquez sur le bouton vert **"Choisir la distribution"**
+- Sélectionnez **"Custom app"** ou **"Unlisted app"**
+
+⚠️ **Note importante** : 
+- Après avoir configuré la distribution, attendez quelques minutes pour que les changements soient pris en compte
+- Si le message persiste, essayez de désinstaller et réinstaller l'application depuis Shopify Admin
 
 ### Étape 5 : Configurer les scopes (permissions)
 
