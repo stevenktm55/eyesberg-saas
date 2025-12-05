@@ -889,7 +889,7 @@ export default function ProductBuilderPage() {
   // Logo management functions
   const addLogo = async (
     logoId: string,
-    variantId: string,
+    variantId: string | undefined,
     variantFile: string,
     position: [number, number, number],
     category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit',
@@ -2509,10 +2509,18 @@ export default function ProductBuilderPage() {
                           // Construire la liste des variantes : logo de base + variantes
                           const baseVariant = {
                             id: 'base',
-                            file: selectedLogoForVariants.file_url,
-                            name: selectedLogoForVariants.name
+                            file: selectedLogoForVariants.file_url || '',
+                            name: selectedLogoForVariants.name || 'Logo de base'
                           };
                           const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
+                          
+                          console.log('🔍 Variantes du logo:', {
+                            logoId: selectedLogoForVariants.id,
+                            logoName: selectedLogoForVariants.name,
+                            baseFile: baseVariant.file,
+                            variantsCount: selectedLogoForVariants.variants?.length || 0,
+                            allVariants: allVariants.map(v => ({ id: v.id, file: v.file, name: v.name }))
+                          });
                           
                           return (
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -2563,10 +2571,15 @@ export default function ProductBuilderPage() {
                                       onClick={() => {
                                         // Si mode zones, ouvrir le modal de sélection de zone
                                         if (activeModule.logoPlacementMode === 'zones') {
+                                          // Pour le logo de base, utiliser file_url, pour les variantes utiliser variant.file
+                                          const fileToUse = variant.id === 'base' 
+                                            ? selectedLogoForVariants.file_url 
+                                            : (variant.file || selectedLogoForVariants.file_url);
+                                          
                                           setSelectedLogoForZone({
                                             logoId: selectedLogoForVariants.id,
                                             variantId: variant.id === 'base' ? undefined : variant.id,
-                                            variantFile: variant.file || selectedLogoForVariants.file_url
+                                            variantFile: fileToUse
                                           });
                                           setShowLogoZoneModal(true);
                                           setSelectedLogoForVariants(null);
@@ -2607,7 +2620,9 @@ export default function ProductBuilderPage() {
                                         }}
                                       >
                                         <img
-                                          src={variant.file || selectedLogoForVariants.file_url}
+                                          src={variant.id === 'base' 
+                                            ? selectedLogoForVariants.file_url 
+                                            : (variant.file || selectedLogoForVariants.file_url)}
                                           alt={variant.name || selectedLogoForVariants.name}
                                           style={{
                                             maxWidth: '100%',
@@ -7647,10 +7662,17 @@ export default function ProductBuilderPage() {
                             const zoneHeight = (selectedZone as any).height || 0.1;
                             
                             // Ajouter le logo sur la zone
+                            // Utiliser variantFile si disponible, sinon utiliser le file_url du logo
+                            const logoFile = selectedLogoForZone.variantFile || '';
+                            if (!logoFile) {
+                              console.error('❌ Aucun fichier de logo disponible');
+                              return;
+                            }
+                            
                             addLogo(
                               selectedLogoForZone.logoId,
-                              selectedLogoForZone.variantId || '',
-                              selectedLogoForZone.variantFile || '',
+                              selectedLogoForZone.variantId,
+                              logoFile,
                               zonePosition,
                               zoneCategory || 'torse',
                               zoneWidth,
