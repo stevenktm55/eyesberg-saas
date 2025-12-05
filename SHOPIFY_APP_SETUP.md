@@ -91,24 +91,49 @@ read_orders,read_products,write_products,write_script_tags,read_customers
 
 ### Étape 7 : Configurer le mode de distribution
 
-**⚠️ IMPORTANT :** Même après avoir créé une version, vous devez configurer le mode de distribution :
+**⚠️ DÉCISION IMPORTANTE :** Vous devez choisir un mode de distribution. Cette décision peut être irréversible !
 
-1. Dans le **Partner Dashboard**, allez dans votre application "Eyesberg"
-2. Dans le menu de gauche, cliquez sur **"Distribution"**
-3. Vous verrez les options de distribution :
-   - **Custom app** (pour le développement et les installations privées)
-   - **Public app** (pour l'App Store - nécessite une soumission)
-   - **Unlisted app** (pour les installations via lien direct)
+#### Options disponibles :
 
-4. Pour le développement et les installations privées, choisissez **"Custom app"** ou **"Unlisted app"**
-5. Configurez les options demandées
-6. **Sauvegardez** la configuration
+1. **Custom app (Distribution personnalisée)**
+   - ✅ Permet l'installation par une seule boutique ou organisation Shopify Plus
+   - ✅ Idéal pour le développement et les installations privées
+   - ❌ **IRRÉVERSIBLE** - Vous ne pourrez pas publier sur l'App Store plus tard
+   - ❌ Limité à une seule boutique/organisation
 
-**Alternative :** Si vous ne trouvez pas "Distribution" dans le menu :
-- Retournez à la page "Aperçu" (Overview)
-- Cherchez la carte **"Préparer la phase de production"**
-- Cliquez sur le bouton vert **"Choisir la distribution"**
-- Sélectionnez **"Custom app"** ou **"Unlisted app"**
+2. **Public app (App Store)**
+   - ✅ Peut être installée par n'importe quelle boutique depuis l'App Store
+   - ✅ Idéal pour un SaaS multi-tenant
+   - ❌ Nécessite une soumission et approbation par Shopify
+   - ❌ Processus de review plus strict
+
+3. **Unlisted app (Non listée)**
+   - ✅ Installation via lien direct (sans App Store)
+   - ✅ Peut être convertie en Public app plus tard
+   - ✅ Idéal pour un SaaS qui veut installer via son propre système
+   - ⚠️ Nécessite de générer des liens d'installation personnalisés
+
+#### 🎯 Recommandation pour votre cas (SaaS multi-tenant) :
+
+**Option A : Unlisted app (RECOMMANDÉ)**
+- Permet d'installer l'app via votre système d'admin (ce que vous faites déjà)
+- Peut être convertie en Public app plus tard si vous voulez publier sur l'App Store
+- Plus flexible pour un SaaS
+
+**Option B : Public app**
+- Si vous voulez que les boutiques puissent installer directement depuis l'App Store
+- Nécessite de soumettre l'app à Shopify pour review
+- Meilleur pour la visibilité et la croissance
+
+**Option C : Custom app**
+- Seulement si vous êtes sûr de ne jamais vouloir publier sur l'App Store
+- Limité à une seule boutique/organisation
+
+#### Comment choisir :
+
+1. Si vous voulez garder la possibilité de publier sur l'App Store plus tard → **Unlisted app**
+2. Si vous voulez publier sur l'App Store maintenant → **Public app** (mais il faudra soumettre l'app)
+3. Si vous êtes sûr de ne jamais vouloir l'App Store → **Custom app**
 
 ⚠️ **Note importante** : 
 - Après avoir configuré la distribution, attendez quelques minutes pour que les changements soient pris en compte
