@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
+import { OrbitControls } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
-// Temporairement désactivés pour déboguer l'erreur React #130
-// import { CameraInitializer } from '@/components/CameraInitializer';
-// import { ControlsManager } from '@/components/ControlsManager';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -115,8 +114,6 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
-// Composants CameraInitializer et ControlsManager sont maintenant dans des fichiers séparés
-// pour éviter les problèmes avec les hooks React
 
 export default function ProductBuilderPage() {
   const router = useRouter();
@@ -165,6 +162,7 @@ export default function ProductBuilderPage() {
   const [maxZoom, setMaxZoom] = useState(10);
   const [initialZoom, setInitialZoom] = useState(5);
   const [initialRotation, setInitialRotation] = useState(0);
+  const [previewMode, setPreviewMode] = useState(false);
   // Distances de zoom par vue
   const [viewDistance, setViewDistance] = useState<Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>>({
     'torse': 5,
@@ -1196,6 +1194,83 @@ export default function ProductBuilderPage() {
       display: 'flex',
       fontFamily: 'var(--stepn-font-body), sans-serif'
     }}>
+      {/* Preview Mode - Show only configurator */}
+      {previewMode && productId ? (() => {
+        const shop = searchParams.get('shop') || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
+        const configuratorUrl = `/configure?shop=${shop}&productId=${productId}&variantId=1`;
+        return (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#ffffff',
+            zIndex: 10000,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Preview Header */}
+            <div style={{
+              padding: '12px 24px',
+              backgroundColor: '#0a0a0a',
+              borderBottom: '1px solid #1a1a1a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <span style={{
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontWeight: '600'
+                }}>
+                  Mode Prévisualisation
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewMode(false)}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1a1a1a';
+                }}
+              >
+                Fermer la prévisualisation
+              </button>
+            </div>
+            {/* Configurator iframe */}
+            <iframe
+              src={configuratorUrl}
+              style={{
+                flex: 1,
+                width: '100%',
+                border: 'none',
+                backgroundColor: '#ffffff'
+              }}
+              title="Configurateur Preview"
+            />
+          </div>
+        );
+      })() : null}
+      
       {/* Main Content */}
       <div style={{
         flex: 1,
@@ -1356,40 +1431,21 @@ export default function ProductBuilderPage() {
           {/* Right: Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
-              onClick={() => {
-                if (!productId) return;
-                const shop = searchParams.get('shop') || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-                const configuratorUrl = `/configure?shop=${shop}&productId=${productId}&variantId=1`;
-                window.open(configuratorUrl, '_blank');
-              }}
-              disabled={!productId}
+              onClick={() => setPreviewMode(!previewMode)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '6px 12px',
-                backgroundColor: productId ? '#1a1a1a' : '#0a0a0a',
+                backgroundColor: previewMode ? '#8eff36' : '#1a1a1a',
                 borderRadius: '4px',
                 border: '1px solid #2a2a2a',
-                cursor: productId ? 'pointer' : 'not-allowed',
-                color: productId ? '#a0a0a0' : '#666666',
+                cursor: 'pointer',
+                color: previewMode ? '#000000' : '#a0a0a0',
                 fontSize: '16px',
-                transition: 'all 0.2s',
-                opacity: productId ? 1 : 0.5
+                transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => {
-                if (productId) {
-                  e.currentTarget.style.backgroundColor = '#2a2a2a';
-                  e.currentTarget.style.color = '#8eff36';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (productId) {
-                  e.currentTarget.style.backgroundColor = '#1a1a1a';
-                  e.currentTarget.style.color = '#a0a0a0';
-                }
-              }}
-              title="Prévisualiser le configurateur dans un nouvel onglet"
+              title="Prévisualiser le configurateur"
             >
               👁
             </button>
@@ -4964,8 +5020,55 @@ export default function ProductBuilderPage() {
                             style={{ width: '100%', height: '100%' }}
                           >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
-                            {/* Temporairement désactivé pour déboguer l'erreur React #130 */}
-                            {/* <CameraInitializer initialZoom={initialZoom || 5} initialRotation={initialRotation || 0} viewHasBeenSetRef={viewHasBeenSetRef} /> */}
+                            {(() => {
+                              function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
+                                const { camera } = useThree();
+                                const initializedRef = useRef(false);
+                                const valuesRef = useRef({ initialZoom, initialRotation });
+                                
+                                // Stocker les valeurs initiales
+                                useEffect(() => {
+                                  valuesRef.current = { initialZoom, initialRotation };
+                                }, [initialZoom, initialRotation]);
+                                
+                                useEffect(() => {
+                                  // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
+                                  if (initializedRef.current || viewHasBeenSetRef.current) return;
+                                  
+                                  // Attendre un peu pour s'assurer que OrbitControls est prêt
+                                  const timer = setTimeout(() => {
+                                    // Vérifier à nouveau si une vue a été définie entre-temps
+                                    if (initializedRef.current || viewHasBeenSetRef.current) return;
+                                    
+                                    const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
+                                    
+                                    // Appliquer le zoom initial
+                                    const distance = zoom || 5;
+                                    camera.position.set(0, 0, distance);
+                                    
+                                    // Appliquer la rotation initiale en faisant tourner la position autour du target
+                                    if (rotation !== 0) {
+                                      const angleRad = (rotation * Math.PI) / 180;
+                                      // Rotation autour de l'axe Y
+                                      const x = 0;
+                                      const z = distance;
+                                      const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                      const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                      camera.position.set(newX, camera.position.y, newZ);
+                                    }
+                                    
+                                    camera.updateProjectionMatrix();
+                                    initializedRef.current = true;
+                                  }, 200);
+                                  
+                                  return () => clearTimeout(timer);
+                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
+                                
+                                return null;
+                              }
+                              // Passer le ref persistant pour savoir si une vue a été définie
+                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
+                            })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
                             <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
@@ -4978,14 +5081,9 @@ export default function ProductBuilderPage() {
                             }>
                               {modelUrl && (() => {
                                 // Créer un tableau de toutes les fonts disponibles pour ModelViewer
-                                // NE PAS utiliser getTextModuleConfig() ici car c'est un hook et ne peut pas être appelé dans une IIFE
                                 const allFontsForViewer: Array<{ id: string; display_name: string; font_url: string }> = [];
-                                
-                                // Utiliser directement customizationModules au lieu de getTextModuleConfig()
-                                const activeTextModule = customizationModules.find(
-                                  module => module.contentType === 'text' && module.id === activeCustomizerTab
-                                ) || customizationModules.find(module => module.contentType === 'text');
-                                const allowedGroupIds = activeTextModule?.selectedItems?.fontGroupIds;
+                                const activeModule = getTextModuleConfig();
+                                const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
                                 
                                 fontGroups.forEach(group => {
                                   if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
@@ -5043,24 +5141,127 @@ export default function ProductBuilderPage() {
                                 );
                               })()}
                             </Suspense>
-                            {/* Temporairement désactivé pour déboguer l'erreur React #130 */}
-                            {/* <ControlsManager
-                              targetView={targetView}
-                              viewDistance={viewDistance}
-                              initialZoom={initialZoom}
-                              initialRotation={initialRotation}
-                              zoomSpeed={zoomSpeed}
-                              rotateSpeed={rotateSpeed}
-                              minZoom={minZoom}
-                              maxZoom={maxZoom}
-                              selectedTextId={selectedTextId}
-                              isPlacingText={isPlacingText}
-                              isDraggingText={isDraggingText}
-                              isRotatingText={isRotatingText}
-                              isResizingText={isResizingText}
-                              setTargetView={setTargetView}
-                              viewHasBeenSetRef={viewHasBeenSetRef}
-                            /> */}
+                            {(() => {
+                              // Composant pour gérer OrbitControls avec les réglages
+                              function ControlsManager({ 
+                                targetView, 
+                                viewDistance, 
+                                initialZoom, 
+                                initialRotation, 
+                                zoomSpeed, 
+                                rotateSpeed, 
+                                minZoom, 
+                                maxZoom,
+                                selectedTextId,
+                                isPlacingText,
+                                isDraggingText,
+                                isRotatingText,
+                                isResizingText,
+                                setTargetView,
+                                viewHasBeenSetRef
+                              }: {
+                                targetView: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null;
+                                viewDistance: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>;
+                                initialZoom: number;
+                                initialRotation: number;
+                                zoomSpeed: number;
+                                rotateSpeed: number;
+                                minZoom: number;
+                                maxZoom: number;
+                                selectedTextId: string | null;
+                                isPlacingText: 'nom' | 'numero' | null;
+                                isDraggingText: boolean;
+                                isRotatingText: boolean;
+                                isResizingText: boolean;
+                                setTargetView: (view: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null) => void;
+                                viewHasBeenSetRef: React.MutableRefObject<boolean>;
+                              }) {
+                                const controlsRef = useRef<any>(null);
+                                const rotationInitializedRef = useRef(false);
+                                
+                                // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
+                                
+                                // Mettre à jour les réglages quand ils changent
+                                useEffect(() => {
+                                  if (controlsRef.current) {
+                                    controlsRef.current.zoomSpeed = zoomSpeed;
+                                    controlsRef.current.rotateSpeed = rotateSpeed;
+                                    controlsRef.current.minDistance = minZoom;
+                                    controlsRef.current.maxDistance = maxZoom;
+                                  }
+                                }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
+                                
+                                // Gérer le changement de vue (sans appliquer la rotation initiale)
+                                useEffect(() => {
+                                  if (controlsRef.current && targetView) {
+                                    // Marquer qu'une vue a été définie (persistant, ne se réinitialise jamais)
+                                    viewHasBeenSetRef.current = true;
+                                    
+                                    const camera = controlsRef.current.object;
+                                    const distance = viewDistance[targetView] || initialZoom;
+                                    // Positionner la caméra aux positions standard (sans rotation initiale)
+                                    switch (targetView) {
+                                      case 'torse':
+                                        camera.position.set(0, 0, distance);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'dos':
+                                        camera.position.set(0, 0, -distance);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'bras-gauche':
+                                        camera.position.set(-distance, 0, 0);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'bras-droit':
+                                        camera.position.set(distance, 0, 0);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                    }
+                                    // S'assurer que la rotation de la caméra est réinitialisée (pas de rotation initiale lors du changement de vue)
+                                    camera.rotation.set(0, 0, 0);
+                                    controlsRef.current.update();
+                                    setTimeout(() => {
+                                      setTargetView(null);
+                                    }, 100);
+                                  }
+                                }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
+                                
+                                return (
+                                  <OrbitControls
+                                    ref={controlsRef}
+                                    enablePan={false}
+                                    enableZoom={!selectedTextId && !isPlacingText}
+                                    enableRotate={!selectedTextId && !isPlacingText}
+                                    enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
+                                    minDistance={minZoom}
+                                    maxDistance={maxZoom}
+                                    zoomSpeed={zoomSpeed}
+                                    rotateSpeed={rotateSpeed}
+                                  />
+                                );
+                              }
+                              
+                              return (
+                                <ControlsManager
+                                  targetView={targetView}
+                                  viewDistance={viewDistance}
+                                  initialZoom={initialZoom}
+                                  initialRotation={initialRotation}
+                                  zoomSpeed={zoomSpeed}
+                                  rotateSpeed={rotateSpeed}
+                                  minZoom={minZoom}
+                                  maxZoom={maxZoom}
+                                  selectedTextId={selectedTextId}
+                                  isPlacingText={isPlacingText}
+                                  isDraggingText={isDraggingText}
+                                  isRotatingText={isRotatingText}
+                                  isResizingText={isResizingText}
+                                  setTargetView={setTargetView}
+                                  viewHasBeenSetRef={viewHasBeenSetRef}
+                                />
+                              );
+                            })()}
                           </Canvas>
                           
                           {/* UV2 Preview Window - Outside Canvas */}
@@ -8304,7 +8505,9 @@ export default function ProductBuilderPage() {
       })()}
       
       {/* Modal de confirmation de suppression */}
-      {showDeleteModal && itemToDelete && (
+      {showDeleteModal && itemToDelete && (() => {
+        console.log('🎨 Rendering delete modal:', { showDeleteModal, itemToDelete });
+        return (
           <div
             style={{
               position: 'fixed',
@@ -8463,7 +8666,8 @@ export default function ProductBuilderPage() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
