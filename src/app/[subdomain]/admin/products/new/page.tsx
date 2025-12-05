@@ -873,16 +873,19 @@ export default function ProductBuilderPage() {
   const confirmDeleteLogo = (id: string) => {
     console.log('🗑️ confirmDeleteLogo called with id:', id);
     console.log('📋 placedLogos:', placedLogos);
+    console.log('📚 logoLibraries:', logoLibraries);
     const logo = placedLogos.find(l => l.id === id);
     console.log('🔍 Found logo:', logo);
     if (logo) {
       // Trouver le nom du logo depuis les bibliothèques
       let logoName = 'Logo';
-      for (const library of logoLibraries) {
-        const foundLogo = library.logos?.find((l: any) => l.id === logo.logoId);
-        if (foundLogo) {
-          logoName = foundLogo.name || 'Logo';
-          break;
+      if (logoLibraries && logoLibraries.length > 0) {
+        for (const library of logoLibraries) {
+          const foundLogo = library.logos?.find((l: any) => l.id === logo.logoId);
+          if (foundLogo) {
+            logoName = foundLogo.name || 'Logo';
+            break;
+          }
         }
       }
       console.log('✅ Setting delete modal for logo:', logoName);
@@ -892,9 +895,16 @@ export default function ProductBuilderPage() {
         type: 'logo'
       });
       setShowDeleteModal(true);
-      console.log('✅ Modal should be visible now');
+      console.log('✅ Modal state set - showDeleteModal:', true, 'itemToDelete:', { id, name: logoName, type: 'logo' });
     } else {
       console.error('❌ Logo not found with id:', id);
+      // Ouvrir quand même le modal avec un nom par défaut
+      setItemToDelete({
+        id,
+        name: 'Logo',
+        type: 'logo'
+      });
+      setShowDeleteModal(true);
     }
   };
   
