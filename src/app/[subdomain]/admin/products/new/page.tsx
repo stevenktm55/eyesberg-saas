@@ -1537,7 +1537,8 @@ export default function ProductBuilderPage() {
       minHeight: '100vh', 
       backgroundColor: '#000000',
       display: 'flex',
-      fontFamily: 'var(--stepn-font-body), sans-serif'
+      fontFamily: 'var(--stepn-font-body), sans-serif',
+      flexDirection: 'column'
     }}>
       {/* Preview Mode - Show only configurator */}
       {previewMode && productId && (
@@ -9011,6 +9012,7 @@ export default function ProductBuilderPage() {
         </div>
         );
       })()}
+      </div>
     </div>
   );
 }
