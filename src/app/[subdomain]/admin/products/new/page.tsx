@@ -135,6 +135,328 @@ function PreviewIframe({ productId, shop }: { productId: string; shop: string | 
   );
 }
 
+// Composant pour l'onglet Connect
+function ConnectTabContent({ 
+  shop, 
+  productId,
+  onProductLinked 
+}: { 
+  shop: string | null; 
+  productId: string | null;
+  onProductLinked: (shopifyProductId: string, shopifyVariantId: string) => void;
+}) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
+  const [shopDomain, setShopDomain] = useState(shop || '');
+
+  const fetchProducts = async () => {
+    if (!shopDomain) {
+      setError('Veuillez entrer le domaine de votre boutique Shopify');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/shopify/products?shop=${encodeURIComponent(shopDomain)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de la récupération des produits');
+      }
+
+      setProducts(data.products || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLinkProduct = () => {
+    if (!selectedProduct || !selectedVariant) {
+      setError('Veuillez sélectionner un produit et une variante');
+      return;
+    }
+
+    onProductLinked(selectedProduct.id, selectedVariant.id);
+    setError(null);
+  };
+
+  return (
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#0a0a0a',
+      padding: '32px',
+      overflow: 'auto'
+    }}>
+      <div style={{
+        maxWidth: '800px',
+        margin: '0 auto',
+        width: '100%'
+      }}>
+        <h2 style={{
+          fontSize: '24px',
+          fontFamily: 'var(--stepn-font-body)',
+          color: '#ffffff',
+          marginBottom: '8px',
+          fontWeight: '600'
+        }}>
+          Connecter à Shopify
+        </h2>
+        <p style={{
+          fontSize: '14px',
+          fontFamily: 'var(--stepn-font-body)',
+          color: '#a0a0a0',
+          marginBottom: '32px'
+        }}>
+          Sélectionnez le produit Shopify sur lequel vous souhaitez afficher ce configurateur.
+        </p>
+
+        {/* Shop Domain Input */}
+        <div style={{ marginBottom: '24px' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '14px',
+            fontFamily: 'var(--stepn-font-body)',
+            color: '#ffffff',
+            marginBottom: '8px',
+            fontWeight: '500'
+          }}>
+            Domaine de votre boutique Shopify
+          </label>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <input
+              type="text"
+              value={shopDomain}
+              onChange={(e) => setShopDomain(e.target.value)}
+              placeholder="votre-boutique.myshopify.com"
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)',
+                outline: 'none'
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  fetchProducts();
+                }
+              }}
+            />
+            <button
+              onClick={fetchProducts}
+              disabled={loading || !shopDomain}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: loading || !shopDomain ? '#2a2a2a' : '#8eff36',
+                border: 'none',
+                borderRadius: '8px',
+                color: loading || !shopDomain ? '#666666' : '#000000',
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)',
+                fontWeight: '600',
+                cursor: loading || !shopDomain ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {loading ? 'Chargement...' : 'Charger les produits'}
+            </button>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            marginBottom: '24px'
+          }}>
+            <p style={{
+              fontSize: '14px',
+              fontFamily: 'var(--stepn-font-body)',
+              color: '#dc2626',
+              margin: 0
+            }}>
+              {error}
+            </p>
+          </div>
+        )}
+
+        {/* Products List */}
+        {products.length > 0 && (
+          <div>
+            <h3 style={{
+              fontSize: '18px',
+              fontFamily: 'var(--stepn-font-body)',
+              color: '#ffffff',
+              marginBottom: '16px',
+              fontWeight: '600'
+            }}>
+              Sélectionnez un produit ({products.length} trouvé{products.length > 1 ? 's' : ''})
+            </h3>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              maxHeight: '500px',
+              overflowY: 'auto'
+            }}>
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setSelectedVariant(product.variants[0] || null);
+                  }}
+                  style={{
+                    padding: '16px',
+                    backgroundColor: selectedProduct?.id === product.id ? '#1a1a1a' : '#0a0a0a',
+                    border: selectedProduct?.id === product.id ? '2px solid #8eff36' : '1px solid #2a2a2a',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    {product.images[0] && (
+                      <img
+                        src={product.images[0].src}
+                        alt={product.title}
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          backgroundColor: '#1a1a1a'
+                        }}
+                      />
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{
+                        fontSize: '16px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        color: '#ffffff',
+                        margin: '0 0 8px 0',
+                        fontWeight: '600'
+                      }}>
+                        {product.title}
+                      </h4>
+                      {product.vendor && (
+                        <p style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#a0a0a0',
+                          margin: '0 0 8px 0'
+                        }}>
+                          {product.vendor}
+                        </p>
+                      )}
+                      {selectedProduct?.id === product.id && (
+                        <div style={{ marginTop: '12px' }}>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontFamily: 'var(--stepn-font-body)',
+                            color: '#a0a0a0',
+                            marginBottom: '8px'
+                          }}>
+                            Variante
+                          </label>
+                          <select
+                            value={selectedVariant?.id || ''}
+                            onChange={(e) => {
+                              const variant = product.variants.find((v: any) => v.id === e.target.value);
+                              setSelectedVariant(variant || null);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              backgroundColor: '#0a0a0a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '6px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              outline: 'none',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {product.variants.map((variant: any) => (
+                              <option key={variant.id} value={variant.id}>
+                                {variant.title} - {variant.price}€
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Link Button */}
+            {selectedProduct && selectedVariant && (
+              <div style={{ marginTop: '24px' }}>
+                <button
+                  onClick={handleLinkProduct}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    backgroundColor: '#8eff36',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#000000',
+                    fontSize: '16px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#7ae626';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#8eff36';
+                  }}
+                >
+                  Connecter "{selectedProduct.title}" à ce configurateur
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!loading && products.length === 0 && shopDomain && (
+          <p style={{
+            fontSize: '14px',
+            fontFamily: 'var(--stepn-font-body)',
+            color: '#a0a0a0',
+            textAlign: 'center',
+            padding: '32px'
+          }}>
+            Aucun produit trouvé. Vérifiez que le domaine est correct.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ProductBuilderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
