@@ -4978,9 +4978,14 @@ export default function ProductBuilderPage() {
                             }>
                               {modelUrl && (() => {
                                 // Créer un tableau de toutes les fonts disponibles pour ModelViewer
+                                // NE PAS utiliser getTextModuleConfig() ici car c'est un hook et ne peut pas être appelé dans une IIFE
                                 const allFontsForViewer: Array<{ id: string; display_name: string; font_url: string }> = [];
-                                const activeModule = getTextModuleConfig();
-                                const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+                                
+                                // Utiliser directement customizationModules au lieu de getTextModuleConfig()
+                                const activeTextModule = customizationModules.find(
+                                  module => module.contentType === 'text' && module.id === activeCustomizerTab
+                                ) || customizationModules.find(module => module.contentType === 'text');
+                                const allowedGroupIds = activeTextModule?.selectedItems?.fontGroupIds;
                                 
                                 fontGroups.forEach(group => {
                                   if (group.fonts && (!allowedGroupIds || allowedGroupIds.length === 0 || allowedGroupIds.includes(group.id))) {
