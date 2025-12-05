@@ -1006,8 +1006,8 @@ export default function ProductBuilderPage() {
             logoWidth = actualWidth;
             logoHeight = actualHeight;
             
-            // Convertir les dimensions de la zone en pixels (canvas 4096x4096)
-            const CANVAS_SIZE = 4096;
+            // Convertir les dimensions de la zone en pixels (canvas 2048x2048)
+            const CANVAS_SIZE = 2048;
             const SCALE_FACTOR = 0.50; // Même facteur que dans ModelViewer
             const zoneWidthPx = zoneWidth * CANVAS_SIZE;
             const zoneHeightPx = zoneHeight * CANVAS_SIZE;
@@ -7228,9 +7228,9 @@ export default function ProductBuilderPage() {
                                 : 0; // Par défaut, pas de rotation (0 radians)
                               
                               // Calculer la taille de police en fonction des dimensions de la zone
-                              // Le canvas fait 4096x4096, et le texte utilise un SCALE_FACTOR de 0.5
+                              // Le canvas fait 2048x2048, et le texte utilise un SCALE_FACTOR de 0.5
                               // On veut que le texte s'adapte à la largeur de la zone
-                              const CANVAS_SIZE = 4096;
+                              const CANVAS_SIZE = 2048;
                               const SCALE_FACTOR = 0.5; // Même facteur que dans ModelViewer
                               const zoneWidth = (selectedZone as any).width || 0.1; // Largeur en UV space (0-1)
                               const zoneHeight = (selectedZone as any).height || 0.1; // Hauteur en UV space (0-1)

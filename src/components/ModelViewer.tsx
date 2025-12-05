@@ -1131,8 +1131,8 @@ function SimpleViewer({
 
     console.log('🔄 Setting up overlay canvas in useEffect');
     
-    // Use same resolution as UV map 0 (4096x4096 for higher quality)
-    const UV_CANVAS_SIZE = 4096;
+    // Use same resolution as UV map 0 (2048x2048)
+    const UV_CANVAS_SIZE = 2048;
     const canvas = document.createElement('canvas'); 
     canvas.width = canvas.height = UV_CANVAS_SIZE;
     canvasRef.current = canvas;
@@ -2520,7 +2520,7 @@ function SimpleViewer({
         const offsetAmount = 15;
         const visualOffsetX = hasOverlap && logoIndexInGroup > 0 ? (logoIndexInGroup - 0.5) * offsetAmount : 0;
         const visualOffsetY = hasOverlap && logoIndexInGroup > 0 ? (logoIndexInGroup - 0.5) * offsetAmount : 0;
-        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
         const visualOffsetUV: [number, number] = [
           visualOffsetX / UV_CANVAS_SIZE, // Convert pixel offset to UV space
           visualOffsetY / UV_CANVAS_SIZE
@@ -2675,7 +2675,7 @@ function SimpleViewer({
 
         const baseFontSize = text.fontSize || 700;
         const SCALE_FACTOR = 0.5;
-        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
         const fontSize = baseFontSize * SCALE_FACTOR;
         const estimatedWidth = (text.content.length * fontSize * 0.6) / UV_CANVAS_SIZE;
         const estimatedHeight = fontSize / UV_CANVAS_SIZE;
@@ -2932,11 +2932,18 @@ function SimpleViewer({
             
             console.log('🗑️ DELETE icon clicked for text');
             const textIdToRemove = selectedTextIdRef.current;
-            if (onRequestTextDelete) {
+            console.log('🔍 textIdToRemove:', textIdToRemove);
+            console.log('🔍 onRequestTextDelete:', onRequestTextDelete);
+            console.log('🔍 removeText:', removeText);
+            if (onRequestTextDelete && textIdToRemove) {
+              console.log('✅ Calling onRequestTextDelete with:', textIdToRemove);
               onRequestTextDelete(textIdToRemove);
-            } else if (removeText) {
+            } else if (removeText && textIdToRemove) {
               // Fallback si onRequestTextDelete n'est pas fourni
+              console.log('⚠️ Fallback: Calling removeText with:', textIdToRemove);
               removeText(textIdToRemove);
+            } else {
+              console.error('❌ Cannot delete text: missing id or handler', { textIdToRemove, onRequestTextDelete, removeText });
             }
             
             // Redraw to remove the bounding box
@@ -2959,7 +2966,7 @@ function SimpleViewer({
             
             isResizingTextIdRef.current = selectedText.id;
             initialTextScaleRef.current = (selectedText.fontSize || 120) / 120;
-            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
             const [textU, textV] = selectedText.position;
             const centerX = textU * UV_CANVAS_SIZE;
             const centerY = textV * UV_CANVAS_SIZE;
@@ -2979,7 +2986,7 @@ function SimpleViewer({
             }
             
             isRotatingTextIdRef.current = selectedText.id;
-            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
             const [textU, textV] = selectedText.position;
             const dx = uv.u * UV_CANVAS_SIZE - textU * UV_CANVAS_SIZE;
             const dy = uv.v * UV_CANVAS_SIZE - textV * UV_CANVAS_SIZE;
@@ -3122,7 +3129,7 @@ function SimpleViewer({
             initialScaleRef.current = selectedLogo.scale || 1;
             
             // Calculate initial distance from logo center to click position
-            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
             const [logoU, logoV] = selectedLogo.position;
             const centerX = logoU * UV_CANVAS_SIZE;
             const centerY = logoV * UV_CANVAS_SIZE;
@@ -3296,7 +3303,7 @@ function SimpleViewer({
         const logo = placedLogosRef.current.find(l => l.id === isResizingLogoIdRef.current);
         if (logo) {
           // Calculate current distance from logo center to pointer position
-          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
           const [logoU, logoV] = logo.position;
           const centerX = logoU * UV_CANVAS_SIZE;
           const centerY = logoV * UV_CANVAS_SIZE;
@@ -3365,7 +3372,7 @@ function SimpleViewer({
         const logo = placedLogosRef.current.find(l => l.id === isRotatingLogoIdRef.current);
         if (logo) {
           // Calculate current angle from logo center to pointer position
-          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
           const [logoU, logoV] = logo.position;
           const centerX = logoU * UV_CANVAS_SIZE;
           const centerY = logoV * UV_CANVAS_SIZE;
@@ -3538,7 +3545,7 @@ function SimpleViewer({
       if (isResizingTextIdRef.current) {
         const text = textsRef.current.find(t => t.id === isResizingTextIdRef.current);
         if (text) {
-          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
           const [textU, textV] = text.position;
           const centerX = textU * UV_CANVAS_SIZE;
           const centerY = textV * UV_CANVAS_SIZE;
@@ -3575,7 +3582,7 @@ function SimpleViewer({
       if (isRotatingTextIdRef.current) {
         const text = textsRef.current.find(t => t.id === isRotatingTextIdRef.current);
         if (text) {
-          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 2048;
           const [textU, textV] = text.position;
           const centerX = textU * UV_CANVAS_SIZE;
           const centerY = textV * UV_CANVAS_SIZE;
