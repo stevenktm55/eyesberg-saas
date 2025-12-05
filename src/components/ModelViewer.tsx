@@ -98,6 +98,7 @@ function SimpleViewer({
   selectedTextId?: string | null;
   selectText?: (id: string | null, autoOpenTypography?: boolean) => void;
   removeText?: (id: string) => void;
+  onRequestTextDelete?: (id: string) => void;
   toggleTextLock?: (id: string) => void;
   setIsDraggingText?: (dragging: boolean) => void;
   fonts?: Array<{
@@ -1129,11 +1130,14 @@ function SimpleViewer({
 
     console.log('🔄 Setting up overlay canvas in useEffect');
     
-    // Use same resolution as UV map 0 (2048x2048)
-    const UV_CANVAS_SIZE = 2048;
+    // Use same resolution as UV map 0 (4096x4096 for higher quality)
+    const UV_CANVAS_SIZE = 4096;
     const canvas = document.createElement('canvas'); 
     canvas.width = canvas.height = UV_CANVAS_SIZE;
     canvasRef.current = canvas;
+    
+    // Store canvas size in a ref for use in other functions
+    (canvasRef.current as any).UV_CANVAS_SIZE = UV_CANVAS_SIZE;
     // Expose canvas to parent component
     if (onCanvasReady) {
       onCanvasReady(canvas);
@@ -2600,10 +2604,11 @@ function SimpleViewer({
       const visualOffsetY = hasOverlap && logoIndexInGroup > 0 ? (logoIndexInGroup - 0.5) * offsetAmount : 0;
       
       // Convert UV position to pixel position (accounting for visual offset)
-      const x = u * 2048;
-      const y = v * 2048;
-      const centerX = logoU * 2048 + visualOffsetX;
-      const centerY = logoV * 2048 + visualOffsetY;
+      const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
+      const x = u * UV_CANVAS_SIZE;
+      const y = v * UV_CANVAS_SIZE;
+      const centerX = logoU * UV_CANVAS_SIZE + visualOffsetX;
+      const centerY = logoV * UV_CANVAS_SIZE + visualOffsetY;
       
       // Calculate logo bounds in pixels (before rotation transform)
       const halfW = logoWidth / 2;
@@ -2668,9 +2673,10 @@ function SimpleViewer({
 
         const baseFontSize = text.fontSize || 700;
         const SCALE_FACTOR = 0.5;
+        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
         const fontSize = baseFontSize * SCALE_FACTOR;
-        const estimatedWidth = (text.content.length * fontSize * 0.6) / 2048;
-        const estimatedHeight = fontSize / 2048;
+        const estimatedWidth = (text.content.length * fontSize * 0.6) / UV_CANVAS_SIZE;
+        const estimatedHeight = fontSize / UV_CANVAS_SIZE;
 
         const halfWidth = estimatedWidth / 2;
         const halfHeight = estimatedHeight / 2;
@@ -2740,11 +2746,12 @@ function SimpleViewer({
       const halfW = bboxW / 2;
       const halfH = bboxH / 2;
       
+      const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
       const [textU, textV] = selectedText.position;
-      const x = u * 2048;
-      const y = v * 2048;
-      const centerX = textU * 2048;
-      const centerY = textV * 2048;
+      const x = u * UV_CANVAS_SIZE;
+      const y = v * UV_CANVAS_SIZE;
+      const centerX = textU * UV_CANVAS_SIZE;
+      const centerY = textV * UV_CANVAS_SIZE;
       
       // Transform click to text-local space accounting for rotation
       const dx = x - centerX;
@@ -2923,15 +2930,12 @@ function SimpleViewer({
             
             console.log('🗑️ DELETE icon clicked for text');
             const textIdToRemove = selectedTextIdRef.current;
-            if (removeText) {
+            if (onRequestTextDelete) {
+              onRequestTextDelete(textIdToRemove);
+            } else if (removeText) {
+              // Fallback si onRequestTextDelete n'est pas fourni
               removeText(textIdToRemove);
             }
-            
-            // Désélectionner le texte après suppression
-            if (selectText) {
-              selectText(null);
-            }
-            selectedTextIdRef.current = null;
             
             // Redraw to remove the bounding box
             setTimeout(() => {
@@ -2953,11 +2957,12 @@ function SimpleViewer({
             
             isResizingTextIdRef.current = selectedText.id;
             initialTextScaleRef.current = (selectedText.fontSize || 120) / 120;
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
             const [textU, textV] = selectedText.position;
-            const centerX = textU * 2048;
-            const centerY = textV * 2048;
-            const x = uv.u * 2048;
-            const y = uv.v * 2048;
+            const centerX = textU * UV_CANVAS_SIZE;
+            const centerY = textV * UV_CANVAS_SIZE;
+            const x = uv.u * UV_CANVAS_SIZE;
+            const y = uv.v * UV_CANVAS_SIZE;
             initialTextResizeDistanceRef.current = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
             return;
           }
@@ -2972,9 +2977,10 @@ function SimpleViewer({
             }
             
             isRotatingTextIdRef.current = selectedText.id;
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
             const [textU, textV] = selectedText.position;
-            const dx = uv.u * 2048 - textU * 2048;
-            const dy = uv.v * 2048 - textV * 2048;
+            const dx = uv.u * UV_CANVAS_SIZE - textU * UV_CANVAS_SIZE;
+            const dy = uv.v * UV_CANVAS_SIZE - textV * UV_CANVAS_SIZE;
             initialTextRotationAngleRef.current = (selectedText.rotation || 0) - Math.atan2(dy, dx);
             return;
           }
@@ -3287,12 +3293,13 @@ function SimpleViewer({
         const logo = placedLogosRef.current.find(l => l.id === isResizingLogoIdRef.current);
         if (logo) {
           // Calculate current distance from logo center to pointer position
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
           const [logoU, logoV] = logo.position;
-          const centerX = logoU * 2048;
-          const centerY = logoV * 2048;
+          const centerX = logoU * UV_CANVAS_SIZE;
+          const centerY = logoV * UV_CANVAS_SIZE;
           
-          const x = uv.u * 2048;
-          const y = uv.v * 2048;
+          const x = uv.u * UV_CANVAS_SIZE;
+          const y = uv.v * UV_CANVAS_SIZE;
           
           const dx = x - centerX;
           const dy = y - centerY;
@@ -3355,12 +3362,13 @@ function SimpleViewer({
         const logo = placedLogosRef.current.find(l => l.id === isRotatingLogoIdRef.current);
         if (logo) {
           // Calculate current angle from logo center to pointer position
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
           const [logoU, logoV] = logo.position;
-          const centerX = logoU * 2048;
-          const centerY = logoV * 2048;
+          const centerX = logoU * UV_CANVAS_SIZE;
+          const centerY = logoV * UV_CANVAS_SIZE;
           
-          const x = uv.u * 2048;
-          const y = uv.v * 2048;
+          const x = uv.u * UV_CANVAS_SIZE;
+          const y = uv.v * UV_CANVAS_SIZE;
           
           const dx = x - centerX;
           const dy = y - centerY;
@@ -3527,11 +3535,12 @@ function SimpleViewer({
       if (isResizingTextIdRef.current) {
         const text = textsRef.current.find(t => t.id === isResizingTextIdRef.current);
         if (text) {
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
           const [textU, textV] = text.position;
-          const centerX = textU * 2048;
-          const centerY = textV * 2048;
-          const x = uv.u * 2048;
-          const y = uv.v * 2048;
+          const centerX = textU * UV_CANVAS_SIZE;
+          const centerY = textV * UV_CANVAS_SIZE;
+          const x = uv.u * UV_CANVAS_SIZE;
+          const y = uv.v * UV_CANVAS_SIZE;
           
           const dx = x - centerX;
           const dy = y - centerY;
@@ -3563,11 +3572,12 @@ function SimpleViewer({
       if (isRotatingTextIdRef.current) {
         const text = textsRef.current.find(t => t.id === isRotatingTextIdRef.current);
         if (text) {
+          const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
           const [textU, textV] = text.position;
-          const centerX = textU * 2048;
-          const centerY = textV * 2048;
-          const x = uv.u * 2048;
-          const y = uv.v * 2048;
+          const centerX = textU * UV_CANVAS_SIZE;
+          const centerY = textV * UV_CANVAS_SIZE;
+          const x = uv.u * UV_CANVAS_SIZE;
+          const y = uv.v * UV_CANVAS_SIZE;
           
           const dx = x - centerX;
           const dy = y - centerY;
@@ -3979,7 +3989,7 @@ const loadFontToCache = async (font: any): Promise<string | null> => {
   }
 };
 
-export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, textSizeLimits, ...props }: Props) {
+export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, onRequestTextDelete, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, textSizeLimits, ...props }: Props) {
   console.log('🎨 ModelViewer: designTexture =', designTexture);
   console.log('🎨 ModelViewer: placedLogos =', placedLogos);
   console.log('📍 ModelViewer: isPlacingText =', isPlacingText);
