@@ -4050,6 +4050,7 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
     selectedTextId={selectedTextId}
     selectText={selectText}
     removeText={removeText}
+    onRequestTextDelete={onRequestTextDelete}
     toggleTextLock={toggleTextLock}
     setIsDraggingText={setIsDraggingText}
     fonts={fonts}
