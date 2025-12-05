@@ -1845,12 +1845,18 @@ export default function ProductBuilderPage() {
 
                   {/* View Distances */}
                   <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #2a2a2a' }}>
+                    {(() => {
+                      console.log('🎯 Rendering View Zoom Distances section, viewDistance:', viewDistance);
+                      return null;
+                    })()}
                     <div style={{
-                      fontSize: '13px',
+                      fontSize: '14px',
                       fontFamily: 'var(--stepn-font-body)',
                       color: '#ffffff',
-                      marginBottom: '20px',
-                      fontWeight: '600'
+                      marginBottom: '24px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }}>
                       View Zoom Distances
                     </div>
