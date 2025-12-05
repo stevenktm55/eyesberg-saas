@@ -5057,68 +5057,115 @@ export default function ProductBuilderPage() {
                                 );
                               })()}
                             </Suspense>
-                            <OrbitControls
-                              ref={(controls) => {
-                                if (controls && targetView) {
-                                  // Positionner la caméra selon la vue
-                                  const camera = controls.object;
-                                  const distance = viewDistance[targetView] || initialZoom; // Utiliser la distance configurée pour cette vue
-                                  switch (targetView) {
-                                    case 'torse':
-                                      camera.position.set(0, 0, distance);
-                                      controls.target.set(0, 0, 0);
-                                      break;
-                                    case 'dos':
-                                      camera.position.set(0, 0, -distance);
-                                      controls.target.set(0, 0, 0);
-                                      break;
-                                    case 'bras-gauche':
-                                      camera.position.set(-distance, 0, 0); // Caméra à gauche pour voir le bras gauche
-                                      controls.target.set(0, 0, 0);
-                                      break;
-                                    case 'bras-droit':
-                                      camera.position.set(distance, 0, 0); // Caméra à droite pour voir le bras droit
-                                      controls.target.set(0, 0, 0);
-                                      break;
+                            {(() => {
+                              // Composant pour gérer OrbitControls avec les réglages
+                              function ControlsManager({ 
+                                targetView, 
+                                viewDistance, 
+                                initialZoom, 
+                                initialRotation, 
+                                zoomSpeed, 
+                                rotateSpeed, 
+                                minZoom, 
+                                maxZoom,
+                                selectedTextId,
+                                isPlacingText,
+                                isDraggingText,
+                                isRotatingText,
+                                isResizingText,
+                                setTargetView
+                              }: {
+                                targetView: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null;
+                                viewDistance: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>;
+                                initialZoom: number;
+                                initialRotation: number;
+                                zoomSpeed: number;
+                                rotateSpeed: number;
+                                minZoom: number;
+                                maxZoom: number;
+                                selectedTextId: string | null;
+                                isPlacingText: 'nom' | 'numero' | null;
+                                isDraggingText: boolean;
+                                isRotatingText: boolean;
+                                isResizingText: boolean;
+                                setTargetView: (view: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null) => void;
+                              }) {
+                                const controlsRef = useRef<any>(null);
+                                
+                                // Mettre à jour les réglages quand ils changent
+                                useEffect(() => {
+                                  if (controlsRef.current) {
+                                    controlsRef.current.zoomSpeed = zoomSpeed;
+                                    controlsRef.current.rotateSpeed = rotateSpeed;
+                                    controlsRef.current.minDistance = minZoom;
+                                    controlsRef.current.maxDistance = maxZoom;
                                   }
-                                  controls.update();
-                                  // Reset après un court délai pour permettre l'animation
-                                  setTimeout(() => {
-                                    setTargetView(null);
-                                  }, 100);
-                                }
-                                // Appliquer les réglages de zoom et rotation
-                                if (controls) {
-                                  controls.zoomSpeed = zoomSpeed;
-                                  controls.rotateSpeed = rotateSpeed;
-                                  controls.minDistance = minZoom;
-                                  controls.maxDistance = maxZoom;
-                                  // Appliquer le zoom initial si pas de vue cible
-                                  if (!targetView && initialZoom) {
-                                    const camera = controls.object;
-                                    const currentDistance = camera.position.length();
-                                    if (Math.abs(currentDistance - initialZoom) > 0.1) {
-                                      camera.position.normalize().multiplyScalar(initialZoom);
-                                      controls.update();
+                                }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
+                                
+                                // Gérer le changement de vue
+                                useEffect(() => {
+                                  if (controlsRef.current && targetView) {
+                                    const camera = controlsRef.current.object;
+                                    const distance = viewDistance[targetView] || initialZoom;
+                                    switch (targetView) {
+                                      case 'torse':
+                                        camera.position.set(0, 0, distance);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'dos':
+                                        camera.position.set(0, 0, -distance);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'bras-gauche':
+                                        camera.position.set(-distance, 0, 0);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
+                                      case 'bras-droit':
+                                        camera.position.set(distance, 0, 0);
+                                        controlsRef.current.target.set(0, 0, 0);
+                                        break;
                                     }
+                                    controlsRef.current.update();
+                                    setTimeout(() => {
+                                      setTargetView(null);
+                                    }, 100);
                                   }
-                                  // Appliquer la rotation initiale si pas de vue cible
-                                  if (!targetView && initialRotation !== 0) {
-                                    const camera = controls.object;
-                                    camera.rotation.y = (initialRotation * Math.PI) / 180;
-                                    controls.update();
-                                  }
-                                }
-                              }}
-                              enablePan={false}
-                              enableZoom={!selectedTextId && !isPlacingText}
-                              enableRotate={!selectedTextId && !isPlacingText}
-                              enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
-                              minDistance={minZoom}
-                              maxDistance={maxZoom}
-                              zoomSpeed={zoomSpeed}
-                              rotateSpeed={rotateSpeed}
-                            />
+                                }, [targetView, viewDistance, initialZoom, setTargetView]);
+                                
+                                return (
+                                  <OrbitControls
+                                    ref={controlsRef}
+                                    enablePan={false}
+                                    enableZoom={!selectedTextId && !isPlacingText}
+                                    enableRotate={!selectedTextId && !isPlacingText}
+                                    enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
+                                    minDistance={minZoom}
+                                    maxDistance={maxZoom}
+                                    zoomSpeed={zoomSpeed}
+                                    rotateSpeed={rotateSpeed}
+                                  />
+                                );
+                              }
+                              
+                              return (
+                                <ControlsManager
+                                  targetView={targetView}
+                                  viewDistance={viewDistance}
+                                  initialZoom={initialZoom}
+                                  initialRotation={initialRotation}
+                                  zoomSpeed={zoomSpeed}
+                                  rotateSpeed={rotateSpeed}
+                                  minZoom={minZoom}
+                                  maxZoom={maxZoom}
+                                  selectedTextId={selectedTextId}
+                                  isPlacingText={isPlacingText}
+                                  isDraggingText={isDraggingText}
+                                  isRotatingText={isRotatingText}
+                                  isResizingText={isResizingText}
+                                  setTargetView={setTargetView}
+                                />
+                              );
+                            })()}
                           </Canvas>
                           
                           {/* UV2 Preview Window - Outside Canvas */}
