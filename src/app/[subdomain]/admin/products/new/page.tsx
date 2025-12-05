@@ -236,6 +236,7 @@ export default function ProductBuilderPage() {
   const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right'>('front');
   const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
+  const [logoToReplace, setLogoToReplace] = useState<string | null>(null); // ID du logo placé à remplacer
   
   // États pour le modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1048,6 +1049,30 @@ export default function ProductBuilderPage() {
       scale = 0.1;
     }
     
+    // Si on remplace un logo existant, utiliser son ID et ses propriétés (position, scale, rotation, category)
+    if (logoToReplace) {
+      const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
+      if (logoToReplaceData) {
+        setPlacedLogos(prev => prev.map(logo => 
+          logo.id === logoToReplace 
+            ? {
+                ...logo,
+                logoId,
+                variantId,
+                variantFile,
+                width: logoWidth,
+                height: logoHeight,
+                scale // Garder le scale calculé pour la zone
+              }
+            : logo
+        ));
+        setSelectedLogoId(logoToReplace);
+        setLogoToReplace(null); // Réinitialiser
+        return;
+      }
+    }
+    
+    // Sinon, ajouter un nouveau logo
     const newLogo = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       logoId,
@@ -2646,6 +2671,34 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={variant.id || `base-${index}`}
                                       onClick={() => {
+                                        // Si on est en mode remplacement, remplacer directement le logo
+                                        if (logoToReplace) {
+                                          const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
+                                          if (logoToReplaceData) {
+                                            // Pour le logo de base, utiliser file_url, pour les variantes utiliser variant.file_url
+                                            const fileToUse = variant.id === 'base' 
+                                              ? selectedLogoForVariants.file_url 
+                                              : (variant.file_url || selectedLogoForVariants.file_url);
+                                            
+                                            // Remplacer le logo en conservant position, scale, rotation, category
+                                            setPlacedLogos(prev => prev.map(l => 
+                                              l.id === logoToReplace 
+                                                ? {
+                                                    ...l,
+                                                    logoId: selectedLogoForVariants.id,
+                                                    variantId: variant.id === 'base' ? undefined : variant.id,
+                                                    variantFile: fileToUse
+                                                  }
+                                                : l
+                                            ));
+                                            setSelectedLogoId(logoToReplace);
+                                            setLogoToReplace(null);
+                                            setSelectedLogoForVariants(null);
+                                            setShowLogoLibrary(false);
+                                            return;
+                                          }
+                                        }
+                                        
                                         // Si mode zones, ouvrir le modal de sélection de zone
                                         if (activeModule.logoPlacementMode === 'zones') {
                                           // Pour le logo de base, utiliser file_url, pour les variantes utiliser variant.file_url
@@ -2774,6 +2827,7 @@ export default function ProductBuilderPage() {
                                 onClick={() => {
                                   setShowLogoLibrary(false);
                                   setSelectedLogoForVariants(null);
+                                  setLogoToReplace(null); // Réinitialiser le remplacement
                                 }}
                                 style={{
                                   padding: '8px 16px',
@@ -2806,6 +2860,28 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={logo.id}
                                       onClick={() => {
+                                        // Si on est en mode remplacement, remplacer directement le logo
+                                        if (logoToReplace) {
+                                          const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
+                                          if (logoToReplaceData) {
+                                            // Remplacer le logo en conservant position, scale, rotation, category
+                                            setPlacedLogos(prev => prev.map(l => 
+                                              l.id === logoToReplace 
+                                                ? {
+                                                    ...l,
+                                                    logoId: logo.id,
+                                                    variantId: undefined,
+                                                    variantFile: logo.file_url
+                                                  }
+                                                : l
+                                            ));
+                                            setSelectedLogoId(logoToReplace);
+                                            setLogoToReplace(null);
+                                            setShowLogoLibrary(false);
+                                            return;
+                                          }
+                                        }
+                                        
                                         // Si le logo a des variantes, ouvrir la vue des variantes
                                         if (hasVariants) {
                                           setSelectedLogoForVariants(logo);
@@ -2948,7 +3024,10 @@ export default function ProductBuilderPage() {
                           
                           {/* Bouton "Ajouter un logo" */}
                           <button
-                            onClick={() => setShowLogoLibrary(true)}
+                            onClick={() => {
+                              setLogoToReplace(null); // Réinitialiser le remplacement
+                              setShowLogoLibrary(true);
+                            }}
                             style={{
                               width: '100%',
                               padding: '12px 24px',
