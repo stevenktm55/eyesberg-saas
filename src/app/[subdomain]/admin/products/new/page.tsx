@@ -4965,23 +4965,24 @@ export default function ProductBuilderPage() {
                           >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
-                              function CameraInitializer({ initialZoom, initialRotation }: { initialZoom: number; initialRotation: number }) {
+                              function CameraInitializer({ initialZoom, initialRotation, hasViewBeenSet }: { initialZoom: number; initialRotation: number; hasViewBeenSet: boolean }) {
                                 const { camera } = useThree();
                                 const initializedRef = useRef(false);
                                 const valuesRef = useRef({ initialZoom, initialRotation });
                                 
-                                // Stocker les valeurs initiales une seule fois
+                                // Stocker les valeurs initiales
                                 useEffect(() => {
                                   valuesRef.current = { initialZoom, initialRotation };
                                 }, [initialZoom, initialRotation]);
                                 
                                 useEffect(() => {
-                                  // Ne s'exécuter qu'une seule fois au montage
-                                  if (initializedRef.current) return;
+                                  // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
+                                  if (initializedRef.current || hasViewBeenSet) return;
                                   
                                   // Attendre un peu pour s'assurer que OrbitControls est prêt
                                   const timer = setTimeout(() => {
-                                    if (initializedRef.current) return;
+                                    // Vérifier à nouveau si une vue a été définie entre-temps
+                                    if (initializedRef.current || hasViewBeenSet) return;
                                     
                                     const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
                                     
@@ -5005,11 +5006,12 @@ export default function ProductBuilderPage() {
                                   }, 200);
                                   
                                   return () => clearTimeout(timer);
-                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
+                                }, [hasViewBeenSet]); // Dépendre de hasViewBeenSet pour annuler si une vue est définie
                                 
                                 return null;
                               }
-                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} />;
+                              // Passer targetView pour savoir si une vue a été définie
+                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} hasViewBeenSet={targetView !== null} />;
                             })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
