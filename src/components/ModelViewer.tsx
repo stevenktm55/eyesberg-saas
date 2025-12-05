@@ -1129,7 +1129,10 @@ function SimpleViewer({
 
     console.log('🔄 Setting up overlay canvas in useEffect');
     
-    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 2048; // Higher quality
+    // Use same resolution as UV map 0 (2048x2048)
+    const UV_CANVAS_SIZE = 2048;
+    const canvas = document.createElement('canvas'); 
+    canvas.width = canvas.height = UV_CANVAS_SIZE;
     canvasRef.current = canvas;
     // Expose canvas to parent component
     if (onCanvasReady) {

@@ -43,6 +43,9 @@ type UVMapViewerProps = {
   onZoneConfirm?: () => void; // Callback when zone is confirmed
 };
 
+// Shared UV canvas resolution - same for UV map 0 and UV map 2
+const UV_CANVAS_SIZE = 2048;
+
 export function UVMapViewer({
   modelUrl,
   zones = [],
@@ -59,7 +62,7 @@ export function UVMapViewer({
   isPlacingSnapLine = false,
   placingStart = null,
   snapLineSettings,
-  canvasSize = 2048,
+  canvasSize = UV_CANVAS_SIZE,
   design2DUrl,
   onZoneConfirm
 }: UVMapViewerProps) {
