@@ -236,6 +236,8 @@ export default function ProductBuilderPage() {
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
+  // Ref persistant pour marquer qu'une vue a été définie via les boutons (ne se réinitialise jamais)
+  const viewHasBeenSetRef = useRef(false);
   // États pour le module logos
   const [showLogoLibrary, setShowLogoLibrary] = useState(false);
   const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
@@ -4965,7 +4967,7 @@ export default function ProductBuilderPage() {
                           >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
-                              function CameraInitializer({ initialZoom, initialRotation, hasViewBeenSet }: { initialZoom: number; initialRotation: number; hasViewBeenSet: boolean }) {
+                              function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
                                 const { camera } = useThree();
                                 const initializedRef = useRef(false);
                                 const valuesRef = useRef({ initialZoom, initialRotation });
@@ -4977,12 +4979,12 @@ export default function ProductBuilderPage() {
                                 
                                 useEffect(() => {
                                   // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
-                                  if (initializedRef.current || hasViewBeenSet) return;
+                                  if (initializedRef.current || viewHasBeenSetRef.current) return;
                                   
                                   // Attendre un peu pour s'assurer que OrbitControls est prêt
                                   const timer = setTimeout(() => {
                                     // Vérifier à nouveau si une vue a été définie entre-temps
-                                    if (initializedRef.current || hasViewBeenSet) return;
+                                    if (initializedRef.current || viewHasBeenSetRef.current) return;
                                     
                                     const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
                                     
@@ -5006,12 +5008,12 @@ export default function ProductBuilderPage() {
                                   }, 200);
                                   
                                   return () => clearTimeout(timer);
-                                }, [hasViewBeenSet]); // Dépendre de hasViewBeenSet pour annuler si une vue est définie
+                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
                                 
                                 return null;
                               }
-                              // Passer targetView pour savoir si une vue a été définie
-                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} hasViewBeenSet={targetView !== null} />;
+                              // Passer le ref persistant pour savoir si une vue a été définie
+                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
                             })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
@@ -5101,7 +5103,8 @@ export default function ProductBuilderPage() {
                                 isDraggingText,
                                 isRotatingText,
                                 isResizingText,
-                                setTargetView
+                                setTargetView,
+                                viewHasBeenSetRef
                               }: {
                                 targetView: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null;
                                 viewDistance: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>;
@@ -5117,6 +5120,7 @@ export default function ProductBuilderPage() {
                                 isRotatingText: boolean;
                                 isResizingText: boolean;
                                 setTargetView: (view: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null) => void;
+                                viewHasBeenSetRef: React.MutableRefObject<boolean>;
                               }) {
                                 const controlsRef = useRef<any>(null);
                                 const rotationInitializedRef = useRef(false);
