@@ -22,30 +22,84 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Fetching Shopify products from:', url);
 
-    const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; StretchMX-Configurator/1.0)',
+        },
+        // Ajouter un timeout
+        signal: AbortSignal.timeout(10000), // 10 secondes
+      });
+    } catch (fetchError) {
+      console.error('❌ Fetch error:', fetchError);
+      
+      if (fetchError instanceof Error) {
+        if (fetchError.name === 'AbortError' || fetchError.message.includes('timeout')) {
+          return NextResponse.json(
+            { 
+              error: 'Request timeout. The shop may be unreachable or the domain is incorrect.',
+              hint: 'Please verify the shop domain (e.g., your-shop.myshopify.com)'
+            },
+            { status: 408 }
+          );
+        }
+        
+        if (fetchError.message.includes('CORS') || fetchError.message.includes('Failed to fetch')) {
+          return NextResponse.json(
+            { 
+              error: 'CORS error. The shop may not allow cross-origin requests.',
+              hint: 'Try accessing the shop directly: https://' + shopUrl + '/products.json'
+            },
+            { status: 403 }
+          );
+        }
+      }
+      
+      return NextResponse.json(
+        { 
+          error: 'Failed to connect to Shopify',
+          message: fetchError instanceof Error ? fetchError.message : 'Unknown error',
+          hint: 'Please verify the shop domain is correct and accessible'
+        },
+        { status: 500 }
+      );
+    }
 
     if (!response.ok) {
-      console.error('❌ Shopify API error:', response.status, response.statusText);
+      const errorText = await response.text().catch(() => response.statusText);
+      console.error('❌ Shopify API error:', response.status, errorText);
       
       // Si l'API publique ne fonctionne pas, retourner un message d'erreur explicite
       if (response.status === 404) {
         return NextResponse.json(
           { 
             error: 'Shop not found. Please verify the shop domain.',
-            hint: 'Make sure the shop domain is correct (e.g., your-shop.myshopify.com)'
+            hint: 'Make sure the shop domain is correct (e.g., your-shop.myshopify.com)',
+            attemptedUrl: url
           },
           { status: 404 }
+        );
+      }
+
+      if (response.status === 403 || response.status === 401) {
+        return NextResponse.json(
+          { 
+            error: 'Access denied. The shop may require authentication or have restricted access.',
+            hint: 'The public JSON API may not be available for this shop. Please check your shop settings.',
+            attemptedUrl: url
+          },
+          { status: response.status }
         );
       }
 
       return NextResponse.json(
         { 
           error: `Failed to fetch products: ${response.statusText}`,
-          status: response.status
+          status: response.status,
+          attemptedUrl: url,
+          hint: 'Please verify the shop domain and try again'
         },
         { status: response.status }
       );

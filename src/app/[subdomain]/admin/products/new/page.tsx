@@ -162,17 +162,35 @@ function ConnectTabContent({
     setError(null);
 
     try {
+      console.log('🔍 Fetching products for shop:', shopDomain);
       const response = await fetch(`/api/shopify/products?shop=${encodeURIComponent(shopDomain)}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la récupération des produits');
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('❌ JSON parse error:', jsonError);
+        const text = await response.text();
+        console.error('Response text:', text);
+        throw new Error('Invalid response from server. Please check the console for details.');
       }
 
+      if (!response.ok) {
+        const errorMessage = data.error || 'Erreur lors de la récupération des produits';
+        const hint = data.hint ? `\n\n💡 ${data.hint}` : '';
+        throw new Error(errorMessage + hint);
+      }
+
+      console.log('✅ Products fetched:', data.products?.length || 0);
       setProducts(data.products || []);
+      
+      if (data.products && data.products.length === 0) {
+        setError('Aucun produit trouvé dans cette boutique.');
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-      console.error('Error fetching products:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+      setError(errorMessage);
+      console.error('❌ Error fetching products:', err);
     } finally {
       setLoading(false);
     }
