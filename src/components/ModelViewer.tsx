@@ -2520,9 +2520,10 @@ function SimpleViewer({
         const offsetAmount = 15;
         const visualOffsetX = hasOverlap && logoIndexInGroup > 0 ? (logoIndexInGroup - 0.5) * offsetAmount : 0;
         const visualOffsetY = hasOverlap && logoIndexInGroup > 0 ? (logoIndexInGroup - 0.5) * offsetAmount : 0;
+        const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
         const visualOffsetUV: [number, number] = [
-          visualOffsetX / 2048, // Convert pixel offset to UV space
-          visualOffsetY / 2048
+          visualOffsetX / UV_CANVAS_SIZE, // Convert pixel offset to UV space
+          visualOffsetY / UV_CANVAS_SIZE
         ];
         
         // Check click against visually offset position
@@ -2530,8 +2531,8 @@ function SimpleViewer({
         const visualV = logoV + visualOffsetUV[1];
         
         // Convert to UV space (rectangle, not square)
-        const halfWidth = (logoWidth / 2048) / 2;
-        const halfHeight = (logoHeight / 2048) / 2;
+        const halfWidth = (logoWidth / UV_CANVAS_SIZE) / 2;
+        const halfHeight = (logoHeight / UV_CANVAS_SIZE) / 2;
         
         // Check if click is within bounding box, accounting for rotation
         const rotation = logo.rotation || 0;
@@ -3121,12 +3122,13 @@ function SimpleViewer({
             initialScaleRef.current = selectedLogo.scale || 1;
             
             // Calculate initial distance from logo center to click position
+            const UV_CANVAS_SIZE = (canvasRef.current as any)?.UV_CANVAS_SIZE || 4096;
             const [logoU, logoV] = selectedLogo.position;
-            const centerX = logoU * 2048;
-            const centerY = logoV * 2048;
+            const centerX = logoU * UV_CANVAS_SIZE;
+            const centerY = logoV * UV_CANVAS_SIZE;
             
-            const x = uv.u * 2048;
-            const y = uv.v * 2048;
+            const x = uv.u * UV_CANVAS_SIZE;
+            const y = uv.v * UV_CANVAS_SIZE;
             
             const dx = x - centerX;
             const dy = y - centerY;
