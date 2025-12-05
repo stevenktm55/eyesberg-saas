@@ -33,25 +33,44 @@ Dans le nouveau Dev Dashboard de Shopify, vous devez **créer une version** pour
 
 ### Étape 5 : Configurer les URLs dans la version
 
-Dans le formulaire "Create a version", configurez :
+**⚠️ IMPORTANT : Multi-tenant (plusieurs sous-domaines)**
+
+Pour que l'application fonctionne avec **tous vos sous-domaines** (multi-tenant), utilisez une **URL unique** qui ne dépend pas d'un sous-domaine spécifique :
 
 **Section "URLs"** :
 
 1. **App URL** :
    ```
-   https://votre-domaine.com
+   https://www.eyesberg.app
    ```
-   ⚠️ **Important** : Pas de `/admin` à la fin, juste le domaine de base
+   OU utilisez un sous-domaine dédié :
+   ```
+   https://shopify.eyesberg.app
+   ```
+   ⚠️ **Important** : 
+   - Utilisez le domaine racine (`www.eyesberg.app`) ou un sous-domaine dédié (`shopify.eyesberg.app`)
+   - **NE PAS** utiliser un sous-domaine client spécifique (comme `stretchmx.eyesberg.app`)
+   - Pas de `/admin` à la fin, juste le domaine de base
 
 2. **Redirect URLs** (dans la section "Access") :
    ```
-   https://votre-domaine.com/api/shopify/callback
+   https://www.eyesberg.app/api/shopify/callback
+   ```
+   OU si vous utilisez un sous-domaine dédié :
+   ```
+   https://shopify.eyesberg.app/api/shopify/callback
    ```
    ⚠️ **Important** : 
-   - Remplacez `votre-domaine.com` par votre vrai domaine (ex: `stretchmx.eyesberg.app`)
+   - Utilisez la même base de domaine que l'App URL
    - Les URLs doivent être en HTTPS
    - Pas d'espace, pas de slash final
-   - Entrez les URLs séparées par des virgules si vous en avez plusieurs
+   - Le système extrait automatiquement le sous-domaine depuis le paramètre `state` lors du callback OAuth
+
+**Comment ça fonctionne :**
+- Lors de l'installation, le sous-domaine est encodé dans le paramètre `state` de l'OAuth
+- Le callback `/api/shopify/callback` extrait le sous-domaine depuis `state`
+- La boutique est liée au bon compte (sous-domaine) automatiquement
+- ✅ Fonctionne pour tous les sous-domaines sans configuration supplémentaire
 
 **Section "Access" → "Scopes"** :
 
