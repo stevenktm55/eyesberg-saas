@@ -811,6 +811,20 @@ export function useShopifyIntegration(shopifyConfig?: ShopifyConfig) {
         return successPayload;
       }
       
+      // Envoyer un message au parent pour fermer le modal (si dans un iframe)
+      if (typeof window !== 'undefined' && window.parent !== window) {
+        try {
+          window.parent.postMessage({
+            type: 'closeCustomizer',
+            action: 'close',
+            redirectToCart: true
+          }, '*'); // Utiliser '*' pour permettre la communication avec n'importe quel parent
+          console.log('📤 Message envoyé au parent pour fermer le modal');
+        } catch (err) {
+          console.warn('⚠️ Impossible d\'envoyer le message au parent:', err);
+        }
+      }
+
       // Attendre un peu pour que l'utilisateur voie le message de chargement
       setTimeout(() => {
         if (options?.openInNewTab) {
