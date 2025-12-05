@@ -897,8 +897,12 @@ export default function ProductBuilderPage() {
     zoneRotation?: number
   ) => {
     // Calculer l'échelle pour que le logo s'adapte à la taille de la zone
+    // ModelViewer utilise: scaledWidth = baseWidth * scale * SCALE_FACTOR (où SCALE_FACTOR = 0.50)
     // Si zoneWidth et zoneHeight sont fournis (en UV space 0-1), on doit calculer le scale
     let scale = 1;
+    let logoWidth: number | undefined = undefined;
+    let logoHeight: number | undefined = undefined;
+    
     if (zoneWidth && zoneHeight && zoneWidth > 0 && zoneHeight > 0) {
       // Récupérer les dimensions réelles du logo SVG
       try {
@@ -924,15 +928,40 @@ export default function ProductBuilderPage() {
           }
           
           if (actualWidth > 0 && actualHeight > 0) {
+            // Stocker les dimensions réelles du logo
+            logoWidth = actualWidth;
+            logoHeight = actualHeight;
+            
             // Convertir les dimensions de la zone en pixels (canvas 2048x2048)
             const CANVAS_SIZE = 2048;
+            const SCALE_FACTOR = 0.50; // Même facteur que dans ModelViewer
             const zoneWidthPx = zoneWidth * CANVAS_SIZE;
             const zoneHeightPx = zoneHeight * CANVAS_SIZE;
             
-            // Calculer le scale pour que le logo tienne dans la zone (avec 80% de marge)
-            const scaleX = (zoneWidthPx * 0.8) / actualWidth;
-            const scaleY = (zoneHeightPx * 0.8) / actualHeight;
+            // On veut que le logo tienne dans 80% de la zone
+            const targetWidthPx = zoneWidthPx * 0.8;
+            const targetHeightPx = zoneHeightPx * 0.8;
+            
+            // Calculer le scale pour que le logo tienne dans la zone
+            // scaledWidth = baseWidth * scale * SCALE_FACTOR
+            // Donc: scale = targetWidthPx / (baseWidth * SCALE_FACTOR)
+            const scaleX = targetWidthPx / (actualWidth * SCALE_FACTOR);
+            const scaleY = targetHeightPx / (actualHeight * SCALE_FACTOR);
             scale = Math.min(scaleX, scaleY);
+            
+            console.log('📐 Logo scale calculation:', {
+              zoneWidth,
+              zoneHeight,
+              zoneWidthPx,
+              zoneHeightPx,
+              actualWidth,
+              actualHeight,
+              targetWidthPx,
+              targetHeightPx,
+              scaleX,
+              scaleY,
+              finalScale: scale
+            });
           }
         }
       } catch (error) {
@@ -954,8 +983,8 @@ export default function ProductBuilderPage() {
       scale,
       rotation: zoneRotation ?? 0,
       category,
-      width: zoneWidth ? zoneWidth * 2048 : undefined,
-      height: zoneHeight ? zoneHeight * 2048 : undefined
+      width: logoWidth,
+      height: logoHeight
     };
     
     setPlacedLogos(prev => [...prev, newLogo]);
