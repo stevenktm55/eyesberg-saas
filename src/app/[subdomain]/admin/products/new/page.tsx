@@ -885,6 +885,114 @@ export default function ProductBuilderPage() {
     setIsPlacingText(null);
   };
 
+  // Logo management functions
+  const addLogo = async (
+    logoId: string,
+    variantId: string,
+    variantFile: string,
+    position: [number, number, number],
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit',
+    zoneWidth?: number,
+    zoneHeight?: number,
+    zoneRotation?: number
+  ) => {
+    // Calculer l'échelle pour que le logo s'adapte à la taille de la zone
+    // Si zoneWidth et zoneHeight sont fournis (en UV space 0-1), on doit calculer le scale
+    let scale = 1;
+    if (zoneWidth && zoneHeight && zoneWidth > 0 && zoneHeight > 0) {
+      // Récupérer les dimensions réelles du logo SVG
+      try {
+        const response = await fetch(variantFile);
+        const svgText = await response.text();
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+        const svgElement = svgDoc.querySelector('svg');
+        if (svgElement) {
+          const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+          const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+          const viewBox = svgElement.getAttribute('viewBox');
+          
+          let actualWidth = svgWidth;
+          let actualHeight = svgHeight;
+          
+          if (viewBox) {
+            const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+            if (vbWidth && vbHeight) {
+              actualWidth = vbWidth;
+              actualHeight = vbHeight;
+            }
+          }
+          
+          if (actualWidth > 0 && actualHeight > 0) {
+            // Convertir les dimensions de la zone en pixels (canvas 2048x2048)
+            const CANVAS_SIZE = 2048;
+            const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+            const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+            
+            // Calculer le scale pour que le logo tienne dans la zone (avec 80% de marge)
+            const scaleX = (zoneWidthPx * 0.8) / actualWidth;
+            const scaleY = (zoneHeightPx * 0.8) / actualHeight;
+            scale = Math.min(scaleX, scaleY);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du calcul des dimensions du logo:', error);
+        // Utiliser un scale par défaut si l'extraction échoue
+        scale = 0.1;
+      }
+    } else {
+      // Si pas de dimensions de zone, utiliser un scale par défaut
+      scale = 0.1;
+    }
+    
+    const newLogo = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      logoId,
+      variantId,
+      variantFile,
+      position,
+      scale,
+      rotation: zoneRotation ?? 0,
+      category,
+      width: zoneWidth ? zoneWidth * 2048 : undefined,
+      height: zoneHeight ? zoneHeight * 2048 : undefined
+    };
+    
+    setPlacedLogos(prev => [...prev, newLogo]);
+    setSelectedLogoId(newLogo.id);
+  };
+
+  const updateLogoPosition = (id: string, position: [number, number, number]) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, position } : logo
+    ));
+  };
+
+  const updateLogoScale = (id: string, scale: number) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, scale } : logo
+    ));
+  };
+
+  const updateLogoRotation = (id: string, rotation: number) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, rotation } : logo
+    ));
+  };
+
+  const removeLogo = (id: string) => {
+    setPlacedLogos(prev => prev.filter(logo => logo.id !== id));
+    if (selectedLogoId === id) {
+      setSelectedLogoId(null);
+    }
+  };
+
+  const toggleLogoLock = (id: string) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, locked: !logo.locked } : logo
+    ));
+  };
+
   function updateQuestion(questionId: string, updates: Partial<Question>) {
     setQuestions(questions.map(q => 
       q.id === questionId ? { ...q, ...updates } : q
