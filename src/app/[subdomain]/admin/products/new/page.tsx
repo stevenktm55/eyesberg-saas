@@ -7678,7 +7678,7 @@ export default function ProductBuilderPage() {
             </div>
           )}
         </div>
-      </div>
+        )}
 
       {/* Create Module Modal */}
       {showCreateModuleModal && (
