@@ -162,6 +162,13 @@ export default function ProductBuilderPage() {
   const [maxZoom, setMaxZoom] = useState(10);
   const [initialZoom, setInitialZoom] = useState(5);
   const [initialRotation, setInitialRotation] = useState(0);
+  // Distances de zoom par vue
+  const [viewDistance, setViewDistance] = useState<Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>>({
+    'torse': 5,
+    'dos': 5,
+    'bras-gauche': 5,
+    'bras-droit': 5
+  });
   
   // Text management states
   const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
@@ -1782,7 +1789,7 @@ export default function ProductBuilderPage() {
                   </div>
 
                   {/* Initial Rotation */}
-                  <div>
+                  <div style={{ marginBottom: '24px' }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -1833,6 +1840,199 @@ export default function ProductBuilderPage() {
                     }}>
                       <span>0°</span>
                       <span>360°</span>
+                    </div>
+                  </div>
+
+                  {/* View Distances */}
+                  <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #2a2a2a' }}>
+                    <div style={{
+                      fontSize: '13px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#ffffff',
+                      marginBottom: '20px',
+                      fontWeight: '600'
+                    }}>
+                      View Zoom Distances
+                    </div>
+                    
+                    {/* Front View Distance */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <label style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#a0a0a0'
+                        }}>
+                          Front View Distance
+                        </label>
+                        <span style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#8eff36',
+                          fontWeight: '600'
+                        }}>
+                          {viewDistance.torse.toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="15"
+                        step="0.1"
+                        value={viewDistance.torse}
+                        onChange={(e) => setViewDistance(prev => ({ ...prev, torse: parseFloat(e.target.value) }))}
+                        style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#1a1a1a',
+                          borderRadius: '3px',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          WebkitAppearance: 'none',
+                          appearance: 'none',
+                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance.torse - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance.torse - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
+                        }}
+                      />
+                    </div>
+
+                    {/* Back View Distance */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <label style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#a0a0a0'
+                        }}>
+                          Back View Distance
+                        </label>
+                        <span style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#8eff36',
+                          fontWeight: '600'
+                        }}>
+                          {viewDistance.dos.toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="15"
+                        step="0.1"
+                        value={viewDistance.dos}
+                        onChange={(e) => setViewDistance(prev => ({ ...prev, dos: parseFloat(e.target.value) }))}
+                        style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#1a1a1a',
+                          borderRadius: '3px',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          WebkitAppearance: 'none',
+                          appearance: 'none',
+                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance.dos - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance.dos - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
+                        }}
+                      />
+                    </div>
+
+                    {/* Left View Distance */}
+                    <div style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <label style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#a0a0a0'
+                        }}>
+                          Left View Distance
+                        </label>
+                        <span style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#8eff36',
+                          fontWeight: '600'
+                        }}>
+                          {viewDistance['bras-droit'].toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="15"
+                        step="0.1"
+                        value={viewDistance['bras-droit']}
+                        onChange={(e) => setViewDistance(prev => ({ ...prev, 'bras-droit': parseFloat(e.target.value) }))}
+                        style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#1a1a1a',
+                          borderRadius: '3px',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          WebkitAppearance: 'none',
+                          appearance: 'none',
+                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance['bras-droit'] - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance['bras-droit'] - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
+                        }}
+                      />
+                    </div>
+
+                    {/* Right View Distance */}
+                    <div>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px'
+                      }}>
+                        <label style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#a0a0a0'
+                        }}>
+                          Right View Distance
+                        </label>
+                        <span style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#8eff36',
+                          fontWeight: '600'
+                        }}>
+                          {viewDistance['bras-gauche'].toFixed(1)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="15"
+                        step="0.1"
+                        value={viewDistance['bras-gauche']}
+                        onChange={(e) => setViewDistance(prev => ({ ...prev, 'bras-gauche': parseFloat(e.target.value) }))}
+                        style={{
+                          width: '100%',
+                          height: '6px',
+                          backgroundColor: '#1a1a1a',
+                          borderRadius: '3px',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          WebkitAppearance: 'none',
+                          appearance: 'none',
+                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance['bras-gauche'] - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance['bras-gauche'] - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -2907,8 +3107,8 @@ export default function ProductBuilderPage() {
                                       const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                                         'front': 'torse',
                                         'back': 'dos',
-                                        'left': 'bras-gauche',
-                                        'right': 'bras-droit'
+                                        'left': 'bras-droit', // Inversé
+                                        'right': 'bras-gauche' // Inversé
                                       };
                                       setTargetView(viewToCategory[view]);
                                     }}
@@ -4826,7 +5026,7 @@ export default function ProductBuilderPage() {
                                 if (controls && targetView) {
                                   // Positionner la caméra selon la vue
                                   const camera = controls.object;
-                                  const distance = 5;
+                                  const distance = viewDistance[targetView] || 5; // Utiliser la distance configurée pour cette vue
                                   switch (targetView) {
                                     case 'torse':
                                       camera.position.set(0, 0, distance);
@@ -4837,11 +5037,11 @@ export default function ProductBuilderPage() {
                                       controls.target.set(0, 0, 0);
                                       break;
                                     case 'bras-gauche':
-                                      camera.position.set(-distance, 0, 0);
+                                      camera.position.set(distance, 0, 0); // Inversé
                                       controls.target.set(0, 0, 0);
                                       break;
                                     case 'bras-droit':
-                                      camera.position.set(distance, 0, 0);
+                                      camera.position.set(-distance, 0, 0); // Inversé
                                       controls.target.set(0, 0, 0);
                                       break;
                                   }
