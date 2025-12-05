@@ -4,9 +4,9 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
-import { OrbitControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
+import { CameraInitializer } from '@/components/CameraInitializer';
+import { ControlsManager } from '@/components/ControlsManager';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -114,56 +114,8 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
-// Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial
-// Doit être utilisé à l'intérieur d'un Canvas (utilise useThree())
-function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
-  const { camera } = useThree();
-  const initializedRef = useRef(false);
-  const valuesRef = useRef({ initialZoom, initialRotation });
-  
-  // Stocker les valeurs initiales
-  useEffect(() => {
-    valuesRef.current = { initialZoom, initialRotation };
-  }, [initialZoom, initialRotation]);
-  
-  useEffect(() => {
-    // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
-    if (initializedRef.current || viewHasBeenSetRef.current) return;
-    
-    // Attendre un peu pour s'assurer que OrbitControls est prêt
-    const timer = setTimeout(() => {
-      // Vérifier à nouveau si une vue a été définie entre-temps
-      if (initializedRef.current || viewHasBeenSetRef.current) return;
-      
-      const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
-      
-      // Appliquer le zoom initial
-      const distance = zoom || 5;
-      camera.position.set(0, 0, distance);
-      
-      // Appliquer la rotation initiale en faisant tourner la position autour du target
-      if (rotation !== 0) {
-        const angleRad = (rotation * Math.PI) / 180;
-        // Rotation autour de l'axe Y
-        const x = 0;
-        const z = distance;
-        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-        camera.position.set(newX, camera.position.y, newZ);
-      }
-      
-      camera.updateProjectionMatrix();
-      initializedRef.current = true;
-    }, 200);
-    
-    return () => clearTimeout(timer);
-  }, [camera, viewHasBeenSetRef]);
-  
-  return null;
-}
-
-// Composant pour gérer OrbitControls avec les réglages
-function ControlsManager({ 
+// Composants CameraInitializer et ControlsManager sont maintenant dans des fichiers séparés
+// pour éviter les problèmes avec les hooks React 
   targetView, 
   viewDistance, 
   initialZoom, 
