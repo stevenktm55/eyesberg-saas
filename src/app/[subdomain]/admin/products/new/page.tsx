@@ -1824,11 +1824,11 @@ export default function ProductBuilderPage() {
             }}
           />
         ) : (
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          overflow: 'hidden'
-        }}>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            overflow: 'hidden'
+          }}>
           {/* Left Sidebar - Questions */}
           <div style={{
             width: '320px',
@@ -7677,7 +7677,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
           )}
-        </div>
+          </div>
         )}
 
       {/* Create Module Modal */}
