@@ -43,8 +43,8 @@ type UVMapViewerProps = {
   onZoneConfirm?: () => void; // Callback when zone is confirmed
 };
 
-// Shared UV canvas resolution - same for UV map 0 and UV map 2
-const UV_CANVAS_SIZE = 2048;
+// Shared UV canvas resolution - same for UV map 0 and UV map 2 (4096x4096 for higher quality)
+const UV_CANVAS_SIZE = 4096;
 
 export function UVMapViewer({
   modelUrl,
