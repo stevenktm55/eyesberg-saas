@@ -2634,7 +2634,24 @@ export default function ProductBuilderPage() {
                         );
                       }
                       
-                      // Vue par défaut : boutons de vue + bouton "Ajouter un logo"
+                      // Vue par défaut : boutons de vue + bouton "Ajouter un logo" + logos placés
+                      // Mapper les catégories aux vues pour le filtrage
+                      const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
+                        'torse': 'front',
+                        'dos': 'back',
+                        'bras-gauche': 'left',
+                        'bras-droit': 'right'
+                      };
+                      
+                      // Filtrer les logos selon la vue active
+                      const filteredPlacedLogos = placedLogos.filter(logo => {
+                        if (activeModule.logoPlacementMode === 'zones') {
+                          const logoView = categoryToView[logo.category];
+                          return logoView === activeLogoView;
+                        }
+                        return true; // En mode libre, afficher tous les logos
+                      });
+                      
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {/* Boutons de vue en haut - uniquement si mode zones */}
@@ -2695,6 +2712,115 @@ export default function ProductBuilderPage() {
                             <span>+</span>
                             {buttonLabel}
                           </button>
+                          
+                          {/* Logos placés */}
+                          {filteredPlacedLogos.length > 0 && (
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px'
+                            }}>
+                              <div style={{
+                                fontSize: '12px',
+                                color: '#a0a0a0',
+                                fontFamily: 'var(--stepn-font-body)',
+                                marginBottom: '4px'
+                              }}>
+                                Logos ajoutés ({filteredPlacedLogos.length})
+                              </div>
+                              {filteredPlacedLogos.map((logo) => {
+                                // Trouver le nom du logo depuis les bibliothèques
+                                let logoName = 'Logo';
+                                for (const library of logoLibraries) {
+                                  const foundLogo = library.logos?.find((l: any) => l.id === logo.logoId);
+                                  if (foundLogo) {
+                                    logoName = foundLogo.name || 'Logo';
+                                    break;
+                                  }
+                                }
+                                
+                                return (
+                                  <div
+                                    key={logo.id}
+                                    onClick={() => setSelectedLogoId(logo.id)}
+                                    style={{
+                                      padding: '10px 12px',
+                                      backgroundColor: selectedLogoId === logo.id ? '#2a2a2a' : '#1a1a1a',
+                                      border: selectedLogoId === logo.id ? '1px solid #8eff36' : '1px solid #2a2a2a',
+                                      borderRadius: '4px',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (selectedLogoId !== logo.id) {
+                                        e.currentTarget.style.backgroundColor = '#222222';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (selectedLogoId !== logo.id) {
+                                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                      }
+                                    }}
+                                  >
+                                    <div style={{
+                                      flex: 1,
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '4px'
+                                    }}>
+                                      <div style={{
+                                        fontSize: '14px',
+                                        color: '#ffffff',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontWeight: selectedLogoId === logo.id ? '600' : '400'
+                                      }}>
+                                        {logoName}
+                                      </div>
+                                      <div style={{
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        {logo.category === 'torse' ? 'Torse' : 
+                                         logo.category === 'dos' ? 'Dos' : 
+                                         logo.category === 'bras-gauche' ? 'Bras gauche' : 
+                                         'Bras droit'}
+                                        {logo.locked && ' 🔒'}
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeLogo(logo.id);
+                                      }}
+                                      style={{
+                                        padding: '4px 8px',
+                                        backgroundColor: '#ff4444',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        fontSize: '12px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        cursor: 'pointer',
+                                        fontWeight: '500'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#ff3333';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#ff4444';
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     })() : activeModule.contentType === 'fonts' && activeModule.selectedItems?.fontGroupId ? (() => {
