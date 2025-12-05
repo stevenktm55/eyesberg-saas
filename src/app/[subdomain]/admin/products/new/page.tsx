@@ -3113,8 +3113,8 @@ export default function ProductBuilderPage() {
                                       const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                                         'front': 'torse',
                                         'back': 'dos',
-                                        'left': 'bras-droit', // Inversé
-                                        'right': 'bras-gauche' // Inversé
+                                        'left': 'bras-gauche', // Voir le côté gauche
+                                        'right': 'bras-droit' // Voir le côté droit
                                       };
                                       setTargetView(viewToCategory[view]);
                                     }}
@@ -3364,8 +3364,8 @@ export default function ProductBuilderPage() {
                       const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
                         'torse': 'front',
                         'dos': 'back',
-                        'bras-gauche': 'right', // Inversé pour correspondre au mapping caméra
-                        'bras-droit': 'left' // Inversé pour correspondre au mapping caméra
+                        'bras-gauche': 'left', // Bras gauche = vue gauche
+                        'bras-droit': 'right' // Bras droit = vue droite
                       };
                       
                       // Filtrer les logos selon la vue active
@@ -5043,11 +5043,11 @@ export default function ProductBuilderPage() {
                                       controls.target.set(0, 0, 0);
                                       break;
                                     case 'bras-gauche':
-                                      camera.position.set(distance, 0, 0); // Inversé
+                                      camera.position.set(-distance, 0, 0); // Caméra à gauche pour voir le bras gauche
                                       controls.target.set(0, 0, 0);
                                       break;
                                     case 'bras-droit':
-                                      camera.position.set(-distance, 0, 0); // Inversé
+                                      camera.position.set(distance, 0, 0); // Caméra à droite pour voir le bras droit
                                       controls.target.set(0, 0, 0);
                                       break;
                                   }
@@ -7811,8 +7811,8 @@ export default function ProductBuilderPage() {
                             const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                               'Face': 'torse',
                               'Dos': 'dos',
-                              'Gauche': 'bras-droit', // Inversé
-                              'Droite': 'bras-gauche' // Inversé
+                              'Gauche': 'bras-gauche', // Côté gauche
+                              'Droite': 'bras-droit' // Côté droit
                             };
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
@@ -8012,8 +8012,8 @@ export default function ProductBuilderPage() {
                 const viewLabels: Record<string, string> = {
                   'Face': 'front',
                   'Dos': 'back',
-                  'Gauche': 'right', // Inversé pour correspondre au mapping caméra
-                  'Droite': 'left' // Inversé pour correspondre au mapping caméra
+                  'Gauche': 'left', // Côté gauche
+                  'Droite': 'right' // Côté droit
                 };
                 
                 const filteredZones = availableZones.filter(zone => {
@@ -8218,8 +8218,8 @@ export default function ProductBuilderPage() {
                             const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                               'Face': 'torse',
                               'Dos': 'dos',
-                              'Gauche': 'bras-droit', // Inversé
-                              'Droite': 'bras-gauche' // Inversé
+                              'Gauche': 'bras-gauche', // Côté gauche
+                              'Droite': 'bras-droit' // Côté droit
                             };
                             const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
                             
