@@ -190,6 +190,9 @@ export default function ProductBuilderPage() {
     'bras-gauche': 5,
     'bras-droit': 5
   });
+  // Shopify connection
+  const [shopifyProductId, setShopifyProductId] = useState<string | null>(null);
+  const [shopifyVariantId, setShopifyVariantId] = useState<string | null>(null);
   
   // Text management states
   const [uv2Canvas, setUv2Canvas] = useState<HTMLCanvasElement | null>(null);
@@ -1488,6 +1491,17 @@ export default function ProductBuilderPage() {
 
 
         {/* Main Builder Area */}
+        {activeTab === 'connect' ? (
+          <ConnectTabContent 
+            shop={searchParams.get('shop')}
+            productId={productId}
+            onProductLinked={(shopifyProductId: string, shopifyVariantId: string) => {
+              // Sauvegarder la liaison
+              console.log('🔗 Product linked:', { shopifyProductId, shopifyVariantId });
+              // TODO: Sauvegarder dans la base de données
+            }}
+          />
+        ) : (
         <div style={{
           flex: 1,
           display: 'flex',
@@ -8675,6 +8689,8 @@ export default function ProductBuilderPage() {
         </div>
         );
       })()}
+        </div>
+        )}
     </div>
   );
 }
