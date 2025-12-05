@@ -852,19 +852,29 @@ export default function ProductBuilderPage() {
   };
   
   const confirmDeleteText = (id: string) => {
+    console.log('🗑️ confirmDeleteText called with id:', id);
+    console.log('📋 texts:', texts);
     const text = texts.find(t => t.id === id);
+    console.log('🔍 Found text:', text);
     if (text) {
+      console.log('✅ Setting delete modal for text:', text.content);
       setItemToDelete({
         id,
         name: text.content || 'Texte',
         type: 'text'
       });
       setShowDeleteModal(true);
+      console.log('✅ Modal should be visible now');
+    } else {
+      console.error('❌ Text not found with id:', id);
     }
   };
   
   const confirmDeleteLogo = (id: string) => {
+    console.log('🗑️ confirmDeleteLogo called with id:', id);
+    console.log('📋 placedLogos:', placedLogos);
     const logo = placedLogos.find(l => l.id === id);
+    console.log('🔍 Found logo:', logo);
     if (logo) {
       // Trouver le nom du logo depuis les bibliothèques
       let logoName = 'Logo';
@@ -875,12 +885,16 @@ export default function ProductBuilderPage() {
           break;
         }
       }
+      console.log('✅ Setting delete modal for logo:', logoName);
       setItemToDelete({
         id,
         name: logoName,
         type: 'logo'
       });
       setShowDeleteModal(true);
+      console.log('✅ Modal should be visible now');
+    } else {
+      console.error('❌ Logo not found with id:', id);
     }
   };
   
