@@ -3358,8 +3358,8 @@ export default function ProductBuilderPage() {
                       const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
                         'torse': 'front',
                         'dos': 'back',
-                        'bras-gauche': 'left',
-                        'bras-droit': 'right'
+                        'bras-gauche': 'right', // Inversé pour correspondre au mapping caméra
+                        'bras-droit': 'left' // Inversé pour correspondre au mapping caméra
                       };
                       
                       // Filtrer les logos selon la vue active
