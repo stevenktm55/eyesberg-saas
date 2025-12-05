@@ -2571,10 +2571,17 @@ export default function ProductBuilderPage() {
                                       onClick={() => {
                                         // Si mode zones, ouvrir le modal de sélection de zone
                                         if (activeModule.logoPlacementMode === 'zones') {
-                                          // Pour le logo de base, utiliser file_url, pour les variantes utiliser variant.file
+                                          // Pour le logo de base, utiliser file_url, pour les variantes utiliser variant.file_url
                                           const fileToUse = variant.id === 'base' 
                                             ? selectedLogoForVariants.file_url 
-                                            : (variant.file || selectedLogoForVariants.file_url);
+                                            : (variant.file_url || selectedLogoForVariants.file_url);
+                                          
+                                          console.log('🎯 Sélection variante:', {
+                                            variantId: variant.id,
+                                            variantName: variant.name,
+                                            fileToUse,
+                                            isBase: variant.id === 'base'
+                                          });
                                           
                                           setSelectedLogoForZone({
                                             logoId: selectedLogoForVariants.id,
@@ -2622,7 +2629,7 @@ export default function ProductBuilderPage() {
                                         <img
                                           src={variant.id === 'base' 
                                             ? selectedLogoForVariants.file_url 
-                                            : (variant.file || selectedLogoForVariants.file_url)}
+                                            : (variant.file_url || selectedLogoForVariants.file_url)}
                                           alt={variant.name || selectedLogoForVariants.name}
                                           style={{
                                             maxWidth: '100%',
@@ -2631,7 +2638,14 @@ export default function ProductBuilderPage() {
                                           }}
                                         />
                                       </div>
-                                      <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                                      <span style={{ 
+                                        fontSize: '11px', 
+                                        color: '#000000', 
+                                        textAlign: 'center',
+                                        fontWeight: '500',
+                                        WebkitTextFillColor: '#000000',
+                                        WebkitTextStrokeColor: '#000000'
+                                      }}>
                                         {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
                                       </span>
                                     </div>
@@ -2775,11 +2789,24 @@ export default function ProductBuilderPage() {
                                         />
                                       </div>
                                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                        <span style={{ fontSize: '11px', color: '#000000', textAlign: 'center', fontWeight: '500' }}>
+                                        <span style={{ 
+                                          fontSize: '11px', 
+                                          color: '#000000', 
+                                          textAlign: 'center', 
+                                          fontWeight: '500',
+                                          WebkitTextFillColor: '#000000',
+                                          WebkitTextStrokeColor: '#000000'
+                                        }}>
                                           {logo.name}
                                         </span>
                                         {hasVariants && (
-                                          <span style={{ fontSize: '10px', color: '#999999', textAlign: 'center' }}>
+                                          <span style={{ 
+                                            fontSize: '10px', 
+                                            color: '#999999', 
+                                            textAlign: 'center',
+                                            WebkitTextFillColor: '#999999',
+                                            WebkitTextStrokeColor: '#999999'
+                                          }}>
                                             variantes
                                           </span>
                                         )}
