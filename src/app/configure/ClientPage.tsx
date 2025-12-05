@@ -1751,8 +1751,11 @@ function LogoTab({
     'right': logoViewRightLabel || 'Bras droit'
   };
   
+  // Libellé du bouton
+  const buttonLabel = addLogoButtonLabel || 'Ajouter un logo';
+  
   // Debug: vérifier les valeurs reçues
-  console.log('🎨 LogoTab - Props reçus:', {
+  console.log('🎨 LogoTab - Composant rendu avec props:', {
     addLogoButtonLabel,
     logoPlacementMode,
     logoZoneGroupIds,
@@ -1762,7 +1765,9 @@ function LogoTab({
     logoViewLeftLabel,
     logoViewRightLabel,
     viewLabels,
-    buttonLabel: addLogoButtonLabel || 'Ajouter un logo'
+    buttonLabel,
+    textZonesCount: textZones.length,
+    filteredZonesCount: 0 // sera calculé plus tard
   });
 
   // Mapper la vue active vers la catégorie
