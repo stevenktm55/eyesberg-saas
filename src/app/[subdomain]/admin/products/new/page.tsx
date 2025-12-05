@@ -2901,7 +2901,17 @@ export default function ProductBuilderPage() {
                                 {(['front', 'back', 'left', 'right'] as const).map((view) => (
                                   <button
                                     key={view}
-                                    onClick={() => setActiveLogoView(view)}
+                                    onClick={() => {
+                                      setActiveLogoView(view);
+                                      // Mapper les vues aux catégories pour la caméra
+                                      const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                        'front': 'torse',
+                                        'back': 'dos',
+                                        'left': 'bras-gauche',
+                                        'right': 'bras-droit'
+                                      };
+                                      setTargetView(viewToCategory[view]);
+                                    }}
                                     style={{
                                       padding: '8px 12px',
                                       fontSize: '12px',
