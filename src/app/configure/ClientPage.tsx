@@ -1750,6 +1750,20 @@ function LogoTab({
     'left': logoViewLeftLabel || 'Bras gauche',
     'right': logoViewRightLabel || 'Bras droit'
   };
+  
+  // Debug: vérifier les valeurs reçues
+  console.log('🎨 LogoTab - Props reçus:', {
+    addLogoButtonLabel,
+    logoPlacementMode,
+    logoZoneGroupIds,
+    logoLibraryIds,
+    logoViewFrontLabel,
+    logoViewBackLabel,
+    logoViewLeftLabel,
+    logoViewRightLabel,
+    viewLabels,
+    buttonLabel: addLogoButtonLabel || 'Ajouter un logo'
+  });
 
   // Mapper la vue active vers la catégorie
   const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
