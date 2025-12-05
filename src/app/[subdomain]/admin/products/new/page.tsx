@@ -1859,10 +1859,44 @@ export default function ProductBuilderPage() {
           <ConnectTabContent 
             shop={searchParams.get('shop')}
             productId={productId}
-            onProductLinked={(shopifyProductId: string, shopifyVariantId: string) => {
-              // Sauvegarder la liaison
-              console.log('🔗 Product linked:', { shopifyProductId, shopifyVariantId });
-              // TODO: Sauvegarder dans la base de données
+            onProductLinked={async (shopifyProductId: string, shopifyVariantId: string) => {
+              if (!productId) {
+                console.error('❌ No product ID available');
+                return;
+              }
+
+              try {
+                console.log('🔗 Linking product:', { productId, shopifyProductId, shopifyVariantId });
+                
+                const response = await fetch(`/api/products/${productId}/shopify-link`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    shopifyProductId,
+                    shopifyVariantId,
+                    shopDomain: searchParams.get('shop'),
+                  }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(data.error || 'Failed to link product');
+                }
+
+                console.log('✅ Product linked successfully:', data);
+                
+                // Afficher un message de succès
+                alert(`✅ Produit Shopify lié avec succès !\n\nProduit: ${shopifyProductId}\nVariante: ${shopifyVariantId}`);
+                
+                // Optionnel: Recharger la page ou mettre à jour l'UI
+                // window.location.reload();
+              } catch (error) {
+                console.error('❌ Error linking product:', error);
+                alert(`❌ Erreur lors de la liaison: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+              }
             }}
           />
         ) : (
