@@ -4967,20 +4967,31 @@ export default function ProductBuilderPage() {
                             {(() => {
                               function CameraInitializer({ initialZoom, initialRotation }: { initialZoom: number; initialRotation: number }) {
                                 const { camera } = useThree();
+                                const initializedRef = useRef(false);
+                                
                                 useEffect(() => {
+                                  // Ne s'exécuter qu'une seule fois au montage
+                                  if (initializedRef.current) return;
+                                  
                                   // Appliquer le zoom initial
-                                  if (initialZoom) {
-                                    const currentDistance = camera.position.length();
-                                    if (Math.abs(currentDistance - initialZoom) > 0.1) {
-                                      camera.position.normalize().multiplyScalar(initialZoom);
-                                    }
-                                  }
-                                  // Appliquer la rotation initiale
+                                  const distance = initialZoom || 5;
+                                  camera.position.set(0, 0, distance);
+                                  
+                                  // Appliquer la rotation initiale en faisant tourner la position autour du target
                                   if (initialRotation !== 0) {
-                                    camera.rotation.y = (initialRotation * Math.PI) / 180;
+                                    const angleRad = (initialRotation * Math.PI) / 180;
+                                    // Rotation autour de l'axe Y
+                                    const x = camera.position.x;
+                                    const z = camera.position.z;
+                                    const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                    const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                    camera.position.set(newX, camera.position.y, newZ);
                                   }
+                                  
                                   camera.updateProjectionMatrix();
-                                }, [initialZoom, initialRotation]);
+                                  initializedRef.current = true;
+                                }, [camera, initialZoom, initialRotation]);
+                                
                                 return null;
                               }
                               return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} />;
