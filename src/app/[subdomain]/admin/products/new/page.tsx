@@ -4959,10 +4959,32 @@ export default function ProductBuilderPage() {
                           backgroundColor: '#e8e8e8'
                         }}>
                           <Canvas
-                            camera={{ position: [0, 0, 5], fov: 50 }}
+                            camera={{ position: [0, 0, initialZoom || 5], fov: 50 }}
                             gl={{ preserveDrawingBuffer: true }}
                             style={{ width: '100%', height: '100%' }}
                           >
+                            {/* Composant pour initialiser la caméra avec les réglages */}
+                            {(() => {
+                              function CameraInitializer({ initialZoom, initialRotation }: { initialZoom: number; initialRotation: number }) {
+                                const { camera } = useThree();
+                                useEffect(() => {
+                                  // Appliquer le zoom initial
+                                  if (initialZoom) {
+                                    const currentDistance = camera.position.length();
+                                    if (Math.abs(currentDistance - initialZoom) > 0.1) {
+                                      camera.position.normalize().multiplyScalar(initialZoom);
+                                    }
+                                  }
+                                  // Appliquer la rotation initiale
+                                  if (initialRotation !== 0) {
+                                    camera.rotation.y = (initialRotation * Math.PI) / 180;
+                                  }
+                                  camera.updateProjectionMatrix();
+                                }, [initialZoom, initialRotation]);
+                                return null;
+                              }
+                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} />;
+                            })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
                             <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
@@ -5040,7 +5062,7 @@ export default function ProductBuilderPage() {
                                 if (controls && targetView) {
                                   // Positionner la caméra selon la vue
                                   const camera = controls.object;
-                                  const distance = viewDistance[targetView] || 5; // Utiliser la distance configurée pour cette vue
+                                  const distance = viewDistance[targetView] || initialZoom; // Utiliser la distance configurée pour cette vue
                                   switch (targetView) {
                                     case 'torse':
                                       camera.position.set(0, 0, distance);
@@ -5065,13 +5087,37 @@ export default function ProductBuilderPage() {
                                     setTargetView(null);
                                   }, 100);
                                 }
+                                // Appliquer les réglages de zoom et rotation
+                                if (controls) {
+                                  controls.zoomSpeed = zoomSpeed;
+                                  controls.rotateSpeed = rotateSpeed;
+                                  controls.minDistance = minZoom;
+                                  controls.maxDistance = maxZoom;
+                                  // Appliquer le zoom initial si pas de vue cible
+                                  if (!targetView && initialZoom) {
+                                    const camera = controls.object;
+                                    const currentDistance = camera.position.length();
+                                    if (Math.abs(currentDistance - initialZoom) > 0.1) {
+                                      camera.position.normalize().multiplyScalar(initialZoom);
+                                      controls.update();
+                                    }
+                                  }
+                                  // Appliquer la rotation initiale si pas de vue cible
+                                  if (!targetView && initialRotation !== 0) {
+                                    const camera = controls.object;
+                                    camera.rotation.y = (initialRotation * Math.PI) / 180;
+                                    controls.update();
+                                  }
+                                }
                               }}
                               enablePan={false}
                               enableZoom={!selectedTextId && !isPlacingText}
                               enableRotate={!selectedTextId && !isPlacingText}
                               enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
-                              minDistance={1}
-                              maxDistance={10}
+                              minDistance={minZoom}
+                              maxDistance={maxZoom}
+                              zoomSpeed={zoomSpeed}
+                              rotateSpeed={rotateSpeed}
                             />
                           </Canvas>
                           
