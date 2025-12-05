@@ -297,20 +297,28 @@ function ConnectTabContent({
         {/* Error Message */}
         {error && (
           <div style={{
-            padding: '12px 16px',
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
+            padding: '16px',
+            backgroundColor: '#2a1a1a',
+            border: '1px solid #ef4444',
             borderRadius: '8px',
             marginBottom: '24px'
           }}>
-            <p style={{
-              fontSize: '14px',
-              fontFamily: 'var(--stepn-font-body)',
-              color: '#dc2626',
-              margin: 0
-            }}>
-              {error}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>❌</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: '600', marginBottom: '8px', color: '#ef4444', fontSize: '14px' }}>Erreur</div>
+                <div style={{ color: '#ef4444', fontSize: '14px', whiteSpace: 'pre-line' }}>{error}</div>
+                <div style={{ marginTop: '12px', fontSize: '12px', color: '#888888' }}>
+                  <strong>Conseils :</strong>
+                  <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                    <li>Vérifiez que le domaine est correct (ex: <code style={{ color: '#8eff36' }}>votre-boutique.myshopify.com</code>)</li>
+                    <li>Assurez-vous que la boutique Shopify est accessible publiquement</li>
+                    <li>Vérifiez que l'API publique JSON est activée (par défaut activée)</li>
+                    <li>Essayez d'accéder directement à : <code style={{ color: '#8eff36' }}>https://{shopDomain || 'votre-boutique.myshopify.com'}/products.json</code></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
