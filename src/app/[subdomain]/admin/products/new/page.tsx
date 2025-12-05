@@ -246,16 +246,20 @@ export default function ProductBuilderPage() {
   useEffect(() => {
     // Vérifier si on est dans le module logos
     const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
-    if (activeModule?.contentType === 'logos' && selectedLogoId && !logoToReplace) {
+    if (activeModule?.contentType === 'logos' && selectedLogoId) {
       // Vérifier que le logo existe dans placedLogos
       const logo = placedLogos.find(l => l.id === selectedLogoId);
-      if (logo && !showLogoLibrary) {
-        // Ouvrir la bibliothèque pour remplacer le logo
-        setLogoToReplace(selectedLogoId);
-        setShowLogoLibrary(true);
+      if (logo) {
+        // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
+        if (!logoToReplace && !showLogoLibrary) {
+          console.log('🎯 Logo sélectionné depuis le modèle 3D, ouverture de la bibliothèque:', selectedLogoId);
+          // Ouvrir la bibliothèque pour remplacer le logo
+          setLogoToReplace(selectedLogoId);
+          setShowLogoLibrary(true);
+        }
       }
     }
-  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos]);
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
