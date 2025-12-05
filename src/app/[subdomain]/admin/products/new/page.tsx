@@ -4973,24 +4973,31 @@ export default function ProductBuilderPage() {
                                   // Ne s'exécuter qu'une seule fois au montage
                                   if (initializedRef.current) return;
                                   
-                                  // Appliquer le zoom initial
-                                  const distance = initialZoom || 5;
-                                  camera.position.set(0, 0, distance);
+                                  // Attendre un peu pour s'assurer que OrbitControls est prêt
+                                  const timer = setTimeout(() => {
+                                    if (initializedRef.current) return;
+                                    
+                                    // Appliquer le zoom initial
+                                    const distance = initialZoom || 5;
+                                    camera.position.set(0, 0, distance);
+                                    
+                                    // Appliquer la rotation initiale en faisant tourner la position autour du target
+                                    if (initialRotation !== 0) {
+                                      const angleRad = (initialRotation * Math.PI) / 180;
+                                      // Rotation autour de l'axe Y
+                                      const x = 0;
+                                      const z = distance;
+                                      const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                      const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                      camera.position.set(newX, camera.position.y, newZ);
+                                    }
+                                    
+                                    camera.updateProjectionMatrix();
+                                    initializedRef.current = true;
+                                  }, 200);
                                   
-                                  // Appliquer la rotation initiale en faisant tourner la position autour du target
-                                  if (initialRotation !== 0) {
-                                    const angleRad = (initialRotation * Math.PI) / 180;
-                                    // Rotation autour de l'axe Y
-                                    const x = camera.position.x;
-                                    const z = camera.position.z;
-                                    const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                    const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                    camera.position.set(newX, camera.position.y, newZ);
-                                  }
-                                  
-                                  camera.updateProjectionMatrix();
-                                  initializedRef.current = true;
-                                }, [camera, initialZoom, initialRotation]);
+                                  return () => clearTimeout(timer);
+                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
                                 
                                 return null;
                               }
@@ -5104,33 +5111,7 @@ export default function ProductBuilderPage() {
                                 const controlsRef = useRef<any>(null);
                                 const rotationInitializedRef = useRef(false);
                                 
-                                // Appliquer la rotation initiale UNIQUEMENT au chargement initial (une seule fois)
-                                useEffect(() => {
-                                  // Ne s'exécuter qu'une seule fois au montage, et seulement si initialRotation est défini
-                                  if (controlsRef.current && !rotationInitializedRef.current && initialRotation !== 0) {
-                                    // Attendre un peu pour s'assurer que la caméra est bien initialisée
-                                    const timer = setTimeout(() => {
-                                      if (controlsRef.current && !rotationInitializedRef.current) {
-                                        const camera = controlsRef.current.object;
-                                        const distance = camera.position.length() || initialZoom;
-                                        const angleRad = (initialRotation * Math.PI) / 180;
-                                        
-                                        // Rotation autour de l'axe Y (rotation horizontale)
-                                        // Partir de la position standard (0, 0, distance)
-                                        const x = 0;
-                                        const z = distance;
-                                        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                        
-                                        camera.position.set(newX, camera.position.y, newZ);
-                                        controlsRef.current.update();
-                                        rotationInitializedRef.current = true;
-                                      }
-                                    }, 100);
-                                    
-                                    return () => clearTimeout(timer);
-                                  }
-                                }, [initialRotation, initialZoom]);
+                                // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
                                 
                                 // Mettre à jour les réglages quand ils changent
                                 useEffect(() => {
