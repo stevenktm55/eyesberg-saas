@@ -28,8 +28,16 @@ L'erreur "Cette application ne peut pas encore être installée" signifie que l'
 
 Une fois dans le **Dev Dashboard** :
 
-1. Dans le menu de gauche, cliquez sur **"App setup"** ou **"Configuration"**
-2. Trouvez la section **"App URL"** et **"Allowed redirection URL(s)"**
+1. **Dans le menu de gauche**, cherchez et cliquez sur :
+   - **"App setup"** (le plus probable)
+   - OU **"Configuration"**
+   - OU **"App details"**
+   - OU **"OAuth"**
+
+2. Dans cette section, vous devriez trouver :
+   - **"App URL"** ou **"Application URL"**
+   - **"Allowed redirection URL(s)"** ou **"Redirect URLs"** ou **"Callback URLs"**
+
 3. Configurez :
 
    **App URL** :
@@ -48,9 +56,13 @@ Une fois dans le **Dev Dashboard** :
    - Pas d'espace, pas de slash final
    - Cliquez sur **"Save"** après avoir entré les URLs
 
-**Alternative : Si vous ne trouvez pas "App setup" dans le Dev Dashboard :**
-- Cherchez **"Configuration"** ou **"Settings"** dans le menu de gauche
-- Ou cherchez **"OAuth"** ou **"Redirect URLs"** dans les sections disponibles
+**Si vous ne trouvez toujours pas les URLs dans le menu de gauche :**
+
+1. Regardez dans le menu de navigation en haut de la page (pas dans la sidebar)
+2. Cherchez un onglet **"App setup"** ou **"Configuration"** en haut
+3. Ou cherchez une section **"OAuth"** ou **"Redirect URLs"** dans les différents onglets
+
+**Note :** Dans le nouveau Dev Dashboard, les URLs peuvent être dans une section séparée de "Settings". "Settings" contient généralement les credentials, tandis que "App setup" contient les URLs de configuration.
 
 ### Étape 5 : Configurer les scopes (permissions)
 
