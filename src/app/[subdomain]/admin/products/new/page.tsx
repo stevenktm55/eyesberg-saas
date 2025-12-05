@@ -2337,24 +2337,6 @@ export default function ProductBuilderPage() {
                 </select>
               </div>
             </div>
-
-            {/* Add to cart */}
-            <div style={{
-              padding: '16px',
-              borderTop: '1px solid #1a1a1a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{
-                fontSize: '14px',
-                fontFamily: 'var(--stepn-font-body)',
-                color: '#ffffff'
-              }}>
-                Add to cart
-              </span>
-              <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▶</span>
-            </div>
           </div>
 
           {/* Center: Customizer Preview Area */}
