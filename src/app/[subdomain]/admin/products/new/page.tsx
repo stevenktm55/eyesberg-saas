@@ -479,6 +479,13 @@ export default function ProductBuilderPage() {
             if (settings.maxZoom !== undefined) setMaxZoom(settings.maxZoom);
             if (settings.initialZoom !== undefined) setInitialZoom(settings.initialZoom);
             if (settings.initialRotation !== undefined) setInitialRotation(settings.initialRotation);
+            // Charger les distances par vue
+            if (settings.viewDistance) {
+              setViewDistance(prev => ({
+                ...prev,
+                ...settings.viewDistance
+              }));
+            }
           }
         } else if (shop) {
           // Créer un nouveau produit
@@ -678,7 +685,8 @@ export default function ProductBuilderPage() {
               minZoom,
               maxZoom,
               initialZoom,
-              initialRotation
+              initialRotation,
+              viewDistance
             }
           },
         }),
@@ -692,7 +700,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation]);
+  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
