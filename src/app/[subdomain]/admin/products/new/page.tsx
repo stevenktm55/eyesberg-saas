@@ -2783,7 +2783,7 @@ export default function ProductBuilderPage() {
                                         }}
                                       >
                                         <img
-                                          src={logo.variants?.[0]?.file_url || logo.file_url}
+                                          src={logo.file_url}
                                           alt={logo.name}
                                           style={{
                                             maxWidth: '100%',
