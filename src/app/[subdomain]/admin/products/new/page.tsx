@@ -5140,6 +5140,9 @@ export default function ProductBuilderPage() {
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
                                   if (controlsRef.current && targetView) {
+                                    // Marquer qu'une vue a été définie (persistant, ne se réinitialise jamais)
+                                    viewHasBeenSetRef.current = true;
+                                    
                                     const camera = controlsRef.current.object;
                                     const distance = viewDistance[targetView] || initialZoom;
                                     // Positionner la caméra aux positions standard (sans rotation initiale)
@@ -5168,7 +5171,7 @@ export default function ProductBuilderPage() {
                                       setTargetView(null);
                                     }, 100);
                                   }
-                                }, [targetView, viewDistance, initialZoom, setTargetView]);
+                                }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
                                 
                                 return (
                                   <OrbitControls
@@ -5201,6 +5204,7 @@ export default function ProductBuilderPage() {
                                   isRotatingText={isRotatingText}
                                   isResizingText={isResizingText}
                                   setTargetView={setTargetView}
+                                  viewHasBeenSetRef={viewHasBeenSetRef}
                                 />
                               );
                             })()}
