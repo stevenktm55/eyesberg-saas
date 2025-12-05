@@ -238,6 +238,9 @@ export default function ProductBuilderPage() {
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   // Ref persistant pour marquer qu'une vue a été définie via les boutons (ne se réinitialise jamais)
   const viewHasBeenSetRef = useRef(false);
+  // États pour la prévisualisation
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   // États pour le module logos
   const [showLogoLibrary, setShowLogoLibrary] = useState(false);
   const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
@@ -1352,31 +1355,33 @@ export default function ProductBuilderPage() {
 
           {/* Right: Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '4px',
-              border: '1px solid #2a2a2a'
-            }}>
-              <span style={{ color: '#a0a0a0', fontSize: '12px' }}>⌕</span>
-              <input
-                type="text"
-                placeholder="Search..."
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  outline: 'none',
-                  width: '120px'
-                }}
-              />
-            </div>
+            <button
+              onClick={() => setShowPreview(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px 12px',
+                backgroundColor: '#1a1a1a',
+                borderRadius: '4px',
+                border: '1px solid #2a2a2a',
+                cursor: 'pointer',
+                color: '#a0a0a0',
+                fontSize: '16px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#2a2a2a';
+                e.currentTarget.style.color = '#8eff36';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                e.currentTarget.style.color = '#a0a0a0';
+              }}
+              title="Prévisualiser le configurateur"
+            >
+              👁
+            </button>
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -8594,6 +8599,156 @@ export default function ProductBuilderPage() {
             </div>
           </div>
         </div>
+        );
+      })()}
+      
+      {/* Modal de prévisualisation */}
+      {showPreview && productId && (() => {
+        const shop = searchParams.get('shop') || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
+        const configuratorUrl = `/configure?shop=${shop}&productId=${productId}&variantId=1`;
+        const isMobile = previewMode === 'mobile';
+        const previewWidth = isMobile ? 375 : 1200;
+        const previewHeight = isMobile ? 667 : 800;
+        
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              zIndex: 10000,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPreview(false);
+              }
+            }}
+          >
+            {/* Header du modal */}
+            <div style={{
+              width: '100%',
+              maxWidth: `${previewWidth + 40}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              backgroundColor: '#1a1a1a',
+              borderTopLeftRadius: '8px',
+              borderTopRightRadius: '8px',
+              borderBottom: '1px solid #2a2a2a'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <span style={{
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  fontWeight: '600'
+                }}>
+                  Prévisualisation
+                </span>
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  backgroundColor: '#0a0a0a',
+                  borderRadius: '6px',
+                  padding: '4px'
+                }}>
+                  <button
+                    onClick={() => setPreviewMode('desktop')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: previewMode === 'desktop' ? '#8eff36' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: previewMode === 'desktop' ? '#000000' : '#a0a0a0',
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      fontWeight: previewMode === 'desktop' ? '600' : '400',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    💻 Desktop
+                  </button>
+                  <button
+                    onClick={() => setPreviewMode('mobile')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: previewMode === 'mobile' ? '#8eff36' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: previewMode === 'mobile' ? '#000000' : '#a0a0a0',
+                      fontSize: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      fontWeight: previewMode === 'mobile' ? '600' : '400',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    📱 Mobile
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPreview(false)}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '4px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1a1a1a';
+                }}
+              >
+                ✕ Fermer
+              </button>
+            </div>
+            
+            {/* Conteneur de prévisualisation */}
+            <div style={{
+              width: `${previewWidth}px`,
+              height: `${previewHeight}px`,
+              backgroundColor: '#ffffff',
+              borderRadius: '0 0 8px 8px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+            >
+              <iframe
+                src={configuratorUrl}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  backgroundColor: '#ffffff'
+                }}
+                title="Configurateur Preview"
+              />
+            </div>
+          </div>
         );
       })()}
     </div>
