@@ -214,6 +214,11 @@ export default function ProductBuilderPage() {
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
+  // États pour le module logos
+  const [showLogoLibrary, setShowLogoLibrary] = useState(false);
+  const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
+  const [selectedLogoForZone, setSelectedLogoForZone] = useState<{logoId: string, variantId?: string, variantFile?: string} | null>(null);
+  const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right'>('front');
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
@@ -2304,39 +2309,23 @@ export default function ProductBuilderPage() {
                         </div>
                       );
                     })() : activeModule.contentType === 'logos' ? (() => {
-                      // Debug: vérifier TOUS les modules pour comprendre pourquoi logos n'est pas détecté
-                      console.log('🔍 DEBUG - activeModule:', {
-                        id: activeModule.id,
-                        contentType: activeModule.contentType,
-                        contentTypeType: typeof activeModule.contentType,
-                        selectedItems: activeModule.selectedItems,
-                        allKeys: Object.keys(activeModule)
-                      });
+                      // Labels des vues personnalisables
+                      const viewLabels = {
+                        'front': activeModule.logoViewFrontLabel || 'Torse',
+                        'back': activeModule.logoViewBackLabel || 'Dos',
+                        'left': activeModule.logoViewLeftLabel || 'Bras gauche',
+                        'right': activeModule.logoViewRightLabel || 'Bras droit'
+                      };
                       
-                      console.log('✅ Module logos détecté!');
-                      // Debug: vérifier les valeurs
-                      console.log('🔍 Module logos - activeModule:', {
-                        contentType: activeModule.contentType,
-                        selectedItems: activeModule.selectedItems,
-                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
-                        logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
-                        logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
-                        logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
-                      });
-                    
+                      // Label du bouton personnalisable
+                      const buttonLabel = activeModule.addLogoButtonLabel || 'Ajouter un logo';
+                      
                       // Vérifier si des bibliothèques sont sélectionnées
                       const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
                         Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
                         activeModule.selectedItems.logoLibraryIds.length > 0;
                       
-                      console.log('📚 Vérification bibliothèques:', {
-                        hasSelectedLibraries,
-                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
-                        logoLibrariesTotal: logoLibraries.length
-                      });
-                    
                       if (!hasSelectedLibraries) {
-                        console.log('⚠️ Aucune bibliothèque sélectionnée');
                         return (
                           <div>
                             <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
@@ -2345,19 +2334,12 @@ export default function ProductBuilderPage() {
                           </div>
                         );
                       }
-                    
+                      
                       // Récupérer toutes les bibliothèques sélectionnées
                       const selectedLibraries = logoLibraries.filter(l => 
                         activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
                       );
                       
-                      console.log('📚 Bibliothèques sélectionnées:', {
-                        selectedLibrariesCount: selectedLibraries.length,
-                        selectedLibraryIds: selectedLibraries.map(l => l.id),
-                        requestedIds: activeModule.selectedItems?.logoLibraryIds,
-                        allLibraryIds: logoLibraries.map(l => l.id)
-                      });
-                    
                       // Récupérer tous les logos de toutes les bibliothèques sélectionnées
                       const allLogos: any[] = [];
                       selectedLibraries.forEach(library => {
@@ -2366,102 +2348,196 @@ export default function ProductBuilderPage() {
                         }
                       });
                       
-                      console.log('🖼️ Logos récupérés:', {
-                        totalLogos: allLogos.length,
-                        logosPerLibrary: selectedLibraries.map(l => ({ id: l.id, name: l.name, logosCount: l.logos?.length || 0 }))
-                      });
-                    
-                      if (selectedLibraries.length === 0) {
-                        console.log('⚠️ Aucune bibliothèque trouvée avec les IDs sélectionnés');
-                        return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucune bibliothèque trouvée</p>;
-                      }
-                      
-                      if (allLogos.length === 0) {
-                        console.log('⚠️ Aucun logo trouvé dans les bibliothèques sélectionnées');
-                        return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo disponible dans les bibliothèques sélectionnées</p>;
-                      }
-                      
-                      console.log('✅ Affichage des logos:', {
-                        totalLogos: allLogos.length,
-                        inputType: activeModule.inputType,
-                        willShowThumbnail: activeModule.inputType === 'thumbnail',
-                        willShowDropdown: activeModule.inputType === 'dropdown'
-                      });
-                    
-                      return (
-                        <div>
-                          {activeModule.inputType === 'thumbnail' && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
-                              {allLogos.map((logo: any) => (
-                                <div
-                                  key={logo.id}
+                      // Si on affiche la bibliothèque de logos
+                      if (showLogoLibrary && activeCustomizerTab === activeModule.id) {
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            {/* Boutons de vue en haut */}
+                            <div style={{ 
+                              display: 'grid', 
+                              gridTemplateColumns: 'repeat(4, 1fr)', 
+                              gap: '4px', 
+                              marginBottom: '12px',
+                              paddingBottom: '12px',
+                              borderBottom: '1px solid #e0e0e0'
+                            }}>
+                              {(['front', 'back', 'left', 'right'] as const).map((view) => (
+                                <button
+                                  key={view}
+                                  onClick={() => setActiveLogoView(view)}
                                   style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    cursor: 'pointer',
-                                    padding: '8px',
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
                                     borderRadius: '4px',
-                                    border: '1px solid #e0e0e0',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
+                                    color: activeLogoView === view ? '#ffffff' : '#374151',
                                     transition: 'all 0.2s'
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#f5f5f5';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                  }}
                                 >
-                                  <div
-                                    style={{
-                                      width: '80px',
-                                      height: '80px',
-                                      backgroundColor: '#f0f0f0',
-                                      borderRadius: '4px',
-                                      border: '1px solid #e0e0e0',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      padding: '8px'
-                                    }}
-                                  >
-                                    <img
-                                      src={logo.file_url}
-                                      alt={logo.name}
-                                      style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '100%',
-                                        objectFit: 'contain'
-                                      }}
-                                    />
-                                  </div>
-                                  <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
-                                    {logo.name}
-                                  </span>
-                                </div>
+                                  {viewLabels[view]}
+                                </button>
                               ))}
                             </div>
-                          )}
-                          {activeModule.inputType === 'dropdown' && (
-                            <select style={{
+                            
+                            {/* Bouton retour */}
+                            <div style={{ marginBottom: '12px' }}>
+                              <button
+                                onClick={() => setShowLogoLibrary(false)}
+                                style={{
+                                  padding: '8px 16px',
+                                  fontSize: '14px',
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  color: '#374151',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px'
+                                }}
+                              >
+                                ← Retour
+                              </button>
+                            </div>
+                            
+                            {/* Bibliothèque de logos */}
+                            {allLogos.length === 0 ? (
+                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                                Aucun logo disponible dans les bibliothèques sélectionnées
+                              </p>
+                            ) : (
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', overflowY: 'auto' }}>
+                                {allLogos.map((logo: any) => (
+                                  <div
+                                    key={logo.id}
+                                    onClick={() => {
+                                      // Si mode zones, ouvrir le modal de sélection de zone
+                                      if (activeModule.logoPlacementMode === 'zones') {
+                                        setSelectedLogoForZone({
+                                          logoId: logo.id,
+                                          variantId: logo.variants?.[0]?.id,
+                                          variantFile: logo.variants?.[0]?.file || logo.file_url
+                                        });
+                                        setShowLogoZoneModal(true);
+                                      } else {
+                                        // Mode libre : ajouter directement (à implémenter)
+                                        console.log('Mode libre - logo sélectionné:', logo.id);
+                                      }
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      cursor: 'pointer',
+                                      padding: '8px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #e0e0e0',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'transparent';
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: '80px',
+                                        height: '80px',
+                                        backgroundColor: '#f0f0f0',
+                                        borderRadius: '4px',
+                                        border: '1px solid #e0e0e0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        padding: '8px'
+                                      }}
+                                    >
+                                      <img
+                                        src={logo.variants?.[0]?.file || logo.file_url}
+                                        alt={logo.name}
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain'
+                                        }}
+                                      />
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                                      {logo.name}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      
+                      // Vue par défaut : boutons de vue + bouton "Ajouter un logo"
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {/* Boutons de vue en haut */}
+                          <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(4, 1fr)', 
+                            gap: '4px'
+                          }}>
+                            {(['front', 'back', 'left', 'right'] as const).map((view) => (
+                              <button
+                                key={view}
+                                onClick={() => setActiveLogoView(view)}
+                                style={{
+                                  padding: '8px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: '500',
+                                  borderRadius: '4px',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
+                                  color: activeLogoView === view ? '#ffffff' : '#374151',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                {viewLabels[view]}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Bouton "Ajouter un logo" */}
+                          <button
+                            onClick={() => setShowLogoLibrary(true)}
+                            style={{
                               width: '100%',
-                              padding: '10px 12px',
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #e0e0e0',
-                              borderRadius: '4px',
+                              padding: '12px 24px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
-                              cursor: 'pointer'
-                            }}>
-                              <option value="">Sélectionner un logo</option>
-                              {allLogos.map((logo: any) => (
-                                <option key={logo.id} value={logo.id}>
-                                  {logo.name}
-                                </option>
-                              ))}
-                            </select>
-                          )}
+                              fontWeight: '500',
+                              backgroundColor: '#3b82f6',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#2563eb';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#3b82f6';
+                            }}
+                          >
+                            <span>+</span>
+                            {buttonLabel}
+                          </button>
                         </div>
                       );
                     })() : activeModule.contentType === 'fonts' && activeModule.selectedItems?.fontGroupId ? (() => {
@@ -6809,6 +6885,210 @@ export default function ProductBuilderPage() {
                   </div>
                 );
               })()}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal de sélection de zones pour les logos */}
+      {showLogoZoneModal && selectedLogoForZone && (() => {
+        const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+        if (!activeModule || activeModule.contentType !== 'logos') return null;
+        
+        // Filtrer les zones selon la vue active et les groupes de zones configurés
+        const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+          'front': 'torse',
+          'back': 'dos',
+          'left': 'bras-gauche',
+          'right': 'bras-droit'
+        };
+        
+        const categoryForView = viewToCategory[activeLogoView];
+        const viewLabels: Record<string, string> = {
+          'Face': 'front',
+          'Dos': 'back',
+          'Gauche': 'left',
+          'Droite': 'right'
+        };
+        
+        let filteredZones = zoneGroups
+          .filter(group => {
+            // Si logoZoneGroupIds est défini, filtrer par groupes
+            if (activeModule.logoZoneGroupIds && activeModule.logoZoneGroupIds.length > 0) {
+              return activeModule.logoZoneGroupIds.includes(group.id);
+            }
+            return true;
+          })
+          .flatMap(group => group.zones)
+          .filter(zone => {
+            // Filtrer par catégorie (logo-torse, logo-dos, etc.)
+            const zoneView = zone.view ? viewLabels[zone.view] : undefined;
+            if (zoneView && zoneView !== activeLogoView) return false;
+            return true;
+          });
+        
+        const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
+        
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowLogoZoneModal(false);
+                setSelectedLogoForZone(null);
+              }
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: '#1a1a1a',
+                borderRadius: '8px',
+                padding: '24px',
+                maxWidth: '600px',
+                width: '90%',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                border: '1px solid #2a2a2a'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600', margin: 0 }}>
+                  Sélectionner une zone pour le logo
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowLogoZoneModal(false);
+                    setSelectedLogoForZone(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ffffff',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    padding: '0',
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              {filteredZones.length === 0 ? (
+                <p style={{ color: '#666', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
+                  Aucune zone disponible pour cette vue. Vérifiez les groupes de zones dans les settings du module.
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                  {filteredZones.map((zone) => {
+                    const isSelected = selectedLogoZoneId === zone.id;
+                    return (
+                      <div
+                        key={zone.id}
+                        onClick={() => setSelectedLogoZoneId(zone.id)}
+                        style={{
+                          padding: '12px',
+                          backgroundColor: isSelected ? '#2a2a2a' : '#0a0a0a',
+                          borderRadius: '6px',
+                          border: isSelected ? '2px solid #3b82f6' : '1px solid #2a2a2a',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
+                        {zone.thumbnailUrl && (
+                          <img
+                            src={zone.thumbnailUrl}
+                            alt={zone.name}
+                            style={{
+                              width: '100%',
+                              height: '100px',
+                              objectFit: 'cover',
+                              borderRadius: '4px'
+                            }}
+                          />
+                        )}
+                        <span style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
+                          {zone.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button
+                  onClick={() => {
+                    setShowLogoZoneModal(false);
+                    setSelectedLogoForZone(null);
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#2a2a2a',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedLogoZoneId && selectedLogoForZone) {
+                      const selectedZone = filteredZones.find(z => z.id === selectedLogoZoneId);
+                      if (selectedZone) {
+                        // Ici, vous pouvez ajouter la logique pour placer le logo sur la zone
+                        console.log('Logo placé sur la zone:', {
+                          logoId: selectedLogoForZone.logoId,
+                          zoneId: selectedZone.id,
+                          position: selectedZone.position,
+                          view: activeLogoView
+                        });
+                        // TODO: Implémenter la logique de placement du logo
+                        setShowLogoZoneModal(false);
+                        setSelectedLogoForZone(null);
+                        setShowLogoLibrary(false);
+                      }
+                    }
+                  }}
+                  disabled={!selectedLogoZoneId}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: selectedLogoZoneId ? '#3b82f6' : '#4a4a4a',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
+                    opacity: selectedLogoZoneId ? 1 : 0.5
+                  }}
+                >
+                  Confirmer
+                </button>
+              </div>
             </div>
           </div>
         );
