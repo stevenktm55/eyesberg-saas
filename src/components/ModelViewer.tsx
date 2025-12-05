@@ -191,11 +191,20 @@ function SimpleViewer({
   // Ref for isPlacingText to ensure closure has latest value
   const isPlacingTextRef = useRef<'nom' | 'numero' | null | undefined>(isPlacingText);
   
+  // Ref for onRequestTextDelete to ensure closure has latest value
+  const onRequestTextDeleteRef = useRef<((id: string) => void) | undefined>(onRequestTextDelete);
+  
   // Update ref when isPlacingText changes
   useEffect(() => {
     isPlacingTextRef.current = isPlacingText;
     console.log('🔄 isPlacingTextRef updated to:', isPlacingText);
   }, [isPlacingText]);
+  
+  // Update ref when onRequestTextDelete changes
+  useEffect(() => {
+    onRequestTextDeleteRef.current = onRequestTextDelete;
+    console.log('🔄 onRequestTextDeleteRef updated to:', onRequestTextDelete);
+  }, [onRequestTextDelete]);
   
   // Signal that a fresh original SVG is available
   const [svgBaseVersion, setSvgBaseVersion] = useState(0);
@@ -2933,17 +2942,17 @@ function SimpleViewer({
             console.log('🗑️ DELETE icon clicked for text');
             const textIdToRemove = selectedTextIdRef.current;
             console.log('🔍 textIdToRemove:', textIdToRemove);
-            console.log('🔍 onRequestTextDelete:', onRequestTextDelete);
+            console.log('🔍 onRequestTextDeleteRef.current:', onRequestTextDeleteRef.current);
             console.log('🔍 removeText:', removeText);
-            if (onRequestTextDelete && textIdToRemove) {
+            if (onRequestTextDeleteRef.current && textIdToRemove) {
               console.log('✅ Calling onRequestTextDelete with:', textIdToRemove);
-              onRequestTextDelete(textIdToRemove);
+              onRequestTextDeleteRef.current(textIdToRemove);
             } else if (removeText && textIdToRemove) {
               // Fallback si onRequestTextDelete n'est pas fourni
               console.log('⚠️ Fallback: Calling removeText with:', textIdToRemove);
               removeText(textIdToRemove);
             } else {
-              console.error('❌ Cannot delete text: missing id or handler', { textIdToRemove, onRequestTextDelete, removeText });
+              console.error('❌ Cannot delete text: missing id or handler', { textIdToRemove, onRequestTextDelete: onRequestTextDeleteRef.current, removeText });
             }
             
             // Redraw to remove the bounding box
