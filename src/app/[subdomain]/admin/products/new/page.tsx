@@ -1888,14 +1888,93 @@ export default function ProductBuilderPage() {
 
                 console.log('✅ Product linked successfully:', data);
                 
-                // Afficher un message de succès
-                alert(`✅ Produit Shopify lié avec succès !\n\nProduit: ${shopifyProductId}\nVariante: ${shopifyVariantId}`);
+                // Afficher un message de succès avec un modal temporaire
+                const successModal = document.createElement('div');
+                successModal.style.cssText = `
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: #1a1a1a;
+                  border: 2px solid #8eff36;
+                  border-radius: 12px;
+                  padding: 24px;
+                  z-index: 10000;
+                  max-width: 400px;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                `;
+                successModal.innerHTML = `
+                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #8eff36;">Produit lié avec succès !</div>
+                    <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
+                      Le produit Shopify a été connecté à ce configurateur.
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                      padding: 10px 24px;
+                      background: #8eff36;
+                      color: #000000;
+                      border: none;
+                      border-radius: 6px;
+                      font-size: 14px;
+                      font-weight: 600;
+                      cursor: pointer;
+                      font-family: var(--stepn-font-body);
+                    ">Fermer</button>
+                  </div>
+                `;
+                document.body.appendChild(successModal);
                 
-                // Optionnel: Recharger la page ou mettre à jour l'UI
-                // window.location.reload();
+                // Retirer le modal après 5 secondes
+                setTimeout(() => {
+                  if (successModal.parentElement) {
+                    successModal.remove();
+                  }
+                }, 5000);
+                
               } catch (error) {
                 console.error('❌ Error linking product:', error);
-                alert(`❌ Erreur lors de la liaison: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+                const errorModal = document.createElement('div');
+                errorModal.style.cssText = `
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: #2a1a1a;
+                  border: 2px solid #ef4444;
+                  border-radius: 12px;
+                  padding: 24px;
+                  z-index: 10000;
+                  max-width: 400px;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                `;
+                errorModal.innerHTML = `
+                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #ef4444;">Erreur</div>
+                    <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
+                      ${error instanceof Error ? error.message : 'Erreur inconnue'}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                      padding: 10px 24px;
+                      background: #ef4444;
+                      color: #ffffff;
+                      border: none;
+                      border-radius: 6px;
+                      font-size: 14px;
+                      font-weight: 600;
+                      cursor: pointer;
+                      font-family: var(--stepn-font-body);
+                    ">Fermer</button>
+                  </div>
+                `;
+                document.body.appendChild(errorModal);
+                
+                setTimeout(() => {
+                  if (errorModal.parentElement) {
+                    errorModal.remove();
+                  }
+                }, 5000);
               }
             }}
           />
