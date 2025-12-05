@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [shopData, setShopData] = useState<ShopData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showPlatformModal, setShowPlatformModal] = useState(false);
 
   useEffect(() => {
     // Vérifier si on vient d'une installation réussie ou d'une erreur
@@ -401,20 +402,7 @@ export default function SettingsPage() {
               Online stores
             </h1>
             <button
-              onClick={() => {
-                // Demander le domaine Shopify à l'utilisateur
-                const shopDomain = prompt('Enter your Shopify store domain (e.g., yourstore.myshopify.com):');
-                if (!shopDomain) return;
-                
-                // Valider le format
-                if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
-                  alert('Invalid format. Please use: yourstore.myshopify.com');
-                  return;
-                }
-                
-                // Rediriger vers le flux d'installation OAuth Shopify
-                window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
-              }}
+              onClick={() => setShowPlatformModal(true)}
               style={{
                 padding: '12px 24px',
                 backgroundColor: '#8eff36',
@@ -663,6 +651,259 @@ export default function SettingsPage() {
           </div>
         </div>
       </main>
+
+      {/* Platform Selection Modal */}
+      {showPlatformModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            fontFamily: 'var(--stepn-font-body)'
+          }}
+          onClick={() => setShowPlatformModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '32px',
+              maxWidth: '500px',
+              width: '90%',
+              position: 'relative',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPlatformModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                color: '#666666',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                lineHeight: '1',
+                fontFamily: 'var(--stepn-font-body)'
+              }}
+            >
+              ×
+            </button>
+
+            {/* Title */}
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: '600',
+              color: '#000000',
+              marginBottom: '24px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Select your online store platform
+            </h2>
+
+            {/* Platform Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              {/* Shopify */}
+              <button
+                onClick={() => {
+                  // Rediriger vers la page de l'app Eyesberg sur le Shopify App Store
+                  window.open('https://apps.shopify.com/eyesberg', '_blank');
+                  setShowPlatformModal(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontFamily: 'var(--stepn-font-body)',
+                  width: '100%',
+                  textAlign: 'left'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#8eff36';
+                  e.currentTarget.style.backgroundColor = '#f9f9f9';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+              >
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#8eff36',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#000000',
+                  fontWeight: 'bold',
+                  fontSize: '20px',
+                  flexShrink: 0
+                }}>
+                  S
+                </div>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Shopify
+                </span>
+              </button>
+
+              {/* Wix */}
+              <button
+                onClick={() => {
+                  // TODO: Implémenter l'intégration Wix
+                  alert('Wix integration coming soon!');
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontFamily: 'var(--stepn-font-body)',
+                  width: '100%',
+                  textAlign: 'left',
+                  opacity: 0.6
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#8eff36';
+                  e.currentTarget.style.backgroundColor = '#f9f9f9';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+                disabled
+              >
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#000000',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '18px' }}>wix</span>
+                </div>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  Wix
+                </span>
+              </button>
+
+              {/* WooCommerce */}
+              <button
+                onClick={() => {
+                  // TODO: Implémenter l'intégration WooCommerce
+                  alert('WooCommerce integration coming soon!');
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontFamily: 'var(--stepn-font-body)',
+                  width: '100%',
+                  textAlign: 'left',
+                  opacity: 0.6
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#8eff36';
+                  e.currentTarget.style.backgroundColor = '#f9f9f9';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+                disabled
+              >
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#96588a',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  fontWeight: 'bold',
+                  fontSize: '20px',
+                  flexShrink: 0
+                }}>
+                  W
+                </div>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  WooCommerce
+                </span>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              fontSize: '14px',
+              color: '#666666',
+              textAlign: 'center',
+              fontFamily: 'var(--stepn-font-body)',
+              paddingTop: '16px',
+              borderTop: '1px solid #e0e0e0'
+            }}>
+              For custom store integrations{' '}
+              <a
+                href="mailto:support@eyesberg.com"
+                style={{
+                  color: '#0066cc',
+                  textDecoration: 'underline',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}
+              >
+                contact us
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
