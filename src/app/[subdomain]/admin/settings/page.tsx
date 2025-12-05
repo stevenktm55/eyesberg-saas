@@ -718,9 +718,19 @@ export default function SettingsPage() {
               {/* Shopify */}
               <button
                 onClick={() => {
-                  // Rediriger vers la page de l'app Eyesberg sur le Shopify App Store
-                  window.open('https://apps.shopify.com/eyesberg', '_blank');
                   setShowPlatformModal(false);
+                  // Demander le domaine Shopify à l'utilisateur
+                  const shopDomain = prompt('Enter your Shopify store domain (e.g., yourstore.myshopify.com):');
+                  if (!shopDomain) return;
+                  
+                  // Valider le format
+                  if (!shopDomain.match(/^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/)) {
+                    alert('Invalid format. Please use: yourstore.myshopify.com');
+                    return;
+                  }
+                  
+                  // Rediriger vers le flux d'installation OAuth Shopify
+                  window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shopDomain)}`;
                 }}
                 style={{
                   display: 'flex',
