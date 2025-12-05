@@ -4963,9 +4963,8 @@ export default function ProductBuilderPage() {
                             style={{ width: '100%', height: '100%' }}
                           >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
-                            {initialZoom !== undefined && initialRotation !== undefined && (
-                              <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />
-                            )}
+                            {/* Temporairement désactivé pour déboguer l'erreur React #130 */}
+                            {/* <CameraInitializer initialZoom={initialZoom || 5} initialRotation={initialRotation || 0} viewHasBeenSetRef={viewHasBeenSetRef} /> */}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
                             <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
