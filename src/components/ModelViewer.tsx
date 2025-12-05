@@ -2528,8 +2528,29 @@ function SimpleViewer({
         const halfWidth = (logoWidth / 2048) / 2;
         const halfHeight = (logoHeight / 2048) / 2;
         
-        if (u >= visualU - halfWidth && u <= visualU + halfWidth && v >= visualV - halfHeight && v <= visualV + halfHeight) {
-          matchingLogos.push({ logo, visualOffset: visualOffsetUV });
+        // Check if click is within bounding box, accounting for rotation
+        const rotation = logo.rotation || 0;
+        
+        if (rotation === 0) {
+          // Simple axis-aligned bounding box check (no rotation)
+          if (u >= visualU - halfWidth && u <= visualU + halfWidth && v >= visualV - halfHeight && v <= visualV + halfHeight) {
+            matchingLogos.push({ logo, visualOffset: visualOffsetUV });
+          }
+        } else {
+          // Rotated bounding box: transform click point to logo's local space
+          const dx = u - visualU;
+          const dy = v - visualV;
+          
+          // Rotate click point back to logo's local coordinate system
+          const cosR = Math.cos(-rotation);
+          const sinR = Math.sin(-rotation);
+          const localX = dx * cosR - dy * sinR;
+          const localY = dx * sinR + dy * cosR;
+          
+          // Check if transformed point is within bounds
+          if (localX >= -halfWidth && localX <= halfWidth && localY >= -halfHeight && localY <= halfHeight) {
+            matchingLogos.push({ logo, visualOffset: visualOffsetUV });
+          }
         }
       }
       
