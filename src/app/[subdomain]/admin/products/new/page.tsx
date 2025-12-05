@@ -5133,11 +5133,12 @@ export default function ProductBuilderPage() {
                                   }
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
-                                // Gérer le changement de vue
+                                // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
                                   if (controlsRef.current && targetView) {
                                     const camera = controlsRef.current.object;
                                     const distance = viewDistance[targetView] || initialZoom;
+                                    // Positionner la caméra aux positions standard (sans rotation initiale)
                                     switch (targetView) {
                                       case 'torse':
                                         camera.position.set(0, 0, distance);
@@ -5156,6 +5157,8 @@ export default function ProductBuilderPage() {
                                         controlsRef.current.target.set(0, 0, 0);
                                         break;
                                     }
+                                    // S'assurer que la rotation de la caméra est réinitialisée (pas de rotation initiale lors du changement de vue)
+                                    camera.rotation.set(0, 0, 0);
                                     controlsRef.current.update();
                                     setTimeout(() => {
                                       setTargetView(null);
