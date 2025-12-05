@@ -2303,7 +2303,7 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : (() => {
+                    })() : activeModule.contentType === 'logos' ? (() => {
                       // Debug: vérifier TOUS les modules pour comprendre pourquoi logos n'est pas détecté
                       console.log('🔍 DEBUG - activeModule:', {
                         id: activeModule.id,
@@ -2313,130 +2313,125 @@ export default function ProductBuilderPage() {
                         allKeys: Object.keys(activeModule)
                       });
                       
-                      if (activeModule.contentType === 'logos') {
-                        console.log('✅ Module logos détecté!');
-                        // Debug: vérifier les valeurs
-                        console.log('🔍 Module logos - activeModule:', {
-                          contentType: activeModule.contentType,
-                          selectedItems: activeModule.selectedItems,
-                          logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
-                          logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
-                          logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
-                          logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
-                        });
-                      
-                        // Vérifier si des bibliothèques sont sélectionnées
-                        const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
-                          Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
-                          activeModule.selectedItems.logoLibraryIds.length > 0;
-                      
-                        if (!hasSelectedLibraries) {
-                          return (
-                            <div>
-                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                                Sélectionnez des bibliothèques de logos dans les settings du module.
-                              </p>
-                            </div>
-                          );
-                        }
-                      
-                        // Récupérer toutes les bibliothèques sélectionnées
-                        const selectedLibraries = logoLibraries.filter(l => 
-                          activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
-                        );
-                      
-                        // Récupérer tous les logos de toutes les bibliothèques sélectionnées
-                        const allLogos: any[] = [];
-                        selectedLibraries.forEach(library => {
-                          if (library.logos && Array.isArray(library.logos)) {
-                            allLogos.push(...library.logos);
-                          }
-                        });
-                      
-                        if (selectedLibraries.length === 0) {
-                          return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucune bibliothèque trouvée</p>;
-                        }
-                      
+                      console.log('✅ Module logos détecté!');
+                      // Debug: vérifier les valeurs
+                      console.log('🔍 Module logos - activeModule:', {
+                        contentType: activeModule.contentType,
+                        selectedItems: activeModule.selectedItems,
+                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
+                        logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
+                        logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
+                        logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
+                      });
+                    
+                      // Vérifier si des bibliothèques sont sélectionnées
+                      const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
+                        Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
+                        activeModule.selectedItems.logoLibraryIds.length > 0;
+                    
+                      if (!hasSelectedLibraries) {
                         return (
                           <div>
-                            {activeModule.inputType === 'thumbnail' && (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
-                                {allLogos.map((logo: any) => (
-                                  <div
-                                    key={logo.id}
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      cursor: 'pointer',
-                                      padding: '8px',
-                                      borderRadius: '4px',
-                                      border: '1px solid #e0e0e0',
-                                      transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#f5f5f5';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = 'transparent';
-                                    }}
-                                  >
-                                    <div
-                                      style={{
-                                        width: '80px',
-                                        height: '80px',
-                                        backgroundColor: '#f0f0f0',
-                                        borderRadius: '4px',
-                                        border: '1px solid #e0e0e0',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        padding: '8px'
-                                      }}
-                                    >
-                                      <img
-                                        src={logo.file_url}
-                                        alt={logo.name}
-                                        style={{
-                                          maxWidth: '100%',
-                                          maxHeight: '100%',
-                                          objectFit: 'contain'
-                                        }}
-                                      />
-                                    </div>
-                                    <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
-                                      {logo.name}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            {activeModule.inputType === 'dropdown' && (
-                              <select style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '4px',
-                                fontSize: '14px',
-                                fontFamily: 'var(--stepn-font-body)',
-                                cursor: 'pointer'
-                              }}>
-                                <option value="">Sélectionner un logo</option>
-                                {allLogos.map((logo: any) => (
-                                  <option key={logo.id} value={logo.id}>
-                                    {logo.name}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              Sélectionnez des bibliothèques de logos dans les settings du module.
+                            </p>
                           </div>
                         );
                       }
-                      
-                      // Si ce n'est pas un module logos, retourner null pour continuer avec les autres conditions
-                      return null;
+                    
+                      // Récupérer toutes les bibliothèques sélectionnées
+                      const selectedLibraries = logoLibraries.filter(l => 
+                        activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
+                      );
+                    
+                      // Récupérer tous les logos de toutes les bibliothèques sélectionnées
+                      const allLogos: any[] = [];
+                      selectedLibraries.forEach(library => {
+                        if (library.logos && Array.isArray(library.logos)) {
+                          allLogos.push(...library.logos);
+                        }
+                      });
+                    
+                      if (selectedLibraries.length === 0) {
+                        return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucune bibliothèque trouvée</p>;
+                      }
+                    
+                      return (
+                        <div>
+                          {activeModule.inputType === 'thumbnail' && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+                              {allLogos.map((logo: any) => (
+                                <div
+                                  key={logo.id}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #e0e0e0',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: '80px',
+                                      height: '80px',
+                                      backgroundColor: '#f0f0f0',
+                                      borderRadius: '4px',
+                                      border: '1px solid #e0e0e0',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: '8px'
+                                    }}
+                                  >
+                                    <img
+                                      src={logo.file_url}
+                                      alt={logo.name}
+                                      style={{
+                                        maxWidth: '100%',
+                                        maxHeight: '100%',
+                                        objectFit: 'contain'
+                                      }}
+                                    />
+                                  </div>
+                                  <span style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                                    {logo.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {activeModule.inputType === 'dropdown' && (
+                            <select style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e0e0e0',
+                              borderRadius: '4px',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer'
+                            }}>
+                              <option value="">Sélectionner un logo</option>
+                              {allLogos.map((logo: any) => (
+                                <option key={logo.id} value={logo.id}>
+                                  {logo.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      );
                     })() : activeModule.contentType === 'fonts' && activeModule.selectedItems?.fontGroupId ? (() => {
                       const group = fontGroups.find(g => g.id === activeModule.selectedItems?.fontGroupId);
                       if (!group) return <p style={{ color: '#666', fontSize: '14px' }}>Groupe non trouvé</p>;
