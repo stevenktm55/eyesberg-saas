@@ -2353,35 +2353,37 @@ export default function ProductBuilderPage() {
                       if (showLogoLibrary && activeCustomizerTab === activeModule.id) {
                         return (
                           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            {/* Boutons de vue en haut */}
-                            <div style={{ 
-                              display: 'grid', 
-                              gridTemplateColumns: 'repeat(4, 1fr)', 
-                              gap: '4px', 
-                              marginBottom: '12px',
-                              paddingBottom: '12px',
-                              borderBottom: '1px solid #e0e0e0'
-                            }}>
-                              {(['front', 'back', 'left', 'right'] as const).map((view) => (
-                                <button
-                                  key={view}
-                                  onClick={() => setActiveLogoView(view)}
-                                  style={{
-                                    padding: '8px 12px',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    borderRadius: '4px',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
-                                    color: activeLogoView === view ? '#ffffff' : '#374151',
-                                    transition: 'all 0.2s'
-                                  }}
-                                >
-                                  {viewLabels[view]}
-                                </button>
-                              ))}
-                            </div>
+                            {/* Boutons de vue en haut - uniquement si mode zones */}
+                            {activeModule.logoPlacementMode === 'zones' && (
+                              <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(4, 1fr)', 
+                                gap: '4px', 
+                                marginBottom: '12px',
+                                paddingBottom: '12px',
+                                borderBottom: '1px solid #e0e0e0'
+                              }}>
+                                {(['front', 'back', 'left', 'right'] as const).map((view) => (
+                                  <button
+                                    key={view}
+                                    onClick={() => setActiveLogoView(view)}
+                                    style={{
+                                      padding: '8px 12px',
+                                      fontSize: '12px',
+                                      fontWeight: '500',
+                                      borderRadius: '4px',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
+                                      color: activeLogoView === view ? '#ffffff' : '#374151',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    {viewLabels[view]}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                             
                             {/* Bouton retour */}
                             <div style={{ marginBottom: '12px' }}>
@@ -2483,32 +2485,34 @@ export default function ProductBuilderPage() {
                       // Vue par défaut : boutons de vue + bouton "Ajouter un logo"
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                          {/* Boutons de vue en haut */}
-                          <div style={{ 
-                            display: 'grid', 
-                            gridTemplateColumns: 'repeat(4, 1fr)', 
-                            gap: '4px'
-                          }}>
-                            {(['front', 'back', 'left', 'right'] as const).map((view) => (
-                              <button
-                                key={view}
-                                onClick={() => setActiveLogoView(view)}
-                                style={{
-                                  padding: '8px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: '500',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
-                                  color: activeLogoView === view ? '#ffffff' : '#374151',
-                                  transition: 'all 0.2s'
-                                }}
-                              >
-                                {viewLabels[view]}
-                              </button>
-                            ))}
-                          </div>
+                          {/* Boutons de vue en haut - uniquement si mode zones */}
+                          {activeModule.logoPlacementMode === 'zones' && (
+                            <div style={{ 
+                              display: 'grid', 
+                              gridTemplateColumns: 'repeat(4, 1fr)', 
+                              gap: '4px'
+                            }}>
+                              {(['front', 'back', 'left', 'right'] as const).map((view) => (
+                                <button
+                                  key={view}
+                                  onClick={() => setActiveLogoView(view)}
+                                  style={{
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
+                                    color: activeLogoView === view ? '#ffffff' : '#374151',
+                                    transition: 'all 0.2s'
+                                  }}
+                                >
+                                  {viewLabels[view]}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                           
                           {/* Bouton "Ajouter un logo" */}
                           <button
@@ -6927,8 +6931,6 @@ export default function ProductBuilderPage() {
             if (zoneView && zoneView !== activeLogoView) return false;
             return true;
           });
-        
-        const [selectedLogoZoneId, setSelectedLogoZoneId] = React.useState<string>('');
         
         return (
           <div
