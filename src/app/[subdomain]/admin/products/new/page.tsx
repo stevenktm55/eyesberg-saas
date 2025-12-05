@@ -7831,20 +7831,22 @@ export default function ProductBuilderPage() {
       })()}
       
       {/* Modal de confirmation de suppression */}
-      {showDeleteModal && itemToDelete && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000
-          }}
+      {showDeleteModal && itemToDelete && (() => {
+        console.log('🎨 Rendering delete modal:', { showDeleteModal, itemToDelete });
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000
+            }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowDeleteModal(false);
