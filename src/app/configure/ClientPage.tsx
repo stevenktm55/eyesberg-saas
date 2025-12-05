@@ -2140,20 +2140,26 @@ function LogoTab({
                 <button
                   key={logo.id}
                   onClick={() => {
-                    if (logo.variants.length === 0) {
-                      if (logoPlacementMode === 'zones') {
+                    // Toujours ouvrir le sélecteur de zone si le mode zones est configuré
+                    // Sinon, ajouter directement le logo (mode libre)
+                    if (logoPlacementMode === 'zones') {
+                      if (logo.variants.length === 0) {
                         onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '', view: activeView });
-                      } else {
-                        addLogo(logo.id, '', '', [0.5, 0.5, 0], activeCategory);
-                      }
-                    } else if (logo.variants.length === 1) {
-                      if (logoPlacementMode === 'zones') {
+                      } else if (logo.variants.length === 1) {
                         onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file, view: activeView });
                       } else {
-                        addLogo(logo.id, logo.variants[0].id, logo.variants[0].file, [0.5, 0.5, 0], activeCategory);
+                        // Plusieurs variantes : ouvrir le sélecteur de variantes d'abord
+                        setShowVariantSelector(logo.id);
                       }
                     } else {
-                      setShowVariantSelector(logo.id);
+                      // Mode libre : ajouter directement
+                      if (logo.variants.length === 0) {
+                        addLogo(logo.id, '', '', [0.5, 0.5, 0], activeCategory);
+                      } else if (logo.variants.length === 1) {
+                        addLogo(logo.id, logo.variants[0].id, logo.variants[0].file, [0.5, 0.5, 0], activeCategory);
+                      } else {
+                        setShowVariantSelector(logo.id);
+                      }
                     }
                   }}
                   className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors"
