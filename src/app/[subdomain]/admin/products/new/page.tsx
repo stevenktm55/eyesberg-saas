@@ -2303,7 +2303,32 @@ export default function ProductBuilderPage() {
                           )}
                         </div>
                       );
-                    })() : activeModule.contentType === 'logos' && activeModule.selectedItems?.logoLibraryIds && Array.isArray(activeModule.selectedItems.logoLibraryIds) && activeModule.selectedItems.logoLibraryIds.length > 0 ? (() => {
+                    })() : activeModule.contentType === 'logos' ? (() => {
+                      // Debug: vérifier les valeurs
+                      console.log('🔍 Module logos - activeModule:', {
+                        contentType: activeModule.contentType,
+                        selectedItems: activeModule.selectedItems,
+                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
+                        logoLibraryIdsType: typeof activeModule.selectedItems?.logoLibraryIds,
+                        logoLibraryIdsIsArray: Array.isArray(activeModule.selectedItems?.logoLibraryIds),
+                        logoLibraryIdsLength: activeModule.selectedItems?.logoLibraryIds?.length
+                      });
+                      
+                      // Vérifier si des bibliothèques sont sélectionnées
+                      const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
+                        Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
+                        activeModule.selectedItems.logoLibraryIds.length > 0;
+                      
+                      if (!hasSelectedLibraries) {
+                        return (
+                          <div>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              Sélectionnez des bibliothèques de logos dans les settings du module.
+                            </p>
+                          </div>
+                        );
+                      }
+                      
                       // Récupérer toutes les bibliothèques sélectionnées
                       const selectedLibraries = logoLibraries.filter(l => 
                         activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
