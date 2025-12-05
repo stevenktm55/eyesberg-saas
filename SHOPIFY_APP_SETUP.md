@@ -24,45 +24,53 @@ L'erreur "Cette application ne peut pas encore être installée" signifie que l'
 2. Cliquez sur le lien **"visiter votre Dev Dashboard"** (en bas de la carte bleue)
 3. OU allez directement sur : https://partners.shopify.com/organizations/[votre-org-id]/apps/[votre-app-id]/dev_dashboard
 
-### Étape 4 : Configurer les URLs de redirection
+### Étape 4 : Créer une nouvelle version de l'application
 
-Une fois dans le **Dev Dashboard** :
+Dans le nouveau Dev Dashboard de Shopify, vous devez **créer une version** pour configurer les URLs :
 
-1. **Dans le menu de gauche**, cherchez et cliquez sur :
-   - **"App setup"** (le plus probable)
-   - OU **"Configuration"**
-   - OU **"App details"**
-   - OU **"OAuth"**
+1. Dans le Dev Dashboard, cliquez sur **"Create a version"** ou **"Versions"** dans le menu
+2. Vous verrez un formulaire de configuration avec plusieurs sections
 
-2. Dans cette section, vous devriez trouver :
-   - **"App URL"** ou **"Application URL"**
-   - **"Allowed redirection URL(s)"** ou **"Redirect URLs"** ou **"Callback URLs"**
+### Étape 5 : Configurer les URLs dans la version
 
-3. Configurez :
+Dans le formulaire "Create a version", configurez :
 
-   **App URL** :
+**Section "URLs"** :
+
+1. **App URL** :
    ```
-   https://votre-domaine.com/admin
+   https://votre-domaine.com
    ```
+   ⚠️ **Important** : Pas de `/admin` à la fin, juste le domaine de base
 
-   **Allowed redirection URL(s)** :
+2. **Redirect URLs** (dans la section "Access") :
    ```
    https://votre-domaine.com/api/shopify/callback
    ```
-
    ⚠️ **Important** : 
    - Remplacez `votre-domaine.com` par votre vrai domaine (ex: `stretchmx.eyesberg.app`)
    - Les URLs doivent être en HTTPS
    - Pas d'espace, pas de slash final
-   - Cliquez sur **"Save"** après avoir entré les URLs
+   - Entrez les URLs séparées par des virgules si vous en avez plusieurs
 
-**Si vous ne trouvez toujours pas les URLs dans le menu de gauche :**
+**Section "Access" → "Scopes"** :
 
-1. Regardez dans le menu de navigation en haut de la page (pas dans la sidebar)
-2. Cherchez un onglet **"App setup"** ou **"Configuration"** en haut
-3. Ou cherchez une section **"OAuth"** ou **"Redirect URLs"** dans les différents onglets
+Ajoutez les scopes suivants (séparés par des virgules) :
+```
+read_orders,read_products,write_products,write_script_tags,read_customers
+```
 
-**Note :** Dans le nouveau Dev Dashboard, les URLs peuvent être dans une section séparée de "Settings". "Settings" contient généralement les credentials, tandis que "App setup" contient les URLs de configuration.
+**Section "Embed app in Shopify admin"** :
+
+✅ Cochez cette case pour que l'app s'intègre dans l'admin Shopify
+
+### Étape 6 : Publier la version
+
+1. Vérifiez que toutes les configurations sont correctes
+2. Cliquez sur le bouton **"Release"** en haut à droite
+3. La version sera créée et activée
+
+⚠️ **Note importante** : Après avoir créé la version, vous devrez peut-être attendre quelques minutes pour que les changements soient pris en compte.
 
 ### Étape 5 : Configurer les scopes (permissions)
 
