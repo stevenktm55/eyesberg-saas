@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
 import { ModelViewer } from '@/components/ModelViewer';
-import { CameraInitializer } from '@/components/CameraInitializer';
-import { ControlsManager } from '@/components/ControlsManager';
+// Temporairement désactivés pour déboguer l'erreur React #130
+// import { CameraInitializer } from '@/components/CameraInitializer';
+// import { ControlsManager } from '@/components/ControlsManager';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -5037,7 +5038,8 @@ export default function ProductBuilderPage() {
                                 );
                               })()}
                             </Suspense>
-                            <ControlsManager
+                            {/* Temporairement désactivé pour déboguer l'erreur React #130 */}
+                            {/* <ControlsManager
                               targetView={targetView}
                               viewDistance={viewDistance}
                               initialZoom={initialZoom}
@@ -5053,7 +5055,7 @@ export default function ProductBuilderPage() {
                               isResizingText={isResizingText}
                               setTargetView={setTargetView}
                               viewHasBeenSetRef={viewHasBeenSetRef}
-                            />
+                            /> */}
                           </Canvas>
                           
                           {/* UV2 Preview Window - Outside Canvas */}
