@@ -2932,7 +2932,7 @@ export default function ProductBuilderPage() {
                                     }}>
                                       <div style={{
                                         fontSize: '14px',
-                                        color: '#ffffff',
+                                        color: '#000000',
                                         fontFamily: 'var(--stepn-font-body)',
                                         fontWeight: selectedLogoId === logo.id ? '600' : '400'
                                       }}>
