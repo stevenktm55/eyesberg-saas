@@ -115,19 +115,40 @@ read_orders,read_products,write_products,write_script_tags,read_customers
 
 #### 🎯 Recommandation pour votre cas (SaaS multi-tenant) :
 
-**Option A : Unlisted app (RECOMMANDÉ)**
-- Permet d'installer l'app via votre système d'admin (ce que vous faites déjà)
-- Peut être convertie en Public app plus tard si vous voulez publier sur l'App Store
-- Plus flexible pour un SaaS
+**Option A : Custom app (RECOMMANDÉ POUR LE DÉVELOPPEMENT)**
+- ✅ **Aucun review requis** - Installation immédiate
+- ✅ Idéal pour le développement et les tests
+- ✅ Fonctionne avec votre système d'installation actuel
+- ⚠️ Limité à une seule boutique/organisation par installation
+- ⚠️ **Solution pour multi-tenant** : Créez une Custom app par client OU utilisez une organisation Shopify Plus (qui peut installer une Custom app sur plusieurs boutiques)
 
-**Option B : Public app**
-- Si vous voulez que les boutiques puissent installer directement depuis l'App Store
-- Nécessite de soumettre l'app à Shopify pour review
-- Meilleur pour la visibilité et la croissance
+**Option B : Unlisted app**
+- ⚠️ Peut nécessiter un review Shopify même si ce n'est pas pour l'App Store
+- Permet d'installer via lien direct
+- Peut être convertie en Public app plus tard
 
-**Option C : Custom app**
-- Seulement si vous êtes sûr de ne jamais vouloir publier sur l'App Store
-- Limité à une seule boutique/organisation
+**Option C : Public app**
+- Nécessite un review complet par Shopify
+- Pas adapté pour le développement
+
+#### 💡 Solution pour contourner le review (Développement) :
+
+**Stratégie recommandée :**
+
+1. **Pour le développement** : Utilisez **Custom app**
+   - Aucun review requis
+   - Installation immédiate
+   - Parfait pour tester et développer
+
+2. **Pour la production plus tard** : Créez une **nouvelle app** (Public ou Unlisted)
+   - Quand votre app sera prête
+   - Vous pourrez soumettre cette nouvelle app pour review
+   - L'ancienne Custom app restera pour le développement
+
+**OU** utilisez une **organisation Shopify Plus** :
+- Les organisations Shopify Plus peuvent installer une Custom app sur **plusieurs boutiques**
+- Pas de review requis
+- Parfait pour un SaaS multi-tenant
 
 #### Comment choisir :
 
