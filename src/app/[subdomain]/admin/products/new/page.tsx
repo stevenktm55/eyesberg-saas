@@ -2509,7 +2509,7 @@ export default function ProductBuilderPage() {
                           // Construire la liste des variantes : logo de base + variantes
                           const baseVariant = {
                             id: 'base',
-                            file: selectedLogoForVariants.file_url || '',
+                            file_url: selectedLogoForVariants.file_url || '',
                             name: selectedLogoForVariants.name || 'Logo de base'
                           };
                           const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
@@ -2517,9 +2517,13 @@ export default function ProductBuilderPage() {
                           console.log('🔍 Variantes du logo:', {
                             logoId: selectedLogoForVariants.id,
                             logoName: selectedLogoForVariants.name,
-                            baseFile: baseVariant.file,
+                            baseFile: baseVariant.file_url,
                             variantsCount: selectedLogoForVariants.variants?.length || 0,
-                            allVariants: allVariants.map(v => ({ id: v.id, file: v.file, name: v.name }))
+                            allVariants: allVariants.map(v => ({ 
+                              id: v.id, 
+                              file_url: v.file_url, 
+                              name: v.name 
+                            }))
                           });
                           
                           return (
