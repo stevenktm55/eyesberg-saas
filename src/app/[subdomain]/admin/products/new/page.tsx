@@ -2889,7 +2889,13 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={logo.id}
                                       onClick={() => {
-                                        // Si on est en mode remplacement, remplacer directement le logo
+                                        // Si le logo a des variantes, toujours ouvrir la vue des variantes (même en mode remplacement)
+                                        if (hasVariants) {
+                                          setSelectedLogoForVariants(logo);
+                                          return;
+                                        }
+                                        
+                                        // Si on est en mode remplacement et que le logo n'a pas de variantes, remplacer directement
                                         if (logoToReplace) {
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
                                           if (logoToReplaceData) {
@@ -2911,22 +2917,17 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                         
-                                        // Si le logo a des variantes, ouvrir la vue des variantes
-                                        if (hasVariants) {
-                                          setSelectedLogoForVariants(logo);
+                                        // Sinon, ouvrir directement le modal de sélection de zone
+                                        if (activeModule.logoPlacementMode === 'zones') {
+                                          setSelectedLogoForZone({
+                                            logoId: logo.id,
+                                            variantId: undefined,
+                                            variantFile: logo.file_url
+                                          });
+                                          setShowLogoZoneModal(true);
                                         } else {
-                                          // Sinon, ouvrir directement le modal de sélection de zone
-                                          if (activeModule.logoPlacementMode === 'zones') {
-                                            setSelectedLogoForZone({
-                                              logoId: logo.id,
-                                              variantId: undefined,
-                                              variantFile: logo.file_url
-                                            });
-                                            setShowLogoZoneModal(true);
-                                          } else {
-                                            // Mode libre : ajouter directement (à implémenter)
-                                            console.log('Mode libre - logo sélectionné:', logo.id);
-                                          }
+                                          // Mode libre : ajouter directement (à implémenter)
+                                          console.log('Mode libre - logo sélectionné:', logo.id);
                                         }
                                       }}
                                       style={{
