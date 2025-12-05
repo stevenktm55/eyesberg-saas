@@ -242,24 +242,34 @@ export default function ProductBuilderPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
   
-  // Ouvrir la bibliothèque quand un logo est sélectionné depuis le modèle 3D
+  // Ouvrir/fermer la bibliothèque selon la sélection du logo
   useEffect(() => {
     // Vérifier si on est dans le module logos
     const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
-    if (activeModule?.contentType === 'logos' && selectedLogoId) {
-      // Vérifier que le logo existe dans placedLogos
-      const logo = placedLogos.find(l => l.id === selectedLogoId);
-      if (logo) {
-        // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
-        if (!logoToReplace && !showLogoLibrary) {
-          console.log('🎯 Logo sélectionné depuis le modèle 3D, ouverture de la bibliothèque:', selectedLogoId);
-          // Ouvrir la bibliothèque pour remplacer le logo
-          setLogoToReplace(selectedLogoId);
-          setShowLogoLibrary(true);
+    if (activeModule?.contentType === 'logos') {
+      if (selectedLogoId) {
+        // Logo sélectionné : ouvrir la bibliothèque si nécessaire
+        const logo = placedLogos.find(l => l.id === selectedLogoId);
+        if (logo) {
+          // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
+          if (!logoToReplace && !showLogoLibrary) {
+            console.log('🎯 Logo sélectionné depuis le modèle 3D, ouverture de la bibliothèque:', selectedLogoId);
+            // Ouvrir la bibliothèque pour remplacer le logo
+            setLogoToReplace(selectedLogoId);
+            setShowLogoLibrary(true);
+          }
+        }
+      } else {
+        // Logo désélectionné : fermer la bibliothèque si elle était ouverte pour un remplacement
+        if (logoToReplace && showLogoLibrary) {
+          console.log('🎯 Logo désélectionné, fermeture de la bibliothèque');
+          setShowLogoLibrary(false);
+          setLogoToReplace(null);
+          setSelectedLogoForVariants(null);
         }
       }
     }
-  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos]);
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
