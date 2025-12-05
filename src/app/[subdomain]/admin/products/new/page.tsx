@@ -150,11 +150,58 @@ function ConnectTabContent({
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
-  const [shopDomain, setShopDomain] = useState(shop || '');
+  const [shopDomain, setShopDomain] = useState<string | null>(null);
+  const [loadingShop, setLoadingShop] = useState(true);
 
-  const fetchProducts = async () => {
-    if (!shopDomain) {
-      setError('Veuillez entrer le domaine de votre boutique Shopify');
+  // Charger automatiquement le shop domain depuis les paramètres
+  useEffect(() => {
+    async function loadShopDomain() {
+      try {
+        const host = window.location.host;
+        const subdomainMatch = host.match(/^([^.]+)\./);
+        const detectedSubdomain = subdomainMatch ? subdomainMatch[1] : null;
+        
+        if (!detectedSubdomain) {
+          setError('Impossible de détecter le sous-domaine');
+          setLoadingShop(false);
+          return;
+        }
+
+        const response = await fetch(`/api/accounts/shop?subdomain=${detectedSubdomain}`);
+        if (response.status === 404) {
+          setError('Aucune boutique Shopify connectée. Veuillez d\'abord connecter une boutique dans Settings > Online stores.');
+          setLoadingShop(false);
+          return;
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.shop && data.shop.shop_domain) {
+            setShopDomain(data.shop.shop_domain);
+            // Charger automatiquement les produits
+            fetchProducts(data.shop.shop_domain);
+          } else {
+            setError('Aucune boutique Shopify connectée. Veuillez d\'abord connecter une boutique dans Settings > Online stores.');
+          }
+        } else {
+          setError('Erreur lors de la récupération des informations de la boutique');
+        }
+      } catch (err) {
+        console.error('Error loading shop domain:', err);
+        setError('Erreur lors de la récupération des informations de la boutique');
+      } finally {
+        setLoadingShop(false);
+      }
+    }
+
+    loadShopDomain();
+  }, []);
+
+  const fetchProducts = async (domain?: string) => {
+    const domainToUse = domain || shopDomain;
+    
+    if (!domainToUse) {
+      setError('Aucune boutique Shopify connectée');
       return;
     }
 
@@ -162,8 +209,8 @@ function ConnectTabContent({
     setError(null);
 
     try {
-      console.log('🔍 Fetching products for shop:', shopDomain);
-      const response = await fetch(`/api/shopify/products?shop=${encodeURIComponent(shopDomain)}`);
+      console.log('🔍 Fetching products for shop:', domainToUse);
+      const response = await fetch(`/api/shopify/products?shop=${encodeURIComponent(domainToUse)}`);
       
       let data;
       try {
@@ -238,61 +285,54 @@ function ConnectTabContent({
           Sélectionnez le produit Shopify sur lequel vous souhaitez afficher ce configurateur.
         </p>
 
-        {/* Shop Domain Input */}
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{
-            display: 'block',
-            fontSize: '14px',
-            fontFamily: 'var(--stepn-font-body)',
-            color: '#ffffff',
-            marginBottom: '8px',
-            fontWeight: '500'
+        {/* Shop Info */}
+        {shopDomain && (
+          <div style={{ 
+            marginBottom: '24px',
+            padding: '12px 16px',
+            backgroundColor: '#1a1a1a',
+            border: '1px solid #2a2a2a',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
           }}>
-            Domaine de votre boutique Shopify
-          </label>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input
-              type="text"
-              value={shopDomain}
-              onChange={(e) => setShopDomain(e.target.value)}
-              placeholder="votre-boutique.myshopify.com"
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '8px',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontFamily: 'var(--stepn-font-body)',
-                outline: 'none'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  fetchProducts();
-                }
-              }}
-            />
+            <span style={{ fontSize: '18px' }}>🏪</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '12px', color: '#888888', marginBottom: '4px' }}>Boutique connectée</div>
+              <div style={{ fontSize: '14px', color: '#ffffff', fontWeight: '500' }}>{shopDomain}</div>
+            </div>
             <button
-              onClick={fetchProducts}
-              disabled={loading || !shopDomain}
+              onClick={() => fetchProducts()}
+              disabled={loading}
               style={{
-                padding: '12px 24px',
-                backgroundColor: loading || !shopDomain ? '#2a2a2a' : '#8eff36',
+                padding: '8px 16px',
+                backgroundColor: loading ? '#2a2a2a' : '#8eff36',
                 border: 'none',
-                borderRadius: '8px',
-                color: loading || !shopDomain ? '#666666' : '#000000',
-                fontSize: '14px',
+                borderRadius: '6px',
+                color: loading ? '#666666' : '#000000',
+                fontSize: '12px',
                 fontFamily: 'var(--stepn-font-body)',
                 fontWeight: '600',
-                cursor: loading || !shopDomain ? 'not-allowed' : 'pointer',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s'
               }}
             >
-              {loading ? 'Chargement...' : 'Charger les produits'}
+              {loading ? 'Chargement...' : 'Actualiser'}
             </button>
           </div>
-        </div>
+        )}
+
+        {loadingShop && (
+          <div style={{ 
+            padding: '24px',
+            textAlign: 'center',
+            color: '#a0a0a0',
+            fontFamily: 'var(--stepn-font-body)'
+          }}>
+            Chargement de la boutique connectée...
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
