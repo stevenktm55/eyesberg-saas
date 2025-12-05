@@ -29,6 +29,7 @@ function SimpleViewer({
   selectedTextId,
   selectText,
   removeText,
+  onRequestTextDelete,
   toggleTextLock,
   setIsDraggingText,
   fonts = [],
