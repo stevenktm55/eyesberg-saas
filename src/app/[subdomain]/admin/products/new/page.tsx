@@ -7792,6 +7792,7 @@ export default function ProductBuilderPage() {
                           setShowLogoZoneModal(false);
                           setSelectedLogoForZone(null);
                           setSelectedLogoZoneId('');
+                          setLogoToReplace(null); // Réinitialiser le remplacement
                         }}
                         style={{
                           padding: '12px 24px',
