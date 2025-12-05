@@ -8446,9 +8446,7 @@ export default function ProductBuilderPage() {
       })()}
       
       {/* Modal de confirmation de suppression */}
-      {showDeleteModal && itemToDelete && (() => {
-        console.log('🎨 Rendering delete modal:', { showDeleteModal, itemToDelete });
-        return (
+      {showDeleteModal && itemToDelete && (
           <div
             style={{
               position: 'fixed',
@@ -8607,8 +8605,7 @@ export default function ProductBuilderPage() {
             </div>
           </div>
         </div>
-        );
-      })()}
+      )}
     </div>
   );
 }
