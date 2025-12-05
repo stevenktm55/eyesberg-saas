@@ -8006,8 +8006,8 @@ export default function ProductBuilderPage() {
                 const viewLabels: Record<string, string> = {
                   'Face': 'front',
                   'Dos': 'back',
-                  'Gauche': 'left',
-                  'Droite': 'right'
+                  'Gauche': 'right', // Inversé pour correspondre au mapping caméra
+                  'Droite': 'left' // Inversé pour correspondre au mapping caméra
                 };
                 
                 const filteredZones = availableZones.filter(zone => {
