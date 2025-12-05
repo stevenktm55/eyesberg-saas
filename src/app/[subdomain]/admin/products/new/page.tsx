@@ -2328,8 +2328,15 @@ export default function ProductBuilderPage() {
                       const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
                         Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
                         activeModule.selectedItems.logoLibraryIds.length > 0;
+                      
+                      console.log('📚 Vérification bibliothèques:', {
+                        hasSelectedLibraries,
+                        logoLibraryIds: activeModule.selectedItems?.logoLibraryIds,
+                        logoLibrariesTotal: logoLibraries.length
+                      });
                     
                       if (!hasSelectedLibraries) {
+                        console.log('⚠️ Aucune bibliothèque sélectionnée');
                         return (
                           <div>
                             <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
@@ -2343,6 +2350,13 @@ export default function ProductBuilderPage() {
                       const selectedLibraries = logoLibraries.filter(l => 
                         activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
                       );
+                      
+                      console.log('📚 Bibliothèques sélectionnées:', {
+                        selectedLibrariesCount: selectedLibraries.length,
+                        selectedLibraryIds: selectedLibraries.map(l => l.id),
+                        requestedIds: activeModule.selectedItems?.logoLibraryIds,
+                        allLibraryIds: logoLibraries.map(l => l.id)
+                      });
                     
                       // Récupérer tous les logos de toutes les bibliothèques sélectionnées
                       const allLogos: any[] = [];
@@ -2351,9 +2365,20 @@ export default function ProductBuilderPage() {
                           allLogos.push(...library.logos);
                         }
                       });
+                      
+                      console.log('🖼️ Logos récupérés:', {
+                        totalLogos: allLogos.length,
+                        logosPerLibrary: selectedLibraries.map(l => ({ id: l.id, name: l.name, logosCount: l.logos?.length || 0 }))
+                      });
                     
                       if (selectedLibraries.length === 0) {
+                        console.log('⚠️ Aucune bibliothèque trouvée avec les IDs sélectionnés');
                         return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucune bibliothèque trouvée</p>;
+                      }
+                      
+                      if (allLogos.length === 0) {
+                        console.log('⚠️ Aucun logo trouvé dans les bibliothèques sélectionnées');
+                        return <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo disponible dans les bibliothèques sélectionnées</p>;
                       }
                     
                       return (
