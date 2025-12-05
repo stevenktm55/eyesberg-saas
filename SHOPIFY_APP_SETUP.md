@@ -12,11 +12,21 @@ L'erreur "Cette application ne peut pas encore être installée" signifie que l'
 2. Connectez-vous avec votre compte Shopify Partner
 3. Si vous n'avez pas de compte, créez-en un (gratuit)
 
-### Étape 2 : Créer ou configurer l'application
+### Étape 2 : Créer une nouvelle application (si vous avez déjà sélectionné Public app)
+
+**⚠️ Si vous avez déjà sélectionné "Public app" et ne pouvez pas revenir en arrière :**
 
 1. Dans le Partner Dashboard, allez dans **Apps**
-2. Cliquez sur **Create app** ou sélectionnez votre application existante "Eyesberg"
-3. Choisissez **Custom app** (pour le développement) ou **Public app** (pour la publication)
+2. Cliquez sur **"Create app"** (créer une nouvelle application)
+3. Donnez-lui un nom différent, par exemple :
+   - **"Eyesberg Dev"** (pour le développement)
+   - **"Eyesberg Custom"** (pour les installations personnalisées)
+4. Cette fois, choisissez **"Custom app"** (distribution personnalisée)
+5. Suivez les étapes suivantes pour configurer cette nouvelle app
+
+**Note :** Vous pouvez avoir plusieurs apps :
+- Une Custom app pour le développement (sans review)
+- Une Public app pour l'App Store (quand elle sera prête)
 
 ### Étape 3 : Accéder au Dev Dashboard
 
@@ -160,7 +170,7 @@ read_orders,read_products,write_products,write_script_tags,read_customers
 - Après avoir configuré la distribution, attendez quelques minutes pour que les changements soient pris en compte
 - Si le message persiste, essayez de désinstaller et réinstaller l'application depuis Shopify Admin
 
-### Étape 5 : Configurer les scopes (permissions)
+### Étape 6 : Configurer les scopes (permissions)
 
 Dans la section **Configuration** → **Scopes**, ajoutez les permissions suivantes :
 
@@ -174,7 +184,9 @@ Dans la section **Configuration** → **Scopes**, ajoutez les permissions suivan
 - `write_orders` - Modifier les commandes
 - `write_script_tags` - Ajouter des scripts (pour l'intégration automatique)
 
-### Étape 6 : Récupérer les identifiants
+### Étape 7 : Récupérer les identifiants de la NOUVELLE app
+
+⚠️ **IMPORTANT** : Utilisez les identifiants de la **nouvelle Custom app**, pas ceux de l'ancienne Public app !
 
 1. Dans la section **API credentials**, vous trouverez :
    - **Client ID** (à copier)
@@ -182,7 +194,7 @@ Dans la section **Configuration** → **Scopes**, ajoutez les permissions suivan
 
 2. Copiez ces valeurs
 
-### Étape 7 : Configurer les variables d'environnement
+### Étape 8 : Configurer les variables d'environnement avec les NOUVEAUX identifiants
 
 Ajoutez ces variables dans votre fichier `.env.local` (local) et dans Vercel (production) :
 
@@ -201,7 +213,7 @@ SHOPIFY_SCOPES=read_products,write_products,read_orders,write_script_tags,read_c
 4. Sélectionnez **Production**, **Preview**, et **Development**
 5. **Redeploy** l'application
 
-### Étape 8 : Tester l'installation
+### Étape 9 : Tester l'installation
 
 1. Allez dans votre admin : `https://votre-domaine.com/admin/settings`
 2. Cliquez sur **+ Online store**
