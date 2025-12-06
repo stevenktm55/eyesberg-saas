@@ -78,22 +78,10 @@ export async function GET(request: NextRequest) {
       console.error('[API/text-zones] Error code:', error.code);
       console.error('[API/text-zones] Full error:', JSON.stringify(error, null, 2));
       
-      // Si l'erreur est liée à une table inexistante ou une colonne manquante, retourner un tableau vide
-      if (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('column')) {
-        console.warn('[API/text-zones] Table ou colonne inexistante, retour d\'un tableau vide');
-        return NextResponse.json([]);
-      }
-      
-      // Si l'erreur est liée à RLS (Row Level Security), retourner un tableau vide
-      if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('RLS')) {
-        console.warn('[API/text-zones] Erreur RLS, retour d\'un tableau vide');
-        return NextResponse.json([]);
-      }
-      
-      return NextResponse.json({ 
-        error: error.message || 'Failed to fetch text zones',
-        details: error.details || error.hint || null
-      }, { status: 500 });
+      // Par défaut, retourner un tableau vide pour éviter de bloquer l'application
+      // Les erreurs sont loggées pour le débogage
+      console.warn('[API/text-zones] Erreur lors de la récupération des zones, retour d\'un tableau vide');
+      return NextResponse.json([]);
     }
 
     // Vérifier que data existe et est un tableau
@@ -121,9 +109,11 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(zones);
-  } catch (err) {
-    console.error('Erreur GET text_zones:', err);
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  } catch (err: any) {
+    console.error('[API/text-zones] Erreur globale GET text_zones:', err);
+    console.error('[API/text-zones] Error stack:', err?.stack);
+    // Retourner un tableau vide au lieu d'une erreur 500 pour éviter de bloquer l'application
+    return NextResponse.json([]);
   }
 }
 

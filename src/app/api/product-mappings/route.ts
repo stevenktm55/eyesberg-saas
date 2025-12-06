@@ -57,29 +57,20 @@ export async function GET(request: NextRequest) {
       console.error('[API/product-mappings] Error code:', error.code);
       console.error('[API/product-mappings] Full error:', JSON.stringify(error, null, 2));
       
-      // Si l'erreur est liée à une table inexistante ou une colonne manquante, retourner null ou un tableau vide
-      if (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('column')) {
-        console.warn('[API/product-mappings] Table ou colonne inexistante, retour de null');
-        return NextResponse.json(null);
-      }
-      
-      // Si l'erreur est liée à RLS (Row Level Security), retourner null
-      if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('RLS')) {
-        console.warn('[API/product-mappings] Erreur RLS, retour de null');
-        return NextResponse.json(null);
-      }
-      
-      return NextResponse.json({ 
-        error: error.message || 'Failed to fetch product mappings',
-        details: error.details || error.hint || null
-      }, { status: 500 });
+      // Par défaut, retourner null pour éviter de bloquer l'application
+      // Les erreurs sont loggées pour le débogage
+      console.warn('[API/product-mappings] Erreur lors de la récupération des mappings, retour de null');
+      return NextResponse.json(null);
     }
     
     // Si maybeSingle() est utilisé et qu'aucun résultat n'est trouvé, data sera null
     // C'est normal, on retourne null dans ce cas
     return NextResponse.json(data ?? null);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'failed' }, { status: 500 });
+    console.error('[API/product-mappings] Erreur globale GET product_mappings:', e);
+    console.error('[API/product-mappings] Error stack:', e?.stack);
+    // Retourner null au lieu d'une erreur 500 pour éviter de bloquer l'application
+    return NextResponse.json(null);
   }
 }
 
