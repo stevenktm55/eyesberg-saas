@@ -93,15 +93,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Transformer pour garder la compatibilité
-    const fonts = data?.map((font: any) => ({
-      id: font.id,
-      name: font.name,
-      display_name: font.display_name || font.name,
-      file_url: font.file_url || font.font_url,
-      font_group_id: font.font_group_id,
-      letter_spacing: font.letter_spacing,
-      category: font.font_groups?.category || font.category,
-    })) || [];
+    const fonts = data?.map((font: any) => {
+      const fileUrl = font.file_url || font.font_url;
+      return {
+        id: font.id,
+        name: font.name,
+        display_name: font.display_name || font.name,
+        file_url: fileUrl,
+        font_url: fileUrl, // Ajouter font_url pour compatibilité avec le code existant
+        font_group_id: font.font_group_id,
+        letter_spacing: font.letter_spacing,
+        category: font.font_groups?.category || font.category,
+      };
+    }) || [];
 
     return NextResponse.json(fonts);
   } catch (error: any) {
