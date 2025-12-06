@@ -6,6 +6,69 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
 /**
+ * GET /api/logos
+ * Récupère tous les logos (optionnel: filtrer par logoLibraryId)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const logoLibraryId = searchParams.get('logoLibraryId');
+
+    let query = supabaseAdmin
+      .from('logos')
+      .select(`
+        *,
+        logo_libraries!inner (
+          id,
+          name,
+          subdomain
+        )
+      `)
+      .eq('logo_libraries.subdomain', subdomain)
+      .order('created_at', { ascending: false });
+
+    // Filtrer par logoLibraryId si spécifié
+    if (logoLibraryId) {
+      query = query.eq('logo_library_id', logoLibraryId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching logos:', error);
+      return NextResponse.json(
+        { error: error.message || 'Failed to fetch logos' },
+        { status: 500 }
+      );
+    }
+
+    // Transformer pour garder la compatibilité
+    const logos = data?.map((logo: any) => ({
+      id: logo.id,
+      name: logo.name,
+      file_url: logo.file_url,
+      logo_library_id: logo.logo_library_id,
+    })) || [];
+
+    return NextResponse.json(logos);
+  } catch (error: any) {
+    console.error('Error fetching logos:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch logos' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * POST /api/logos
  * Crée un nouveau logo avec upload du fichier SVG
  */

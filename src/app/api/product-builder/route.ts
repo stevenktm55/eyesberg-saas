@@ -50,26 +50,52 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(product);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
-        const { data: products, error } = await supabaseAdmin
+        // D'abord, essayer avec shop_domain si fourni
+        let query = supabaseAdmin
           .from('product_builder')
           .select('*')
           .eq('subdomain', subdomain)
-          .eq('shop_domain', shopDomain || '')
           .not('builder_data', 'is', null);
 
+        if (shopDomain) {
+          query = query.eq('shop_domain', shopDomain);
+        }
+
+        const { data: products, error } = await query;
+
         if (error) {
+          console.error('Error fetching products:', error);
           throw error;
         }
+
+        console.log(`Found ${products?.length || 0} products for subdomain ${subdomain}, shop ${shopDomain}`);
 
         // Chercher le produit qui a ce shopify_product_id dans builder_data.shopify.productId
         const product = products?.find((p: any) => {
           const shopifyData = p.builder_data?.shopify;
-          return shopifyData?.productId === id || shopifyData?.productId === String(id);
+          if (!shopifyData) return false;
+          
+          // Essayer plusieurs formats possibles
+          const productIdStr = String(id);
+          const productIdNum = Number(id);
+          
+          return (
+            shopifyData.productId === id ||
+            shopifyData.productId === productIdStr ||
+            shopifyData.productId === productIdNum ||
+            String(shopifyData.productId) === productIdStr ||
+            Number(shopifyData.productId) === productIdNum
+          );
         });
 
         if (!product) {
+          console.error('Product not found. Searched products:', products?.map((p: any) => ({
+            id: p.id,
+            shop_domain: p.shop_domain,
+            shopify_product_id: p.builder_data?.shopify?.productId
+          })));
           return NextResponse.json(
-            { error: 'Product not found for this Shopify product ID' },
+            { error: 'Product not found for this Shopify product ID', searchedId: id, shopDomain, subdomain },
             { status: 404 }
           );
         }
