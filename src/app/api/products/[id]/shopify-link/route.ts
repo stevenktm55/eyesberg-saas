@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
+import { addCustomizerTagToProduct } from '@/lib/shopify-products';
 
 export async function POST(
   request: NextRequest,
@@ -84,6 +85,23 @@ export async function POST(
     }
 
     console.log('✅ Product linked successfully:', updated);
+
+    // Ajouter automatiquement le tag "customizer" au produit Shopify
+    if (shopDomain && shopifyProductId) {
+      try {
+        console.log('🏷️ Ajout du tag "customizer" au produit Shopify...');
+        const tagResult = await addCustomizerTagToProduct(shopDomain, shopifyProductId);
+        if (tagResult.success) {
+          console.log('✅ Tag "customizer" ajouté automatiquement au produit Shopify');
+        } else {
+          console.warn('⚠️ Impossible d\'ajouter le tag "customizer":', tagResult.error);
+          // On continue quand même, la liaison est réussie même si le tag n'a pas pu être ajouté
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'ajout du tag customizer:', error);
+        // On continue quand même, la liaison est réussie même si le tag n'a pas pu être ajouté
+      }
+    }
 
     return NextResponse.json({
       success: true,
