@@ -84,14 +84,26 @@ export async function GET(request: NextRequest) {
         return NextResponse.json([]);
       }
       
+      // Si l'erreur est liée à RLS (Row Level Security), retourner un tableau vide
+      if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('RLS')) {
+        console.warn('[API/text-zones] Erreur RLS, retour d\'un tableau vide');
+        return NextResponse.json([]);
+      }
+      
       return NextResponse.json({ 
         error: error.message || 'Failed to fetch text zones',
         details: error.details || error.hint || null
       }, { status: 500 });
     }
 
+    // Vérifier que data existe et est un tableau
+    if (!data || !Array.isArray(data)) {
+      console.warn('[API/text-zones] Data is not an array, returning empty array');
+      return NextResponse.json([]);
+    }
+
     // Transformer pour garder la compatibilité avec l'ancien format
-    const zones = (data || []).map(zone => ({
+    const zones = data.map(zone => ({
       id: zone.id,
       name: zone.name,
       position: zone.position,

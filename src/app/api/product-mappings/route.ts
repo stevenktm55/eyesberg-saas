@@ -63,12 +63,21 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(null);
       }
       
+      // Si l'erreur est liée à RLS (Row Level Security), retourner null
+      if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('RLS')) {
+        console.warn('[API/product-mappings] Erreur RLS, retour de null');
+        return NextResponse.json(null);
+      }
+      
       return NextResponse.json({ 
         error: error.message || 'Failed to fetch product mappings',
         details: error.details || error.hint || null
       }, { status: 500 });
     }
-    return NextResponse.json(data || null);
+    
+    // Si maybeSingle() est utilisé et qu'aucun résultat n'est trouvé, data sera null
+    // C'est normal, on retourne null dans ce cas
+    return NextResponse.json(data ?? null);
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'failed' }, { status: 500 });
   }
