@@ -45,23 +45,23 @@
     if (scriptTag) {
       const scriptSrc = scriptTag.src;
       const url = new URL(scriptSrc);
-      return url.origin; // Retourne https://votre-domaine.vercel.app
+      const origin = url.origin; // Retourne https://www.eyesberg.app
+      console.log('[StretchMX] URL du configurateur détectée depuis le script tag:', origin);
+      return origin;
     }
     
     // Sinon, utiliser une URL par défaut (à configurer)
     // Vous pouvez aussi utiliser une variable d'environnement ou un meta tag
     const metaTag = document.querySelector('meta[name="stretchmx-configurator-url"]');
     if (metaTag) {
+      console.log('[StretchMX] URL du configurateur détectée depuis meta tag:', metaTag.content);
       return metaTag.content;
     }
     
-    // Fallback : utiliser window.location si on est sur le configurateur
-    if (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('eyesberg')) {
-      return window.location.origin;
-    }
-    
-    console.warn('[StretchMX] URL du configurateur non détectée. Veuillez ajouter un meta tag: <meta name="stretchmx-configurator-url" content="https://votre-url.vercel.app">');
-    return null;
+    // Fallback : utiliser une URL par défaut
+    const defaultUrl = 'https://www.eyesberg.app';
+    console.log('[StretchMX] Utilisation de l\'URL par défaut du configurateur:', defaultUrl);
+    return defaultUrl;
   }
 
   /**
