@@ -2503,8 +2503,6 @@ function Sidebar({
   onCategoryChange,
   isPlacingText,
   setIsPlacingText,
-  shopDomain,
-  productId,
 }: {
   selectedDesign: { id: string | null; svgUrl: string | null };
   selectDesign: (design: { id: string; svgUrl: string } | null) => void;
