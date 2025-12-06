@@ -59,50 +59,30 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin
       .from('models_3d')
       .select('*')
+      .eq('active', true)
       .order('created_at', { ascending: false });
     
-    // Essayer de filtrer par active si la colonne existe
-    try {
-      query = query.eq('active', true);
-    } catch (e) {
-      // Si la colonne active n'existe pas, continuer sans filtre
-      console.warn('Column "active" may not exist in models_3d, skipping filter');
+    let { data, error } = await query;
+
+    // Si erreur liée à la colonne active, essayer sans filtre
+    if (error && (error.message?.includes('active') || error.message?.includes('column') || error.code === '42703')) {
+      console.warn('Column "active" may not exist, trying without filter:', error.message);
+      const fallbackQuery = supabaseAdmin
+        .from('models_3d')
+        .select('*')
+        .order('created_at', { ascending: false });
+      const fallbackResult = await fallbackQuery;
+      if (!fallbackResult.error) {
+        data = fallbackResult.data;
+        error = null;
+      } else {
+        error = fallbackResult.error;
+      }
     }
-    
-    const { data, error } = await query;
 
     if (error) {
       console.error('Erreur GET models:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
-      // Essayer sans le filtre active si l'erreur est liée à cette colonne
-      if (error.message?.includes('active') || error.message?.includes('column')) {
-        try {
-          const fallbackQuery = supabaseAdmin
-            .from('models_3d')
-            .select('*')
-            .order('created_at', { ascending: false });
-          const fallbackResult = await fallbackQuery;
-          if (!fallbackResult.error) {
-            return NextResponse.json(fallbackResult.data?.map((model: any) => ({
-              id: model.id,
-              name: model.name,
-              glbUrl: model.glb_url,
-              textureMaps: model.metadata?.textureMaps || {},
-              materialMaps: model.material_maps || {},
-              material_maps: model.material_maps || {},
-              materialsSchema: model.metadata?.materialsSchema
-            })) || [], {
-              headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-              }
-            });
-          }
-        } catch (fallbackErr) {
-          console.error('Fallback query also failed:', fallbackErr);
-        }
-      }
       return NextResponse.json({ 
         error: error.message || 'Failed to fetch models',
         details: error.details || error.hint || null
