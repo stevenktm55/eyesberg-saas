@@ -3190,11 +3190,390 @@ export default function ConfiguratorViewer({
   );
 }
 
-// Stubs temporaires pour DesignTab et ColorTab (à compléter plus tard)
-function DesignTab({ selectedDesign, selectDesign, colors, updateColor, replaceColors, resetColors, allowedDesignIds, isLinkedPrefillActive, hasPendingLinkedPrefill }: any) {
-  return <div>DesignTab - À implémenter</div>;
+function getContrastColor(hexColor: string): string {
+  // Convertir hex en RGB
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculer la luminance relative
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Retourner blanc pour les couleurs sombres, noir pour les couleurs claires
+  return luminance > 0.5 ? '#000000' : '#ffffff';
 }
 
-function ColorTab({ colors, updateColor }: any) {
-  return <div>ColorTab - À implémenter</div>;
+function DesignTab({ selectedDesign, selectDesign }: { 
+  selectedDesign: { id: string | null; svgUrl: string | null }; 
+  selectDesign: (design: { id: string; svgUrl: string } | null) => void;
+}) {
+  const [designs, setDesigns] = useState<Array<{
+    id: string;
+    name: string;
+    svgUrl: string;
+    thumbUrl?: string;
+  }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDesigns() {
+      try {
+        const response = await fetch('/api/designs');
+        const designsData = await response.json();
+        setDesigns(designsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des designs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadDesigns();
+  }, []);
+
+  const [designTab, setDesignTab] = useState<'designs' | 'best'>('designs');
+
+  return (
+    <div className="space-y-4">
+      {/* Sous-onglets pour les designs */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setDesignTab('designs')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+            designTab === 'designs'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Designs
+        </button>
+        <button
+          onClick={() => setDesignTab('best')}
+          className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+            designTab === 'best'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Meilleurs designs des clients
+        </button>
+      </div>
+
+      {/* Contenu des sous-onglets */}
+      {designTab === 'designs' && (
+        <>
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500">Chargement des designs...</div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {/* Design "Aucun" */}
+          <button
+            className={`w-full p-3 rounded-lg border-2 transition-all ${
+              !selectedDesign.id 
+                ? "border-blue-500 bg-blue-50 text-blue-700" 
+                : "border-gray-200 hover:border-gray-300 text-gray-900"
+            }`}
+            onClick={() => selectDesign(null)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-xs">Aucun</span>
+              </div>
+              <span className="font-medium">Aucun design</span>
+            </div>
+          </button>
+
+          {/* Grille des designs */}
+          {designs.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {designs.map((design) => (
+                <button
+                  key={design.id}
+                  className={`p-3 rounded-lg border-2 transition-all ${
+                    selectedDesign.id === design.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => selectDesign(design)}
+                >
+                  <div className="space-y-2">
+                    <div className="w-full h-16 bg-white rounded border flex items-center justify-center overflow-hidden">
+                      {design.thumbUrl ? (
+                        <img 
+                          src={design.thumbUrl} 
+                          alt={design.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">SVG</span>
+                      )}
+                    </div>
+                    <div className="text-xs font-medium text-center text-gray-900 truncate">
+                      {design.name}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p className="text-sm">Aucun design disponible</p>
+              <p className="text-xs mt-1">Uploadez des designs dans l'admin</p>
+            </div>
+          )}
+            </div>
+          )}
+        </>
+      )}
+
+      {designTab === 'best' && (
+        <div className="text-center py-12 text-gray-500">
+          <div className="text-4xl mb-4">⭐</div>
+          <h3 className="text-lg font-medium mb-2">Meilleurs designs des clients</h3>
+          <p className="text-sm">Cette fonctionnalité sera disponible prochainement.</p>
+        </div>
+      )}
+      
+      {selectedDesign.id && (
+        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span className="text-sm font-medium text-green-800">Design sélectionné</span>
+          </div>
+          <p className="text-xs text-green-600 mt-1">
+            Le design est appliqué au modèle 3D
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Fonction pour déterminer la couleur du texte en fonction de la couleur de fond
+function getContrastColor(hexColor: string): string {
+  // Convertir hex en RGB
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculer la luminance relative
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Retourner blanc pour les couleurs sombres, noir pour les couleurs claires
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+}
+
+function ColorTab({ colors, updateColor }: { 
+  colors: { primary: string; secondary: string; tertiary: string };
+  updateColor: (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => void;
+}) {
+  const [palettes, setPalettes] = useState<Array<{
+    id: string;
+    name: string;
+    colors: Array<{ hex: string; name: string }>;
+  }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedPalette, setSelectedPalette] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState<{
+    colorType: 'primary' | 'secondary' | 'tertiary' | null;
+  }>({ colorType: null });
+
+  const colorTypes = [
+    { 
+      key: 'primary' as const, 
+      label: 'Couleur Primaire', 
+      description: 'Couleur principale du design'
+    },
+    { 
+      key: 'secondary' as const, 
+      label: 'Couleur Secondaire', 
+      description: 'Couleur d\'accent du design'
+    },
+    { 
+      key: 'tertiary' as const, 
+      label: 'Couleur Tertiaire', 
+      description: 'Couleur de détail du design'
+    }
+  ];
+
+  // Charger les palettes depuis l'admin
+  useEffect(() => {
+    async function loadPalettes() {
+      try {
+        const response = await fetch('/api/palettes');
+        const palettesData = await response.json();
+        setPalettes(palettesData);
+        
+        // Sélectionner la première palette par défaut
+        if (palettesData.length > 0 && !selectedPalette) {
+          setSelectedPalette(palettesData[0].id);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des palettes:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadPalettes();
+  }, []);
+
+  // Obtenir toutes les couleurs de toutes les palettes
+  const allColors = palettes.flatMap(palette => 
+    palette.colors.map(color => ({
+      ...color,
+      paletteName: palette.name
+    }))
+  );
+
+  // Gérer l'ouverture du sélecteur de couleur
+  const handleColorClick = (colorType: 'primary' | 'secondary' | 'tertiary') => {
+    setShowColorPicker({
+      colorType
+    });
+  };
+
+  // Gérer la sélection d'une couleur
+  const handleColorSelect = (colorHex: string) => {
+    if (showColorPicker.colorType) {
+      updateColor(showColorPicker.colorType, colorHex);
+      // Ne pas fermer automatiquement - l'utilisateur doit cliquer sur "Retour"
+    }
+  };
+
+  // Gérer la fermeture du sélecteur
+  const handleClosePicker = () => {
+    setShowColorPicker({ colorType: null });
+  };
+
+  // Si on est en mode sélection de couleur, afficher la palette full-screen
+  if (showColorPicker.colorType) {
+    const currentColor = colors[showColorPicker.colorType];
+    const currentColorName = allColors.find(c => c.hex === currentColor)?.name || 'Couleur sélectionnée';
+    const colorIndex = colorTypes.findIndex(t => t.key === showColorPicker.colorType) + 1;
+
+  return (
+      <div className="h-full flex flex-col">
+        {/* Header avec bouton retour et couleur actuelle */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button
+            onClick={handleClosePicker}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-medium">Retour</span>
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-gray-900">{currentColorName}</span>
+            <div 
+              className="w-8 h-8 rounded-full border-2 border-gray-300"
+              style={{ backgroundColor: currentColor || 'transparent' }}
+            />
+          </div>
+      </div>
+      
+        {/* Grille de couleurs */}
+        <div className="flex-1 p-4 overflow-y-auto">
+      {isLoading ? (
+            <div className="text-center py-12">
+          <div className="text-gray-500">Chargement des couleurs...</div>
+        </div>
+      ) : allColors.length > 0 ? (
+            <div className="grid grid-cols-6 gap-3">
+              {allColors.map((colorObj, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleColorSelect(colorObj.hex)}
+                  className="relative aspect-square rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
+                  style={{ backgroundColor: colorObj.hex }}
+                >
+                  {/* Coche si couleur sélectionnée */}
+                  {currentColor === colorObj.hex && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                </div>
+                </div>
+                  )}
+                </button>
+              ))}
+              
+              {/* Cercle vide pour "aucune couleur" */}
+              <button
+                onClick={() => handleColorSelect('')}
+                className="relative aspect-square rounded-full border-2 border-gray-400 border-dashed hover:border-gray-500 transition-colors bg-transparent flex items-center justify-center"
+              >
+                {!currentColor && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                  </div>
+                )}
+              </button>
+        </div>
+      ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-lg mb-2">🎨</div>
+              <div className="text-sm">Aucune couleur disponible</div>
+              <div className="text-xs mt-1">Ajoutez des palettes via l'interface admin</div>
+        </div>
+      )}
+            </div>
+      </div>
+    );
+  }
+
+  // Vue normale avec la liste des couleurs
+  return (
+    <div className="space-y-6">
+      {/* Liste des couleurs comme dans l'image */}
+      <div className="space-y-3">
+        {colorTypes.map((colorType, index) => (
+                <button
+            key={colorType.key}
+            onClick={() => handleColorClick(colorType.key)}
+            className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {/* Cercle de couleur */}
+              <div 
+                className={`w-6 h-6 rounded-full border-2 ${
+                  colors[colorType.key] && colors[colorType.key] !== '#ffffff' && colors[colorType.key] !== '#FFFFFF'
+                    ? 'border-gray-300' 
+                    : 'border-gray-400'
+                }`}
+                style={{ 
+                  backgroundColor: colors[colorType.key] && colors[colorType.key] !== '#ffffff' && colors[colorType.key] !== '#FFFFFF'
+                    ? colors[colorType.key]
+                    : 'transparent'
+                }}
+              />
+              
+              {/* Label */}
+              <span className="font-medium text-gray-900">
+                Couleur {index + 1}
+                  </span>
+            </div>
+            
+            {/* Flèche */}
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
