@@ -89,18 +89,27 @@ export async function POST(
     // Ajouter automatiquement le tag "customizer" au produit Shopify
     if (shopDomain && shopifyProductId) {
       try {
-        console.log('🏷️ Ajout du tag "customizer" au produit Shopify...');
+        console.log('🏷️ Ajout du tag "customizer" au produit Shopify...', {
+          shopDomain,
+          shopifyProductId,
+        });
         const tagResult = await addCustomizerTagToProduct(shopDomain, shopifyProductId);
         if (tagResult.success) {
           console.log('✅ Tag "customizer" ajouté automatiquement au produit Shopify');
         } else {
-          console.warn('⚠️ Impossible d\'ajouter le tag "customizer":', tagResult.error);
+          console.error('❌ Impossible d\'ajouter le tag "customizer":', tagResult.error);
           // On continue quand même, la liaison est réussie même si le tag n'a pas pu être ajouté
+          // Mais on log l'erreur pour debug
         }
       } catch (error) {
-        console.error('❌ Erreur lors de l\'ajout du tag customizer:', error);
+        console.error('❌ Exception lors de l\'ajout du tag customizer:', error);
         // On continue quand même, la liaison est réussie même si le tag n'a pas pu être ajouté
       }
+    } else {
+      console.warn('⚠️ Impossible d\'ajouter le tag: shopDomain ou shopifyProductId manquant', {
+        shopDomain,
+        shopifyProductId,
+      });
     }
 
     return NextResponse.json({
