@@ -374,29 +374,6 @@ export default function SettingsPage() {
             }}
             title="Coming soon"
           >
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px 24px',
-              color: isApiKeysPage ? '#8eff36' : '#ffffff',
-              textDecoration: 'none',
-              fontFamily: 'var(--stepn-font-body)',
-              fontSize: '16px',
-              backgroundColor: isApiKeysPage ? '#1a1a1a' : 'transparent',
-              borderLeft: isApiKeysPage ? '3px solid #8eff36' : '3px solid transparent',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isApiKeysPage) {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isApiKeysPage) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
             API keys
           </div>
         </nav>
