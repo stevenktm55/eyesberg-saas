@@ -29,11 +29,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.myshopify.com https://*.shopify.com *"
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
+            value: "frame-ancestors *"
           }
         ],
       },
