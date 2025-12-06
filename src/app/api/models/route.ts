@@ -23,8 +23,10 @@ export async function OPTIONS() {
 // =====================================================
 // GET - Récupérer tous les modèles
 // =====================================================
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Note: models_3d n'a pas de filtre par subdomain dans la structure actuelle
+    // On retourne tous les modèles actifs
     const { data, error } = await supabase
       .from('models_3d')
       .select('*')
