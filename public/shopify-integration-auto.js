@@ -349,15 +349,13 @@
     const modalContent = document.createElement('div');
     modalContent.style.cssText = `
       position: relative;
-      width: 95%;
-      max-width: 1400px;
-      height: 95%;
-      max-height: 900px;
-      margin: 2.5% auto;
+      width: 100%;
+      height: 100%;
+      margin: 0;
       background: white;
-      border-radius: 12px;
+      border-radius: 0;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: none;
       display: flex;
       flex-direction: column;
     `;
