@@ -2586,7 +2586,7 @@ function Sidebar({
   
   // Charger les modules de configuration
   const finalShopDomain: string | null = shopDomain ?? null;
-  const finalProductId: string | null = productId ?? null;
+  const finalProductId = productId || null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // Gestion du sélecteur de zone pour les logos
@@ -2889,7 +2889,7 @@ export default function ConfiguratorViewer({
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const finalShopDomain: string | null = shopDomain ?? null;
-  const finalProductId: string | null = productId ?? null;
+  const finalProductId = productId || null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // États pour la sidebar

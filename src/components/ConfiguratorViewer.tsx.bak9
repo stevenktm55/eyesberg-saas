@@ -2585,8 +2585,8 @@ function Sidebar({
   // Sidebar RENDU avec activeTab
   
   // Charger les modules de configuration
-  const finalShopDomain: string | null = shopDomain ?? null;
-  const finalProductId: string | null = productId ?? null;
+  const finalShopDomain = shopDomain || null;
+  const finalProductId = productId || null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // Gestion du sélecteur de zone pour les logos
@@ -2888,8 +2888,8 @@ export default function ConfiguratorViewer({
   const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, startDraggingText, stopDraggingText } = textSelection;
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
-  const finalShopDomain: string | null = shopDomain ?? null;
-  const finalProductId: string | null = productId ?? null;
+  const finalShopDomain = shopDomain || null;
+  const finalProductId = productId || null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // États pour la sidebar
