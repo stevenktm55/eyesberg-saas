@@ -105,7 +105,7 @@
             return true;
           }
           // Certains thèmes mettent les tags dans un autre champ
-          if (data.tags && (Array.isArray(data.tags) ? data.tags : data.tags.split(',')).some((tag: string) => tag.trim().toLowerCase() === CONFIG.productTag.toLowerCase())) {
+          if (data.tags && (Array.isArray(data.tags) ? data.tags : data.tags.split(',')).some((tag) => tag.trim().toLowerCase() === CONFIG.productTag.toLowerCase())) {
             console.log('[Eyesberg] ✅ Produit configurable détecté via JSON-LD (tags)');
             return true;
           }
