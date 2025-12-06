@@ -11,18 +11,37 @@ import { getSubdomain } from '@/lib/get-subdomain';
  */
 export async function GET(request: NextRequest) {
   try {
-    const subdomain = await getSubdomain(request);
-    if (!subdomain) {
-      return NextResponse.json(
-        { error: 'Subdomain is required' },
-        { status: 400 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const shopDomain = searchParams.get('shop');
     const shopifyProductId = searchParams.get('shopifyProductId');
+    
+    // Essayer de récupérer le subdomain depuis les headers/session
+    let subdomain = await getSubdomain(request);
+    
+    // Si pas de subdomain mais qu'on a un shopDomain, essayer de le récupérer depuis la table shops
+    if (!subdomain && shopDomain) {
+      try {
+        const { data: shop } = await supabaseAdmin
+          .from('shops')
+          .select('subdomain')
+          .eq('shop_domain', shopDomain)
+          .maybeSingle();
+        
+        if (shop?.subdomain) {
+          subdomain = shop.subdomain;
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain:', error);
+      }
+    }
+    
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required. Please provide shop parameter or ensure subdomain is set in headers.' },
+        { status: 400 }
+      );
+    }
     
     if (id) {
       // Vérifier si c'est un UUID (ID Eyesberg) ou un nombre (ID Shopify)
