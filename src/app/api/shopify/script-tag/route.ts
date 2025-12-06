@@ -70,9 +70,38 @@ export async function POST(request: NextRequest) {
 
     if (!shopData.access_token) {
       return NextResponse.json(
-        { error: 'Shop is not installed (no access token)' },
+        { error: 'Shop is not installed (no access token). Please reinstall the app.' },
         { status: 400 }
       );
+    }
+
+    // Vérifier que l'access token est valide en testant une requête simple
+    try {
+      const testResponse = await fetch(`https://${shop}/admin/api/2025-01/shop.json`, {
+        headers: {
+          'X-Shopify-Access-Token': shopData.access_token,
+        },
+      });
+
+      if (testResponse.status === 401) {
+        console.error('❌ Access token invalide pour:', shop);
+        return NextResponse.json(
+          { 
+            error: 'Invalid access token. The app may have been uninstalled or the token expired. Please reinstall the app.',
+            details: 'Access token is not valid. Reinstall the app to get a new token.'
+          },
+          { status: 401 }
+        );
+      }
+
+      if (!testResponse.ok) {
+        console.warn('⚠️ Erreur lors de la vérification de l\'access token:', testResponse.status);
+      } else {
+        console.log('✅ Access token valide pour:', shop);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification de l\'access token:', error);
+      // On continue quand même, peut-être que c'est juste un problème réseau temporaire
     }
 
     // Vérifier que la boutique appartient au compte de l'utilisateur
