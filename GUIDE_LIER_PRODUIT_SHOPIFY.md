@@ -170,3 +170,4 @@ L'ID sera au format : `gid://shopify/Product/123456789`
 
 4. **Résultat** : Le client clique sur "PERSONNALISER" → Le configurateur s'ouvre avec le bon modèle 3D ✅
 
+

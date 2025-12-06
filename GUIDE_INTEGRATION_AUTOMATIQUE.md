@@ -149,3 +149,4 @@ window.StretchMXConfigurator.config.buttonText = 'Mon texte';
 window.StretchMXConfigurator.openModal();
 ```
 
+

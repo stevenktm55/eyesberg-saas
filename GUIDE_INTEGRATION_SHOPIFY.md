@@ -284,3 +284,4 @@ Si vous rencontrez des problèmes, vérifiez :
 2. Que votre configurateur est bien déployé et accessible
 3. Que les paramètres `shop`, `productId` et `variantId` sont bien passés dans l'URL
 
+
