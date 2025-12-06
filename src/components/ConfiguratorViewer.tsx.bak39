@@ -2898,6 +2898,8 @@ export default function ConfiguratorViewer({
   const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, startDraggingText, stopDraggingText } = textSelection;
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
+  const finalShopDomain: string | null = shopDomain ?? null;
+  const finalProductId: string | null = productId ?? null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // États pour la sidebar
