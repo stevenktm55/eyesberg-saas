@@ -3204,10 +3204,17 @@ function getContrastColor(hexColor: string): string {
   return luminance > 0.5 ? '#000000' : '#ffffff';
 }
 
-function DesignTab({ selectedDesign, selectDesign }: { 
+function DesignTab({ selectedDesign, selectDesign, colors, updateColor, replaceColors, resetColors, allowedDesignIds, isLinkedPrefillActive, hasPendingLinkedPrefill }: { 
   selectedDesign: { id: string | null; svgUrl: string | null }; 
-  selectDesign: (design: { id: string; svgUrl: string } | null) => void;
-}) {
+  selectDesign: (design: { id: string; svgUrl: string } | null) => void; 
+  colors?: any; 
+  updateColor?: any; 
+  replaceColors?: any; 
+  resetColors?: any; 
+  allowedDesignIds?: string[] | undefined; 
+  isLinkedPrefillActive?: boolean; 
+  hasPendingLinkedPrefill?: boolean; 
+}) {}) {
   const [designs, setDesigns] = useState<Array<{
     id: string;
     name: string;
