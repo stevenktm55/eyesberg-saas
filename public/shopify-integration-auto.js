@@ -68,10 +68,16 @@
    * Vérifier si le produit actuel est configurable
    */
   function isProductConfigurable() {
-    // Méthode 1: Vérifier les tags du produit via ShopifyAnalytics
+    // Méthode 1: Vérifier les tags du produit via ShopifyAnalytics (méthode principale)
     if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
       const productTags = window.ShopifyAnalytics.meta.product?.tags || [];
-      if (productTags.includes(CONFIG.productTag)) {
+      // Les tags peuvent être un tableau ou une chaîne séparée par des virgules
+      const tagsArray = Array.isArray(productTags) 
+        ? productTags 
+        : (typeof productTags === 'string' ? productTags.split(',').map(t => t.trim()) : []);
+      
+      if (tagsArray.some(tag => tag.toLowerCase() === CONFIG.productTag.toLowerCase())) {
+        console.log('[StretchMX] ✅ Produit configurable détecté via ShopifyAnalytics');
         return true;
       }
     }
@@ -81,31 +87,54 @@
     if (jsonLd) {
       try {
         const data = JSON.parse(jsonLd.textContent);
-        if (data['@type'] === 'Product' && data.category && data.category.includes(CONFIG.productTag)) {
-          return true;
+        if (data['@type'] === 'Product') {
+          // Vérifier dans category ou dans un champ tags
+          if (data.category && data.category.includes(CONFIG.productTag)) {
+            console.log('[StretchMX] ✅ Produit configurable détecté via JSON-LD (category)');
+            return true;
+          }
+          // Certains thèmes mettent les tags dans un autre champ
+          if (data.tags && (Array.isArray(data.tags) ? data.tags : data.tags.split(',')).some((tag: string) => tag.trim().toLowerCase() === CONFIG.productTag.toLowerCase())) {
+            console.log('[StretchMX] ✅ Produit configurable détecté via JSON-LD (tags)');
+            return true;
+          }
         }
       } catch (e) {
         // Ignore
       }
     }
 
-    // Méthode 3: Vérifier un attribut data sur le body ou le formulaire
+    // Méthode 3: Vérifier dans le HTML - chercher les éléments avec data-product-tags
     const bodyTag = document.body.getAttribute('data-product-tags');
-    if (bodyTag && bodyTag.includes(CONFIG.productTag)) {
+    if (bodyTag && bodyTag.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
+      console.log('[StretchMX] ✅ Produit configurable détecté via data-product-tags (body)');
       return true;
     }
 
     const form = document.querySelector('form[action*="/cart/add"]');
-    if (form && form.dataset.productTags && form.dataset.productTags.includes(CONFIG.productTag)) {
-      return true;
+    if (form) {
+      const formTags = form.getAttribute('data-product-tags') || form.dataset.productTags;
+      if (formTags && formTags.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
+        console.log('[StretchMX] ✅ Produit configurable détecté via data-product-tags (form)');
+        return true;
+      }
     }
 
     // Méthode 4: Vérifier dans les meta tags
     const productTagsMeta = document.querySelector('meta[property="product:tag"]');
-    if (productTagsMeta && productTagsMeta.content.includes(CONFIG.productTag)) {
+    if (productTagsMeta && productTagsMeta.content.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
+      console.log('[StretchMX] ✅ Produit configurable détecté via meta tag');
       return true;
     }
 
+    // Méthode 5: Chercher dans tout le HTML pour le tag (dernier recours)
+    const htmlContent = document.documentElement.innerHTML.toLowerCase();
+    if (htmlContent.includes(`"${CONFIG.productTag}"`) || htmlContent.includes(`'${CONFIG.productTag}'`)) {
+      console.log('[StretchMX] ✅ Produit configurable détecté via recherche HTML');
+      return true;
+    }
+
+    console.log('[StretchMX] ⚠️ Produit non configurable - tag "customizer" non trouvé');
     return false;
   }
 
