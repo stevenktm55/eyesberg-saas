@@ -1698,11 +1698,6 @@ function LogoTab({
   logoPlacementMode,
   logoZoneGroupIds,
   logoLibraryIds,
-  logoViewFrontLabel,
-  logoViewBackLabel,
-  logoViewLeftLabel,
-  logoViewRightLabel,
-  onCameraViewChange,
 }: {
   placedLogos: Array<{
     id: string;
