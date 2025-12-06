@@ -126,6 +126,18 @@
       }
     }
 
+    // Méthode 3b: Chercher dans tous les éléments avec des attributs data contenant "tag"
+    const allDataAttributes = document.querySelectorAll('[data-product-tag], [data-tags], [data-tag]');
+    for (const elem of allDataAttributes) {
+      const tagValue = elem.getAttribute('data-product-tag') || 
+                      elem.getAttribute('data-tags') || 
+                      elem.getAttribute('data-tag') || '';
+      if (tagValue.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
+        console.log('[StretchMX] ✅ Produit configurable détecté via attribut data:', tagValue);
+        return true;
+      }
+    }
+
     // Méthode 4: Vérifier dans les meta tags
     const productTagsMeta = document.querySelector('meta[property="product:tag"]');
     if (productTagsMeta && productTagsMeta.content.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
@@ -165,11 +177,51 @@
     const inlineScripts = document.querySelectorAll('script:not([src])');
     for (const script of inlineScripts) {
       const scriptContent = script.textContent || '';
-      // Chercher des patterns comme "tags":["customizer"] ou tags: "customizer"
-      if (scriptContent.includes(CONFIG.productTag) && 
-          (scriptContent.includes('tags') || scriptContent.includes('tag'))) {
-        console.log('[StretchMX] ✅ Produit configurable détecté via script inline');
-        return true;
+      // Chercher des patterns comme "tags":["customizer"] ou tags: "customizer" ou "customizer" dans un contexte de tags
+      if (scriptContent.includes(CONFIG.productTag)) {
+        // Vérifier que c'est bien dans un contexte de tags (pas juste une coïncidence)
+        const tagPattern = new RegExp(`(tags|tag)[\\s:=]+["']?[^"']*${CONFIG.productTag}[^"']*["']?`, 'i');
+        if (tagPattern.test(scriptContent)) {
+          console.log('[StretchMX] ✅ Produit configurable détecté via script inline');
+          return true;
+        }
+      }
+    }
+
+    // Méthode 9: Utiliser l'API publique JSON de Shopify pour récupérer les tags
+    // Cette méthode fonctionne même si ShopifyAnalytics n'est pas disponible
+    const productHandle = window.location.pathname.match(/\/products\/([^\/\?]+)/)?.[1];
+    if (productHandle && !window.__stretchmx_tag_check_done) {
+      // Marquer pour éviter les appels multiples
+      window.__stretchmx_tag_check_done = true;
+      console.log('[StretchMX] 🔍 Tentative de récupération des tags via API publique pour:', productHandle);
+      
+      // Utiliser l'API publique JSON (ne nécessite pas de token)
+      const shopDomain = window.Shopify?.shop || window.location.hostname.replace('.myshopify.com', '');
+      if (shopDomain) {
+        fetch(`https://${shopDomain}.myshopify.com/products/${productHandle}.json`)
+          .then(response => response.json())
+          .then(data => {
+            const product = data.product;
+            if (product && product.tags) {
+              const tags = typeof product.tags === 'string' 
+                ? product.tags.split(',').map(t => t.trim())
+                : product.tags;
+              
+              console.log('[StretchMX] Tags récupérés via API publique:', tags);
+              
+              if (tags.some(tag => tag.toLowerCase() === CONFIG.productTag.toLowerCase())) {
+                console.log('[StretchMX] ✅ Produit configurable détecté via API publique');
+                // Insérer le bouton maintenant
+                if (!document.querySelector('.stretchmx-configurator-button')) {
+                  insertConfiguratorButton();
+                }
+              }
+            }
+          })
+          .catch(error => {
+            console.warn('[StretchMX] ⚠️ Impossible de récupérer les tags via API publique:', error);
+          });
       }
     }
 
