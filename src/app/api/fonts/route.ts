@@ -15,11 +15,10 @@ export async function GET(request: NextRequest) {
     const shopDomain = searchParams.get('shop');
     const category = searchParams.get('category'); // 'names', 'numbers', ou null pour toutes
     
-    // Essayer de récupérer le subdomain depuis les headers/session
-    let subdomain = await getSubdomain(request);
+    // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
+    let subdomain: string | null = null;
     
-    // Si pas de subdomain mais qu'on a un shopDomain, essayer de le récupérer depuis product_builder
-    if (!subdomain && shopDomain) {
+    if (shopDomain) {
       try {
         // Chercher un produit avec ce shop_domain pour récupérer son subdomain
         const { data: product } = await supabaseAdmin
@@ -33,8 +32,13 @@ export async function GET(request: NextRequest) {
           subdomain = product.subdomain;
         }
       } catch (error) {
-        console.warn('Could not fetch subdomain from shop_domain:', error);
+        console.warn('Could not fetch subdomain from shop_domain for fonts API:', error);
       }
+    }
+    
+    // Fallback: essayer de récupérer le subdomain depuis les headers/session
+    if (!subdomain) {
+      subdomain = await getSubdomain(request);
     }
     
     if (!subdomain) {

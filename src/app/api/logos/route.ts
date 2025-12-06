@@ -11,16 +11,42 @@ import { getSubdomain } from '@/lib/get-subdomain';
  */
 export async function GET(request: NextRequest) {
   try {
-    const subdomain = await getSubdomain(request);
+    const { searchParams } = new URL(request.url);
+    const shopDomain = searchParams.get('shop');
+    const logoLibraryId = searchParams.get('logoLibraryId');
+
+    // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
+    let subdomain: string | null = null;
+    
+    if (shopDomain) {
+      try {
+        // Chercher un produit avec ce shop_domain pour récupérer son subdomain
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
+          .select('subdomain')
+          .eq('shop_domain', shopDomain)
+          .limit(1)
+          .maybeSingle();
+        
+        if (product?.subdomain) {
+          subdomain = product.subdomain;
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain for logos API:', error);
+      }
+    }
+    
+    // Fallback: essayer de récupérer le subdomain depuis les headers/session
+    if (!subdomain) {
+      subdomain = await getSubdomain(request);
+    }
+    
     if (!subdomain) {
       return NextResponse.json(
-        { error: 'Subdomain is required' },
+        { error: 'Subdomain is required. Please provide shop parameter or ensure subdomain is set in headers.' },
         { status: 400 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const logoLibraryId = searchParams.get('logoLibraryId');
 
     let query = supabaseAdmin
       .from('logos')

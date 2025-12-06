@@ -1,8 +1,9 @@
 // =====================================================
 // API MODELS - VERSION SUPABASE
 // =====================================================
-import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { getSubdomain } from '@/lib/get-subdomain';
 
 export const runtime = "nodejs";
 
@@ -23,15 +24,49 @@ export async function OPTIONS() {
 // =====================================================
 // GET - Récupérer tous les modèles
 // =====================================================
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    // Note: models_3d n'a pas de filtre par subdomain dans la structure actuelle
-    // On retourne tous les modèles actifs
-    const { data, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const shopDomain = searchParams.get('shop');
+
+    // Récupérer le subdomain depuis product_builder si shopDomain est fourni
+    let subdomain: string | null = null;
+    
+    if (shopDomain) {
+      try {
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
+          .select('subdomain')
+          .eq('shop_domain', shopDomain)
+          .limit(1)
+          .maybeSingle();
+        
+        if (product?.subdomain) {
+          subdomain = product.subdomain;
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain for models API:', error);
+      }
+    }
+    
+    // Fallback: essayer de récupérer le subdomain depuis les headers/session
+    if (!subdomain) {
+      subdomain = await getSubdomain(request);
+    }
+
+    // Utiliser supabaseAdmin et filtrer par subdomain si disponible
+    let query = supabaseAdmin
       .from('models_3d')
       .select('*')
       .eq('active', true)
       .order('created_at', { ascending: false });
+    
+    // Filtrer par subdomain si disponible
+    if (subdomain) {
+      query = query.eq('subdomain', subdomain);
+    }
+    
+    const { data, error } = await query;
 
     if (error) {
       console.error('Erreur GET models:', error);

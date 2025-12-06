@@ -2,7 +2,8 @@
 // API TEXT ZONES - VERSION SUPABASE
 // =====================================================
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { getSubdomain } from '@/lib/get-subdomain';
 
 interface TextZone {
   id: string;
@@ -30,13 +31,40 @@ export async function GET(request: NextRequest) {
     const designId = searchParams.get('designId');
     const shopDomain = searchParams.get('shop');
 
-    // Note: text_zones n'a pas de filtre par subdomain dans la structure actuelle
+    // Récupérer le subdomain depuis product_builder si shopDomain est fourni
+    let subdomain: string | null = null;
+    
+    if (shopDomain) {
+      try {
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
+          .select('subdomain')
+          .eq('shop_domain', shopDomain)
+          .limit(1)
+          .maybeSingle();
+        
+        if (product?.subdomain) {
+          subdomain = product.subdomain;
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain for text-zones API:', error);
+      }
+    }
+    
+    // Fallback: essayer de récupérer le subdomain depuis les headers/session
+    if (!subdomain) {
+      subdomain = await getSubdomain(request);
+    }
+
+    // Note: text_zones n'a pas directement de champ subdomain dans la structure actuelle
     // On retourne toutes les zones si designId est fourni, sinon toutes
-    let query = supabase
+    let query = supabaseAdmin
       .from('text_zones')
       .select('*')
       .order('created_at', { ascending: false });
 
+    // Filtrer par subdomain si disponible (via design_id qui a un subdomain)
+    // Note: text_zones n'a pas directement de champ subdomain, mais design_id peut être utilisé
     if (designId) {
       query = query.eq('design_id', designId);
     }

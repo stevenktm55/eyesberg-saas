@@ -1,15 +1,47 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getSubdomain } from '@/lib/get-subdomain';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('shopify_product_id');
     const modelId = searchParams.get('model_id');
+    const shopDomain = searchParams.get('shop');
+
+    // Récupérer le subdomain depuis product_builder si shopDomain est fourni
+    let subdomain: string | null = null;
+    
+    if (shopDomain) {
+      try {
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
+          .select('subdomain')
+          .eq('shop_domain', shopDomain)
+          .limit(1)
+          .maybeSingle();
+        
+        if (product?.subdomain) {
+          subdomain = product.subdomain;
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain for product-mappings API:', error);
+      }
+    }
+    
+    // Fallback: essayer de récupérer le subdomain depuis les headers/session
+    if (!subdomain) {
+      subdomain = await getSubdomain(request);
+    }
     
     let query = supabaseAdmin.from('product_mappings').select('*');
+    
+    // Filtrer par subdomain si disponible
+    if (subdomain) {
+      query = query.eq('subdomain', subdomain);
+    }
     
     if (productId) {
       query = query.eq('shopify_product_id', productId).maybeSingle();
