@@ -477,7 +477,7 @@ function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Rec
 }
 
 // Hook pour charger automatiquement le modèle associé au produit
-function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null, shopDomain?: string | null) {
+function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null) {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [textureMaps, setTextureMaps] = useState<Record<string, string> | null>(null);
   const [materialMaps, setMaterialMaps] = useState<Record<string, any> | null>(null);
@@ -497,7 +497,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           
           // Charger les texture maps et material maps du modèle
           if (forcedModelId) {
-            const url = shopDomain ? `/api/models?shop=${encodeURIComponent(shopDomain)}` : '/api/models'; const res = await fetch(url);
+            const res = await fetch('/api/models');
             const models = await res.json();
             const selectedModel = models.find((m: any) => m.id === forcedModelId);
             if (selectedModel) {
@@ -530,7 +530,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         }
         
         // Charger tous les modèles
-        const url = shopDomain ? `/api/models?shop=${encodeURIComponent(shopDomain)}` : '/api/models'; const response = await fetch(url);
+        const response = await fetch('/api/models');
         const models = await response.json();
         
         let chosen = null;
@@ -2885,10 +2885,10 @@ export default function ConfiguratorViewer({
   // Initialiser tous les hooks nécessaires
   const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
   const { fonts, isLoading: isLoadingFonts } = useFonts(finalShopDomain);
-  const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
+  const { logos, isLoading: isLoadingLogos } = useLogos(null);
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
-  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId, finalShopDomain);
+  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId);
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
@@ -3032,8 +3032,8 @@ export default function ConfiguratorViewer({
   const fontSizeSliderMax = 750;
   
   // Filtrer les fonts pour les noms et numéros
-  const fontsForNames = useFilteredFonts('names', finalShopDomain);
-  const fontsForNumbers = useFilteredFonts('numbers', finalShopDomain);
+  const fontsForNames = useFilteredFonts('names');
+  const fontsForNumbers = useFilteredFonts('numbers');
   
   // Config design IDs (à récupérer depuis le produit)
   const configDesignIds = null; // TODO: Récupérer depuis le produit

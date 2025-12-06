@@ -477,7 +477,7 @@ function normalizeMaterialMaps(raw: Record<string, any> | null | undefined): Rec
 }
 
 // Hook pour charger automatiquement le modèle associé au produit
-function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null, shopDomain?: string | null) {
+function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string | null, productId?: string | null) {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [textureMaps, setTextureMaps] = useState<Record<string, string> | null>(null);
   const [materialMaps, setMaterialMaps] = useState<Record<string, any> | null>(null);
@@ -2888,7 +2888,7 @@ export default function ConfiguratorViewer({
   const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
-  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId, finalShopDomain);
+  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId);
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);

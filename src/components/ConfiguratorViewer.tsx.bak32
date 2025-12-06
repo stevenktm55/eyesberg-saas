@@ -2888,7 +2888,7 @@ export default function ConfiguratorViewer({
   const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
-  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId, finalShopDomain);
+  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId);
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
