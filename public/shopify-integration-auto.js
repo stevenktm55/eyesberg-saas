@@ -465,9 +465,33 @@
   }
 
   /**
-   * Créer le bouton de personnalisation
+   * Copier les styles calculés d'un élément
    */
-  function createConfiguratorButton() {
+  function copyComputedStyles(source, target) {
+    const computed = window.getComputedStyle(source);
+    const stylesToCopy = [
+      'backgroundColor', 'color', 'fontFamily', 'fontSize', 'fontWeight',
+      'fontStyle', 'textTransform', 'letterSpacing', 'lineHeight',
+      'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'margin', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+      'border', 'borderWidth', 'borderStyle', 'borderColor', 'borderRadius',
+      'width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight',
+      'display', 'flexDirection', 'justifyContent', 'alignItems',
+      'cursor', 'transition', 'textAlign', 'boxShadow', 'textDecoration'
+    ];
+
+    stylesToCopy.forEach(prop => {
+      const value = computed.getPropertyValue(prop);
+      if (value) {
+        target.style.setProperty(prop, value);
+      }
+    });
+  }
+
+  /**
+   * Créer le bouton de personnalisation en copiant les styles du bouton original
+   */
+  function createConfiguratorButton(originalButton) {
     // Vérifier si le bouton existe déjà
     if (document.querySelector('.eyesberg-configurator-button')) {
       return null;
@@ -478,18 +502,46 @@
     button.className = 'eyesberg-configurator-button';
     button.textContent = CONFIG.buttonText;
     
-    // Appliquer les styles
-    Object.assign(button.style, CONFIG.buttonStyle);
+    // Si on a un bouton original, copier ses styles
+    if (originalButton) {
+      // Copier les classes CSS (sauf celles spécifiques au bouton original)
+      const originalClasses = originalButton.className.split(' ').filter(c => c && !c.includes('add-to-cart'));
+      if (originalClasses.length > 0) {
+        button.className += ' ' + originalClasses.join(' ');
+      }
+
+      // Copier les styles calculés
+      copyComputedStyles(originalButton, button);
+
+      // Copier les attributs data-* et autres attributs utiles
+      Array.from(originalButton.attributes).forEach(attr => {
+        if (attr.name.startsWith('data-') && !attr.name.includes('eyesberg')) {
+          button.setAttribute(attr.name, attr.value);
+        }
+      });
+    } else {
+      // Fallback : utiliser les styles par défaut
+      Object.assign(button.style, CONFIG.buttonStyle);
+    }
     
-    // Effet hover
+    // S'assurer que le bouton est cliquable
+    button.style.cursor = 'pointer';
+    
+    // Effet hover (garder les effets hover du thème si possible)
+    const originalHoverStyle = originalButton ? window.getComputedStyle(originalButton, ':hover') : null;
+    
     button.addEventListener('mouseenter', () => {
-      button.style.backgroundColor = '#333333';
-      button.style.transform = 'scale(1.02)';
+      if (originalHoverStyle && originalHoverStyle.backgroundColor) {
+        button.style.backgroundColor = originalHoverStyle.backgroundColor;
+      } else {
+        // Fallback hover
+        const currentBg = window.getComputedStyle(button).backgroundColor;
+        button.style.opacity = '0.9';
+      }
     });
     
     button.addEventListener('mouseleave', () => {
-      button.style.backgroundColor = CONFIG.buttonStyle.backgroundColor;
-      button.style.transform = 'scale(1)';
+      button.style.opacity = '1';
     });
 
     // Action au clic
@@ -620,8 +672,8 @@
       }
     }
 
-    // Créer le bouton
-    const configuratorButton = createConfiguratorButton();
+    // Créer le bouton en copiant les styles du bouton original
+    const configuratorButton = createConfiguratorButton(addToCartButton);
     if (!configuratorButton) {
       return; // Bouton déjà présent
     }
@@ -631,7 +683,7 @@
       addToCartButton.style.display = 'none';
       addToCartButton.setAttribute('data-eyesberg-hidden', 'true');
       
-      // Insérer le bouton personnaliser à la place
+      // Insérer le bouton personnaliser à la place exacte du bouton original
       if (addToCartButton.parentNode) {
         addToCartButton.parentNode.insertBefore(configuratorButton, addToCartButton);
       } else {
@@ -644,7 +696,7 @@
       }
     }
 
-    console.log('[Eyesberg] ✅ Bouton de personnalisation ajouté avec succès');
+    console.log('[Eyesberg] ✅ Bouton de personnalisation ajouté avec succès (styles copiés du bouton original)');
   }
 
   /**
