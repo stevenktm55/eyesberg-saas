@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const designId = searchParams.get('designId');
+    const shopDomain = searchParams.get('shop');
 
+    // Note: text_zones n'a pas de filtre par subdomain dans la structure actuelle
+    // On retourne toutes les zones si designId est fourni, sinon toutes
     let query = supabase
       .from('text_zones')
       .select('*')
