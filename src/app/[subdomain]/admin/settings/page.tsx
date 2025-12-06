@@ -593,6 +593,43 @@ export default function SettingsPage() {
                         </span>
                         <button
                           onClick={async () => {
+                            try {
+                              const response = await fetch(`/api/shopify/script-tag?shop=${encodeURIComponent(shopData.shop_domain)}`, {
+                                method: 'POST'
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                alert('✅ Script tag créé avec succès ! Le bouton "Personnaliser" devrait maintenant apparaître sur vos produits avec le tag "customizer".');
+                              } else {
+                                const error = await response.json();
+                                alert(`❌ Erreur: ${error.error || 'Failed to create script tag'}`);
+                              }
+                            } catch (err) {
+                              console.error('Error creating script tag:', err);
+                              alert('Erreur lors de la création du script tag. Veuillez réessayer.');
+                            }
+                          }}
+                          style={{
+                            padding: '4px 12px',
+                            backgroundColor: '#8eff36',
+                            color: '#000000',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            fontFamily: 'var(--stepn-font-body)',
+                            cursor: 'pointer',
+                            transition: 'opacity 0.2s',
+                            marginRight: '8px'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                          onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        >
+                          Créer Script Tag
+                        </button>
+                        <button
+                          onClick={async () => {
                             if (!confirm('Are you sure you want to uninstall this store? This will remove the access token and you will need to reinstall the app.')) {
                               return;
                             }
