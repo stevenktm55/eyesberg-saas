@@ -68,9 +68,13 @@
    * Vérifier si le produit actuel est configurable
    */
   function isProductConfigurable() {
+    console.log('[StretchMX] 🔍 Vérification si le produit est configurable...');
+    
     // Méthode 1: Vérifier les tags du produit via ShopifyAnalytics (méthode principale)
     if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
       const productTags = window.ShopifyAnalytics.meta.product?.tags || [];
+      console.log('[StretchMX] Tags depuis ShopifyAnalytics:', productTags);
+      
       // Les tags peuvent être un tableau ou une chaîne séparée par des virgules
       const tagsArray = Array.isArray(productTags) 
         ? productTags 
@@ -80,6 +84,8 @@
         console.log('[StretchMX] ✅ Produit configurable détecté via ShopifyAnalytics');
         return true;
       }
+    } else {
+      console.log('[StretchMX] ⚠️ ShopifyAnalytics non disponible ou incomplet');
     }
 
     // Méthode 2: Vérifier dans le JSON-LD du produit
@@ -134,7 +140,41 @@
       return true;
     }
 
+    // Méthode 6: Utiliser l'API Shopify pour récupérer les tags (si disponible)
+    // Certains thèmes exposent les données du produit dans window.Shopify
+    if (window.Shopify && window.Shopify.routes && window.Shopify.routes.root) {
+      // Essayer de récupérer les tags depuis l'API si possible
+      const productHandle = window.location.pathname.match(/\/products\/([^\/\?]+)/)?.[1];
+      if (productHandle) {
+        console.log('[StretchMX] 🔍 Tentative de récupération des tags via API pour:', productHandle);
+        // Note: Cette méthode nécessiterait un appel API, mais on peut essayer de trouver les tags dans le DOM
+      }
+    }
+
+    // Méthode 7: Chercher dans les meta tags ou data attributes du produit
+    const productMetaTags = document.querySelectorAll('meta[property*="product"]');
+    for (const meta of productMetaTags) {
+      const content = meta.getAttribute('content') || '';
+      if (content.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
+        console.log('[StretchMX] ✅ Produit configurable détecté via meta tag product');
+        return true;
+      }
+    }
+
+    // Méthode 8: Chercher dans les scripts inline qui contiennent les données du produit
+    const inlineScripts = document.querySelectorAll('script:not([src])');
+    for (const script of inlineScripts) {
+      const scriptContent = script.textContent || '';
+      // Chercher des patterns comme "tags":["customizer"] ou tags: "customizer"
+      if (scriptContent.includes(CONFIG.productTag) && 
+          (scriptContent.includes('tags') || scriptContent.includes('tag'))) {
+        console.log('[StretchMX] ✅ Produit configurable détecté via script inline');
+        return true;
+      }
+    }
+
     console.log('[StretchMX] ⚠️ Produit non configurable - tag "customizer" non trouvé');
+    console.log('[StretchMX] 💡 Astuce: Vérifiez que le tag "customizer" est bien présent sur le produit dans Shopify Admin');
     return false;
   }
 
