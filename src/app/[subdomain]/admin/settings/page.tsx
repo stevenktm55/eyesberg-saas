@@ -190,29 +190,6 @@ export default function SettingsPage() {
             }}
             title="Coming soon"
           >
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px 24px',
-              color: isBusinessPage ? '#8eff36' : '#ffffff',
-              textDecoration: 'none',
-              fontFamily: 'var(--stepn-font-body)',
-              fontSize: '16px',
-              backgroundColor: isBusinessPage ? '#1a1a1a' : 'transparent',
-              borderLeft: isBusinessPage ? '3px solid #8eff36' : '3px solid transparent',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isBusinessPage) {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isBusinessPage) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
             Business
           </div>
 
@@ -228,29 +205,6 @@ export default function SettingsPage() {
               opacity: 0.5
             }}
             title="Coming soon"
-          >
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px 24px',
-              color: isBadWordsPage ? '#8eff36' : '#ffffff',
-              textDecoration: 'none',
-              fontFamily: 'var(--stepn-font-body)',
-              fontSize: '16px',
-              backgroundColor: isBadWordsPage ? '#1a1a1a' : 'transparent',
-              borderLeft: isBadWordsPage ? '3px solid #8eff36' : '3px solid transparent',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isBadWordsPage) {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isBadWordsPage) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
           >
             Bad words
           </div>
@@ -268,29 +222,6 @@ export default function SettingsPage() {
             }}
             title="Coming soon"
           >
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px 24px',
-              color: isTranslationsPage ? '#8eff36' : '#ffffff',
-              textDecoration: 'none',
-              fontFamily: 'var(--stepn-font-body)',
-              fontSize: '16px',
-              backgroundColor: isTranslationsPage ? '#1a1a1a' : 'transparent',
-              borderLeft: isTranslationsPage ? '3px solid #8eff36' : '3px solid transparent',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isTranslationsPage) {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isTranslationsPage) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
-          >
             Translations
           </div>
 
@@ -306,29 +237,6 @@ export default function SettingsPage() {
               opacity: 0.5
             }}
             title="Coming soon"
-          >
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '12px 24px',
-              color: isUsersPage ? '#8eff36' : '#ffffff',
-              textDecoration: 'none',
-              fontFamily: 'var(--stepn-font-body)',
-              fontSize: '16px',
-              backgroundColor: isUsersPage ? '#1a1a1a' : 'transparent',
-              borderLeft: isUsersPage ? '3px solid #8eff36' : '3px solid transparent',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isUsersPage) {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isUsersPage) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
           >
             Users
           </div>
