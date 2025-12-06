@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Essayer d'abord avec font_groups si la relation existe
     let query = supabaseAdmin
       .from('fonts')
       .select(`
@@ -55,7 +56,8 @@ export async function GET(request: NextRequest) {
         font_groups (
           id,
           name,
-          category
+          category,
+          subdomain
         )
       `)
       .eq('font_groups.subdomain', subdomain)
@@ -66,14 +68,28 @@ export async function GET(request: NextRequest) {
       query = query.eq('font_groups.category', category);
     }
 
-    const { data, error } = await query;
+    let { data, error } = await query;
 
+    // Si erreur avec font_groups, essayer sans la jointure
     if (error) {
-      console.error('Error fetching fonts:', error);
-      return NextResponse.json(
-        { error: error.message || 'Failed to fetch fonts' },
-        { status: 500 }
-      );
+      console.warn('Error fetching fonts with font_groups join, trying without:', error.message);
+      const fallbackQuery = supabaseAdmin
+        .from('fonts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      const fallbackResult = await fallbackQuery;
+      
+      if (fallbackResult.error) {
+        console.error('Error fetching fonts (fallback):', fallbackResult.error);
+        return NextResponse.json(
+          { error: fallbackResult.error.message || 'Failed to fetch fonts' },
+          { status: 500 }
+        );
+      }
+      
+      data = fallbackResult.data;
+      error = null;
     }
 
     // Transformer pour garder la compatibilité
@@ -81,9 +97,10 @@ export async function GET(request: NextRequest) {
       id: font.id,
       name: font.name,
       display_name: font.display_name || font.name,
-      file_url: font.file_url,
+      file_url: font.file_url || font.font_url,
       font_group_id: font.font_group_id,
       letter_spacing: font.letter_spacing,
+      category: font.font_groups?.category || font.category,
     })) || [];
 
     return NextResponse.json(fonts);
