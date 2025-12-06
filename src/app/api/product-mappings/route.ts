@@ -36,12 +36,9 @@ export async function GET(request: NextRequest) {
       subdomain = await getSubdomain(request);
     }
     
+    // Note: product_mappings n'a pas de colonne subdomain dans la structure actuelle
+    // Le filtrage se fait via shopify_product_id
     let query = supabaseAdmin.from('product_mappings').select('*');
-    
-    // Filtrer par subdomain si disponible
-    if (subdomain) {
-      query = query.eq('subdomain', subdomain);
-    }
     
     if (productId) {
       query = query.eq('shopify_product_id', productId).maybeSingle();

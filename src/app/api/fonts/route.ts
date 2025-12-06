@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       .from('fonts')
       .select(`
         *,
-        font_groups!inner (
+        font_groups (
           id,
           name,
           category

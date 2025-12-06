@@ -54,17 +54,13 @@ export async function GET(request: NextRequest) {
       subdomain = await getSubdomain(request);
     }
 
-    // Utiliser supabaseAdmin et filtrer par subdomain si disponible
+    // Note: models_3d n'a pas de colonne subdomain dans la structure actuelle
+    // On retourne tous les modèles actifs (le filtrage par subdomain se fait via product_builder)
     let query = supabaseAdmin
       .from('models_3d')
       .select('*')
       .eq('active', true)
       .order('created_at', { ascending: false });
-    
-    // Filtrer par subdomain si disponible
-    if (subdomain) {
-      query = query.eq('subdomain', subdomain);
-    }
     
     const { data, error } = await query;
 
