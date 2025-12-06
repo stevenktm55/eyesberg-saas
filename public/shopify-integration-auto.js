@@ -558,27 +558,43 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         // Attendre un peu pour que Shopify charge ses données
-        setTimeout(checkAndInsert, 500);
+        console.log('[StretchMX] ⏳ Attente du chargement complet...');
+        setTimeout(checkAndInsert, 1000); // Augmenté à 1 seconde pour laisser plus de temps
       });
     } else {
       // DOM déjà chargé, attendre un peu pour que Shopify charge ses données
-      setTimeout(checkAndInsert, 500);
+      console.log('[StretchMX] ⏳ DOM déjà chargé, attente du chargement complet...');
+      setTimeout(checkAndInsert, 1000); // Augmenté à 1 seconde
     }
 
     // Réessayer périodiquement au cas où le DOM change (thèmes dynamiques)
     let retryCount = 0;
-    const maxRetries = 10;
+    const maxRetries = 15; // Augmenté le nombre de tentatives
     const retryInterval = setInterval(() => {
-      if (isProductConfigurable() && !document.querySelector('.stretchmx-configurator-button')) {
+      const isConfigurable = isProductConfigurable();
+      const buttonExists = !!document.querySelector('.stretchmx-configurator-button');
+      
+      console.log(`[StretchMX] 🔄 Tentative ${retryCount + 1}/${maxRetries} - Configurable: ${isConfigurable}, Bouton existe: ${buttonExists}`);
+      
+      if (isConfigurable && !buttonExists) {
+        console.log('[StretchMX] ✅ Insertion du bouton (tentative ' + (retryCount + 1) + ')');
         insertConfiguratorButton();
         retryCount++;
         if (retryCount >= maxRetries) {
+          console.log('[StretchMX] ⚠️ Nombre maximum de tentatives atteint');
           clearInterval(retryInterval);
         }
-      } else {
+      } else if (buttonExists) {
+        console.log('[StretchMX] ✅ Bouton déjà présent, arrêt des tentatives');
         clearInterval(retryInterval);
+      } else {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.log('[StretchMX] ⚠️ Produit non configurable après ' + maxRetries + ' tentatives');
+          clearInterval(retryInterval);
+        }
       }
-    }, 1000);
+    }, 1500); // Augmenté l'intervalle à 1.5 secondes
   }
 
   // Démarrer l'initialisation
