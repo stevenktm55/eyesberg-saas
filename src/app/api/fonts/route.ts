@@ -18,17 +18,19 @@ export async function GET(request: NextRequest) {
     // Essayer de récupérer le subdomain depuis les headers/session
     let subdomain = await getSubdomain(request);
     
-    // Si pas de subdomain mais qu'on a un shopDomain, essayer de le récupérer depuis la table shops
+    // Si pas de subdomain mais qu'on a un shopDomain, essayer de le récupérer depuis product_builder
     if (!subdomain && shopDomain) {
       try {
-        const { data: shop } = await supabaseAdmin
-          .from('shops')
+        // Chercher un produit avec ce shop_domain pour récupérer son subdomain
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
           .select('subdomain')
           .eq('shop_domain', shopDomain)
+          .limit(1)
           .maybeSingle();
         
-        if (shop?.subdomain) {
-          subdomain = shop.subdomain;
+        if (product?.subdomain) {
+          subdomain = product.subdomain;
         }
       } catch (error) {
         console.warn('Could not fetch subdomain from shop_domain:', error);
