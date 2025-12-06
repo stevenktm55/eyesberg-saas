@@ -87,22 +87,35 @@ export async function POST(request: NextRequest) {
     // Créer le script tag
     console.log('📜 Création manuelle du script tag pour:', shop);
     console.log('📜 Access token présent:', !!shopData.access_token);
+    console.log('📜 Access token length:', shopData.access_token?.length || 0);
     console.log('📜 Script URL:', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://www.eyesberg.app');
     
-    const result = await createScriptTag(shop, shopData.access_token);
+    try {
+      const result = await createScriptTag(shop, shopData.access_token);
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: 'Script tag created successfully',
-        scriptTag: result.scriptTag,
-      });
-    } else {
-      console.error('❌ Échec de la création du script tag:', result.error);
+      if (result.success) {
+        return NextResponse.json({
+          success: true,
+          message: 'Script tag created successfully',
+          scriptTag: result.scriptTag,
+        });
+      } else {
+        console.error('❌ Échec de la création du script tag:', result.error);
+        return NextResponse.json(
+          { 
+            error: 'Failed to create script tag',
+            details: result.error 
+          },
+          { status: 500 }
+        );
+      }
+    } catch (error) {
+      console.error('❌ Exception lors de la création du script tag:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return NextResponse.json(
         { 
           error: 'Failed to create script tag',
-          details: result.error 
+          details: errorMessage 
         },
         { status: 500 }
       );

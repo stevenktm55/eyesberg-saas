@@ -49,6 +49,13 @@ export async function createScriptTag(shop: string, accessToken: string) {
       return { success: true, message: 'Script tag already exists' };
     }
 
+    console.log('📜 Tentative de création du script tag avec:', {
+      shop,
+      scriptUrl: SCRIPT_URL,
+      hasAccessToken: !!accessToken,
+      accessTokenLength: accessToken?.length || 0,
+    });
+
     // Créer le script tag via l'API REST Admin
     const response = await fetch(`https://${shop}/admin/api/2025-01/script_tags.json`, {
       method: 'POST',
@@ -67,8 +74,26 @@ export async function createScriptTag(shop: string, accessToken: string) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erreur lors de la création du script tag:', errorText);
-      throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      console.error('❌ Erreur lors de la création du script tag:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+        shop,
+        scriptUrl: SCRIPT_URL,
+      });
+      
+      // Parser l'erreur si c'est du JSON
+      let errorMessage = `Erreur HTTP: ${response.status} - ${errorText}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.errors) {
+          errorMessage = `Erreur Shopify: ${JSON.stringify(errorJson.errors)}`;
+        }
+      } catch (e) {
+        // Pas du JSON, utiliser le texte brut
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
