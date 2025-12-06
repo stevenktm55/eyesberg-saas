@@ -538,16 +538,18 @@ export default function SettingsPage() {
                                 method: 'POST'
                               });
                               
+                              const data = await response.json();
+                              
                               if (response.ok) {
-                                const data = await response.json();
                                 alert('✅ Script tag créé avec succès ! Le bouton "Personnaliser" devrait maintenant apparaître sur vos produits avec le tag "customizer".');
                               } else {
-                                const error = await response.json();
-                                alert(`❌ Erreur: ${error.error || 'Failed to create script tag'}`);
+                                const errorMessage = data.details || data.error || 'Failed to create script tag';
+                                alert(`❌ Erreur: ${errorMessage}\n\nVérifiez les logs dans Vercel pour plus de détails.`);
+                                console.error('Erreur complète:', data);
                               }
                             } catch (err) {
                               console.error('Error creating script tag:', err);
-                              alert('Erreur lors de la création du script tag. Veuillez réessayer.');
+                              alert('Erreur lors de la création du script tag. Veuillez réessayer.\n\nVérifiez la console pour plus de détails.');
                             }
                           }}
                           style={{
