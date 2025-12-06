@@ -3171,7 +3171,7 @@ export default function ConfiguratorViewer({
           isPlacingText={isPlacingText}
           setIsPlacingText={setIsPlacingText}
           shopDomain={finalShopDomain}
-          productId={finalProductId}
+          productId={productId}
         />
       </div>
     </div>

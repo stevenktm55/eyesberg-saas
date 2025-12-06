@@ -3170,8 +3170,8 @@ export default function ConfiguratorViewer({
           onCategoryChange={onCategoryChange}
           isPlacingText={isPlacingText}
           setIsPlacingText={setIsPlacingText}
-          shopDomain={finalShopDomain}
-          productId={finalProductId}
+          shopDomain={shopDomain}
+          productId={productId}
         />
       </div>
     </div>
