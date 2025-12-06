@@ -12,6 +12,11 @@
 (function() {
   'use strict';
 
+  // Log immédiat pour confirmer que le script se charge
+  console.log('[StretchMX] 🚀 Script shopify-integration-auto.js chargé');
+  console.log('[StretchMX] 📍 URL actuelle:', window.location.href);
+  console.log('[StretchMX] 📍 Pathname:', window.location.pathname);
+
   // Configuration - L'URL sera détectée automatiquement
   const CONFIG = {
     // Tag pour identifier les produits configurables
@@ -650,8 +655,10 @@
   }
 
   // Démarrer l'initialisation
+  console.log('[StretchMX] 🔧 Initialisation du script...');
   setupMessageListener();
   init();
+  console.log('[StretchMX] ✅ Initialisation terminée');
 
   // Exposer une API publique pour personnalisation avancée
   window.StretchMXConfigurator = {
@@ -665,7 +672,8 @@
     version: '2.0.0-auto'
   };
 
-  console.log('[StretchMX] Script auto-détection chargé - Version 2.0.0');
+  console.log('[StretchMX] ✅ Script auto-détection chargé - Version 2.0.0');
+  console.log('[StretchMX] ✅ API publique disponible: window.StretchMXConfigurator');
 
 })();
 
