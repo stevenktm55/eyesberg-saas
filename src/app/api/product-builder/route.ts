@@ -22,27 +22,60 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const shopDomain = searchParams.get('shop');
+    const shopifyProductId = searchParams.get('shopifyProductId');
     
     if (id) {
-      // Récupérer un produit existant
-      const { data: product, error } = await supabaseAdmin
-        .from('product_builder')
-        .select('*')
-        .eq('id', id)
-        .eq('subdomain', subdomain)
-        .single();
+      // Vérifier si c'est un UUID (ID Eyesberg) ou un nombre (ID Shopify)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      if (isUUID) {
+        // C'est un UUID Eyesberg, récupérer directement
+        const { data: product, error } = await supabaseAdmin
+          .from('product_builder')
+          .select('*')
+          .eq('id', id)
+          .eq('subdomain', subdomain)
+          .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
+        if (error) {
+          if (error.code === 'PGRST116') {
+            return NextResponse.json(
+              { error: 'Product not found' },
+              { status: 404 }
+            );
+          }
+          throw error;
+        }
+
+        return NextResponse.json(product);
+      } else {
+        // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        const { data: products, error } = await supabaseAdmin
+          .from('product_builder')
+          .select('*')
+          .eq('subdomain', subdomain)
+          .eq('shop_domain', shopDomain || '')
+          .not('builder_data', 'is', null);
+
+        if (error) {
+          throw error;
+        }
+
+        // Chercher le produit qui a ce shopify_product_id dans builder_data.shopify.productId
+        const product = products?.find((p: any) => {
+          const shopifyData = p.builder_data?.shopify;
+          return shopifyData?.productId === id || shopifyData?.productId === String(id);
+        });
+
+        if (!product) {
           return NextResponse.json(
-            { error: 'Product not found' },
+            { error: 'Product not found for this Shopify product ID' },
             { status: 404 }
           );
         }
-        throw error;
-      }
 
-      return NextResponse.json(product);
+        return NextResponse.json(product);
+      }
     } else if (shopDomain) {
       // Rechercher un produit existant pour ce shop
       const { data: existingProduct, error: existingError } = await supabaseAdmin

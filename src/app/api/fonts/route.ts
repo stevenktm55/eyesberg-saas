@@ -6,6 +6,71 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
 
 /**
+ * GET /api/fonts
+ * Récupère toutes les fonts (optionnel: filtrer par category)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const subdomain = await getSubdomain(request);
+    if (!subdomain) {
+      return NextResponse.json(
+        { error: 'Subdomain is required' },
+        { status: 400 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category'); // 'names', 'numbers', ou null pour toutes
+
+    let query = supabaseAdmin
+      .from('fonts')
+      .select(`
+        *,
+        font_groups!inner (
+          id,
+          name,
+          category
+        )
+      `)
+      .eq('font_groups.subdomain', subdomain)
+      .order('created_at', { ascending: false });
+
+    // Filtrer par catégorie si spécifié
+    if (category === 'names' || category === 'numbers') {
+      query = query.eq('font_groups.category', category);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching fonts:', error);
+      return NextResponse.json(
+        { error: error.message || 'Failed to fetch fonts' },
+        { status: 500 }
+      );
+    }
+
+    // Transformer pour garder la compatibilité
+    const fonts = data?.map((font: any) => ({
+      id: font.id,
+      name: font.name,
+      display_name: font.display_name || font.name,
+      file_url: font.file_url,
+      font_group_id: font.font_group_id,
+      letter_spacing: font.letter_spacing,
+    })) || [];
+
+    return NextResponse.json(fonts);
+  } catch (error: any) {
+    console.error('Error fetching fonts:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch fonts' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * POST /api/fonts
  * Crée une nouvelle font avec upload du fichier
  */
