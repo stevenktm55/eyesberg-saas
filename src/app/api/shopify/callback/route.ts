@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { saveShop } from '@/lib/shopify-shops';
 import { createWebhooks } from '@/lib/shopify-webhooks';
+import { createScriptTag } from '@/lib/shopify-script-tags';
 import { supabaseAdmin } from '@/lib/supabase';
 
 /**
@@ -264,6 +265,21 @@ export async function GET(request: NextRequest) {
       console.error('❌ Erreur lors de la création des webhooks:', error);
       // On continue quand même, l'installation est réussie même si les webhooks échouent
       // (on peut les créer manuellement plus tard si nécessaire)
+    }
+
+    // Créer le script tag automatiquement (injection du JavaScript sans modification du thème)
+    try {
+      console.log('📜 Création automatique du script tag...');
+      const scriptTagResult = await createScriptTag(shop, access_token);
+      if (scriptTagResult.success) {
+        console.log('✅ Script tag créé avec succès - Le configurateur sera injecté automatiquement');
+      } else {
+        console.warn('⚠️ Script tag non créé:', scriptTagResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la création du script tag:', error);
+      // On continue quand même, l'installation est réussie même si le script tag échoue
+      // (l'utilisateur peut toujours l'ajouter manuellement si nécessaire)
     }
 
     // Rediriger vers la page Settings après installation réussie

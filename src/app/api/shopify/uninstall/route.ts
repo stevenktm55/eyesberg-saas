@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { getShopByDomain } from '@/lib/shopify-shops';
+import { deleteScriptTag } from '@/lib/shopify-script-tags';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -74,6 +75,18 @@ export async function POST(request: NextRequest) {
         { error: 'Forbidden: Shop does not belong to your account' },
         { status: 403 }
       );
+    }
+
+    // Supprimer le script tag avant de supprimer l'access_token
+    if (shopData.access_token) {
+      try {
+        console.log('📜 Suppression du script tag...');
+        await deleteScriptTag(shop, shopData.access_token);
+        console.log('✅ Script tag supprimé');
+      } catch (error) {
+        console.warn('⚠️ Erreur lors de la suppression du script tag (on continue):', error);
+        // On continue quand même, la désinstallation doit se faire même si la suppression du script tag échoue
+      }
     }
 
     // Supprimer l'access_token et les scopes (désinstallation)
