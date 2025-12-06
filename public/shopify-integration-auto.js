@@ -1,5 +1,5 @@
 /**
- * Script d'intégration automatique StretchMX Configurator pour Shopify
+ * Script d'intégration automatique Eyesberg Configurator pour Shopify
  * Version: 2.0.0 - Auto-détection avec modal
  * 
  * Ce script s'injecte automatiquement et détecte les produits avec le tag "customizer"
@@ -13,9 +13,9 @@
   'use strict';
 
   // Log immédiat pour confirmer que le script se charge
-  console.log('[StretchMX] 🚀 Script shopify-integration-auto.js chargé');
-  console.log('[StretchMX] 📍 URL actuelle:', window.location.href);
-  console.log('[StretchMX] 📍 Pathname:', window.location.pathname);
+  console.log('[Eyesberg] 🚀 Script shopify-integration-auto.js chargé');
+  console.log('[Eyesberg] 📍 URL actuelle:', window.location.href);
+  console.log('[Eyesberg] 📍 Pathname:', window.location.pathname);
 
   // Configuration - L'URL sera détectée automatiquement
   const CONFIG = {
@@ -51,21 +51,21 @@
       const scriptSrc = scriptTag.src;
       const url = new URL(scriptSrc);
       const origin = url.origin; // Retourne https://www.eyesberg.app
-      console.log('[StretchMX] URL du configurateur détectée depuis le script tag:', origin);
+      console.log('[Eyesberg] URL du configurateur détectée depuis le script tag:', origin);
       return origin;
     }
     
     // Sinon, utiliser une URL par défaut (à configurer)
     // Vous pouvez aussi utiliser une variable d'environnement ou un meta tag
-    const metaTag = document.querySelector('meta[name="stretchmx-configurator-url"]');
+    const metaTag = document.querySelector('meta[name="eyesberg-configurator-url"]');
     if (metaTag) {
-      console.log('[StretchMX] URL du configurateur détectée depuis meta tag:', metaTag.content);
+      console.log('[Eyesberg] URL du configurateur détectée depuis meta tag:', metaTag.content);
       return metaTag.content;
     }
     
     // Fallback : utiliser une URL par défaut
     const defaultUrl = 'https://www.eyesberg.app';
-    console.log('[StretchMX] Utilisation de l\'URL par défaut du configurateur:', defaultUrl);
+    console.log('[Eyesberg] Utilisation de l\'URL par défaut du configurateur:', defaultUrl);
     return defaultUrl;
   }
 
@@ -73,12 +73,12 @@
    * Vérifier si le produit actuel est configurable
    */
   function isProductConfigurable() {
-    console.log('[StretchMX] 🔍 Vérification si le produit est configurable...');
+    console.log('[Eyesberg] 🔍 Vérification si le produit est configurable...');
     
     // Méthode 1: Vérifier les tags du produit via ShopifyAnalytics (méthode principale)
     if (window.ShopifyAnalytics && window.ShopifyAnalytics.meta) {
       const productTags = window.ShopifyAnalytics.meta.product?.tags || [];
-      console.log('[StretchMX] Tags depuis ShopifyAnalytics:', productTags);
+      console.log('[Eyesberg] Tags depuis ShopifyAnalytics:', productTags);
       
       // Les tags peuvent être un tableau ou une chaîne séparée par des virgules
       const tagsArray = Array.isArray(productTags) 
@@ -86,11 +86,11 @@
         : (typeof productTags === 'string' ? productTags.split(',').map(t => t.trim()) : []);
       
       if (tagsArray.some(tag => tag.toLowerCase() === CONFIG.productTag.toLowerCase())) {
-        console.log('[StretchMX] ✅ Produit configurable détecté via ShopifyAnalytics');
+        console.log('[Eyesberg] ✅ Produit configurable détecté via ShopifyAnalytics');
         return true;
       }
     } else {
-      console.log('[StretchMX] ⚠️ ShopifyAnalytics non disponible ou incomplet');
+      console.log('[Eyesberg] ⚠️ ShopifyAnalytics non disponible ou incomplet');
     }
 
     // Méthode 2: Vérifier dans le JSON-LD du produit
@@ -101,12 +101,12 @@
         if (data['@type'] === 'Product') {
           // Vérifier dans category ou dans un champ tags
           if (data.category && data.category.includes(CONFIG.productTag)) {
-            console.log('[StretchMX] ✅ Produit configurable détecté via JSON-LD (category)');
+            console.log('[Eyesberg] ✅ Produit configurable détecté via JSON-LD (category)');
             return true;
           }
           // Certains thèmes mettent les tags dans un autre champ
           if (data.tags && (Array.isArray(data.tags) ? data.tags : data.tags.split(',')).some((tag: string) => tag.trim().toLowerCase() === CONFIG.productTag.toLowerCase())) {
-            console.log('[StretchMX] ✅ Produit configurable détecté via JSON-LD (tags)');
+            console.log('[Eyesberg] ✅ Produit configurable détecté via JSON-LD (tags)');
             return true;
           }
         }
@@ -118,7 +118,7 @@
     // Méthode 3: Vérifier dans le HTML - chercher les éléments avec data-product-tags
     const bodyTag = document.body.getAttribute('data-product-tags');
     if (bodyTag && bodyTag.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
-      console.log('[StretchMX] ✅ Produit configurable détecté via data-product-tags (body)');
+      console.log('[Eyesberg] ✅ Produit configurable détecté via data-product-tags (body)');
       return true;
     }
 
@@ -126,7 +126,7 @@
     if (form) {
       const formTags = form.getAttribute('data-product-tags') || form.dataset.productTags;
       if (formTags && formTags.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
-        console.log('[StretchMX] ✅ Produit configurable détecté via data-product-tags (form)');
+        console.log('[Eyesberg] ✅ Produit configurable détecté via data-product-tags (form)');
         return true;
       }
     }
@@ -138,7 +138,7 @@
                       elem.getAttribute('data-tags') || 
                       elem.getAttribute('data-tag') || '';
       if (tagValue.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
-        console.log('[StretchMX] ✅ Produit configurable détecté via attribut data:', tagValue);
+        console.log('[Eyesberg] ✅ Produit configurable détecté via attribut data:', tagValue);
         return true;
       }
     }
@@ -146,14 +146,14 @@
     // Méthode 4: Vérifier dans les meta tags
     const productTagsMeta = document.querySelector('meta[property="product:tag"]');
     if (productTagsMeta && productTagsMeta.content.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
-      console.log('[StretchMX] ✅ Produit configurable détecté via meta tag');
+      console.log('[Eyesberg] ✅ Produit configurable détecté via meta tag');
       return true;
     }
 
     // Méthode 5: Chercher dans tout le HTML pour le tag (dernier recours)
     const htmlContent = document.documentElement.innerHTML.toLowerCase();
     if (htmlContent.includes(`"${CONFIG.productTag}"`) || htmlContent.includes(`'${CONFIG.productTag}'`)) {
-      console.log('[StretchMX] ✅ Produit configurable détecté via recherche HTML');
+      console.log('[Eyesberg] ✅ Produit configurable détecté via recherche HTML');
       return true;
     }
 
@@ -163,7 +163,7 @@
       // Essayer de récupérer les tags depuis l'API si possible
       const productHandle = window.location.pathname.match(/\/products\/([^\/\?]+)/)?.[1];
       if (productHandle) {
-        console.log('[StretchMX] 🔍 Tentative de récupération des tags via API pour:', productHandle);
+        console.log('[Eyesberg] 🔍 Tentative de récupération des tags via API pour:', productHandle);
         // Note: Cette méthode nécessiterait un appel API, mais on peut essayer de trouver les tags dans le DOM
       }
     }
@@ -173,7 +173,7 @@
     for (const meta of productMetaTags) {
       const content = meta.getAttribute('content') || '';
       if (content.toLowerCase().includes(CONFIG.productTag.toLowerCase())) {
-        console.log('[StretchMX] ✅ Produit configurable détecté via meta tag product');
+        console.log('[Eyesberg] ✅ Produit configurable détecté via meta tag product');
         return true;
       }
     }
@@ -187,7 +187,7 @@
         // Vérifier que c'est bien dans un contexte de tags (pas juste une coïncidence)
         const tagPattern = new RegExp(`(tags|tag)[\\s:=]+["']?[^"']*${CONFIG.productTag}[^"']*["']?`, 'i');
         if (tagPattern.test(scriptContent)) {
-          console.log('[StretchMX] ✅ Produit configurable détecté via script inline');
+          console.log('[Eyesberg] ✅ Produit configurable détecté via script inline');
           return true;
         }
       }
@@ -196,10 +196,10 @@
     // Méthode 9: Utiliser l'API publique JSON de Shopify pour récupérer les tags
     // Cette méthode fonctionne même si ShopifyAnalytics n'est pas disponible
     const productHandle = window.location.pathname.match(/\/products\/([^\/\?]+)/)?.[1];
-    if (productHandle && !window.__stretchmx_tag_check_done) {
+    if (productHandle && !window.__eyesberg_tag_check_done) {
       // Marquer pour éviter les appels multiples
-      window.__stretchmx_tag_check_done = true;
-      console.log('[StretchMX] 🔍 Tentative de récupération des tags via API publique pour:', productHandle);
+      window.__eyesberg_tag_check_done = true;
+      console.log('[Eyesberg] 🔍 Tentative de récupération des tags via API publique pour:', productHandle);
       
       // Utiliser l'API publique JSON (ne nécessite pas de token)
       const shopDomain = window.Shopify?.shop || window.location.hostname.replace('.myshopify.com', '');
@@ -213,25 +213,25 @@
                 ? product.tags.split(',').map(t => t.trim())
                 : product.tags;
               
-              console.log('[StretchMX] Tags récupérés via API publique:', tags);
+              console.log('[Eyesberg] Tags récupérés via API publique:', tags);
               
               if (tags.some(tag => tag.toLowerCase() === CONFIG.productTag.toLowerCase())) {
-                console.log('[StretchMX] ✅ Produit configurable détecté via API publique');
+                console.log('[Eyesberg] ✅ Produit configurable détecté via API publique');
                 // Insérer le bouton maintenant
-                if (!document.querySelector('.stretchmx-configurator-button')) {
+                if (!document.querySelector('.eyesberg-configurator-button')) {
                   insertConfiguratorButton();
                 }
               }
             }
           })
           .catch(error => {
-            console.warn('[StretchMX] ⚠️ Impossible de récupérer les tags via API publique:', error);
+            console.warn('[Eyesberg] ⚠️ Impossible de récupérer les tags via API publique:', error);
           });
       }
     }
 
-    console.log('[StretchMX] ⚠️ Produit non configurable - tag "customizer" non trouvé');
-    console.log('[StretchMX] 💡 Astuce: Vérifiez que le tag "customizer" est bien présent sur le produit dans Shopify Admin');
+    console.log('[Eyesberg] ⚠️ Produit non configurable - tag "customizer" non trouvé');
+    console.log('[Eyesberg] 💡 Astuce: Vérifiez que le tag "customizer" est bien présent sur le produit dans Shopify Admin');
     return false;
   }
 
@@ -298,7 +298,7 @@
   function buildConfiguratorUrl() {
     const configuratorBaseUrl = getConfiguratorUrl();
     if (!configuratorBaseUrl) {
-      console.error('[StretchMX] Impossible de déterminer l\'URL du configurateur');
+      console.error('[Eyesberg] Impossible de déterminer l\'URL du configurateur');
       return null;
     }
 
@@ -328,12 +328,12 @@
    */
   function createModal() {
     // Vérifier si le modal existe déjà
-    if (document.getElementById('stretchmx-modal')) {
+    if (document.getElementById('eyesberg-modal')) {
       return;
     }
 
     const modal = document.createElement('div');
-    modal.id = 'stretchmx-modal';
+    modal.id = 'eyesberg-modal';
     modal.style.cssText = `
       display: none;
       position: fixed;
@@ -398,7 +398,7 @@
     modalHeader.appendChild(closeButton);
 
     const iframe = document.createElement('iframe');
-    iframe.id = 'stretchmx-iframe';
+    iframe.id = 'eyesberg-iframe';
     iframe.style.cssText = `
       flex: 1;
       width: 100%;
@@ -434,7 +434,7 @@
    */
   function openModal() {
     const modal = createModal();
-    const iframe = document.getElementById('stretchmx-iframe');
+    const iframe = document.getElementById('eyesberg-iframe');
     const configuratorUrl = buildConfiguratorUrl();
 
     if (!configuratorUrl) {
@@ -446,17 +446,17 @@
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 
-    console.log('[StretchMX] Modal ouvert avec URL:', configuratorUrl);
+    console.log('[Eyesberg] Modal ouvert avec URL:', configuratorUrl);
   }
 
   /**
    * Fermer le modal
    */
   function closeModal() {
-    const modal = document.getElementById('stretchmx-modal');
+    const modal = document.getElementById('eyesberg-modal');
     if (modal) {
       modal.style.display = 'none';
-      const iframe = document.getElementById('stretchmx-iframe');
+      const iframe = document.getElementById('eyesberg-iframe');
       if (iframe) {
         iframe.src = '';
       }
@@ -469,13 +469,13 @@
    */
   function createConfiguratorButton() {
     // Vérifier si le bouton existe déjà
-    if (document.querySelector('.stretchmx-configurator-button')) {
+    if (document.querySelector('.eyesberg-configurator-button')) {
       return null;
     }
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'stretchmx-configurator-button';
+    button.className = 'eyesberg-configurator-button';
     button.textContent = CONFIG.buttonText;
     
     // Appliquer les styles
@@ -510,7 +510,7 @@
     const addToCartForm = document.querySelector('form[action*="/cart/add"]');
     
     if (!addToCartForm) {
-      console.warn('[StretchMX] Formulaire d\'ajout au panier non trouvé');
+      console.warn('[Eyesberg] Formulaire d\'ajout au panier non trouvé');
       return;
     }
 
@@ -535,7 +535,7 @@
     }
 
     if (!addToCartButton) {
-      console.warn('[StretchMX] Bouton d\'ajout au panier non trouvé');
+      console.warn('[Eyesberg] Bouton d\'ajout au panier non trouvé');
       return;
     }
 
@@ -548,12 +548,12 @@
     // Remplacer le bouton "Add to Cart" par le bouton "Personnaliser"
     // On cache le bouton Add to Cart au lieu de le supprimer
     addToCartButton.style.display = 'none';
-    addToCartButton.setAttribute('data-stretchmx-hidden', 'true');
+    addToCartButton.setAttribute('data-eyesberg-hidden', 'true');
 
     // Insérer le bouton personnaliser à la place
     addToCartButton.parentNode.insertBefore(configuratorButton, addToCartButton);
 
-    console.log('[StretchMX] ✅ Bouton de personnalisation ajouté avec succès');
+    console.log('[Eyesberg] ✅ Bouton de personnalisation ajouté avec succès');
   }
 
   /**
@@ -615,12 +615,12 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         // Attendre un peu pour que Shopify charge ses données
-        console.log('[StretchMX] ⏳ Attente du chargement complet...');
+        console.log('[Eyesberg] ⏳ Attente du chargement complet...');
         setTimeout(checkAndInsert, 1000); // Augmenté à 1 seconde pour laisser plus de temps
       });
     } else {
       // DOM déjà chargé, attendre un peu pour que Shopify charge ses données
-      console.log('[StretchMX] ⏳ DOM déjà chargé, attente du chargement complet...');
+      console.log('[Eyesberg] ⏳ DOM déjà chargé, attente du chargement complet...');
       setTimeout(checkAndInsert, 1000); // Augmenté à 1 seconde
     }
 
@@ -629,25 +629,25 @@
     const maxRetries = 15; // Augmenté le nombre de tentatives
     const retryInterval = setInterval(() => {
       const isConfigurable = isProductConfigurable();
-      const buttonExists = !!document.querySelector('.stretchmx-configurator-button');
+      const buttonExists = !!document.querySelector('.eyesberg-configurator-button');
       
-      console.log(`[StretchMX] 🔄 Tentative ${retryCount + 1}/${maxRetries} - Configurable: ${isConfigurable}, Bouton existe: ${buttonExists}`);
+      console.log(`[Eyesberg] 🔄 Tentative ${retryCount + 1}/${maxRetries} - Configurable: ${isConfigurable}, Bouton existe: ${buttonExists}`);
       
       if (isConfigurable && !buttonExists) {
-        console.log('[StretchMX] ✅ Insertion du bouton (tentative ' + (retryCount + 1) + ')');
+        console.log('[Eyesberg] ✅ Insertion du bouton (tentative ' + (retryCount + 1) + ')');
         insertConfiguratorButton();
         retryCount++;
         if (retryCount >= maxRetries) {
-          console.log('[StretchMX] ⚠️ Nombre maximum de tentatives atteint');
+          console.log('[Eyesberg] ⚠️ Nombre maximum de tentatives atteint');
           clearInterval(retryInterval);
         }
       } else if (buttonExists) {
-        console.log('[StretchMX] ✅ Bouton déjà présent, arrêt des tentatives');
+        console.log('[Eyesberg] ✅ Bouton déjà présent, arrêt des tentatives');
         clearInterval(retryInterval);
       } else {
         retryCount++;
         if (retryCount >= maxRetries) {
-          console.log('[StretchMX] ⚠️ Produit non configurable après ' + maxRetries + ' tentatives');
+          console.log('[Eyesberg] ⚠️ Produit non configurable après ' + maxRetries + ' tentatives');
           clearInterval(retryInterval);
         }
       }
@@ -655,13 +655,13 @@
   }
 
   // Démarrer l'initialisation
-  console.log('[StretchMX] 🔧 Initialisation du script...');
+  console.log('[Eyesberg] 🔧 Initialisation du script...');
   setupMessageListener();
   init();
-  console.log('[StretchMX] ✅ Initialisation terminée');
+  console.log('[Eyesberg] ✅ Initialisation terminée');
 
   // Exposer une API publique pour personnalisation avancée
-  window.StretchMXConfigurator = {
+  window.EyesbergConfigurator = {
     config: CONFIG,
     isProductConfigurable,
     getProductInfo,
@@ -672,8 +672,8 @@
     version: '2.0.0-auto'
   };
 
-  console.log('[StretchMX] ✅ Script auto-détection chargé - Version 2.0.0');
-  console.log('[StretchMX] ✅ API publique disponible: window.StretchMXConfigurator');
+  console.log('[Eyesberg] ✅ Script auto-détection chargé - Version 2.0.0');
+  console.log('[Eyesberg] ✅ API publique disponible: window.EyesbergConfigurator');
 
 })();
 

@@ -4,11 +4,30 @@
  * sans modification manuelle du thème
  */
 
-const SCRIPT_URL = process.env.NEXT_PUBLIC_APP_URL 
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/shopify-integration-auto.js`
-  : process.env.NEXT_PUBLIC_ROOT_DOMAIN
-  ? `https://www.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}/shopify-integration-auto.js`
-  : 'https://www.eyesberg.app/shopify-integration-auto.js';
+// Construire l'URL du script - s'assurer d'utiliser www. si nécessaire
+const getScriptUrl = () => {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    const url = process.env.NEXT_PUBLIC_APP_URL;
+    // S'assurer que l'URL a le www. si c'est le domaine principal
+    if (url.includes('eyesberg.app') && !url.includes('www.')) {
+      return url.replace('eyesberg.app', 'www.eyesberg.app') + '/shopify-integration-auto.js';
+    }
+    return `${url}/shopify-integration-auto.js`;
+  }
+  
+  if (process.env.NEXT_PUBLIC_ROOT_DOMAIN) {
+    const domain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+    // S'assurer d'utiliser www. pour le domaine principal
+    if (domain === 'eyesberg.app' || !domain.includes('www.')) {
+      return `https://www.${domain}/shopify-integration-auto.js`;
+    }
+    return `https://${domain}/shopify-integration-auto.js`;
+  }
+  
+  return 'https://www.eyesberg.app/shopify-integration-auto.js';
+};
+
+const SCRIPT_URL = getScriptUrl();
 
 /**
  * Vérifie si un script tag existe déjà pour cette URL
