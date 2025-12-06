@@ -2879,9 +2879,6 @@ export default function ConfiguratorViewer({
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const productId = propProductId || urlParams?.get('productId') || null;
   const shopDomain = propShopDomain || urlParams?.get('shop') || null;
-  // Définir finalShopDomain et finalProductId AVANT d'utiliser les hooks
-  const finalShopDomain: string | null = shopDomain ?? null;
-  const finalProductId: string | null = productId ?? null;
   
   // Initialiser tous les hooks nécessaires
   const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
