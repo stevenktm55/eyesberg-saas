@@ -2881,9 +2881,7 @@ export default function ConfiguratorViewer({
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
   const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, productId);
   const textSelection = useTextSelection();
-  const [isRotatingText, setIsRotatingText] = useState(false);
-  const [isResizingText, setIsResizingText] = useState(false);
-  const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, }
+  const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText } = textSelection;
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = useProductModules(shopDomain, productId);
