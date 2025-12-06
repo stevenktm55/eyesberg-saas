@@ -72,8 +72,18 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Erreur Supabase GET text_zones:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('[API/text-zones] Erreur Supabase GET text_zones:', error.message);
+      console.error('[API/text-zones] Error details:', error.details);
+      console.error('[API/text-zones] Error hint:', error.hint);
+      console.error('[API/text-zones] Error code:', error.code);
+      console.error('[API/text-zones] Full error:', JSON.stringify(error, null, 2));
+      
+      // Si l'erreur est liée à une table inexistante ou une colonne manquante, retourner un tableau vide
+      if (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('column')) {
+        console.warn('[API/text-zones] Table ou colonne inexistante, retour d\'un tableau vide');
+        return NextResponse.json([]);
+      }
+      
       return NextResponse.json({ 
         error: error.message || 'Failed to fetch text zones',
         details: error.details || error.hint || null
@@ -81,7 +91,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transformer pour garder la compatibilité avec l'ancien format
-    const zones = data.map(zone => ({
+    const zones = (data || []).map(zone => ({
       id: zone.id,
       name: zone.name,
       position: zone.position,

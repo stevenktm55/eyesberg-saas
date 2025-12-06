@@ -1573,6 +1573,10 @@ function Viewer3D({
     setTestUVMap(createTestUVMap());
   }, []);
 
+  // Constantes pour les textes
+  const fontSizeSliderMin = 60;
+  const fontSizeSliderMax = 750;
+
   // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
   const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, 10];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];

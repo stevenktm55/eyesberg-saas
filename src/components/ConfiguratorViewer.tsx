@@ -1573,6 +1573,10 @@ function Viewer3D({
     setTestUVMap(createTestUVMap());
   }, []);
 
+  // Constantes pour les textes
+  const fontSizeSliderMin = 60;
+  const fontSizeSliderMax = 750;
+
   // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
   const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, 10];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
@@ -2898,6 +2902,8 @@ export default function ConfiguratorViewer({
   const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, startDraggingText, stopDraggingText } = textSelection;
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
+  const finalShopDomain: string | null = shopDomain ?? null;
+  const finalProductId: string | null = productId ?? null;
   const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
   
   // États pour la sidebar

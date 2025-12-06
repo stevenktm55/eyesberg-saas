@@ -51,14 +51,24 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching product_mappings:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error('[API/product-mappings] Erreur Supabase GET product_mappings:', error.message);
+      console.error('[API/product-mappings] Error details:', error.details);
+      console.error('[API/product-mappings] Error hint:', error.hint);
+      console.error('[API/product-mappings] Error code:', error.code);
+      console.error('[API/product-mappings] Full error:', JSON.stringify(error, null, 2));
+      
+      // Si l'erreur est liée à une table inexistante ou une colonne manquante, retourner null ou un tableau vide
+      if (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('column')) {
+        console.warn('[API/product-mappings] Table ou colonne inexistante, retour de null');
+        return NextResponse.json(null);
+      }
+      
       return NextResponse.json({ 
         error: error.message || 'Failed to fetch product mappings',
         details: error.details || error.hint || null
       }, { status: 500 });
     }
-    return NextResponse.json(data);
+    return NextResponse.json(data || null);
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'failed' }, { status: 500 });
   }
