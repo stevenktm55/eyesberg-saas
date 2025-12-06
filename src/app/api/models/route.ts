@@ -66,7 +66,11 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Erreur GET models:', error);
-      return NextResponse.json({ error: error.message }, { 
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return NextResponse.json({ 
+        error: error.message || 'Failed to fetch models',
+        details: error.details || error.hint || null
+      }, { 
         status: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',

@@ -73,7 +73,11 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Erreur Supabase GET text_zones:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return NextResponse.json({ 
+        error: error.message || 'Failed to fetch text zones',
+        details: error.details || error.hint || null
+      }, { status: 500 });
     }
 
     // Transformer pour garder la compatibilité avec l'ancien format
