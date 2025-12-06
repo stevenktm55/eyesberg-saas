@@ -11,6 +11,33 @@ const SCRIPT_URL = process.env.NEXT_PUBLIC_APP_URL
   : 'https://www.eyesberg.app/shopify-integration-auto.js';
 
 /**
+ * Vérifie si un script tag existe déjà pour cette URL
+ */
+export async function checkScriptTagExists(shop: string, accessToken: string): Promise<boolean> {
+  try {
+    const response = await fetch(`https://${shop}/admin/api/2025-01/script_tags.json`, {
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+      },
+    });
+
+    if (!response.ok) {
+      console.warn('⚠️ Impossible de vérifier les script tags existants:', response.status);
+      return false;
+    }
+
+    const data = await response.json();
+    const scriptTags = data.script_tags || [];
+
+    // Vérifier si un script tag avec cette URL existe déjà
+    return scriptTags.some((tag: any) => tag.src === SCRIPT_URL);
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification des script tags:', error);
+    return false;
+  }
+}
+
+/**
  * Crée le script tag pour injecter automatiquement le configurateur
  */
 export async function createScriptTag(shop: string, accessToken: string) {
@@ -61,31 +88,6 @@ export async function createScriptTag(shop: string, accessToken: string) {
   }
 }
 
-/**
- * Vérifie si un script tag existe déjà pour cette URL
- */
-export async function checkScriptTagExists(shop: string, accessToken: string): Promise<boolean> {
-  try {
-    const response = await fetch(`https://${shop}/admin/api/2025-01/script_tags.json`, {
-      headers: {
-        'X-Shopify-Access-Token': accessToken,
-      },
-    });
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const data = await response.json();
-    const scriptTags = data.script_tags || [];
-
-    // Vérifier si un script tag avec cette URL existe déjà
-    return scriptTags.some((tag: any) => tag.src === SCRIPT_URL);
-  } catch (error) {
-    console.error('❌ Erreur lors de la vérification des script tags:', error);
-    return false;
-  }
-}
 
 /**
  * Supprime le script tag (lors de la désinstallation)

@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
 
     // Créer le script tag
     console.log('📜 Création manuelle du script tag pour:', shop);
+    console.log('📜 Access token présent:', !!shopData.access_token);
+    console.log('📜 Script URL:', process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'https://www.eyesberg.app');
+    
     const result = await createScriptTag(shop, shopData.access_token);
 
     if (result.success) {
@@ -95,6 +98,7 @@ export async function POST(request: NextRequest) {
         scriptTag: result.scriptTag,
       });
     } else {
+      console.error('❌ Échec de la création du script tag:', result.error);
       return NextResponse.json(
         { 
           error: 'Failed to create script tag',
@@ -105,8 +109,12 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('❌ Erreur lors de la création du script tag:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: errorMessage 
+      },
       { status: 500 }
     );
   }

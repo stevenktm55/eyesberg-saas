@@ -177,8 +177,19 @@ export default function SettingsPage() {
             Online stores
           </Link>
 
-          <Link 
-            href="/admin/settings/business"
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 24px',
+              color: '#666666',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              cursor: 'not-allowed',
+              opacity: 0.5
+            }}
+            title="Coming soon"
+          >
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -203,10 +214,21 @@ export default function SettingsPage() {
             }}
           >
             Business
-          </Link>
+          </div>
 
-          <Link 
-            href="/admin/settings/bad-words"
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 24px',
+              color: '#666666',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              cursor: 'not-allowed',
+              opacity: 0.5
+            }}
+            title="Coming soon"
+          >
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -231,10 +253,21 @@ export default function SettingsPage() {
             }}
           >
             Bad words
-          </Link>
+          </div>
 
-          <Link 
-            href="/admin/settings/translations"
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 24px',
+              color: '#666666',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              cursor: 'not-allowed',
+              opacity: 0.5
+            }}
+            title="Coming soon"
+          >
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -259,10 +292,21 @@ export default function SettingsPage() {
             }}
           >
             Translations
-          </Link>
+          </div>
 
-          <Link 
-            href="/admin/settings/users"
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 24px',
+              color: '#666666',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              cursor: 'not-allowed',
+              opacity: 0.5
+            }}
+            title="Coming soon"
+          >
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -287,7 +331,7 @@ export default function SettingsPage() {
             }}
           >
             Users
-          </Link>
+          </div>
 
           <Link 
             href="/admin/settings/billing"
@@ -317,8 +361,19 @@ export default function SettingsPage() {
             Billing & subscription
           </Link>
 
-          <Link 
-            href="/admin/settings/api-keys"
+          <div 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 24px',
+              color: '#666666',
+              fontFamily: 'var(--stepn-font-body)',
+              fontSize: '16px',
+              cursor: 'not-allowed',
+              opacity: 0.5
+            }}
+            title="Coming soon"
+          >
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -343,7 +398,7 @@ export default function SettingsPage() {
             }}
           >
             API keys
-          </Link>
+          </div>
         </nav>
       </aside>
 
