@@ -506,37 +506,118 @@
    * Remplacer ou insérer le bouton
    */
   function insertConfiguratorButton() {
-    // Trouver le formulaire d'ajout au panier
-    const addToCartForm = document.querySelector('form[action*="/cart/add"]');
+    // Méthode 1: Trouver le formulaire d'ajout au panier
+    let addToCartForm = document.querySelector('form[action*="/cart/add"]');
     
+    // Méthode 2: Si pas de formulaire, chercher un conteneur de produit
     if (!addToCartForm) {
-      console.warn('[Eyesberg] Formulaire d\'ajout au panier non trouvé');
-      return;
+      addToCartForm = document.querySelector('[data-product-form], .product-form, .product__form, #product-form');
     }
 
-    // Trouver le bouton "Add to Cart"
-    let addToCartButton = addToCartForm.querySelector('button[name="add"], button[type="submit"], input[type="submit"]');
-    
-    // Si pas trouvé, chercher plus largement
-    if (!addToCartButton) {
-      addToCartButton = addToCartForm.querySelector('.product-form__submit, [class*="add-to-cart"], [class*="addToCart"]');
-    }
-
-    if (!addToCartButton) {
-      // Dernier recours : chercher un bouton qui contient "ajouter" ou "add"
-      const buttons = Array.from(addToCartForm.querySelectorAll('button'));
-      for (const btn of buttons) {
-        const text = btn.textContent.toLowerCase();
-        if (text.includes('ajouter') || text.includes('add to cart') || text.includes('add')) {
-          addToCartButton = btn;
+    // Méthode 3: Chercher dans les sections produit
+    if (!addToCartForm) {
+      const productSections = document.querySelectorAll('[class*="product"], [id*="product"]');
+      for (const section of productSections) {
+        const form = section.querySelector('form');
+        if (form && (form.action.includes('/cart/add') || form.querySelector('button[name="add"]'))) {
+          addToCartForm = form;
           break;
         }
       }
     }
 
+    // Trouver le bouton "Add to Cart" - plusieurs méthodes
+    let addToCartButton = null;
+    let insertContainer = null;
+
+    if (addToCartForm) {
+      // Chercher dans le formulaire
+      addToCartButton = addToCartForm.querySelector('button[name="add"], button[type="submit"], input[type="submit"]');
+      
+      if (!addToCartButton) {
+        addToCartButton = addToCartForm.querySelector('.product-form__submit, [class*="add-to-cart"], [class*="addToCart"], [class*="add-to-cart-button"]');
+      }
+
+      if (!addToCartButton) {
+        // Chercher un bouton qui contient "ajouter" ou "add"
+        const buttons = Array.from(addToCartForm.querySelectorAll('button, input[type="submit"]'));
+        for (const btn of buttons) {
+          const text = (btn.textContent || btn.value || '').toLowerCase();
+          if (text.includes('ajouter') || text.includes('add to cart') || text.includes('add') || text.includes('acheter') || text.includes('buy')) {
+            addToCartButton = btn;
+            break;
+          }
+        }
+      }
+
+      insertContainer = addToCartForm;
+    }
+
+    // Si pas trouvé dans le formulaire, chercher directement dans la page
     if (!addToCartButton) {
-      console.warn('[Eyesberg] Bouton d\'ajout au panier non trouvé');
-      return;
+      // Chercher tous les boutons qui pourraient être "Add to Cart"
+      const allButtons = Array.from(document.querySelectorAll('button, input[type="submit"]'));
+      for (const btn of allButtons) {
+        const text = (btn.textContent || btn.value || '').toLowerCase();
+        const name = btn.name || '';
+        const className = btn.className || '';
+        
+        if (
+          name === 'add' ||
+          text.includes('add to cart') ||
+          text.includes('ajouter au panier') ||
+          text.includes('acheter') ||
+          className.includes('add-to-cart') ||
+          className.includes('addToCart') ||
+          className.includes('product-form__submit')
+        ) {
+          addToCartButton = btn;
+          insertContainer = btn.parentElement;
+          break;
+        }
+      }
+    }
+
+    // Si toujours pas trouvé, chercher dans les zones communes
+    if (!addToCartButton) {
+      // Zones communes où se trouve généralement le bouton
+      const commonSelectors = [
+        '.product-single__form',
+        '.product-form',
+        '.product__form',
+        '[data-product-form]',
+        '.product-actions',
+        '.product__actions',
+        '.product-buy',
+        '.product__buy',
+        '#product-form',
+        '.product-form-container',
+      ];
+
+      for (const selector of commonSelectors) {
+        const container = document.querySelector(selector);
+        if (container) {
+          const btn = container.querySelector('button, input[type="submit"]');
+          if (btn) {
+            addToCartButton = btn;
+            insertContainer = container;
+            break;
+          }
+        }
+      }
+    }
+
+    // Si vraiment rien n'est trouvé, insérer le bouton dans le body ou un conteneur principal
+    if (!addToCartButton && !insertContainer) {
+      // Dernier recours : chercher un conteneur principal de produit
+      const productMain = document.querySelector('main, .main-content, [role="main"], .product-main, .product-single');
+      if (productMain) {
+        insertContainer = productMain;
+        console.log('[Eyesberg] ⚠️ Bouton Add to Cart non trouvé, insertion dans le conteneur principal');
+      } else {
+        console.warn('[Eyesberg] ⚠️ Impossible de trouver où insérer le bouton');
+        return;
+      }
     }
 
     // Créer le bouton
@@ -545,13 +626,23 @@
       return; // Bouton déjà présent
     }
 
-    // Remplacer le bouton "Add to Cart" par le bouton "Personnaliser"
-    // On cache le bouton Add to Cart au lieu de le supprimer
-    addToCartButton.style.display = 'none';
-    addToCartButton.setAttribute('data-eyesberg-hidden', 'true');
-
-    // Insérer le bouton personnaliser à la place
-    addToCartButton.parentNode.insertBefore(configuratorButton, addToCartButton);
+    // Si on a trouvé le bouton Add to Cart, le cacher
+    if (addToCartButton) {
+      addToCartButton.style.display = 'none';
+      addToCartButton.setAttribute('data-eyesberg-hidden', 'true');
+      
+      // Insérer le bouton personnaliser à la place
+      if (addToCartButton.parentNode) {
+        addToCartButton.parentNode.insertBefore(configuratorButton, addToCartButton);
+      } else {
+        insertContainer.appendChild(configuratorButton);
+      }
+    } else {
+      // Sinon, insérer dans le conteneur trouvé
+      if (insertContainer) {
+        insertContainer.appendChild(configuratorButton);
+      }
+    }
 
     console.log('[Eyesberg] ✅ Bouton de personnalisation ajouté avec succès');
   }
