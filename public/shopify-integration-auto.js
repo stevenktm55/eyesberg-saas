@@ -489,6 +489,101 @@
   }
 
   /**
+   * Obtenir les styles hover d'un élément
+   */
+  function getHoverStyles(element) {
+    const hoverStyles = {};
+    
+    // Créer un clone temporaire pour tester le hover
+    const temp = element.cloneNode(true);
+    temp.style.position = 'absolute';
+    temp.style.visibility = 'hidden';
+    temp.style.pointerEvents = 'none';
+    document.body.appendChild(temp);
+    
+    // Forcer l'état hover en ajoutant la classe :hover via une pseudo-classe
+    // Note: On ne peut pas vraiment forcer :hover en JS, donc on va chercher dans les styles CSS
+    try {
+      // Chercher les règles CSS qui s'appliquent à cet élément en hover
+      const sheets = Array.from(document.styleSheets);
+      const classes = Array.from(element.classList);
+      const id = element.id;
+      
+      for (const sheet of sheets) {
+        try {
+          const rules = Array.from(sheet.cssRules || sheet.rules || []);
+          for (const rule of rules) {
+            if (rule.selectorText) {
+              // Vérifier si c'est une règle hover pour cet élément
+              const selectors = rule.selectorText.split(',').map(s => s.trim());
+              for (const selector of selectors) {
+                if (selector.includes(':hover')) {
+                  // Vérifier si le sélecteur correspond à notre élément
+                  const baseSelector = selector.replace(':hover', '').trim();
+                  
+                  // Vérifier par classe
+                  if (baseSelector.includes('.') && classes.some(c => baseSelector.includes(c))) {
+                    const hoverComputed = window.getComputedStyle(element, ':hover');
+                    hoverStyles.backgroundColor = hoverComputed.backgroundColor;
+                    hoverStyles.color = hoverComputed.color;
+                    hoverStyles.borderColor = hoverComputed.borderColor;
+                    hoverStyles.opacity = hoverComputed.opacity;
+                    break;
+                  }
+                  
+                  // Vérifier par ID
+                  if (baseSelector.includes('#') && id && baseSelector.includes(id)) {
+                    const hoverComputed = window.getComputedStyle(element, ':hover');
+                    hoverStyles.backgroundColor = hoverComputed.backgroundColor;
+                    hoverStyles.color = hoverComputed.color;
+                    hoverStyles.borderColor = hoverComputed.borderColor;
+                    hoverStyles.opacity = hoverComputed.opacity;
+                    break;
+                  }
+                  
+                  // Vérifier par type (button:hover)
+                  if (baseSelector === 'button' || baseSelector === element.tagName.toLowerCase()) {
+                    const hoverComputed = window.getComputedStyle(element, ':hover');
+                    hoverStyles.backgroundColor = hoverComputed.backgroundColor;
+                    hoverStyles.color = hoverComputed.color;
+                    hoverStyles.borderColor = hoverComputed.borderColor;
+                    hoverStyles.opacity = hoverComputed.opacity;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Ignorer les erreurs CORS ou autres
+        }
+      }
+      
+      // Méthode alternative : utiliser getComputedStyle avec :hover directement
+      try {
+        const hoverComputed = window.getComputedStyle(element, ':hover');
+        if (hoverComputed.color && hoverComputed.color !== window.getComputedStyle(element).color) {
+          hoverStyles.color = hoverComputed.color;
+        }
+        if (hoverComputed.backgroundColor && hoverComputed.backgroundColor !== window.getComputedStyle(element).backgroundColor) {
+          hoverStyles.backgroundColor = hoverComputed.backgroundColor;
+        }
+        if (hoverComputed.borderColor && hoverComputed.borderColor !== window.getComputedStyle(element).borderColor) {
+          hoverStyles.borderColor = hoverComputed.borderColor;
+        }
+      } catch (e) {
+        // Ignorer
+      }
+    } catch (e) {
+      // Ignorer les erreurs
+    } finally {
+      document.body.removeChild(temp);
+    }
+    
+    return hoverStyles;
+  }
+
+  /**
    * Créer le bouton de personnalisation en copiant les styles du bouton original
    */
   function createConfiguratorButton(originalButton) {
@@ -527,20 +622,64 @@
     // S'assurer que le bouton est cliquable
     button.style.cursor = 'pointer';
     
-    // Effet hover (garder les effets hover du thème si possible)
-    const originalHoverStyle = originalButton ? window.getComputedStyle(originalButton, ':hover') : null;
+    // Obtenir les styles hover du bouton original
+    let hoverStyles = {};
+    if (originalButton) {
+      hoverStyles = getHoverStyles(originalButton);
+      
+      // Si on n'a pas trouvé de styles hover, essayer directement avec getComputedStyle
+      if (!hoverStyles.color && !hoverStyles.backgroundColor) {
+        try {
+          const normalStyle = window.getComputedStyle(originalButton);
+          // Créer un événement hover temporaire sur le bouton original
+          const mouseEnterEvent = new MouseEvent('mouseenter', { bubbles: true });
+          originalButton.dispatchEvent(mouseEnterEvent);
+          
+          // Attendre un peu pour que les styles hover s'appliquent
+          setTimeout(() => {
+            const hoverStyle = window.getComputedStyle(originalButton);
+            if (hoverStyle.color !== normalStyle.color) {
+              hoverStyles.color = hoverStyle.color;
+            }
+            if (hoverStyle.backgroundColor !== normalStyle.backgroundColor) {
+              hoverStyles.backgroundColor = hoverStyle.backgroundColor;
+            }
+            if (hoverStyle.borderColor !== normalStyle.borderColor) {
+              hoverStyles.borderColor = hoverStyle.borderColor;
+            }
+          }, 10);
+        } catch (e) {
+          // Ignorer
+        }
+      }
+    }
     
+    // Stocker les styles hover pour les utiliser dans les événements
+    const storedHoverStyles = hoverStyles;
+    const normalColor = button.style.color || window.getComputedStyle(button).color;
+    const normalBg = button.style.backgroundColor || window.getComputedStyle(button).backgroundColor;
+    const normalBorder = button.style.borderColor || window.getComputedStyle(button).borderColor;
+    
+    // Effet hover avec les styles du bouton original
     button.addEventListener('mouseenter', () => {
-      if (originalHoverStyle && originalHoverStyle.backgroundColor) {
-        button.style.backgroundColor = originalHoverStyle.backgroundColor;
-      } else {
-        // Fallback hover
-        const currentBg = window.getComputedStyle(button).backgroundColor;
-        button.style.opacity = '0.9';
+      if (storedHoverStyles.color) {
+        button.style.color = storedHoverStyles.color;
+      }
+      if (storedHoverStyles.backgroundColor) {
+        button.style.backgroundColor = storedHoverStyles.backgroundColor;
+      }
+      if (storedHoverStyles.borderColor) {
+        button.style.borderColor = storedHoverStyles.borderColor;
+      }
+      if (storedHoverStyles.opacity) {
+        button.style.opacity = storedHoverStyles.opacity;
       }
     });
     
     button.addEventListener('mouseleave', () => {
+      button.style.color = normalColor;
+      button.style.backgroundColor = normalBg;
+      button.style.borderColor = normalBorder;
       button.style.opacity = '1';
     });
 
