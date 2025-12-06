@@ -3173,3 +3173,12 @@ export default function ConfiguratorViewer({
     </div>
   );
 }
+
+// Stubs temporaires pour DesignTab et ColorTab (à compléter plus tard)
+function DesignTab({ selectedDesign, selectDesign, colors, updateColor, replaceColors, resetColors, allowedDesignIds, isLinkedPrefillActive, hasPendingLinkedPrefill }: any) {
+  return <div>DesignTab - À implémenter</div>;
+}
+
+function ColorTab({ colors, updateColor }: any) {
+  return <div>ColorTab - À implémenter</div>;
+}
