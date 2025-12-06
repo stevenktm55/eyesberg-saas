@@ -3214,7 +3214,7 @@ function DesignTab({ selectedDesign, selectDesign, colors, updateColor, replaceC
   allowedDesignIds?: string[] | undefined; 
   isLinkedPrefillActive?: boolean; 
   hasPendingLinkedPrefill?: boolean; 
-}) {}) {
+}) {
   const [designs, setDesigns] = useState<Array<{
     id: string;
     name: string;
