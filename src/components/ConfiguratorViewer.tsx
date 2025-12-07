@@ -3026,9 +3026,15 @@ export default function ConfiguratorViewer({
   
   // Déterminer l'onglet actif basé sur les modules (déclaré tôt pour éviter les erreurs de référence)
   const customizationModules = productConfig?.customizationModules || [];
-  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(
-    customizationModules.length > 0 ? customizationModules[0].id : null
-  );
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
+  
+  // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
+  useEffect(() => {
+    if (customizationModules.length > 0 && !activeCustomizerTab) {
+      console.log('🎯 Ouverture automatique du premier onglet:', customizationModules[0].id);
+      setActiveCustomizerTab(customizationModules[0].id);
+    }
+  }, [customizationModules, activeCustomizerTab]);
   
   // Initialiser selectedDesign2DId depuis la configuration
   useEffect(() => {
