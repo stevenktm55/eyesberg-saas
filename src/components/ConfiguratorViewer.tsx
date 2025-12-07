@@ -2956,42 +2956,60 @@ export default function ConfiguratorViewer({
   useEffect(() => {
     async function loadDesigns() {
       try {
-        const response = await fetch(`/api/designs${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`);
+        const url = `/api/designs${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
+        console.log('📡 Chargement des designs depuis:', url);
+        const response = await fetch(url);
         const data = await response.json();
-        setDesigns2D(Array.isArray(data) ? data : []);
+        const designs = Array.isArray(data) ? data : [];
+        console.log('✅ Designs chargés:', designs.length, designs.map((d: any) => ({ id: d.id, name: d.name })));
+        setDesigns2D(designs);
       } catch (error) {
-        console.error('Erreur lors du chargement des designs:', error);
+        console.error('❌ Erreur lors du chargement des designs:', error);
       }
     }
-    loadDesigns();
+    if (finalShopDomain) {
+      loadDesigns();
+    }
   }, [finalShopDomain]);
   
   // Charger les palettes de couleurs
   useEffect(() => {
     async function loadPalettes() {
       try {
-        const response = await fetch(`/api/palettes${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`);
+        const url = `/api/palettes${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
+        console.log('📡 Chargement des palettes depuis:', url);
+        const response = await fetch(url);
         const data = await response.json();
-        setColorPalettes(Array.isArray(data) ? data : []);
+        const palettes = Array.isArray(data) ? data : [];
+        console.log('✅ Palettes chargées:', palettes.length, palettes.map((p: any) => ({ id: p.id, name: p.name })));
+        setColorPalettes(palettes);
       } catch (error) {
-        console.error('Erreur lors du chargement des palettes:', error);
+        console.error('❌ Erreur lors du chargement des palettes:', error);
       }
     }
-    loadPalettes();
+    if (finalShopDomain) {
+      loadPalettes();
+    }
   }, [finalShopDomain]);
   
   // Charger les bibliothèques de logos
   useEffect(() => {
     async function loadLogoLibraries() {
       try {
-        const response = await fetch(`/api/logo-libraries${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`);
+        const url = `/api/logo-libraries${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
+        console.log('📡 Chargement des bibliothèques de logos depuis:', url);
+        const response = await fetch(url);
         const data = await response.json();
-        setLogoLibraries(Array.isArray(data) ? data : []);
+        const libraries = Array.isArray(data) ? data : [];
+        console.log('✅ Bibliothèques de logos chargées:', libraries.length, libraries.map((l: any) => ({ id: l.id, name: l.name, logosCount: l.logos?.length || 0 })));
+        setLogoLibraries(libraries);
       } catch (error) {
-        console.error('Erreur lors du chargement des bibliothèques de logos:', error);
+        console.error('❌ Erreur lors du chargement des bibliothèques de logos:', error);
       }
     }
-    loadLogoLibraries();
+    if (finalShopDomain) {
+      loadLogoLibraries();
+    }
   }, [finalShopDomain]);
   
   // Charger le modèle 3D avec le model3DId de la configuration
@@ -3011,6 +3029,44 @@ export default function ConfiguratorViewer({
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(
     customizationModules.length > 0 ? customizationModules[0].id : null
   );
+  
+  // Initialiser selectedDesign2DId depuis la configuration
+  useEffect(() => {
+    if (productConfig?.design2DId) {
+      setSelectedDesign2DId(productConfig.design2DId);
+      // Trouver le design dans designs2D et l'appliquer
+      const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
+      if (design) {
+        selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
+      }
+    } else {
+      // Sinon, chercher dans le module design
+      const designModule = customizationModules.find((m: any) => m.contentType === 'designs-2d');
+      if (designModule?.selectedItems?.design2DId) {
+        setSelectedDesign2DId(designModule.selectedItems.design2DId);
+        const design = designs2D.find((d: any) => d.id === designModule.selectedItems.design2DId);
+        if (design) {
+          selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
+        }
+      }
+    }
+  }, [productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign]);
+  
+  // Log pour déboguer les modules et leurs selectedItems
+  useEffect(() => {
+    console.log('🔍 Modules et selectedItems:', {
+      modules: customizationModules.map((m: any) => ({
+        id: m.id,
+        contentType: m.contentType,
+        tabName: m.tabName,
+        selectedItems: m.selectedItems
+      })),
+      design2DId: productConfig?.design2DId,
+      designs2DCount: designs2D.length,
+      colorPalettesCount: colorPalettes.length,
+      logoLibrariesCount: logoLibraries.length
+    });
+  }, [customizationModules, productConfig, designs2D, colorPalettes, logoLibraries]);
   
   // Ouvrir/fermer la bibliothèque selon la sélection du logo
   useEffect(() => {
