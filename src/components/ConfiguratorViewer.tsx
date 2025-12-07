@@ -620,18 +620,24 @@ function useDesignSelection() {
     model_type?: 'maillot' | 'pantalon';
   }>({ id: null, svgUrl: null });
 
-  const selectDesign = (design: { id: string; svgUrl: string; model_type?: 'maillot' | 'pantalon' } | null) => {
-    console.log('🎯 selectDesign appelé avec:', design);
-    // selectDesign appelé
+  const selectDesign = useCallback((design: { id: string; svgUrl: string; model_type?: 'maillot' | 'pantalon' } | null) => {
     if (design) {
-      console.log('🎯 model_type du design reçu:', design.model_type);
-      setSelectedDesign({ id: design.id, svgUrl: design.svgUrl, model_type: design.model_type });
-      console.log('✅ selectedDesign mis à jour avec model_type:', design.model_type);
+      // Éviter les mises à jour inutiles si le design est déjà sélectionné
+      setSelectedDesign(prev => {
+        if (prev.id === design.id && prev.svgUrl === design.svgUrl) {
+          return prev; // Pas de changement, éviter le re-render
+        }
+        return { id: design.id, svgUrl: design.svgUrl, model_type: design.model_type };
+      });
     } else {
-      setSelectedDesign({ id: null, svgUrl: null });
-      // selectedDesign mis à jour vers null
+      setSelectedDesign(prev => {
+        if (prev.id === null && prev.svgUrl === null) {
+          return prev; // Pas de changement
+        }
+        return { id: null, svgUrl: null };
+      });
     }
-  };
+  }, []);
 
   return { selectedDesign, selectDesign };
 }
@@ -3137,8 +3143,13 @@ export default function ConfiguratorViewer({
     }
   }, [customizationModules, activeCustomizerTab]);
   
-  // Initialiser selectedDesign2DId depuis le snapshot
+  // Initialiser selectedDesign2DId depuis le snapshot (une seule fois)
   useEffect(() => {
+    // Ne s'exécuter que si selectedDesign n'est pas encore initialisé
+    if (selectedDesign.id !== null) {
+      return; // Déjà initialisé, éviter la boucle
+    }
+    
     if (snapshot?.design2D?.url) {
       setSelectedDesign2DId('snapshot-design');
       selectDesign({ 
@@ -3163,7 +3174,7 @@ export default function ConfiguratorViewer({
         selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
       }
     }
-  }, [snapshot, designs2D, selectDesign, customizationModules]);
+  }, [snapshot?.design2D?.url, designs2D.length, customizationModules.length, selectedDesign.id, selectDesign]);
   
   
   // Ouvrir/fermer la bibliothèque selon la sélection du logo
