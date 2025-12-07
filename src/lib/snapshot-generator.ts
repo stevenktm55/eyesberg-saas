@@ -414,8 +414,8 @@ async function resolveCustomizationModules(
         id: module.id,
         type: moduleType,
         label: module.tabName || module.label || '',
-        icon: module.icon,
-        iconUrl: module.iconUrl,
+        icon: module.icon || module.config?.icon,
+        iconUrl: module.iconUrl || module.config?.iconUrl,
         config: module.config || {}
       };
 
@@ -478,17 +478,78 @@ async function resolveCustomizationModules(
         }
         resolved.default = module.selectedItems?.design2DId || module.default;
       } else if (moduleType === 'logos') {
-        // Pour les logos, on garde la config mais on résout les bibliothèques
-        const libraryIds = module.config?.logoLibraryIds || [];
+        // Pour les logos, on garde la config mais on résout les bibliothèques avec leurs logos et variantes
+        const libraryIds = module.config?.logoLibraryIds || module.selectedItems?.logoLibraryIds || [];
         if (libraryIds.length > 0) {
           const { data: libraries } = await supabaseAdmin
             .from('logo_libraries')
             .select('*')
             .in('id', libraryIds);
 
+          // Pour chaque bibliothèque, récupérer les logos avec leurs variantes
+          const librariesWithLogos = await Promise.all(
+            (libraries || []).map(async (library: any) => {
+              // Récupérer les logos de cette bibliothèque
+              const { data: logos, error: logosError } = await supabaseAdmin
+                .from('logos')
+                .select('*')
+                .eq('logo_library_id', library.id)
+                .order('created_at', { ascending: true });
+
+              if (logosError) {
+                console.warn('⚠️ Erreur lors de la récupération des logos:', logosError);
+              }
+
+              // Pour chaque logo, récupérer ses variantes
+              const logosWithVariants = await Promise.all(
+                (logos || []).map(async (logo: any) => {
+                  const { data: variants, error: variantsError } = await supabaseAdmin
+                    .from('logo_variants')
+                    .select('*')
+                    .eq('logo_id', logo.id)
+                    .order('created_at', { ascending: true });
+
+                  if (variantsError) {
+                    console.warn('⚠️ Erreur lors de la récupération des variantes:', variantsError);
+                  }
+
+                  return {
+                    id: logo.id,
+                    name: logo.name,
+                    file_url: logo.file_url || logo.fileUrl || '',
+                    vector: logo.vector || false,
+                    variants: (variants || []).map((v: any) => ({
+                      id: v.id,
+                      name: v.name || 'Original',
+                      file: v.file_url || v.file || '',
+                      file_url: v.file_url || v.file || ''
+                    }))
+                  };
+                })
+              );
+
+              return {
+                id: library.id,
+                name: library.name,
+                logos: logosWithVariants,
+                created_at: library.created_at,
+                updated_at: library.updated_at
+              };
+            })
+          );
+
           resolved.config = {
             ...resolved.config,
-            logoLibraries: libraries || []
+            ...module.config, // Préserver toute la config existante
+            logoLibraries: librariesWithLogos,
+            logoLibraryIds: libraryIds,
+            logoPlacementMode: module.config?.logoPlacementMode,
+            logoZoneGroupIds: module.config?.logoZoneGroupIds,
+            addLogoButtonLabel: module.config?.addLogoButtonLabel,
+            logoViewFrontLabel: module.config?.logoViewFrontLabel,
+            logoViewBackLabel: module.config?.logoViewBackLabel,
+            logoViewLeftLabel: module.config?.logoViewLeftLabel,
+            logoViewRightLabel: module.config?.logoViewRightLabel
           };
         }
       } else if (moduleType === 'text') {
