@@ -441,7 +441,14 @@
       return;
     }
 
-    iframe.src = configuratorUrl;
+    if (!modal) {
+      console.error('[Eyesberg] Erreur : Impossible de créer le modal');
+      return;
+    }
+
+    if (iframe) {
+      iframe.src = configuratorUrl;
+    }
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
 
