@@ -19,9 +19,12 @@ export const config = {
 // =====================================================
 // GET - Récupérer tous les designs
 // =====================================================
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { data, error } = await supabaseAdmin
+    const { searchParams } = new URL(request.url);
+    const shop = searchParams.get('shop');
+    
+    let query = supabaseAdmin
       .from('designs')
       .select(`
         id,
@@ -32,10 +35,33 @@ export async function GET() {
         primary_color,
         secondary_color,
         tertiary_color,
-        colors
+        colors,
+        subdomain
       `)
-      .eq('active', true)
-      .order('created_at', { ascending: false });
+      .eq('active', true);
+    
+    // Filtrer par subdomain si shop est fourni
+    if (shop) {
+      try {
+        // Récupérer le subdomain depuis product_builder
+        const { data: product } = await supabaseAdmin
+          .from('product_builder')
+          .select('subdomain')
+          .eq('shop_domain', shop)
+          .limit(1)
+          .maybeSingle();
+        
+        if (product?.subdomain) {
+          query = query.eq('subdomain', product.subdomain);
+        }
+      } catch (error) {
+        console.warn('Could not fetch subdomain from shop_domain for designs API:', error);
+      }
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    const { data, error } = await query;
 
     if (error) {
       console.error('Erreur Supabase GET designs:', error);

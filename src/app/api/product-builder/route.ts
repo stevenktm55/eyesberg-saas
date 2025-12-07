@@ -134,13 +134,35 @@ export async function GET(request: NextRequest) {
         });
 
         if (!product) {
-          console.error('Product not found. Searched products:', products?.map((p: any) => ({
+          console.error('❌ Product not found. Searched products:', products?.map((p: any) => ({
             id: p.id,
+            name: p.name,
             shop_domain: p.shop_domain,
-            shopify_product_id: p.builder_data?.shopify?.productId
+            subdomain: p.subdomain,
+            shopify_product_id: p.builder_data?.shopify?.productId,
+            has_shopify_data: !!p.builder_data?.shopify,
+            builder_data_keys: p.builder_data ? Object.keys(p.builder_data) : []
           })));
+          console.error('❌ Search details:', {
+            searchedId: id,
+            normalizedSearchId: normalizedSearchId,
+            shopDomain,
+            subdomain,
+            totalProducts: products?.length || 0
+          });
           return NextResponse.json(
-            { error: 'Product not found for this Shopify product ID', searchedId: id, shopDomain, subdomain },
+            { 
+              error: 'Product not found for this Shopify product ID', 
+              searchedId: id,
+              normalizedSearchId: normalizedSearchId,
+              shopDomain, 
+              subdomain,
+              availableProducts: products?.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                shopify_product_id: p.builder_data?.shopify?.productId
+              })) || []
+            },
             { status: 404 }
           );
         }
