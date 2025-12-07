@@ -86,12 +86,33 @@ export async function generateSnapshot(
   });
 
   const model3D = await resolveModel3D(builderData.model3DId);
-  const design2D = design2DId ? await resolveDesign2D(design2DId) : undefined;
+  let design2D: Snapshot['design2D'] | undefined;
+  
+  if (design2DId) {
+    try {
+      design2D = await resolveDesign2D(design2DId);
+      console.log('✅ Design2D résolu:', {
+        design2DId,
+        url: design2D?.url,
+        hasColors: !!design2D?.colors
+      });
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la résolution du design2D:', {
+        design2DId,
+        error: error.message
+      });
+      // Ne pas bloquer la génération du snapshot si le design2D n'est pas trouvé
+      design2D = undefined;
+    }
+  } else {
+    console.warn('⚠️ Aucun design2DId trouvé dans builderData');
+  }
   
   console.log('📸 Snapshot résolu:', {
     hasModel3D: !!model3D,
     hasDesign2D: !!design2D,
-    design2DUrl: design2D?.url
+    design2DUrl: design2D?.url,
+    design2DId: design2DId
   });
 
   const snapshot: Snapshot = {
