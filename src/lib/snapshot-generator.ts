@@ -489,7 +489,7 @@ async function resolveCustomizationModules(
           }
 
           if (palette && palette.colors) {
-            resolved.allowedColors = palette.colors.map((color: any) => ({
+            resolved.allowedColors = (palette.colors || []).map((color: any) => ({
               label: color.name || color.label || '',
               hex: color.hex || color.value || '#000000',
               mesh: color.mesh || 'primary',
