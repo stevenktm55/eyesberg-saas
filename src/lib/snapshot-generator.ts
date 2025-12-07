@@ -60,14 +60,33 @@ export async function generateSnapshot(
   shopDomain: string,
   shopifyProductId: string
 ): Promise<Snapshot> {
+  // Trouver le design2DId : d'abord dans builderData.design2DId, puis dans defaultState, puis dans les modules
+  let design2DId = builderData.design2DId;
+  if (!design2DId && builderData.defaultState?.design2DId) {
+    design2DId = builderData.defaultState.design2DId;
+  }
+  if (!design2DId && builderData.customizationModules) {
+    const designModule = builderData.customizationModules.find((m: any) => 
+      (m.type === 'designs-2d' || m.contentType === 'designs-2d')
+    );
+    if (designModule?.selectedItems?.design2DId) {
+      design2DId = designModule.selectedItems.design2DId;
+    } else if (designModule?.default) {
+      design2DId = designModule.default;
+    }
+  }
+  
   console.log('📸 Génération du snapshot avec builderData:', {
     model3DId: builderData.model3DId,
-    design2DId: builderData.design2DId,
+    design2DId: design2DId,
+    design2DIdSource: builderData.design2DId ? 'root' : 
+                      builderData.defaultState?.design2DId ? 'defaultState' : 
+                      'modules',
     modulesCount: builderData.customizationModules?.length || 0
   });
 
   const model3D = await resolveModel3D(builderData.model3DId);
-  const design2D = builderData.design2DId ? await resolveDesign2D(builderData.design2DId) : undefined;
+  const design2D = design2DId ? await resolveDesign2D(design2DId) : undefined;
   
   console.log('📸 Snapshot résolu:', {
     hasModel3D: !!model3D,
