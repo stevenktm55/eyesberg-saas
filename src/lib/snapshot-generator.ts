@@ -862,15 +862,38 @@ function resolveColors(
       const colorId = colorMappings[colorClass];
       console.log(`  → Résolution de ${colorClass}: colorId = ${colorId}`);
       
+      // Extraire l'hex de la fin du colorId si le format est {paletteId}-{index}-{hex}
+      // Exemple: '137bd805-9309-4169-b291-568ec149c057-1-#0F34FE' → '#0F34FE'
+      let hexToMatch: string | null = null;
+      if (String(colorId).includes('-#')) {
+        // Format: {paletteId}-{index}-{hex}
+        const parts = String(colorId).split('-#');
+        if (parts.length > 1) {
+          hexToMatch = '#' + parts[parts.length - 1];
+          console.log(`    📍 Hex extrait du colorId: ${hexToMatch}`);
+        }
+      } else if (String(colorId).startsWith('#')) {
+        // Format: {hex} directement
+        hexToMatch = String(colorId);
+      }
+      
       // Chercher la couleur correspondante dans allowedColors
-      // colorId peut être un ID (string UUID), un hex directement, ou un index
       let color = allowedColors.find((c: any) => {
         // Comparer par ID si disponible
         if (c.id && c.id === colorId) {
           console.log(`    ✅ Trouvé par ID: ${c.id} → ${c.hex}`);
           return true;
         }
-        // Comparer par hex (avec ou sans #)
+        // Comparer par hex extrait
+        if (hexToMatch && c.hex) {
+          const cHex = c.hex.toLowerCase().replace('#', '');
+          const matchHex = hexToMatch.toLowerCase().replace('#', '');
+          if (cHex === matchHex) {
+            console.log(`    ✅ Trouvé par hex extrait: ${c.hex} === ${hexToMatch}`);
+            return true;
+          }
+        }
+        // Comparer par hex direct (avec ou sans #)
         const cHex = c.hex?.toLowerCase().replace('#', '');
         const colorIdHex = String(colorId).toLowerCase().replace('#', '');
         if (cHex && cHex === colorIdHex) {
@@ -894,7 +917,7 @@ function resolveColors(
         resolvedColors[colorClass] = color.hex;
         console.log(`    ✅ Couleur résolue pour ${colorClass}: ${color.hex}`);
       } else {
-        console.warn(`    ⚠️ Couleur non trouvée pour ${colorClass} (colorId: ${colorId})`);
+        console.warn(`    ⚠️ Couleur non trouvée pour ${colorClass} (colorId: ${colorId}, hexToMatch: ${hexToMatch})`);
         // Fallback: utiliser la première couleur disponible
         if (allowedColors.length > 0) {
           resolvedColors[colorClass] = allowedColors[0].hex;
