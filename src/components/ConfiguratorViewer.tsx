@@ -3038,25 +3038,46 @@ export default function ConfiguratorViewer({
   
   // Initialiser selectedDesign2DId depuis la configuration
   useEffect(() => {
+    // Attendre que designs2D soit chargé avant d'initialiser
+    if (designs2D.length === 0) {
+      console.log('⏳ En attente du chargement des designs...');
+      return;
+    }
+    
+    console.log('🔍 Initialisation du design2D depuis la configuration:', {
+      productConfigDesign2DId: productConfig?.design2DId,
+      designs2DCount: designs2D.length,
+      designs2DIds: designs2D.map((d: any) => d.id)
+    });
+    
     if (productConfig?.design2DId) {
       setSelectedDesign2DId(productConfig.design2DId);
       // Trouver le design dans designs2D et l'appliquer
       const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
       if (design) {
+        console.log('✅ Design trouvé et appliqué:', design.id, design.name, design.svg_url || design.svgUrl);
         selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
+      } else {
+        console.warn('⚠️ Design non trouvé dans designs2D:', productConfig.design2DId);
       }
     } else {
       // Sinon, chercher dans le module design
       const designModule = customizationModules.find((m: any) => m.contentType === 'designs-2d');
       if (designModule?.selectedItems?.design2DId) {
+        console.log('🔍 Design trouvé dans le module:', designModule.selectedItems.design2DId);
         setSelectedDesign2DId(designModule.selectedItems.design2DId);
         const design = designs2D.find((d: any) => d.id === designModule.selectedItems.design2DId);
         if (design) {
+          console.log('✅ Design trouvé et appliqué depuis le module:', design.id, design.name);
           selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
+        } else {
+          console.warn('⚠️ Design non trouvé dans designs2D:', designModule.selectedItems.design2DId);
         }
+      } else {
+        console.log('ℹ️ Aucun design2DId trouvé dans la configuration');
       }
     }
-  }, [productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign]);
+  }, [productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign, customizationModules]);
   
   // Log pour déboguer les modules et leurs selectedItems
   useEffect(() => {

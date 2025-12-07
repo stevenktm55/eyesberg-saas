@@ -40,20 +40,14 @@ export async function GET(request: Request) {
         colors
       `);
     
-    // Essayer avec .eq('active', true) d'abord
-    try {
-      query = query.eq('active', true);
-    } catch (e) {
-      // Si la colonne active n'existe pas, on continue sans filtre
-      console.warn('[API/designs] Colonne active non disponible, récupération de tous les designs');
-    }
-    
+    // Ne pas filtrer par active pour l'instant (la colonne n'existe peut-être pas)
+    // On récupère tous les designs
     query = query.order('created_at', { ascending: false });
     
     let { data, error } = await query;
 
-    // Si erreur liée à la colonne active, réessayer sans filtre
-    if (error && (error.code === '42703' || error.message?.includes('active'))) {
+    // Si erreur liée à la colonne active ou autre, réessayer sans filtre
+    if (error && (error.code === '42703' || error.message?.includes('active') || error.code === '42P01')) {
       console.warn('[API/designs] Erreur avec colonne active, réessai sans filtre');
       const retryQuery = supabaseAdmin
         .from('designs')
