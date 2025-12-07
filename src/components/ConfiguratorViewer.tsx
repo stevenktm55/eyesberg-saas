@@ -3000,7 +3000,9 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot, logoLibraries]);
   
-  const { logos, isLoading: isLoadingLogos } = snapshot ? { logos: logosFromSnapshot, isLoading: false } : logosFromAPI;
+  // Utiliser UNIQUEMENT les logos du snapshot - AUCUN appel API
+  const logos = snapshot ? logosFromSnapshot : [];
+  const isLoadingLogos = false;
   
   // Charger les designs 2D depuis le snapshot
   useEffect(() => {

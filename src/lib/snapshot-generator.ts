@@ -176,6 +176,12 @@ export async function generateSnapshot(
     snapshotWillIncludeDesign2D: !!design2D
   });
 
+  // Résoudre les zones de texte depuis le modèle 3D
+  const textZones = await resolveTextZones(builderData.model3DId);
+  
+  // Résoudre toutes les polices depuis les fontGroups des modules
+  const fonts = await resolveFonts(builderData.customizationModules || []);
+
   const snapshot: Snapshot = {
     productId: shopifyProductId,
     version: 'v1',
@@ -183,6 +189,8 @@ export async function generateSnapshot(
     model3D: model3D,
     design2D: design2D,
     customizationModules: await resolveCustomizationModules(builderData.customizationModules || []),
+    textZones: textZones.length > 0 ? textZones : undefined,
+    fonts: fonts.length > 0 ? fonts : undefined,
     defaultState: resolveDefaultState(builderData),
     cameraSettings: resolveCameraSettings(builderData.settings || {})
   };
