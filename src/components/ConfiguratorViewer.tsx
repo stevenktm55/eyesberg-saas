@@ -3505,21 +3505,6 @@ function DesignTab({ selectedDesign, selectDesign, colors, updateColor, replaceC
   );
 }
 
-// Fonction pour déterminer la couleur du texte en fonction de la couleur de fond
-function getContrastColor(hexColor: string): string {
-  // Convertir hex en RGB
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  
-  // Calculer la luminance relative
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  
-  // Retourner blanc pour les couleurs sombres, noir pour les couleurs claires
-  return luminance > 0.5 ? '#000000' : '#ffffff';
-}
-
 function ColorTab({ colors, updateColor }: { 
   colors: { primary: string; secondary: string; tertiary: string };
   updateColor: (colorType: 'primary' | 'secondary' | 'tertiary', color: string) => void;
