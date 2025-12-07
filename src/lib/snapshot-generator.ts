@@ -195,12 +195,16 @@ export async function generateSnapshot(
     cameraSettings: resolveCameraSettings(builderData.settings || {})
   };
 
-  // Log final pour vérifier que le snapshot contient bien le design2D
+  // Log final pour vérifier que le snapshot contient bien toutes les données
   console.log('📦 Snapshot final créé:', {
     hasModel3D: !!snapshot.model3D,
     hasDesign2D: !!snapshot.design2D,
     design2DUrl: snapshot.design2D?.url,
     design2DInSnapshot: snapshot.design2D !== undefined,
+    hasTextZones: textZones.length > 0,
+    textZonesCount: textZones.length,
+    hasFonts: fonts.length > 0,
+    fontsCount: fonts.length,
     snapshotKeys: Object.keys(snapshot),
     modulesCount: snapshot.customizationModules.length,
     defaultStateDesign2DId: snapshot.defaultState?.design2DId
@@ -707,10 +711,17 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
   // Collecter toutes les polices depuis tous les fontGroups
   const fontIds = new Set<string>();
   fontGroups.forEach((group: any) => {
+    // Le fontGroup peut avoir fonts comme array direct ou comme relation
     if (group.fonts && Array.isArray(group.fonts)) {
-      group.fonts.forEach((fontId: string) => fontIds.add(fontId));
+      group.fonts.forEach((font: any) => {
+        // Si c'est un objet avec font_id, utiliser font_id, sinon utiliser directement
+        const fontId = typeof font === 'string' ? font : (font.font_id || font.id);
+        if (fontId) fontIds.add(fontId);
+      });
     }
   });
+  
+  console.log(`📝 Résolution des polices: ${fontGroupIds.size} fontGroup(s) → ${fontIds.size} police(s)`);
 
   if (fontIds.size === 0) {
     return [];
@@ -726,6 +737,8 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
     console.warn('⚠️ Aucune police trouvée:', fontsError?.message);
     return [];
   }
+  
+  console.log(`✅ ${fonts.length} police(s) résolue(s) depuis les fontGroups`);
 
   return fonts.map((font: any) => ({
     id: font.id,
