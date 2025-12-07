@@ -696,6 +696,65 @@ async function resolveCustomizationModules(
             fontGroups: fontGroups || []
           };
         }
+        
+        // Résoudre les palettes de couleurs pour le texte (couleur et contour)
+        const textColorPaletteId = module.config?.textColorPaletteId;
+        const textStrokePaletteId = module.config?.textStrokePaletteId;
+        
+        if (textColorPaletteId) {
+          const { data: textColorPalette } = await supabaseAdmin
+            .from('color_palettes')
+            .select('*')
+            .eq('id', textColorPaletteId)
+            .single();
+          
+          if (textColorPalette) {
+            resolved.config = {
+              ...resolved.config,
+              textColorPalette: {
+                id: textColorPalette.id,
+                name: textColorPalette.name,
+                colors: textColorPalette.colors || []
+              }
+            };
+          }
+        }
+        
+        if (textStrokePaletteId) {
+          const { data: textStrokePalette } = await supabaseAdmin
+            .from('color_palettes')
+            .select('*')
+            .eq('id', textStrokePaletteId)
+            .single();
+          
+          if (textStrokePalette) {
+            resolved.config = {
+              ...resolved.config,
+              textStrokePalette: {
+                id: textStrokePalette.id,
+                name: textStrokePalette.name,
+                colors: textStrokePalette.colors || []
+              }
+            };
+          }
+        }
+        
+        // Préserver tous les autres champs de config du module texte
+        resolved.config = {
+          ...resolved.config,
+          ...module.config,
+          textColorPaletteId: textColorPaletteId,
+          textStrokePaletteId: textStrokePaletteId,
+          textEnabledDeformations: module.config?.textEnabledDeformations,
+          textConstraints: module.config?.textConstraints,
+          enableTextContent: module.config?.enableTextContent,
+          enableTextFont: module.config?.enableTextFont,
+          enableTextColor: module.config?.enableTextColor,
+          enableTextStroke: module.config?.enableTextStroke,
+          enableTextDeformation: module.config?.enableTextDeformation,
+          textPlacementMode: module.config?.textPlacementMode,
+          addTextButtonLabel: module.config?.addTextButtonLabel
+        };
       }
 
       return resolved;

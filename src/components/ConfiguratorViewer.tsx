@@ -3141,23 +3141,27 @@ export default function ConfiguratorViewer({
     
     if (textModule?.config) {
       // Palette pour la couleur du texte
-      if (textModule.config.textColorPaletteId) {
+      if (textModule.config.textColorPaletteId && textModule.config.textColorPalette) {
         const textColorPalette = {
           id: textModule.config.textColorPaletteId,
-          name: 'Couleur texte',
-          colors: textModule.config.textColorPalette?.colors || []
+          name: textModule.config.textColorPalette.name || 'Couleur texte',
+          colors: textModule.config.textColorPalette.colors || []
         };
-        palettes.push(textColorPalette);
+        if (textColorPalette.colors.length > 0) {
+          palettes.push(textColorPalette);
+        }
       }
       
       // Palette pour le contour du texte
-      if (textModule.config.textStrokePaletteId) {
+      if (textModule.config.textStrokePaletteId && textModule.config.textStrokePalette) {
         const textStrokePalette = {
           id: textModule.config.textStrokePaletteId,
-          name: 'Contour texte',
-          colors: textModule.config.textStrokePalette?.colors || []
+          name: textModule.config.textStrokePalette.name || 'Contour texte',
+          colors: textModule.config.textStrokePalette.colors || []
         };
-        palettes.push(textStrokePalette);
+        if (textStrokePalette.colors.length > 0) {
+          palettes.push(textStrokePalette);
+        }
       }
     }
     
@@ -5306,43 +5310,45 @@ export default function ConfiguratorViewer({
                 // Le module texte doit s'afficher si snapshot.textZones et snapshot.fonts existent
                 (snapshot?.textZones && snapshot.textZones.length > 0 && snapshot?.fonts && snapshot.fonts.length > 0) ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Bouton "Ajouter un texte" */}
-                    <button
-                      onClick={() => {
-                        // Vérifier le mode de placement depuis le module ou son config
-                        const placementMode = activeModule.textPlacementMode || activeModule.config?.textPlacementMode || 'zones';
-                        // Si mode zones et qu'il y a des zones disponibles, ouvrir le modal
-                        if (placementMode === 'zones' && textZones && textZones.length > 0) {
-                          setShowTextZoneSelector({
-                            textId: null,
-                            view: 'torse'
-                          });
-                        } else {
-                          // Mode libre ou pas de zones : ajouter directement un texte
-                          addText('', undefined, undefined, 'text');
-                        }
-                      }}
-                      style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        backgroundColor: '#3b82f6',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#2563eb';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#3b82f6';
-                      }}
-                    >
-                      {activeModule.addTextButtonLabel || 'Ajouter un texte'}
-                    </button>
+                    {/* Bouton "Ajouter un texte" - Masqué quand un texte est sélectionné */}
+                    {!selectedTextId && (
+                      <button
+                        onClick={() => {
+                          // Vérifier le mode de placement depuis le module ou son config
+                          const placementMode = activeModule.textPlacementMode || activeModule.config?.textPlacementMode || 'zones';
+                          // Si mode zones et qu'il y a des zones disponibles, ouvrir le modal
+                          if (placementMode === 'zones' && textZones && textZones.length > 0) {
+                            setShowTextZoneSelector({
+                              textId: null,
+                              view: 'torse'
+                            });
+                          } else {
+                            // Mode libre ou pas de zones : ajouter directement un texte
+                            addText('', undefined, undefined, 'text');
+                          }
+                        }}
+                        style={{
+                          padding: '12px 16px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          backgroundColor: '#3b82f6',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--stepn-font-body)',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#2563eb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#3b82f6';
+                        }}
+                      >
+                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                      </button>
+                    )}
                     
                     {/* Liste des textes placés */}
                     {texts.length > 0 && (
@@ -5805,15 +5811,21 @@ export default function ConfiguratorViewer({
                                       strokeMaxWidthPx: 50,
                                       baseStrokeWidthPx: 5
                                     };
-                                    const sliderMin = textConstraints.strokeMinWidthPx || 0;
-                                    const sliderMax = textConstraints.strokeMaxWidthPx || 50;
+                                    const sliderMin = textConstraints.strokeMinWidthPx;
+                                    const sliderMax = textConstraints.strokeMaxWidthPx;
                                     const sliderRange = sliderMax - sliderMin;
                                     
-                                    const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx ?? 5;
+                                    // Utiliser directement la valeur stockée
+                                    const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
                                     let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                    
+                                    // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
+                                    
+                                    // Arrondir à l'entier le plus proche (step de 1px)
                                     currentPxValue = Math.round(currentPxValue);
                                     
+                                    // S'assurer que la valeur ne dépasse jamais les limites après arrondi
                                     if (currentPxValue < sliderMin) currentPxValue = sliderMin;
                                     if (currentPxValue > sliderMax) currentPxValue = sliderMax;
                                     
@@ -5891,11 +5903,20 @@ export default function ConfiguratorViewer({
                                           value={currentPxValue}
                                           onChange={(e) => {
                                             const pxValue = parseFloat(e.target.value);
+                                            
+                                            // Vérifier que la valeur est valide
                                             if (!Number.isFinite(pxValue)) return;
+                                            
+                                            // Clamper strictement entre min et max
                                             let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                            
+                                            // Arrondir à l'entier le plus proche (step de 1px)
                                             clampedValue = Math.round(clampedValue);
+                                            
+                                            // Double vérification après arrondi
                                             if (clampedValue < sliderMin) clampedValue = sliderMin;
                                             if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
                                           disabled={sliderRange <= 0}
@@ -6235,6 +6256,34 @@ export default function ConfiguratorViewer({
                                           onClick={() => {
                                             setSelectedZoneId(zone.id);
                                             setTextInputValue(zone.default_text || '');
+                                            
+                                            // Faire pivoter la caméra vers la vue de la zone
+                                            const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                              'Face': 'torse',
+                                              'Dos': 'dos',
+                                              'Gauche': 'bras-gauche',
+                                              'Droite': 'bras-droit',
+                                              'front': 'torse',
+                                              'back': 'dos',
+                                              'left': 'bras-gauche',
+                                              'right': 'bras-droit'
+                                            };
+                                            const zoneCategory = zone.view ? viewToCategory[zone.view] : zone.zone_category;
+                                            
+                                            if (zoneCategory) {
+                                              setTargetView(zoneCategory);
+                                              // Convertir la catégorie en vue de caméra
+                                              const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
+                                                'torse': 'front',
+                                                'dos': 'back',
+                                                'bras-gauche': 'left',
+                                                'bras-droit': 'right'
+                                              };
+                                              const cameraView = categoryToView[zoneCategory];
+                                              if (cameraView) {
+                                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                                              }
+                                            }
                                           }}
                                           style={{
                                             position: 'relative',
