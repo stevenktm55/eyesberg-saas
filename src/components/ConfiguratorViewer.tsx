@@ -3105,10 +3105,123 @@ export default function ConfiguratorViewer({
     }
   }, [productConfig?.design2DId, selectedDesign.id, selectDesign]);
   
-  // Retourner le layout combiné : Viewer3D + Sidebar
+  // Initialiser les paramètres de caméra depuis la configuration
+  useEffect(() => {
+    if (productConfig?.settings && controlsRef.current) {
+      const settings = productConfig.settings;
+      const controls = controlsRef.current;
+      const camera = controls.object;
+      
+      // Appliquer initialZoom si disponible
+      if (settings.initialZoom !== undefined && camera) {
+        const distance = settings.initialZoom;
+        camera.position.set(0, 0, distance);
+        camera.updateProjectionMatrix();
+      }
+      
+      // Appliquer initialRotation si disponible
+      if (settings.initialRotation !== undefined && camera) {
+        const rotation = settings.initialRotation;
+        if (typeof rotation === 'number') {
+          const angleRad = (rotation * Math.PI) / 180;
+          const distance = camera.position.length();
+          const newX = 0 * Math.cos(angleRad) - distance * Math.sin(angleRad);
+          const newZ = 0 * Math.sin(angleRad) + distance * Math.cos(angleRad);
+          camera.position.set(newX, camera.position.y, newZ);
+          camera.updateProjectionMatrix();
+        }
+      }
+      
+      controls.update();
+    }
+  }, [productConfig?.settings]);
+  
+  // Déterminer l'onglet actif basé sur les modules
+  const customizationModules = productConfig?.customizationModules || [];
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(
+    customizationModules.length > 0 ? customizationModules[0].id : null
+  );
+  
+  // Mapper les onglets de la sidebar vers les modules
+  useEffect(() => {
+    if (customizationModules.length > 0 && !activeCustomizerTab) {
+      setActiveCustomizerTab(customizationModules[0].id);
+    }
+  }, [customizationModules, activeCustomizerTab]);
+  
+  // Mapper activeTab vers activeCustomizerTab
+  useEffect(() => {
+    const tabToModuleMap: Record<string, string> = {
+      'design': 'design',
+      'color': 'color',
+      'numero': 'text',
+      'nom': 'text',
+      'logo': 'logo',
+    };
+    
+    const contentTypeMap: Record<string, string> = {
+      'designs-2d': 'design',
+      'colors': 'color',
+      'text': 'text',
+      'logos': 'logo',
+    };
+    
+    // Trouver le module correspondant à l'onglet actif
+    const module = customizationModules.find((m: any) => {
+      if (activeTab === 'design' && m.contentType === 'designs-2d') return true;
+      if (activeTab === 'color' && m.contentType === 'colors') return true;
+      if ((activeTab === 'numero' || activeTab === 'nom') && m.contentType === 'text') return true;
+      if (activeTab === 'logo' && m.contentType === 'logos') return true;
+      return false;
+    });
+    
+    if (module) {
+      setActiveCustomizerTab(module.id);
+    }
+  }, [activeTab, customizationModules]);
+  
+  // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
   return (
     <div className="h-full flex">
-      {/* Viewer 3D à gauche */}
+      {/* Sidebar gauche avec icônes des modules */}
+      {modelId && customizationModules.length > 0 && (
+        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
+          {customizationModules.map((module: any) => (
+            <button
+              key={module.id}
+              onClick={() => {
+                setActiveCustomizerTab(module.id);
+                // Mapper le module vers l'onglet de la sidebar
+                if (module.contentType === 'designs-2d') setActiveTab('design');
+                else if (module.contentType === 'colors') setActiveTab('color');
+                else if (module.contentType === 'text') {
+                  // Pour les textes, on garde l'onglet actuel (numero ou nom)
+                  if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
+                }
+                else if (module.contentType === 'logos') setActiveTab('logo');
+              }}
+              className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
+                activeCustomizerTab === module.id
+                  ? 'bg-gray-100 border-gray-300'
+                  : 'bg-transparent border-gray-200 hover:bg-gray-50'
+              }`}
+              title={module.tabName}
+            >
+              {module.iconUrl ? (
+                <img
+                  src={module.iconUrl}
+                  alt={module.tabName}
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <span className="text-2xl">{module.icon}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+      
+      {/* Viewer 3D au centre */}
       <div className="flex-1">
         <Viewer3D
           designTexture={designTexture}
