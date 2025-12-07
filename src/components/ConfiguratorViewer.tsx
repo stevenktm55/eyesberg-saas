@@ -3043,7 +3043,7 @@ export default function ConfiguratorViewer({
     const snapshotDesigns = designModule?.allowedDesigns || [];
     
     if (snapshotDesigns.length > 0) {
-      setDesigns2D(snapshotDesigns.map((d: any) => ({
+      const mappedDesigns = snapshotDesigns.map((d: any) => ({
         id: d.id || d.svgUrl, // Utiliser l'ID si disponible, sinon l'URL
         name: d.label || d.name || 'Design',
         svgUrl: d.svgUrl,
