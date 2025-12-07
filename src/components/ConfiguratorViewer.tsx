@@ -4360,9 +4360,14 @@ export default function ConfiguratorViewer({
                   Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
                   activeModule.selectedItems.logoLibraryIds.length > 0;
                 
-                // Récupérer toutes les bibliothèques sélectionnées
-                const selectedLibraries = logoLibraries.filter((l: any) => 
-                  activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
+                // Utiliser les bibliothèques depuis le snapshot (pas depuis le state async)
+                const librariesFromSnapshot = logoModule?.config?.logoLibraries || [];
+                
+                // Récupérer toutes les bibliothèques sélectionnées depuis le snapshot
+                const selectedLibraryIds = activeModule.selectedItems?.logoLibraryIds || 
+                  logoModule?.config?.logoLibraryIds || [];
+                const selectedLibraries = librariesFromSnapshot.filter((l: any) => 
+                  selectedLibraryIds.includes(l.id)
                 );
                 
                 // Récupérer tous les logos de toutes les bibliothèques sélectionnées
@@ -4923,6 +4928,14 @@ export default function ConfiguratorViewer({
                   return true;
                 });
                 
+                // Labels des vues depuis le module ou par défaut
+                const viewLabels = {
+                  'front': activeModule.logoViewFrontLabel || 'Torse',
+                  'back': activeModule.logoViewBackLabel || 'Dos',
+                  'left': activeModule.logoViewLeftLabel || 'Bras gauche',
+                  'right': activeModule.logoViewRightLabel || 'Bras droit'
+                };
+                
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {/* Boutons de vue en haut - uniquement si mode zones */}
@@ -5296,11 +5309,71 @@ export default function ConfiguratorViewer({
               })() : activeModule.contentType === 'text' ? (
                 // Le module texte doit s'afficher si snapshot.textZones et snapshot.fonts existent
                 (snapshot?.textZones && snapshot.textZones.length > 0 && snapshot?.fonts && snapshot.fonts.length > 0) ? (
-                  <div>
-                    {/* TODO: Implémenter le rendu du module texte avec textZones et fonts du snapshot */}
-                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                      Module texte - {snapshot.textZones.length} zone(s) disponible(s), {snapshot.fonts.length} police(s) disponible(s)
-                    </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* Bouton "Ajouter un texte" */}
+                    <button
+                      onClick={() => {
+                        // Si mode zones, ouvrir le modal de sélection de zone
+                        if (activeModule.textPlacementMode === 'zones') {
+                          setShowZoneSelector({
+                            textId: null,
+                            view: targetView || 'torse'
+                          });
+                        } else {
+                          // Mode libre : ajouter directement un texte
+                          addText('', undefined, undefined, 'text');
+                        }
+                      }}
+                      style={{
+                        padding: '12px 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        backgroundColor: '#3b82f6',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--stepn-font-body)',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#2563eb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                      }}
+                    >
+                      {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                    </button>
+                    
+                    {/* Liste des textes placés */}
+                    {texts.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {texts.map((text) => (
+                          <div
+                            key={text.id}
+                            onClick={() => selectText(text.id)}
+                            style={{
+                              padding: '12px',
+                              backgroundColor: selectedTextId === text.id ? '#f3f4f6' : '#ffffff',
+                              border: `1px solid ${selectedTextId === text.id ? '#3b82f6' : '#e5e7eb'}`,
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                              {text.content || '(Texte vide)'}
+                            </div>
+                            {text.zoneCategory && (
+                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                Zone: {text.zoneCategory}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   // Masquer le module si pas de données dans le snapshot (PAS d'erreur)

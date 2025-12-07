@@ -833,6 +833,7 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
 /**
  * Résout les couleurs finales (mesh → hex) pour le viewer
  * Utilise color_mappings du design2D si disponible, sinon utilise les meshes des couleurs
+ * IMPORTANT: Les color_mappings contiennent les IDs des couleurs, il faut les résoudre en hex
  */
 function resolveColors(
   customizationModules: Snapshot['customizationModules'],
@@ -853,14 +854,30 @@ function resolveColors(
   if (Object.keys(colorMappings).length > 0) {
     Object.keys(colorMappings).forEach((colorClass) => {
       const colorId = colorMappings[colorClass];
-      const color = allowedColors.find((c: any) => 
-        c.id === colorId || c.hex === colorId
-      );
+      // Chercher la couleur correspondante dans allowedColors
+      // colorId peut être un ID (string UUID) ou un hex directement
+      const color = allowedColors.find((c: any) => {
+        // Comparer par ID si disponible
+        if (c.id && c.id === colorId) return true;
+        // Comparer par hex si colorId est un hex
+        if (c.hex && c.hex.toLowerCase() === colorId.toLowerCase()) return true;
+        // Comparer par hex si colorId commence par #
+        if (c.hex && colorId.startsWith('#') && c.hex.toLowerCase() === colorId.toLowerCase()) return true;
+        return false;
+      });
+      
       if (color) {
         resolvedColors[colorClass] = color.hex;
-      } else if (allowedColors.length > 0) {
-        // Fallback: utiliser la première couleur disponible
-        resolvedColors[colorClass] = allowedColors[0].hex;
+      } else {
+        // Si la couleur n'est pas trouvée, essayer de trouver une couleur par index
+        // Les color_mappings peuvent contenir des indices (0, 1, 2) au lieu d'IDs
+        const colorIndex = parseInt(colorId);
+        if (!isNaN(colorIndex) && allowedColors[colorIndex]) {
+          resolvedColors[colorClass] = allowedColors[colorIndex].hex;
+        } else if (allowedColors.length > 0) {
+          // Fallback: utiliser la première couleur disponible
+          resolvedColors[colorClass] = allowedColors[0].hex;
+        }
       }
     });
   } else {
@@ -877,7 +894,8 @@ function resolveColors(
     resolvedColors,
     hasColorMappings: Object.keys(colorMappings).length > 0,
     colorMappings,
-    allowedColorsCount: allowedColors.length
+    allowedColorsCount: allowedColors.length,
+    allowedColors: allowedColors.map((c: any) => ({ id: c.id, hex: c.hex, label: c.label }))
   });
   
   return resolvedColors;
