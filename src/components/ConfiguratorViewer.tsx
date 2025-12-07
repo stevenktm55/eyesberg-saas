@@ -3167,53 +3167,8 @@ export default function ConfiguratorViewer({
     }
   }, [customizationModules, activeCustomizerTab]);
   
-  // Initialiser les textes depuis les textZones du snapshot
-  useEffect(() => {
-    if (!snapshot?.textZones || snapshot.textZones.length === 0) {
-      return;
-    }
-    
-    // Ne pas réinitialiser si des textes existent déjà
-    if (texts.length > 0) {
-      return;
-    }
-    
-    console.log('📝 Initialisation des textes depuis les textZones:', {
-      textZonesCount: snapshot.textZones.length,
-      textZones: snapshot.textZones
-    });
-    
-    // Convertir les textZones en textes
-    snapshot.textZones.forEach((zone: any) => {
-      if (zone.position && Array.isArray(zone.position) && zone.position.length === 3) {
-        const position: [number, number, number] = [
-          zone.position[0] || 0,
-          zone.position[1] || 0,
-          zone.position[2] || 0
-        ];
-        
-        // Déterminer la catégorie depuis les categories ou zone_category
-        const categories = zone.categories || [];
-        let category: 'nom' | 'numero' | 'text' = 'text';
-        if (categories.includes('nom')) {
-          category = 'nom';
-        } else if (categories.includes('numero')) {
-          category = 'numero';
-        }
-        
-        // Ajouter le texte avec les valeurs par défaut
-        addText(
-          '', // Contenu vide par défaut
-          position,
-          undefined, // defaultFontFamily
-          category,
-          zone.default_text_height || 100, // initialFontSize
-          zone.zone_category || 'torse', // zoneCategory
-          0 // initialRotation
-        );
-      }
-    });
-  }, [snapshot, addText, texts.length]);
+  // NE PAS initialiser automatiquement les textes depuis les textZones
+  // Les textZones sont disponibles pour sélection, mais les textes doivent être ajoutés manuellement par l'utilisateur
   
   // Initialiser selectedDesign2DId depuis le snapshot (une seule fois)
   useEffect(() => {
