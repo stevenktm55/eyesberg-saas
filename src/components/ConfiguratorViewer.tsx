@@ -1712,6 +1712,8 @@ function Viewer3D({
             target={cameraTarget}
             minDistance={minDistance}
             maxDistance={maxDistance}
+            zoomSpeed={cameraSettings?.zoomSpeed ?? 1}
+            rotateSpeed={cameraSettings?.rotateSpeed ?? 1}
             makeDefault={false}
             zoomToCursor={false}
             screenSpacePanning={false}
