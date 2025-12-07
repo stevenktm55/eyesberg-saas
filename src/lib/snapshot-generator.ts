@@ -443,11 +443,19 @@ async function resolveCustomizationModules(
             resolved.allowedColors = palette.colors.map((color: any) => ({
               label: color.name || color.label || '',
               hex: color.hex || color.value || '#000000',
-              mesh: color.mesh
+              mesh: color.mesh || 'primary',
+              id: color.id || color.hex
             }));
           }
         }
         resolved.default = module.selectedItems?.colorId || module.default;
+        
+        // Préserver toute la config du module couleurs
+        resolved.config = {
+          ...resolved.config,
+          ...module.config,
+          paletteId: paletteId
+        };
       } else if (moduleType === 'designs-2d') {
         // Résoudre les designs autorisés
         const allowedIds = module.selectedItems?.design2DIds || module.config?.allowedDesignIds || [];
