@@ -150,6 +150,20 @@ export async function GET(request: NextRequest) {
             subdomain,
             totalProducts: products?.length || 0
           });
+          
+          // Fallback: si aucun produit n'est trouvé avec l'ID Shopify mais qu'il y a des produits disponibles,
+          // retourner le premier produit disponible (utile si le produit n'a pas encore été lié)
+          if (products && products.length > 0) {
+            console.warn('⚠️ Produit non trouvé avec l\'ID Shopify, utilisation du premier produit disponible comme fallback');
+            const fallbackProduct = products[0];
+            console.log('✅ Utilisation du produit fallback:', {
+              id: fallbackProduct.id,
+              name: fallbackProduct.name,
+              shop_domain: fallbackProduct.shop_domain
+            });
+            return NextResponse.json(fallbackProduct);
+          }
+          
           return NextResponse.json(
             { 
               error: 'Product not found for this Shopify product ID', 
