@@ -5781,8 +5781,20 @@ export default function ConfiguratorViewer({
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée, ou baseStrokeWidthPx depuis le snapshot
-                                    const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
+                                    // Si le texte n'a pas de strokeWidth défini, utiliser baseStrokeWidthPx du snapshot
+                                    const baseStrokeWidth = textConstraints?.baseStrokeWidthPx ?? sliderMin;
+                                    const rawValue = selectedText.strokeWidth ?? baseStrokeWidth;
+                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : baseStrokeWidth;
+                                    
+                                    console.log('📏 Jauge de contour - valeurs:', {
+                                      selectedTextStrokeWidth: selectedText.strokeWidth,
+                                      textConstraintsBaseStrokeWidthPx: textConstraints?.baseStrokeWidthPx,
+                                      baseStrokeWidth,
+                                      sliderMin,
+                                      sliderMax,
+                                      rawValue,
+                                      currentPxValue
+                                    });
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));

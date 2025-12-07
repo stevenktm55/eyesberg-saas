@@ -790,11 +790,20 @@ async function resolveCustomizationModules(
           textConstraints = {
             strokeMinWidthPx: Number.isFinite(strokeMinWidthPx) ? strokeMinWidthPx : 0,
             strokeMaxWidthPx: Number.isFinite(strokeMaxWidthPx) ? strokeMaxWidthPx : 50,
-            baseStrokeWidthPx: Number.isFinite(baseStrokeWidthPx) ? baseStrokeWidthPx : strokeMinWidthPx,
+            baseStrokeWidthPx: Number.isFinite(baseStrokeWidthPx) ? baseStrokeWidthPx : (Number.isFinite(strokeMinWidthPx) ? strokeMinWidthPx : 0),
             minFontSizePx: Number.isFinite(minFontSizePx) ? minFontSizePx : 100,
             maxFontSizePx: Number.isFinite(maxFontSizePx) ? maxFontSizePx : 2000,
             baseFontSize: Number.isFinite(baseFontSize) ? baseFontSize : 700
           };
+          
+          console.log('📏 textConstraints construit:', {
+            strokeMinWidthPx,
+            strokeMaxWidthPx,
+            baseStrokeWidthPx,
+            fromModule: (module as any).textBaseStrokeWidth,
+            fromConfig: module.config?.textBaseStrokeWidth,
+            final: textConstraints.baseStrokeWidthPx
+          });
         }
         
         // Préserver TOUS les champs de config du module texte (y compris textConstraints)
