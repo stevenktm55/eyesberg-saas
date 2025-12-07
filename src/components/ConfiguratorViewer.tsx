@@ -2878,8 +2878,20 @@ function Sidebar({
             }}
           />
         )}
-          
-          {/* Onglets motif / dégradé retirés */}
+        {activeTab === 'numero' && (
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="text-center py-8">
+              <p className="text-gray-500">Onglet Numéro - À implémenter</p>
+            </div>
+          </div>
+        )}
+        {activeTab === 'nom' && (
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="text-center py-8">
+              <p className="text-gray-500">Onglet Nom - À implémenter</p>
+            </div>
+          </div>
+        )}
         </div>
       </div>
       
