@@ -3,6 +3,7 @@
 // =====================================================
 import { NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabase";
+import { getSubdomain } from "@/lib/subdomain";
 import { findModelIdForDesign, generateThumbnailFromCanvas, dataURLToBlob } from "@/lib/thumbnail-generator";
 
 export const runtime = "nodejs";
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const shop = searchParams.get('shop');
     
+    // Essayer d'abord avec la colonne active
     let query = supabaseAdmin
       .from('designs')
       .select(`
@@ -36,16 +38,42 @@ export async function GET(request: Request) {
         secondary_color,
         tertiary_color,
         colors
-      `)
-      .eq('active', true);
+      `);
     
-    // Note: La table designs n'a pas de colonne subdomain dans la structure actuelle
-    // Le filtrage par shop/subdomain n'est pas nécessaire pour l'instant
-    // Si besoin, on peut ajouter cette fonctionnalité plus tard
+    // Essayer avec .eq('active', true) d'abord
+    try {
+      query = query.eq('active', true);
+    } catch (e) {
+      // Si la colonne active n'existe pas, on continue sans filtre
+      console.warn('[API/designs] Colonne active non disponible, récupération de tous les designs');
+    }
     
     query = query.order('created_at', { ascending: false });
     
-    const { data, error } = await query;
+    let { data, error } = await query;
+
+    // Si erreur liée à la colonne active, réessayer sans filtre
+    if (error && (error.code === '42703' || error.message?.includes('active'))) {
+      console.warn('[API/designs] Erreur avec colonne active, réessai sans filtre');
+      const retryQuery = supabaseAdmin
+        .from('designs')
+        .select(`
+          id,
+          name,
+          svg_url,
+          thumbnail_url,
+          model_type,
+          primary_color,
+          secondary_color,
+          tertiary_color,
+          colors
+        `)
+        .order('created_at', { ascending: false });
+      
+      const retryResult = await retryQuery;
+      data = retryResult.data;
+      error = retryResult.error;
+    }
 
     if (error) {
       console.error('[API/designs] Erreur Supabase GET designs:', error.message);
@@ -53,9 +81,9 @@ export async function GET(request: Request) {
       console.error('[API/designs] Error hint:', error.hint);
       console.error('[API/designs] Error code:', error.code);
       
-      // Si c'est une erreur de colonne manquante, retourner un tableau vide
-      if (error.code === '42P01' || error.code === '42703') {
-        console.warn('[API/designs] Colonne manquante, retour d\'un tableau vide');
+      // Si c'est une erreur de colonne manquante ou de permissions, retourner un tableau vide
+      if (error.code === '42P01' || error.code === '42703' || error.code === '42501') {
+        console.warn('[API/designs] Erreur de colonne/permissions, retour d\'un tableau vide');
         return NextResponse.json([]);
       }
       

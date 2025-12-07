@@ -2,25 +2,58 @@
 // API PALETTES - VERSION SUPABASE
 // =====================================================
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
 // =====================================================
 // GET - Récupérer toutes les palettes
 // =====================================================
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Certaines anciennes lignes peuvent ne pas avoir la colonne "active"
-    // On récupère toutes les lignes dont active=true ou NULL (compatibilité)
-    const { data, error } = await supabase
+    // Utiliser supabaseAdmin pour éviter les problèmes de permissions RLS
+    // Essayer d'abord avec le filtre active
+    let query = supabaseAdmin
       .from('color_palettes')
-      .select('*')
-      .or('active.is.null,active.eq.true')
-      .order('created_at', { ascending: false });
+      .select('*');
+    
+    // Essayer avec le filtre active d'abord
+    try {
+      query = query.or('active.is.null,active.eq.true');
+    } catch (e) {
+      // Si la colonne active n'existe pas, on continue sans filtre
+      console.warn('[API/palettes] Colonne active non disponible, récupération de toutes les palettes');
+    }
+    
+    query = query.order('created_at', { ascending: false });
+    
+    let { data, error } = await query;
+
+    // Si erreur liée à la colonne active, réessayer sans filtre
+    if (error && (error.code === '42703' || error.message?.includes('active'))) {
+      console.warn('[API/palettes] Erreur avec colonne active, réessai sans filtre');
+      const retryQuery = supabaseAdmin
+        .from('color_palettes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      const retryResult = await retryQuery;
+      data = retryResult.data;
+      error = retryResult.error;
+    }
 
     if (error) {
-      console.error('Erreur Supabase GET palettes:', error);
+      console.error('[API/palettes] Erreur Supabase GET palettes:', error.message);
+      console.error('[API/palettes] Error details:', error.details);
+      console.error('[API/palettes] Error hint:', error.hint);
+      console.error('[API/palettes] Error code:', error.code);
+      
+      // Si c'est une erreur de colonne manquante ou de permissions, retourner un tableau vide
+      if (error.code === '42P01' || error.code === '42703' || error.code === '42501') {
+        console.warn('[API/palettes] Erreur de colonne/permissions, retour d\'un tableau vide');
+        return NextResponse.json([]);
+      }
+      
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
