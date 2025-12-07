@@ -3404,7 +3404,22 @@ export default function ConfiguratorViewer({
   }, []);
   
   // Design texture (à récupérer depuis selectedDesign)
-  const designTexture = selectedDesign?.svgUrl || null;
+  // Créer designTexture depuis selectedDesign ou depuis la configuration
+  const designTexture = selectedDesign?.svgUrl || (productConfig?.design2DId ? (() => {
+    const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
+    return design ? (design.svg_url || design.svgUrl) : null;
+  })() : null);
+  
+  // Log pour déboguer designTexture
+  useEffect(() => {
+    console.log('🎨 designTexture:', {
+      selectedDesign: selectedDesign?.id,
+      selectedDesignSvgUrl: selectedDesign?.svgUrl,
+      productConfigDesign2DId: productConfig?.design2DId,
+      designTexture,
+      designs2DCount: designs2D.length
+    });
+  }, [selectedDesign, productConfig?.design2DId, designTexture, designs2D]);
   
   // Config model URL (URL du modèle depuis la configuration)
   const configModelUrl = modelUrl || null;
