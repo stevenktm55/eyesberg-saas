@@ -2795,60 +2795,36 @@ function Sidebar({
     </div>
   );
 
-  const tabs = [
-    { id: 'design', label: 'Design', title: 'Sélectionner le design', iconUrl: '/icons/design.svg', iconUrlWhite: '/icons/design-white.svg?v=2', bgColor: 'bg-black', textColor: 'text-black' },
-    { id: 'color', label: 'Couleur', title: 'Choisir une couleur', iconUrl: '/icons/color.svg', iconUrlWhite: '/icons/color-white.svg', bgColor: 'bg-black', textColor: 'text-black' },
-    { id: 'numero', label: 'Numéro', title: 'Ajouter des numéros', iconUrl: '/icons/numero.svg', iconUrlWhite: '/icons/numero-white.svg', bgColor: 'bg-black', textColor: 'text-black' },
-    { id: 'nom', label: 'Nom', title: 'Ajouter un nom', iconUrl: '/icons/nom.svg', iconUrlWhite: '/icons/nom-white.svg', bgColor: 'bg-black', textColor: 'text-black' },
-    { id: 'logo', label: 'Logo', title: 'Ajouter des logos', iconUrl: '/icons/logo.svg?v=2', iconUrlWhite: '/icons/logo-white.svg', bgColor: 'bg-black', textColor: 'text-black' },
-  ];
-
+  // La sidebar droite affiche seulement le contenu basé sur activeTab
+  // Les onglets sont maintenant dans la sidebar gauche (gérés par ConfiguratorViewer)
+  
+  // Déterminer le titre et l'icône de l'onglet actif
+  const getTabInfo = () => {
+    switch (activeTab) {
+      case 'design':
+        return { title: 'Sélectionner le design', icon: '🎨' };
+      case 'color':
+        return { title: 'Choisir une couleur', icon: '🎨' };
+      case 'numero':
+        return { title: 'Ajouter des numéros', icon: '🔢' };
+      case 'nom':
+        return { title: 'Ajouter un nom', icon: '✏️' };
+      case 'logo':
+        return { title: 'Ajouter des logos', icon: '🖼️' };
+      default:
+        return { title: 'Personnalisation', icon: '⚙️' };
+    }
+  };
+  
+  const tabInfo = getTabInfo();
+  
   return (
-    <div className="h-full flex">
-      {/* Onglets verticaux à gauche */}
-      <div className="w-20 bg-gray-50 p-2 flex flex-col gap-2 flex-shrink-0">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              console.log('🎨 Clic sur onglet:', tab.id);
-              if (tab.id === 'color') {
-                // Vérifier si l'utilisateur a déjà accepté l'avertissement
-                const hasAcceptedColorWarning = localStorage.getItem('colorWarningAccepted');
-                if (!hasAcceptedColorWarning) {
-                  console.log('🎨 Ouverture modal couleur (première fois)');
-                  setShowColorWarningModal(true);
-                } else {
-                  console.log('🎨 Accès direct à couleur (déjà accepté)');
-                  setActiveTab(tab.id as any);
-                }
-              } else {
-                console.log('🎨 Changement d\'onglet vers:', tab.id);
-                setActiveTab(tab.id as any);
-              }
-            }}
-            className={`w-16 h-16 rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
-              activeTab === tab.id
-                ? `${tab.bgColor} text-white shadow-lg scale-105 tab-active`
-                : 'bg-white text-black hover:bg-gray-100 hover:scale-102 shadow-sm'
-            }`}
-            title={tab.label}
-          >
-            <img src={activeTab === tab.id ? tab.iconUrlWhite : tab.iconUrl} alt={tab.label} className="w-7 h-7" />
-            <span className="text-xs font-medium leading-tight text-center">{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Contenu des onglets à droite */}
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="h-full flex flex-col">
         {/* En-tête fixe */}
         <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white sticky top-0 z-20">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <span className={`w-8 h-8 rounded-lg ${tabs.find(t => t.id === activeTab)?.bgColor} text-white flex items-center justify-center`}>
-              <img src={tabs.find(t => t.id === activeTab)?.iconUrlWhite as string} alt="icon" className="w-7 h-7" />
-            </span>
-            {tabs.find(t => t.id === activeTab)?.title}
+            <span className="text-2xl">{tabInfo.icon}</span>
+            {tabInfo.title}
           </h2>
         </div>
 
