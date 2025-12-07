@@ -2682,7 +2682,7 @@ function Sidebar({
   }, [filteredZonesForSelector, selectedZone]);
 
   // Modal de sélection de zone pour les logos
-  const zoneModal = showZoneSelector && (
+  const zoneModal = showZoneSelector ? (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
