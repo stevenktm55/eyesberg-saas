@@ -2948,6 +2948,37 @@ export default function ConfiguratorViewer({
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
+  // Gestion du sélecteur de zone pour les logos
+  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+  
+  // Mapper la vue vers la catégorie
+  const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+    'front': 'torse',
+    'back': 'dos',
+    'left': 'bras-gauche',
+    'right': 'bras-droit'
+  };
+
+  // Déterminer la catégorie active pour le sélecteur de zone
+  const activeCategoryForZone = showZoneSelector?.view ? viewToCategory[showZoneSelector.view] : 'torse';
+
+  // Filtrer les zones selon la vue active pour le sélecteur de zone
+  const filteredZonesForSelector = textZones.filter(zone => {
+    const categoryForView = activeCategoryForZone;
+    if (!zone.categories || !zone.categories.includes(`logo-${categoryForView}`)) return false;
+    // Filtrer par view si disponible et si showZoneSelector a une vue
+    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) return false;
+    return true;
+  });
+
+  // Mettre à jour la zone sélectionnée quand les zones sont chargées
+  useEffect(() => {
+    if (filteredZonesForSelector.length > 0 && !selectedZone) {
+      setSelectedZone(filteredZonesForSelector[0].id);
+    }
+  }, [filteredZonesForSelector, selectedZone]);
+  
   // États pour la sidebar
   const [activeTab, setActiveTab] = useState<'design' | 'color' | 'numero' | 'nom' | 'logo'>('design');
   const [showColorWarningModal, setShowColorWarningModal] = useState(false);
@@ -3293,6 +3324,96 @@ export default function ConfiguratorViewer({
         </div>
       )}
       
+      {/* Panneau de contenu qui s'ouvre depuis la sidebar gauche */}
+      {activeCustomizerTab && (() => {
+        const activeModule = customizationModules.find((m: any) => m.id === activeCustomizerTab);
+        if (!activeModule) return null;
+        
+        // Déterminer l'onglet actif basé sur le contentType du module
+        let tabToShow: 'design' | 'color' | 'numero' | 'nom' | 'logo' = 'design';
+        if (activeModule.contentType === 'designs-2d') tabToShow = 'design';
+        else if (activeModule.contentType === 'colors') tabToShow = 'color';
+        else if (activeModule.contentType === 'text') {
+          // Pour les textes, on garde l'onglet actuel (numero ou nom)
+          if (activeTab !== 'numero' && activeTab !== 'nom') tabToShow = 'numero';
+          else tabToShow = activeTab;
+        }
+        else if (activeModule.contentType === 'logos') tabToShow = 'logo';
+        
+        return (
+          <div className="w-[420px] bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+            {/* En-tête du panneau */}
+            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
+              <div className="flex items-center gap-3">
+                {activeModule.iconUrl ? (
+                  <img src={activeModule.iconUrl} alt={activeModule.tabName} className="w-7 h-7" />
+                ) : (
+                  <span className="text-2xl">{activeModule.icon}</span>
+                )}
+                <h2 className="text-lg font-semibold text-gray-900">{activeModule.tabName}</h2>
+              </div>
+            </div>
+            
+            {/* Contenu du panneau */}
+            <div className="flex-1 overflow-y-auto">
+              {tabToShow === 'design' && (
+                <div className="p-4">
+                  <DesignTab
+                    selectedDesign={selectedDesign}
+                    selectDesign={selectDesign}
+                    colors={colors}
+                    updateColor={updateColor}
+                    replaceColors={replaceColors}
+                    resetColors={resetColors}
+                    allowedDesignIds={productConfig?.designModuleConfig?.allowedDesignIds || undefined}
+                    isLinkedPrefillActive={isLinkedPrefillActive}
+                    hasPendingLinkedPrefill={hasPendingLinkedPrefill}
+                  />
+                </div>
+              )}
+              {tabToShow === 'color' && (
+                <div className="p-4">
+                  <ColorTab colors={colors} updateColor={updateColor} />
+                </div>
+              )}
+              {tabToShow === 'logo' && (
+                <LogoTab
+                  placedLogos={placedLogos}
+                  addLogo={addLogo}
+                  updateLogo={updateLogo}
+                  removeLogo={removeLogo}
+                  selectedLogoId={selectedLogoId}
+                  selectLogo={selectLogo}
+                  textZones={textZones}
+                  isLoadingZones={isLoadingZones}
+                  logos={logos}
+                  isLoadingLogos={isLoadingLogos}
+                  onOpenZoneSelector={setShowZoneSelector}
+                  addLogoButtonLabel={logoModuleConfig?.addLogoButtonLabel}
+                  logoPlacementMode={logoModuleConfig?.logoPlacementMode}
+                  logoZoneGroupIds={logoModuleConfig?.logoZoneGroupIds}
+                  logoLibraryIds={logoModuleConfig?.logoLibraryIds}
+                  logoViewFrontLabel={logoModuleConfig?.logoViewFrontLabel}
+                  logoViewBackLabel={logoModuleConfig?.logoViewBackLabel}
+                  logoViewLeftLabel={logoModuleConfig?.logoViewLeftLabel}
+                  logoViewRightLabel={logoModuleConfig?.logoViewRightLabel}
+                  onCameraViewChange={(view) => {
+                    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                  }}
+                />
+              )}
+              {(tabToShow === 'numero' || tabToShow === 'nom') && (
+                <div className="p-4">
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Onglet {tabToShow === 'numero' ? 'Numéro' : 'Nom'} - À implémenter</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+      
       {/* Viewer 3D au centre */}
       <div className="flex-1">
         <Viewer3D
@@ -3345,9 +3466,8 @@ export default function ConfiguratorViewer({
         />
       </div>
       
-      {/* Sidebar à droite */}
-      <div className="w-96 flex-shrink-0">
-        <Sidebar
+      {/* Modal de sélection de zone pour les logos */}
+      {zoneModal}
           selectedDesign={selectedDesign}
           selectDesign={selectDesign}
           colors={colors}
