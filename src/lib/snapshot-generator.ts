@@ -89,30 +89,46 @@ export async function generateSnapshot(
   let design2D: Snapshot['design2D'] | undefined;
   
   if (design2DId) {
+    console.log('🔍 Tentative de résolution du design2D:', {
+      design2DId,
+      design2DIdType: typeof design2DId
+    });
     try {
       design2D = await resolveDesign2D(design2DId);
-      console.log('✅ Design2D résolu:', {
+      console.log('✅ Design2D résolu avec succès:', {
         design2DId,
         url: design2D?.url,
-        hasColors: !!design2D?.colors
+        hasColors: !!design2D?.colors,
+        thumbnailUrl: design2D?.thumbnailUrl
       });
     } catch (error: any) {
       console.error('❌ Erreur lors de la résolution du design2D:', {
         design2DId,
-        error: error.message
+        error: error.message,
+        errorCode: error.code,
+        errorDetails: error.details,
+        errorHint: error.hint
       });
       // Ne pas bloquer la génération du snapshot si le design2D n'est pas trouvé
       design2D = undefined;
     }
   } else {
-    console.warn('⚠️ Aucun design2DId trouvé dans builderData');
+    console.warn('⚠️ Aucun design2DId trouvé dans builderData:', {
+      hasBuilderData: !!builderData,
+      builderDataKeys: builderData ? Object.keys(builderData) : [],
+      hasDefaultState: !!builderData.defaultState,
+      defaultStateKeys: builderData.defaultState ? Object.keys(builderData.defaultState) : [],
+      hasCustomizationModules: !!builderData.customizationModules,
+      customizationModulesCount: builderData.customizationModules?.length || 0
+    });
   }
   
   console.log('📸 Snapshot résolu:', {
     hasModel3D: !!model3D,
     hasDesign2D: !!design2D,
     design2DUrl: design2D?.url,
-    design2DId: design2DId
+    design2DId: design2DId,
+    snapshotWillIncludeDesign2D: !!design2D
   });
 
   const snapshot: Snapshot = {
