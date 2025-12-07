@@ -3177,9 +3177,21 @@ export default function ConfiguratorViewer({
     }
   }, [customizationModules, activeCustomizerTab]);
   
-  // Initialiser selectedDesign2DId depuis la configuration
+  // Initialiser selectedDesign2DId depuis la configuration ou le snapshot
   useEffect(() => {
-    // Attendre que designs2D soit chargé avant d'initialiser
+    // NOUVEAU SYSTÈME : Utiliser le design du snapshot directement
+    if (snapshot?.design2D?.url) {
+      console.log('📸 Initialisation du design2D depuis le snapshot:', snapshot.design2D.url);
+      setSelectedDesign2DId('snapshot-design');
+      selectDesign({ 
+        id: 'snapshot-design', 
+        svgUrl: snapshot.design2D.url,
+        model_type: snapshot.design2D.model_type
+      });
+      return;
+    }
+    
+    // ANCIEN SYSTÈME : Attendre que designs2D soit chargé
     if (designs2D.length === 0) {
       console.log('⏳ En attente du chargement des designs...');
       return;
@@ -3203,7 +3215,9 @@ export default function ConfiguratorViewer({
       }
     } else {
       // Sinon, chercher dans le module design
-      const designModule = customizationModules.find((m: any) => m.contentType === 'designs-2d');
+      const designModule = customizationModules.find((m: any) => 
+        (m.contentType === 'designs-2d' || m.type === 'designs-2d')
+      );
       if (designModule?.selectedItems?.design2DId) {
         console.log('🔍 Design trouvé dans le module:', designModule.selectedItems.design2DId);
         setSelectedDesign2DId(designModule.selectedItems.design2DId);
@@ -3218,7 +3232,7 @@ export default function ConfiguratorViewer({
         console.log('ℹ️ Aucun design2DId trouvé dans la configuration');
       }
     }
-  }, [productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign, customizationModules]);
+  }, [snapshot, productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign, customizationModules]);
   
   // Log pour déboguer les modules et leurs selectedItems
   useEffect(() => {
