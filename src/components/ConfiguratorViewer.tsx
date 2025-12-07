@@ -2793,7 +2793,7 @@ function Sidebar({
         </div>
       </div>
     </div>
-  );
+  ) : null;
 
   // La sidebar droite affiche seulement le contenu basé sur activeTab
   // Les onglets sont maintenant dans la sidebar gauche (gérés par ConfiguratorViewer)
