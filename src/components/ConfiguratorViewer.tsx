@@ -1295,6 +1295,7 @@ function Viewer3D({
   textZones,
   onTextPlaced,
   viewerSettings,
+  cameraSettings,
 }: { 
   designTexture: string | null; 
   colors: Record<string, string>;
@@ -1583,9 +1584,7 @@ function Viewer3D({
   const fontSizeSliderMin = 60;
   const fontSizeSliderMax = 750;
 
-  // Paramètres de caméra depuis le snapshot ou valeurs par défaut
-  // Note: snapshot est défini plus haut (ligne 2984), après useProductConfig
-  const cameraSettings = snapshot?.cameraSettings;
+  // Paramètres de caméra depuis les props ou valeurs par défaut
   const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 18 : 10);
   const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, initialZoom];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
@@ -5458,6 +5457,7 @@ export default function ConfiguratorViewer({
           textZones={textZones}
           onTextPlaced={onTextPlaced}
           viewerSettings={snapshot?.viewerSettings}
+          cameraSettings={snapshot?.cameraSettings}
         />
       </div>
       
