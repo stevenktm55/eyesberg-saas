@@ -759,16 +759,30 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
     return [];
   }
 
-  // Récupérer tous les fontGroups avec leurs fonts (via la relation)
-  const { data: fontGroups, error } = await supabaseAdmin
+  // Récupérer tous les fontGroups
+  // Essayer d'abord avec la relation, puis sans si ça échoue
+  let { data: fontGroups, error } = await supabaseAdmin
     .from('font_groups')
-    .select(`
-      *,
-      fonts_in_group (
-        font_id
-      )
-    `)
+    .select('*')
     .in('id', Array.from(fontGroupIds));
+  
+  // Si la requête simple fonctionne, essayer d'ajouter la relation
+  if (!error && fontGroups) {
+    // Essayer avec la relation si disponible
+    const { data: fontGroupsWithRelation } = await supabaseAdmin
+      .from('font_groups')
+      .select(`
+        *,
+        fonts_in_group (
+          font_id
+        )
+      `)
+      .in('id', Array.from(fontGroupIds));
+    
+    if (fontGroupsWithRelation && !fontGroupsWithRelation.some((g: any) => g.error)) {
+      fontGroups = fontGroupsWithRelation;
+    }
+  }
 
   if (error || !fontGroups) {
     console.warn('⚠️ Aucun fontGroup trouvé:', error?.message);
