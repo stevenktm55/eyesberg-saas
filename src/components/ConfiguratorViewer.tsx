@@ -2893,11 +2893,10 @@ function Sidebar({
           </div>
         )}
         </div>
-      </div>
       
       {/* Modal de sélection de zone */}
       {zoneModal}
-    </div>
+      </div>
   );
 }
 
