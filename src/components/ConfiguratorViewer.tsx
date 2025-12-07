@@ -1620,7 +1620,7 @@ function Viewer3D({
                 url={modelUrl} 
                 color="#ffffff"
                 modelId={modelId || undefined}
-                designTexture={selectedDesign?.svgUrl || (designTexture || undefined)}
+                designTexture={designTexture || undefined}
                 textureMaps={textureMaps || undefined}
                 materialMaps={materialMaps || undefined}
                 colors={colors}
@@ -3398,10 +3398,37 @@ export default function ConfiguratorViewer({
   }, []);
   
   // Design texture : depuis le snapshot si disponible, sinon depuis selectedDesign ou configuration
-  const designTexture = snapshot?.design2D?.url || selectedDesign?.svgUrl || (productConfig?.design2DId ? (() => {
-    const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
-    return design ? (design.svg_url || design.svgUrl) : null;
-  })() : null);
+  const designTexture = useMemo(() => {
+    // Priorité 1: snapshot.design2D.url (direct depuis le snapshot)
+    if (snapshot?.design2D?.url) {
+      return snapshot.design2D.url;
+    }
+    // Priorité 2: selectedDesign.svgUrl (design sélectionné)
+    if (selectedDesign?.svgUrl) {
+      return selectedDesign.svgUrl;
+    }
+    // Priorité 3: productConfig.design2DId (depuis la configuration)
+    if (productConfig?.design2DId && designs2D.length > 0) {
+      const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
+      if (design) {
+        return design.svg_url || design.svgUrl || null;
+      }
+    }
+    return null;
+  }, [snapshot?.design2D?.url, selectedDesign?.svgUrl, productConfig?.design2DId, designs2D]);
+  
+  // Log pour déboguer designTexture
+  useEffect(() => {
+    if (snapshot) {
+      console.log('🎨 designTexture calculé:', {
+        hasSnapshot: !!snapshot,
+        hasDesign2D: !!snapshot.design2D,
+        design2DUrl: snapshot.design2D?.url,
+        selectedDesignSvgUrl: selectedDesign?.svgUrl,
+        finalDesignTexture: designTexture
+      });
+    }
+  }, [snapshot, designTexture, selectedDesign]);
   
   
   // Config model URL (URL du modèle depuis la configuration)
