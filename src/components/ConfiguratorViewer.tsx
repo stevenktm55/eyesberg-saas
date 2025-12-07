@@ -4743,7 +4743,18 @@ export default function ConfiguratorViewer({
                 const visibleDesigns = Array.isArray(allowedIds) && allowedIds.length > 0
                   ? designs2D.filter((d: any) => allowedIds.includes(d.id))
                   : designs2D;
-                const selectedDesignId = activeModule.selectedItems?.design2DId;
+                const selectedDesignId = activeModule.selectedItems?.design2DId || productConfig?.design2DId;
+                
+                // Si les designs ne sont pas encore chargés, afficher un message d'attente
+                if (designs2D.length === 0) {
+                  return (
+                    <div>
+                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        Chargement des designs...
+                      </p>
+                    </div>
+                  );
+                }
                 
                 return (
                   <div>

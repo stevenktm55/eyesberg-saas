@@ -46,8 +46,18 @@ export async function GET(request: Request) {
     
     let { data, error } = await query;
 
+    // Si erreur, logger les détails et réessayer sans filtre
+    if (error) {
+      console.error('[API/designs] Erreur première tentative:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+    }
+
     // Si erreur liée à la colonne active ou autre, réessayer sans filtre
-    if (error && (error.code === '42703' || error.message?.includes('active') || error.code === '42P01')) {
+    if (error && (error.code === '42703' || error.message?.includes('active') || error.code === '42P01' || error.code === '42501')) {
       console.warn('[API/designs] Erreur avec colonne active, réessai sans filtre');
       const retryQuery = supabaseAdmin
         .from('designs')
