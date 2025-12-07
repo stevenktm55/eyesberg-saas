@@ -423,10 +423,21 @@ async function resolveCustomizationModules(
         // Résoudre les designs autorisés
         const allowedIds = module.selectedItems?.design2DIds || module.config?.allowedDesignIds || [];
         if (allowedIds.length > 0) {
-          const { data: designs } = await supabaseAdmin
-            .from('designs')
+          // Essayer d'abord designs_2d, puis designs en fallback
+          let { data: designs, error: designsError } = await supabaseAdmin
+            .from('designs_2d')
             .select('id, name, svg_url, thumbnail_url')
             .in('id', allowedIds);
+          
+          // Si designs_2d n'existe pas, essayer designs
+          if (designsError && designsError.code === 'PGRST205') {
+            console.log('⚠️ Table designs_2d non trouvée pour allowedDesigns, essai avec designs');
+            const result = await supabaseAdmin
+              .from('designs')
+              .select('id, name, svg_url, thumbnail_url')
+              .in('id', allowedIds);
+            designs = result.data;
+          }
 
           if (designs) {
             resolved.allowedDesigns = designs.map((design: any) => ({
