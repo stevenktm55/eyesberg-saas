@@ -3026,6 +3026,7 @@ export default function ConfiguratorViewer({
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   const [showTextZoneSelector, setShowTextZoneSelector] = useState<{textId: string | null, view?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'} | null>(null);
+  const [textZoneInputs, setTextZoneInputs] = useState<Record<string, string>>({});
   
   // Utiliser UNIQUEMENT les données du snapshot - AUCUN appel API
   // Note: snapshot est déjà défini plus haut (ligne 2984)
@@ -5354,51 +5355,105 @@ export default function ConfiguratorViewer({
                             Sélectionner une zone de texte
                           </h3>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
-                            {textZones.map((zone: any) => (
-                              <button
-                                key={zone.id}
-                                onClick={() => {
-                                  const position: [number, number, number] = zone.position || [0.5, 0.5, 0];
-                                  const categories = zone.categories || [];
-                                  let category: 'nom' | 'numero' | 'text' = 'text';
-                                  if (categories.includes('nom')) {
-                                    category = 'nom';
-                                  } else if (categories.includes('numero')) {
-                                    category = 'numero';
-                                  }
-                                  addText(
-                                    zone.default_text || '',
-                                    position,
-                                    undefined,
-                                    category,
-                                    zone.default_font_size,
-                                    zone.zone_category,
-                                    zone.default_rotation
-                                  );
-                                  setShowTextZoneSelector(null);
-                                }}
-                                style={{
-                                  padding: '16px',
-                                  backgroundColor: '#f3f4f6',
-                                  borderRadius: '8px',
-                                  border: '1px solid #e5e7eb',
-                                  cursor: 'pointer',
-                                  fontSize: '14px',
-                                  fontWeight: '500',
-                                  color: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)',
-                                  transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#e5e7eb';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                }}
-                              >
-                                {zone.name || `Zone ${zone.zone_category || 'texte'}`}
-                              </button>
-                            ))}
+                            {textZones.map((zone: any) => {
+                              const textInput = textZoneInputs[zone.id] ?? (zone.default_text || '');
+                              return (
+                                <div
+                                  key={zone.id}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px',
+                                    padding: '12px',
+                                    backgroundColor: '#f3f4f6',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e5e7eb'
+                                  }}
+                                >
+                                  {/* Vignette de la zone */}
+                                  {zone.thumbnail_url && (
+                                    <img
+                                      src={zone.thumbnail_url}
+                                      alt={zone.name}
+                                      style={{
+                                        width: '100%',
+                                        height: '120px',
+                                        objectFit: 'cover',
+                                        borderRadius: '6px',
+                                        marginBottom: '8px'
+                                      }}
+                                    />
+                                  )}
+                                  {/* Nom de la zone */}
+                                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                    {zone.name || `Zone ${zone.zone_category || 'texte'}`}
+                                  </div>
+                                  {/* Input pour le texte */}
+                                  <input
+                                    type="text"
+                                    value={textInput}
+                                    onChange={(e) => {
+                                      setTextZoneInputs(prev => ({
+                                        ...prev,
+                                        [zone.id]: e.target.value
+                                      }));
+                                    }}
+                                    placeholder="Entrez votre texte..."
+                                    style={{
+                                      padding: '8px 12px',
+                                      fontSize: '14px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '6px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      width: '100%'
+                                    }}
+                                  />
+                                  {/* Bouton pour ajouter */}
+                                  <button
+                                    onClick={() => {
+                                      const position: [number, number, number] = zone.position || [0.5, 0.5, 0];
+                                      const categories = zone.categories || [];
+                                      let category: 'nom' | 'numero' | 'text' = 'text';
+                                      if (categories.includes('nom')) {
+                                        category = 'nom';
+                                      } else if (categories.includes('numero')) {
+                                        category = 'numero';
+                                      }
+                                      addText(
+                                        textInput || zone.default_text || '',
+                                        position,
+                                        undefined,
+                                        category,
+                                        zone.default_font_size,
+                                        zone.zone_category,
+                                        zone.default_rotation
+                                      );
+                                      setShowTextZoneSelector(null);
+                                    }}
+                                    style={{
+                                      padding: '8px 16px',
+                                      backgroundColor: '#3b82f6',
+                                      color: '#ffffff',
+                                      borderRadius: '6px',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      fontSize: '14px',
+                                      fontWeight: '500',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      transition: 'background-color 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#2563eb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#3b82f6';
+                                    }}
+                                  >
+                                    Ajouter
+                                  </button>
+                                </div>
+                              );
+                            })}
                           </div>
                           <button
                             onClick={() => setShowTextZoneSelector(null)}

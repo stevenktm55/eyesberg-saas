@@ -980,20 +980,29 @@ function resolveCameraSettings(settings: any): Snapshot['cameraSettings'] {
  * Résout les paramètres du viewer 3D (lumières, environnement)
  */
 function resolveViewerSettings(settings: any): Snapshot['viewerSettings'] {
-  if (!settings || !settings.viewer) {
+  if (!settings) {
     return undefined;
   }
   
-  const viewer = settings.viewer;
+  // Chercher viewer dans settings.viewer ou directement dans settings
+  const viewer = settings.viewer || settings;
+  
+  if (!viewer || (!viewer.lights && !viewer.environment)) {
+    return undefined;
+  }
+  
   return {
     lights: viewer.lights ? {
       ambientLight: viewer.lights.ambientLight ? {
-        intensity: viewer.lights.ambientLight.intensity
+        intensity: viewer.lights.ambientLight.intensity ?? 0.5
       } : undefined,
-      directionalLights: viewer.lights.directionalLights || undefined
+      directionalLights: (viewer.lights.directionalLights || []).map((light: any) => ({
+        position: light.position || [10, 10, 5],
+        intensity: light.intensity ?? 1
+      }))
     } : undefined,
     environment: viewer.environment ? {
-      preset: viewer.environment.preset
+      preset: viewer.environment.preset || "city"
     } : undefined
   };
 }
