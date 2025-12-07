@@ -6797,6 +6797,15 @@ export default function ConfiguratorViewer({
                   
                   const buttonLabel = activeModule.addLogoButtonLabel || activeModule.config?.addLogoButtonLabel || 'Ajouter un logo';
                   
+                  // Fonction pour ouvrir le modal de bibliothèque de logos
+                  const handleOpenLogoLibrary = () => {
+                    console.log('🖼️ handleOpenLogoLibrary appelé, showLogoLibrary avant:', showLogoLibrary);
+                    setShowLogoLibrary(true);
+                    setSelectedLogoForZone(null);
+                    setSelectedLogoForVariants(null);
+                    console.log('🖼️ showLogoLibrary après:', true);
+                  };
+                  
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {/* Boutons de vue en haut */}
@@ -6865,12 +6874,7 @@ export default function ConfiguratorViewer({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('🖼️ Clic sur "Ajouter un logo", showLogoLibrary avant:', showLogoLibrary);
-                          // NOUVEAU FLUX : Ouvrir la bibliothèque de logos d'abord
-                          setShowLogoLibrary(true);
-                          setSelectedLogoForZone(null);
-                          setSelectedLogoForVariants(null);
-                          console.log('🖼️ showLogoLibrary après:', true);
+                          handleOpenLogoLibrary();
                         }}
                         style={{
                           width: '100%',
