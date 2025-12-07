@@ -3002,6 +3002,9 @@ export default function ConfiguratorViewer({
   // Charger la configuration complète du produit
   const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId);
   
+  // Extraire le snapshot AVANT les useEffect qui l'utilisent
+  const snapshot = productConfig?.snapshot;
+  
   // Initialiser tous les hooks nécessaires
   const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
   const { fonts, isLoading: isLoadingFonts } = useFonts(finalShopDomain);
@@ -3127,9 +3130,6 @@ export default function ConfiguratorViewer({
       loadLogoLibraries();
     }
   }, [finalShopDomain]);
-  
-  // Si on a un snapshot, utiliser directement les données du snapshot (pas de requêtes DB)
-  const snapshot = productConfig?.snapshot;
   
   // Charger le modèle 3D : depuis le snapshot si disponible, sinon depuis useAutoLoadModel
   const configModel3DId = snapshot ? null : (productConfig?.model3DId || null);
