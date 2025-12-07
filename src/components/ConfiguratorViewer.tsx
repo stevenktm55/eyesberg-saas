@@ -3531,7 +3531,8 @@ export default function ConfiguratorViewer({
   }, [modelId, customizationModules]);
   
   // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
-  const shouldShowLeftSidebar = modelId && customizationModules.length > 0;
+  // La sidebar doit toujours être visible si des modules existent (pas de dépendance à modelId)
+  const shouldShowLeftSidebar = customizationModules.length > 0;
   
   // Log pour vérifier le rendu de la sidebar
   useEffect(() => {
