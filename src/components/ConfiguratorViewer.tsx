@@ -2444,11 +2444,26 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             
             const snapshot = productData.snapshot;
             
-            // Extraire les modules depuis le snapshot
-            const modules = snapshot.customizationModules || [];
+            // Extraire les modules depuis le snapshot et les convertir au format attendu
+            const rawModules = snapshot.customizationModules || [];
+            const modules = rawModules.map((m: any) => ({
+              ...m,
+              // Mapper type -> contentType pour compatibilité
+              contentType: m.type || m.contentType,
+              // Mapper label -> tabName pour compatibilité
+              tabName: m.label || m.tabName,
+              // Garder les propriétés originales aussi
+              type: m.type,
+              label: m.label,
+              // Mapper selectedItems depuis defaultState si nécessaire
+              selectedItems: m.selectedItems || {
+                design2DId: snapshot.defaultState?.design2DId,
+                colorId: snapshot.defaultState?.colorId,
+              }
+            }));
             
             // Trouver le module logo
-            const logoModule = modules.find((m: any) => m.type === 'logos');
+            const logoModule = modules.find((m: any) => (m.type === 'logos' || m.contentType === 'logos'));
             const logoModuleConfig = logoModule ? {
               addLogoButtonLabel: logoModule.config?.addLogoButtonLabel,
               logoPlacementMode: logoModule.config?.logoPlacementMode,
@@ -2461,7 +2476,7 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             } : null;
             
             // Trouver le module design
-            const designModule = modules.find((m: any) => m.type === 'designs-2d');
+            const designModule = modules.find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
             const designModuleConfig = designModule ? {
               allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
             } : null;
