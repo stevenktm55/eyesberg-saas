@@ -212,8 +212,8 @@ export async function generateSnapshot(
     model3D: model3D,
     design2D: design2D,
     customizationModules: await resolveCustomizationModules(builderData.customizationModules || []),
-    textZones: textZones.length > 0 ? textZones : undefined,
-    fonts: fonts.length > 0 ? fonts : undefined,
+    textZones: (textZones && textZones.length > 0) ? textZones : undefined,
+    fonts: (fonts && fonts.length > 0) ? fonts : undefined,
     defaultState: resolveDefaultState(builderData),
     cameraSettings: resolveCameraSettings(builderData.settings || {})
   };
@@ -224,10 +224,10 @@ export async function generateSnapshot(
     hasDesign2D: !!snapshot.design2D,
     design2DUrl: snapshot.design2D?.url,
     design2DInSnapshot: snapshot.design2D !== undefined,
-    hasTextZones: textZones.length > 0,
-    textZonesCount: textZones.length,
-    hasFonts: fonts.length > 0,
-    fontsCount: fonts.length,
+    hasTextZones: (textZones && textZones.length > 0),
+    textZonesCount: textZones?.length || 0,
+    hasFonts: (fonts && fonts.length > 0),
+    fontsCount: fonts?.length || 0,
     snapshotKeys: Object.keys(snapshot),
     modulesCount: snapshot.customizationModules.length,
     defaultStateDesign2DId: snapshot.defaultState?.design2DId
