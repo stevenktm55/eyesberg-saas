@@ -3156,8 +3156,15 @@ export default function ConfiguratorViewer({
           if (color) {
             initialColors[colorClass] = color.hex;
           } else {
-            // Si la couleur n'est pas trouvée, utiliser la première couleur disponible
-            if (colorModule.allowedColors.length > 0) {
+            // Si la couleur n'est pas trouvée dans le mapping, utiliser la première couleur disponible pour cette classe
+            // Mais d'abord, essayer de trouver une couleur qui correspond à cette classe
+            const colorForClass = colorModule.allowedColors.find((c: any) => 
+              c.mesh === colorClass || c.label?.toLowerCase().includes(colorClass.toLowerCase())
+            );
+            if (colorForClass) {
+              initialColors[colorClass] = colorForClass.hex;
+            } else if (colorModule.allowedColors.length > 0) {
+              // Fallback: utiliser la première couleur disponible
               initialColors[colorClass] = colorModule.allowedColors[0].hex;
             }
           }
