@@ -3128,90 +3128,11 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot]);
   
-  // Initialiser les couleurs depuis le snapshot
+  // Initialiser les couleurs depuis le snapshot - AUCUNE LOGIQUE, juste exécuter le snapshot
   useEffect(() => {
-    if (!snapshot) {
-      return;
-    }
-    
-    const colorModule = snapshot.customizationModules.find((m: any) => 
-      (m.type === 'colors' || m.contentType === 'colors')
-    );
-    
-    if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
-      // Construire l'objet colors depuis allowedColors
-      const initialColors: Record<string, string> = {};
-      
-      // Si le design2D a des color_mappings, les utiliser pour mapper les couleurs aux meshes
-      const design2D = snapshot.design2D;
-      const colorMappings = design2D?.color_mappings || {};
-      
-      // Si on a des color_mappings, utiliser les couleurs mappées
-      if (Object.keys(colorMappings).length > 0) {
-        Object.keys(colorMappings).forEach((colorClass) => {
-          const colorId = colorMappings[colorClass];
-          const color = colorModule.allowedColors.find((c: any) => 
-            c.id === colorId || c.hex === colorId
-          );
-          if (color) {
-            initialColors[colorClass] = color.hex;
-          } else {
-            // Si la couleur n'est pas trouvée dans le mapping, utiliser la première couleur disponible pour cette classe
-            // Mais d'abord, essayer de trouver une couleur qui correspond à cette classe
-            const colorForClass = colorModule.allowedColors.find((c: any) => 
-              c.mesh === colorClass || c.label?.toLowerCase().includes(colorClass.toLowerCase())
-            );
-            if (colorForClass) {
-              initialColors[colorClass] = colorForClass.hex;
-            } else if (colorModule.allowedColors.length > 0) {
-              // Fallback: utiliser la première couleur disponible
-              initialColors[colorClass] = colorModule.allowedColors[0].hex;
-            }
-          }
-        });
-      } else {
-        // Sinon, utiliser les meshes des couleurs directement
-        colorModule.allowedColors.forEach((color: any) => {
-          const mesh = color.mesh || 'primary';
-          const hex = color.hex || '#000000';
-          // Ne pas écraser si déjà défini
-          if (!initialColors[mesh]) {
-            initialColors[mesh] = hex;
-          }
-        });
-      }
-      
-      // Si defaultState a des couleurs, les utiliser pour écraser
-      if (snapshot.defaultState?.colorId) {
-        const defaultColor = colorModule.allowedColors.find((c: any) => 
-          c.hex === snapshot.defaultState.colorId || c.id === snapshot.defaultState.colorId
-        );
-        if (defaultColor) {
-          // Trouver le mesh correspondant dans colorMappings ou utiliser le mesh de la couleur
-          const mesh = defaultColor.mesh || 'primary';
-          // Si on a des colorMappings, trouver la classe correspondante
-          if (Object.keys(colorMappings).length > 0) {
-            const colorClass = Object.keys(colorMappings).find(c => 
-              colorMappings[c] === defaultColor.id || colorMappings[c] === defaultColor.hex
-            ) || mesh;
-            initialColors[colorClass] = defaultColor.hex;
-          } else {
-            initialColors[mesh] = defaultColor.hex;
-          }
-        }
-      }
-      
-      console.log('🎨 Couleurs initiales calculées:', {
-        initialColors,
-        hasColorMappings: Object.keys(colorMappings).length > 0,
-        colorMappings,
-        allowedColorsCount: colorModule.allowedColors.length
-      });
-      
-      // Appliquer les couleurs initiales
-      if (Object.keys(initialColors).length > 0) {
-        replaceColors(initialColors);
-      }
+    if (snapshot?.resolvedColors) {
+      replaceColors(snapshot.resolvedColors);
+      console.log('🎨 Couleurs appliquées depuis snapshot.resolvedColors:', snapshot.resolvedColors);
     }
   }, [snapshot, replaceColors]);
   
