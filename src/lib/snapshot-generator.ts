@@ -838,19 +838,24 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
     .select('*')
     .in('id', Array.from(fontIds));
 
-  if (fontsError || !fonts) {
-    console.warn('⚠️ Aucune police trouvée:', fontsError?.message);
+  if (fontsError) {
+    console.warn('⚠️ Erreur lors de la récupération des fonts:', fontsError.message);
+    return [];
+  }
+
+  if (!fonts || fonts.length === 0) {
+    console.warn('⚠️ Aucune font trouvée pour les fontGroups:', Array.from(fontGroupIds));
     return [];
   }
   
-  console.log(`✅ ${fonts.length} police(s) résolue(s) depuis les fontGroups`);
+  console.log(`✅ ${fonts.length} font(s) trouvée(s) pour ${fontGroupIds.size} fontGroup(s)`);
 
   return fonts.map((font: any) => ({
     id: font.id,
     name: font.name,
     display_name: font.display_name || font.name,
-    font_url: font.font_url || font.fontUrl,
-    format: font.format || 'woff2',
+    font_url: font.font_url || font.file_url || font.fontUrl,
+    format: font.format || font.file_type || 'woff2',
     category: font.category
   }));
 }
