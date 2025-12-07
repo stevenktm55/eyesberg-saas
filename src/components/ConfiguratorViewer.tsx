@@ -3264,8 +3264,9 @@ export default function ConfiguratorViewer({
   return (
     <div className="h-full flex">
       {/* Sidebar gauche avec icônes des modules */}
-      {shouldShowLeftSidebar && (
+      {shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
+          {console.log('🎨 RENDU Sidebar gauche avec', customizationModules.length, 'modules')}
           {customizationModules.map((module: any) => (
             <button
               key={module.id}
@@ -3298,6 +3299,10 @@ export default function ConfiguratorViewer({
               )}
             </button>
           ))}
+        </div>
+      ) : (
+        <div className="w-0" data-testid="left-sidebar-hidden">
+          {console.log('❌ Sidebar gauche masquée - shouldShowLeftSidebar:', shouldShowLeftSidebar, 'modelId:', modelId, 'modules:', customizationModules.length)}
         </div>
       )}
       
