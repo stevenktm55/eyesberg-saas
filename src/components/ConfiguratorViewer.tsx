@@ -5893,8 +5893,13 @@ export default function ConfiguratorViewer({
                                           onChange={(e) => {
                                             const pxValue = parseFloat(e.target.value);
                                             
+                                            console.log('📏 onChange - valeur brute:', pxValue, 'sliderMin:', sliderMin, 'sliderMax:', sliderMax);
+                                            
                                             // Vérifier que la valeur est valide
-                                            if (!Number.isFinite(pxValue)) return;
+                                            if (!Number.isFinite(pxValue)) {
+                                              console.warn('📏 onChange - valeur invalide:', pxValue);
+                                              return;
+                                            }
                                             
                                             // Clamper strictement entre min et max
                                             let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
@@ -5903,17 +5908,31 @@ export default function ConfiguratorViewer({
                                             clampedValue = Math.round(clampedValue);
                                             
                                             // Double vérification après arrondi
-                                            if (clampedValue < sliderMin) clampedValue = sliderMin;
-                                            if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            if (clampedValue < sliderMin) {
+                                              console.warn('📏 onChange - valeur trop basse, correction:', clampedValue, '->', sliderMin);
+                                              clampedValue = sliderMin;
+                                            }
+                                            if (clampedValue > sliderMax) {
+                                              console.warn('📏 onChange - valeur trop haute, correction:', clampedValue, '->', sliderMax);
+                                              clampedValue = sliderMax;
+                                            }
+                                            
+                                            console.log('📏 onChange - valeur finale:', clampedValue);
                                             
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
                                           onInput={(e) => {
                                             // Utiliser onInput pour une mise à jour plus fluide pendant le glissement
-                                            const pxValue = parseFloat((e.target as HTMLInputElement).value);
+                                            const inputElement = e.target as HTMLInputElement;
+                                            const pxValue = parseFloat(inputElement.value);
+                                            
+                                            console.log('📏 onInput - valeur brute:', pxValue, 'sliderMin:', sliderMin, 'sliderMax:', sliderMax);
                                             
                                             // Vérifier que la valeur est valide
-                                            if (!Number.isFinite(pxValue)) return;
+                                            if (!Number.isFinite(pxValue)) {
+                                              console.warn('📏 onInput - valeur invalide:', pxValue);
+                                              return;
+                                            }
                                             
                                             // Clamper strictement entre min et max
                                             let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
@@ -5922,8 +5941,16 @@ export default function ConfiguratorViewer({
                                             clampedValue = Math.round(clampedValue);
                                             
                                             // Double vérification après arrondi
-                                            if (clampedValue < sliderMin) clampedValue = sliderMin;
-                                            if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            if (clampedValue < sliderMin) {
+                                              console.warn('📏 onInput - valeur trop basse, correction:', clampedValue, '->', sliderMin);
+                                              clampedValue = sliderMin;
+                                            }
+                                            if (clampedValue > sliderMax) {
+                                              console.warn('📏 onInput - valeur trop haute, correction:', clampedValue, '->', sliderMax);
+                                              clampedValue = sliderMax;
+                                            }
+                                            
+                                            console.log('📏 onInput - valeur finale:', clampedValue);
                                             
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
