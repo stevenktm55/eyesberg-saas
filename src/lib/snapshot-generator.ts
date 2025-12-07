@@ -839,25 +839,26 @@ function resolveColors(
     return resolvedColors;
   }
   
+  const allowedColors = colorModule.allowedColors; // Type guard pour éviter les erreurs
   const colorMappings = design2D?.color_mappings || {};
   
   // Si on a des color_mappings, les utiliser pour mapper les couleurs aux meshes
   if (Object.keys(colorMappings).length > 0) {
     Object.keys(colorMappings).forEach((colorClass) => {
       const colorId = colorMappings[colorClass];
-      const color = colorModule.allowedColors.find((c: any) => 
+      const color = allowedColors.find((c: any) => 
         c.id === colorId || c.hex === colorId
       );
       if (color) {
         resolvedColors[colorClass] = color.hex;
-      } else if (colorModule.allowedColors.length > 0) {
+      } else if (allowedColors.length > 0) {
         // Fallback: utiliser la première couleur disponible
-        resolvedColors[colorClass] = colorModule.allowedColors[0].hex;
+        resolvedColors[colorClass] = allowedColors[0].hex;
       }
     });
   } else {
     // Sinon, utiliser les meshes des couleurs directement
-    colorModule.allowedColors.forEach((color: any) => {
+    allowedColors.forEach((color: any) => {
       const mesh = color.mesh || 'primary';
       if (!resolvedColors[mesh]) {
         resolvedColors[mesh] = color.hex;
@@ -869,7 +870,7 @@ function resolveColors(
     resolvedColors,
     hasColorMappings: Object.keys(colorMappings).length > 0,
     colorMappings,
-    allowedColorsCount: colorModule.allowedColors.length
+    allowedColorsCount: allowedColors.length
   });
   
   return resolvedColors;
