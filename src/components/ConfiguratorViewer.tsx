@@ -4928,14 +4928,6 @@ export default function ConfiguratorViewer({
                   return true;
                 });
                 
-                // Labels des vues depuis le module ou par défaut
-                const viewLabels = {
-                  'front': activeModule.logoViewFrontLabel || 'Torse',
-                  'back': activeModule.logoViewBackLabel || 'Dos',
-                  'left': activeModule.logoViewLeftLabel || 'Bras gauche',
-                  'right': activeModule.logoViewRightLabel || 'Bras droit'
-                };
-                
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {/* Boutons de vue en haut - uniquement si mode zones */}
