@@ -698,15 +698,27 @@ async function resolveCustomizationModules(
         }
         
         // Résoudre les palettes de couleurs pour le texte (couleur et contour)
-        const textColorPaletteId = module.config?.textColorPaletteId;
-        const textStrokePaletteId = module.config?.textStrokePaletteId;
+        // Chercher dans module.config ET module directement (pour compatibilité)
+        const textColorPaletteId = module.config?.textColorPaletteId || (module as any).textColorPaletteId;
+        const textStrokePaletteId = module.config?.textStrokePaletteId || (module as any).textStrokePaletteId;
+        
+        console.log('🎨 Résolution des palettes texte:', {
+          textColorPaletteId,
+          textStrokePaletteId,
+          hasConfig: !!module.config,
+          configKeys: module.config ? Object.keys(module.config) : []
+        });
         
         if (textColorPaletteId) {
-          const { data: textColorPalette } = await supabaseAdmin
+          const { data: textColorPalette, error: textColorError } = await supabaseAdmin
             .from('color_palettes')
             .select('*')
             .eq('id', textColorPaletteId)
             .single();
+          
+          if (textColorError) {
+            console.warn('⚠️ Erreur lors de la récupération de textColorPalette:', textColorError);
+          }
           
           if (textColorPalette) {
             resolved.config = {
@@ -717,15 +729,26 @@ async function resolveCustomizationModules(
                 colors: textColorPalette.colors || []
               }
             };
+            console.log('✅ Palette couleur texte résolue:', {
+              id: textColorPalette.id,
+              name: textColorPalette.name,
+              colorsCount: (textColorPalette.colors || []).length
+            });
+          } else {
+            console.warn('⚠️ Palette couleur texte non trouvée pour ID:', textColorPaletteId);
           }
         }
         
         if (textStrokePaletteId) {
-          const { data: textStrokePalette } = await supabaseAdmin
+          const { data: textStrokePalette, error: textStrokeError } = await supabaseAdmin
             .from('color_palettes')
             .select('*')
             .eq('id', textStrokePaletteId)
             .single();
+          
+          if (textStrokeError) {
+            console.warn('⚠️ Erreur lors de la récupération de textStrokePalette:', textStrokeError);
+          }
           
           if (textStrokePalette) {
             resolved.config = {
@@ -736,25 +759,40 @@ async function resolveCustomizationModules(
                 colors: textStrokePalette.colors || []
               }
             };
+            console.log('✅ Palette contour texte résolue:', {
+              id: textStrokePalette.id,
+              name: textStrokePalette.name,
+              colorsCount: (textStrokePalette.colors || []).length
+            });
+          } else {
+            console.warn('⚠️ Palette contour texte non trouvée pour ID:', textStrokePaletteId);
           }
         }
         
-        // Préserver tous les autres champs de config du module texte
+        // Préserver TOUS les champs de config du module texte (y compris textConstraints)
+        // textConstraints doit contenir: strokeMinWidthPx, strokeMaxWidthPx, baseStrokeWidthPx
         resolved.config = {
           ...resolved.config,
-          ...module.config,
+          ...module.config, // Préserver toute la config existante
           textColorPaletteId: textColorPaletteId,
           textStrokePaletteId: textStrokePaletteId,
-          textEnabledDeformations: module.config?.textEnabledDeformations,
-          textConstraints: module.config?.textConstraints,
-          enableTextContent: module.config?.enableTextContent,
-          enableTextFont: module.config?.enableTextFont,
-          enableTextColor: module.config?.enableTextColor,
-          enableTextStroke: module.config?.enableTextStroke,
-          enableTextDeformation: module.config?.enableTextDeformation,
-          textPlacementMode: module.config?.textPlacementMode,
-          addTextButtonLabel: module.config?.addTextButtonLabel
+          textEnabledDeformations: module.config?.textEnabledDeformations || (module as any).textEnabledDeformations,
+          textConstraints: module.config?.textConstraints || (module as any).textConstraints, // IMPORTANT: Préserver textConstraints
+          enableTextContent: module.config?.enableTextContent !== false,
+          enableTextFont: module.config?.enableTextFont !== false,
+          enableTextColor: module.config?.enableTextColor !== false,
+          enableTextStroke: module.config?.enableTextStroke !== false,
+          enableTextDeformation: module.config?.enableTextDeformation !== false,
+          textPlacementMode: module.config?.textPlacementMode || (module as any).textPlacementMode,
+          addTextButtonLabel: module.config?.addTextButtonLabel || (module as any).addTextButtonLabel
         };
+        
+        console.log('📦 Config texte finale dans snapshot:', {
+          hasTextColorPalette: !!resolved.config.textColorPalette,
+          hasTextStrokePalette: !!resolved.config.textStrokePalette,
+          hasTextConstraints: !!resolved.config.textConstraints,
+          textConstraints: resolved.config.textConstraints
+        });
       }
 
       return resolved;
