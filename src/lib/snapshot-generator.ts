@@ -60,12 +60,27 @@ export async function generateSnapshot(
   shopDomain: string,
   shopifyProductId: string
 ): Promise<Snapshot> {
+  console.log('📸 Génération du snapshot avec builderData:', {
+    model3DId: builderData.model3DId,
+    design2DId: builderData.design2DId,
+    modulesCount: builderData.customizationModules?.length || 0
+  });
+
+  const model3D = await resolveModel3D(builderData.model3DId);
+  const design2D = builderData.design2DId ? await resolveDesign2D(builderData.design2DId) : undefined;
+  
+  console.log('📸 Snapshot résolu:', {
+    hasModel3D: !!model3D,
+    hasDesign2D: !!design2D,
+    design2DUrl: design2D?.url
+  });
+
   const snapshot: Snapshot = {
     productId: shopifyProductId,
     version: 'v1',
     publishedAt: new Date().toISOString(),
-    model3D: await resolveModel3D(builderData.model3DId),
-    design2D: builderData.design2DId ? await resolveDesign2D(builderData.design2DId) : undefined,
+    model3D: model3D,
+    design2D: design2D,
     customizationModules: await resolveCustomizationModules(builderData.customizationModules || []),
     defaultState: resolveDefaultState(builderData),
     cameraSettings: resolveCameraSettings(builderData.settings || {})
