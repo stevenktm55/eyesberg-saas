@@ -246,17 +246,29 @@ async function resolveCustomizationModules(
 ): Promise<Snapshot['customizationModules']> {
   const resolvedModules = await Promise.all(
     modules.map(async (module) => {
+      // Déterminer le type de module (peut être contentType ou type)
+      const moduleType = module.contentType || module.type || 'unknown';
+      
       const resolved: Snapshot['customizationModules'][0] = {
         id: module.id,
-        type: module.contentType || 'unknown',
+        type: moduleType,
         label: module.tabName || module.label || '',
         icon: module.icon,
         iconUrl: module.iconUrl,
         config: module.config || {}
       };
 
+      console.log('📸 Résolution du module:', {
+        id: module.id,
+        contentType: module.contentType,
+        type: module.type,
+        resolvedType: moduleType,
+        hasConfig: !!module.config,
+        hasSelectedItems: !!module.selectedItems
+      });
+
       // Résoudre selon le type de module
-      if (module.contentType === 'colors') {
+      if (moduleType === 'colors') {
         // Résoudre la palette de couleurs
         const paletteId = module.config?.paletteId || module.selectedItems?.paletteId;
         if (paletteId) {
@@ -275,7 +287,7 @@ async function resolveCustomizationModules(
           }
         }
         resolved.default = module.selectedItems?.colorId || module.default;
-      } else if (module.contentType === 'designs-2d') {
+      } else if (moduleType === 'designs-2d') {
         // Résoudre les designs autorisés
         const allowedIds = module.selectedItems?.design2DIds || module.config?.allowedDesignIds || [];
         if (allowedIds.length > 0) {
@@ -293,7 +305,7 @@ async function resolveCustomizationModules(
           }
         }
         resolved.default = module.selectedItems?.design2DId || module.default;
-      } else if (module.contentType === 'logos') {
+      } else if (moduleType === 'logos') {
         // Pour les logos, on garde la config mais on résout les bibliothèques
         const libraryIds = module.config?.logoLibraryIds || [];
         if (libraryIds.length > 0) {
@@ -307,7 +319,7 @@ async function resolveCustomizationModules(
             logoLibraries: libraries || []
           };
         }
-      } else if (module.contentType === 'text') {
+      } else if (moduleType === 'text') {
         // Pour les textes, on garde la config (groupes de polices, etc.)
         const fontGroupIds = module.selectedItems?.fontGroupIds || module.config?.fontGroupIds || [];
         if (fontGroupIds.length > 0) {
