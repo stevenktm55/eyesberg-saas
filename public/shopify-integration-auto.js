@@ -328,8 +328,9 @@
    */
   function createModal() {
     // Vérifier si le modal existe déjà
-    if (document.getElementById('eyesberg-modal')) {
-      return;
+    const existingModal = document.getElementById('eyesberg-modal');
+    if (existingModal) {
+      return existingModal;
     }
 
     const modal = document.createElement('div');
