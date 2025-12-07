@@ -2965,15 +2965,9 @@ export default function ConfiguratorViewer({
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   
-  // Hooks pour les fonctionnalités (textes, logos, couleurs, etc.)
-  // Désactiver les appels API si on utilise le snapshot
-  const textZonesFromAPI = useTextZones(null, finalShopDomain);
-  const fontsFromAPI = useFonts(finalShopDomain);
-  const logosFromAPI = useLogos(null, finalShopDomain);
-  
-  // Utiliser les données du snapshot si disponible, sinon utiliser les APIs
-  const { zones: textZones, isLoading: isLoadingZones } = snapshot ? { zones: [], isLoading: false } : textZonesFromAPI;
-  const { fonts, isLoading: isLoadingFonts } = snapshot ? { fonts: [], isLoading: false } : fontsFromAPI;
+  // Utiliser UNIQUEMENT les données du snapshot - AUCUN appel API
+  const textZones = snapshot?.textZones || [];
+  const fonts = snapshot?.fonts || [];
   
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();

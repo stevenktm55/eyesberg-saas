@@ -40,6 +40,27 @@ export interface Snapshot {
     default?: string;
     config?: any;
   }>;
+  textZones?: Array<{
+    id: string;
+    name: string;
+    categories: string[];
+    zone_category: string;
+    position: [number, number, number];
+    default_text_width?: number;
+    default_text_height?: number;
+    default_logo_width?: number;
+    default_logo_height?: number;
+    thumbnail_url?: string;
+    view?: 'front' | 'back' | 'left' | 'right';
+  }>;
+  fonts?: Array<{
+    id: string;
+    name: string;
+    display_name: string;
+    font_url: string;
+    format: string;
+    category?: string;
+  }>;
   defaultState: Record<string, any>;
   cameraSettings: {
     initialZoom: number;
