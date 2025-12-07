@@ -3075,18 +3075,13 @@ export default function ConfiguratorViewer({
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
         const logo = placedLogos.find(l => l.id === selectedLogoId);
         if (logo) {
-          // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
           if (!logoToReplace && !showLogoLibrary) {
-            console.log('🎯 Logo sélectionné depuis le modèle 3D, ouverture de la bibliothèque:', selectedLogoId);
-            // Ouvrir la bibliothèque pour remplacer le logo
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
           }
         }
       } else {
-        // Logo désélectionné : fermer la bibliothèque si elle était ouverte pour un remplacement
         if (logoToReplace && showLogoLibrary) {
-          console.log('🎯 Logo désélectionné, fermeture de la bibliothèque');
           setShowLogoLibrary(false);
           setLogoToReplace(null);
           setSelectedLogoForVariants(null);
@@ -3408,22 +3403,6 @@ export default function ConfiguratorViewer({
     return design ? (design.svg_url || design.svgUrl) : null;
   })() : null);
   
-  // Log pour déboguer designTexture et les props passées au Viewer3D
-  useEffect(() => {
-    console.log('🎨 designTexture et props Viewer3D:', {
-      designTexture,
-      selectedDesign: selectedDesign?.id,
-      selectedDesignSvgUrl: selectedDesign?.svgUrl,
-      productConfigDesign2DId: productConfig?.design2DId,
-      designs2DCount: designs2D.length,
-      hasTextureMaps: !!textureMaps,
-      textureMapsKeys: textureMaps ? Object.keys(textureMaps) : [],
-      hasMaterialMaps: !!materialMaps,
-      materialMapsKeys: materialMaps ? Object.keys(materialMaps) : [],
-      modelUrl,
-      modelId
-    });
-  }, [designTexture, selectedDesign, productConfig?.design2DId, designs2D, textureMaps, materialMaps, modelUrl, modelId]);
   
   // Config model URL (URL du modèle depuis la configuration)
   const configModelUrl = modelUrl || null;
