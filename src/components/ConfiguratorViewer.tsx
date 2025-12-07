@@ -5714,13 +5714,24 @@ export default function ConfiguratorViewer({
                                       );
                                     }
                                     
-                                    const sliderMin = textConstraints.strokeMinWidthPx;
-                                    const sliderMax = textConstraints.strokeMaxWidthPx;
+                                    // S'assurer que les valeurs sont des nombres valides
+                                    const sliderMin = Number(textConstraints.strokeMinWidthPx);
+                                    const sliderMax = Number(textConstraints.strokeMaxWidthPx);
+                                    
+                                    // Vérifier que min et max sont valides
+                                    if (!Number.isFinite(sliderMin) || !Number.isFinite(sliderMax) || sliderMin >= sliderMax) {
+                                      return (
+                                        <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          Les contraintes de contour sont invalides dans le snapshot.
+                                        </p>
+                                      );
+                                    }
+                                    
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée, ou baseStrokeWidthPx depuis le snapshot
                                     const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                    let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
