@@ -116,7 +116,10 @@ export async function generateSnapshot(
   }
   
   console.log('📸 Génération du snapshot avec builderData:', {
+    builderDataKeys: Object.keys(builderData),
     model3DId: builderData.model3DId,
+    modelId: builderData.modelId,
+    selectedModel3DId: builderData.selectedModel3DId,
     design2DId: design2DId,
     design2DIdSource: builderData.design2DId ? 'root' : 
                       builderData.defaultState?.design2DId ? 'defaultState' : 
@@ -127,10 +130,29 @@ export async function generateSnapshot(
                         (m.type === 'designs-2d' || m.contentType === 'designs-2d')
                       )?.default ? 'modules.default' :
                       'notFound',
-    modulesCount: builderData.customizationModules?.length || 0
+    modulesCount: builderData.customizationModules?.length || 0,
+    hasDefaultState: !!builderData.defaultState
   });
+  
+  // Essayer de trouver model3DId dans différentes propriétés possibles
+  const actualModel3DId = builderData.model3DId || builderData.modelId || builderData.selectedModel3DId || builderData.selectedModelId;
+  if (!actualModel3DId) {
+    console.error('❌ Aucun model3DId trouvé dans builderData!', {
+      builderDataKeys: Object.keys(builderData),
+      builderData: JSON.stringify(builderData, null, 2).substring(0, 1000) // Limiter la taille du log
+    });
+  }
 
-  const model3D = await resolveModel3D(builderData.model3DId);
+  // Utiliser le model3DId trouvé (ou celui par défaut)
+  const model3DIdToUse = builderData.model3DId || builderData.modelId || builderData.selectedModel3DId || builderData.selectedModelId;
+  
+  if (!model3DIdToUse) {
+    throw new Error('Model3D ID is required in builder_data (model3DId, modelId, selectedModel3DId, or selectedModelId)');
+  }
+  
+  console.log('🎯 Utilisation du model3DId:', model3DIdToUse);
+  
+  const model3D = await resolveModel3D(model3DIdToUse);
   let design2D: Snapshot['design2D'] | undefined;
   
   if (design2DId) {
@@ -177,7 +199,7 @@ export async function generateSnapshot(
   });
 
   // Résoudre les zones de texte depuis le modèle 3D
-  const textZones = await resolveTextZones(builderData.model3DId);
+  const textZones = await resolveTextZones(model3DIdToUse);
   
   // Résoudre toutes les polices depuis les fontGroups des modules
   const fonts = await resolveFonts(builderData.customizationModules || []);
