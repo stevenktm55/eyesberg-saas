@@ -3027,8 +3027,8 @@ export default function ConfiguratorViewer({
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
-  // Déterminer l'onglet actif basé sur les modules : depuis le snapshot si disponible, sinon depuis productConfig
-  const customizationModules = snapshot?.customizationModules || productConfig?.customizationModules || [];
+  // Déterminer l'onglet actif basé sur les modules mappés depuis productConfig
+  const customizationModules = productConfig?.customizationModules || [];
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
@@ -3394,7 +3394,7 @@ export default function ConfiguratorViewer({
   
   // Fonction pour la suppression (à implémenter)
   const onRequestDelete = useCallback((id: string) => {
-    console.log('Request delete:', id);
+    // TODO: Implémenter la suppression
   }, []);
   
   // Design texture : depuis le snapshot si disponible, sinon depuis selectedDesign ou configuration
@@ -3412,7 +3412,6 @@ export default function ConfiguratorViewer({
     if (productConfig?.design2DId && !selectedDesign.id && designs2D.length > 0) {
       const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
       if (design) {
-        console.log('🎨 Initialisation du design2D depuis la configuration:', design.id, design.svg_url || design.svgUrl);
         selectDesign({ 
           id: design.id, 
           svgUrl: design.svg_url || design.svgUrl,
@@ -3504,7 +3503,6 @@ export default function ConfiguratorViewer({
       {/* Sidebar gauche avec icônes des modules */}
       {shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
-          {console.log('🎨 RENDU Sidebar gauche avec', customizationModules.length, 'modules')}
           {customizationModules.map((module: any) => (
             <button
               key={module.id}
