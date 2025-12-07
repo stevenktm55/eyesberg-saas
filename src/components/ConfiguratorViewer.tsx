@@ -3473,21 +3473,20 @@ export default function ConfiguratorViewer({
   // Config model URL (URL du modèle depuis la configuration)
   const configModelUrl = modelUrl || null;
   
-  // Initialiser le design 2D depuis la configuration
+  // Initialiser le design 2D depuis la configuration (utiliser designs2D déjà chargé)
   useEffect(() => {
-    if (productConfig?.design2DId && !selectedDesign.id) {
-      // Charger le design depuis l'API
-      fetch('/api/designs')
-        .then(res => res.json())
-        .then(designs => {
-          const design = designs.find((d: any) => d.id === productConfig.design2DId);
-          if (design) {
-            selectDesign({ id: design.id, svgUrl: design.svgUrl });
-          }
-        })
-        .catch(err => console.error('Erreur lors du chargement du design:', err));
+    if (productConfig?.design2DId && !selectedDesign.id && designs2D.length > 0) {
+      const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
+      if (design) {
+        console.log('🎨 Initialisation du design2D depuis la configuration:', design.id, design.svg_url || design.svgUrl);
+        selectDesign({ 
+          id: design.id, 
+          svgUrl: design.svg_url || design.svgUrl,
+          model_type: design.model_type
+        });
+      }
     }
-  }, [productConfig?.design2DId, selectedDesign.id, selectDesign]);
+  }, [productConfig?.design2DId, selectedDesign.id, selectDesign, designs2D]);
   
   // Initialiser les paramètres de caméra depuis la configuration
   useEffect(() => {

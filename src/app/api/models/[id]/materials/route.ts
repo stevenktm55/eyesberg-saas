@@ -61,7 +61,7 @@ export async function GET(
         .select('id, name, material_map_id, model_3d_id')
         .eq('model_3d_id', modelId);
       
-      // Ensuite, récupérer avec la jointure
+      // Ensuite, récupérer avec la jointure (inclure file_url pour les URLs des textures)
       const { data: modelParts, error: partsError } = await supabase
         .from('model_parts')
         .select(`
@@ -71,6 +71,7 @@ export async function GET(
             id,
             material_map_files (
               map_type,
+              file_url,
               intensity,
               scale
             )
@@ -91,30 +92,83 @@ export async function GET(
             
             const files = materialMap.material_map_files || [];
             
-            // Enrichir avec les intensités depuis material_map_files si elles ne sont pas déjà présentes
+            // Variables globales pour repeatX/repeatY
+            let globalRepeatX: number | undefined;
+            let globalRepeatY: number | undefined;
+            
+            // Enrichir avec les intensités et URLs depuis material_map_files
             files.forEach((file: any) => {
-              if (file.map_type === 'normal') {
+              const mapType = file.map_type?.toLowerCase();
+              const fileUrl = file.file_url;
+              const intensity = file.intensity !== undefined ? file.intensity / 100 : 1;
+              const scale = file.scale !== undefined ? file.scale : 1;
+              
+              if (!fileUrl) return;
+              
+              // Appliquer les dimensions (repeat) globalement
+              if (scale !== 1 && globalRepeatX === undefined) {
+                globalRepeatX = scale;
+                globalRepeatY = scale;
+                materialMaps[materialName].repeatX = scale;
+                materialMaps[materialName].repeatY = scale;
+              }
+              materialMaps[materialName].scaleX = globalRepeatX || scale;
+              materialMaps[materialName].scaleY = globalRepeatY || scale;
+              materialMaps[materialName].tilingX = globalRepeatX || scale;
+              materialMaps[materialName].tilingY = globalRepeatY || scale;
+              
+              // Mapper les types de fichiers vers les propriétés attendues par ModelViewer
+              if (mapType === 'normal' || mapType === 'normalmap') {
+                materialMaps[materialName].normalMap = fileUrl;
+                materialMaps[materialName].normal = fileUrl;
+                materialMaps[materialName].normalTexture = fileUrl;
                 if (typeof materialMaps[materialName].normalIntensity === 'undefined') {
-                  materialMaps[materialName].normalIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+                  materialMaps[materialName].normalIntensity = intensity;
+                  materialMaps[materialName].normalScale = intensity;
+                  materialMaps[materialName].normalScaleX = intensity;
+                  materialMaps[materialName].normalScaleY = intensity;
                 }
-                if (file.scale && typeof materialMaps[materialName].repeatX === 'undefined') {
-                  materialMaps[materialName].repeatX = file.scale;
-                  materialMaps[materialName].repeatY = file.scale;
-                }
-              } else if (file.map_type === 'roughness') {
+              } else if (mapType === 'roughness' || mapType === 'roughnessmap') {
+                materialMaps[materialName].roughnessMap = fileUrl;
+                materialMaps[materialName].roughness = fileUrl;
+                materialMaps[materialName].roughnessTexture = fileUrl;
                 if (typeof materialMaps[materialName].roughnessValue === 'undefined') {
-                  materialMaps[materialName].roughnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+                  materialMaps[materialName].roughnessValue = intensity;
+                  materialMaps[materialName].roughnessFactor = intensity;
                 }
-              } else if (file.map_type === 'metallic') {
+              } else if (mapType === 'metalness' || mapType === 'metallic' || mapType === 'metalnessmap') {
+                materialMaps[materialName].metalnessMap = fileUrl;
+                materialMaps[materialName].metallicMap = fileUrl;
+                materialMaps[materialName].metalness = fileUrl;
+                materialMaps[materialName].metalnessTexture = fileUrl;
                 if (typeof materialMaps[materialName].metalnessValue === 'undefined') {
-                  materialMaps[materialName].metalnessValue = file.intensity / 100; // Convertir 0-100 → 0-1
+                  materialMaps[materialName].metalnessValue = intensity;
+                  materialMaps[materialName].metalnessFactor = intensity;
+                  materialMaps[materialName].metallic = intensity;
                 }
-              } else if (file.map_type === 'ao') {
+              } else if (mapType === 'ao' || mapType === 'ambientocclusion' || mapType === 'occlusion' || mapType === 'aomap') {
+                materialMaps[materialName].aoMap = fileUrl;
+                materialMaps[materialName].ambientOcclusionMap = fileUrl;
+                materialMaps[materialName].occlusionMap = fileUrl;
                 if (typeof materialMaps[materialName].aoIntensity === 'undefined') {
-                  materialMaps[materialName].aoIntensity = file.intensity / 100; // Convertir 0-100 → 0-1
+                  materialMaps[materialName].aoIntensity = intensity;
+                  materialMaps[materialName].occlusionIntensity = intensity;
                 }
+              } else if (mapType === 'orm' || mapType === 'occlusionroughnessmetalness') {
+                materialMaps[materialName].ormMap = fileUrl;
+                materialMaps[materialName].occlusionRoughnessMetalnessMap = fileUrl;
+                materialMaps[materialName].occlusion_roughness_metalness = fileUrl;
               }
             });
+            
+            // Indexer par plusieurs variantes du nom pour faciliter la correspondance
+            if (materialName) {
+              materialMaps[materialName.toLowerCase()] = materialMaps[materialName];
+              materialMaps[materialName.toUpperCase()] = materialMaps[materialName];
+              if (part.material_map_id) {
+                materialMaps[part.material_map_id] = materialMaps[materialName];
+              }
+            }
           }
         });
       }
