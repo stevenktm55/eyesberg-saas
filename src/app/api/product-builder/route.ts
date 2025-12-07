@@ -95,22 +95,42 @@ export async function GET(request: NextRequest) {
 
         console.log(`Found ${products?.length || 0} products for subdomain ${subdomain}, shop ${shopDomain}`);
 
+        // Normaliser l'ID recherché pour la comparaison
+        const normalizeId = (val: any): string => {
+          if (val === null || val === undefined) return '';
+          const str = String(val).trim();
+          // Extraire uniquement les chiffres (ID Shopify)
+          const digitsMatch = str.match(/(\d{5,})$/);
+          return digitsMatch ? digitsMatch[1] : str;
+        };
+        
+        const normalizedSearchId = normalizeId(id);
+        console.log(`🔍 Recherche du produit avec ID Shopify normalisé: "${normalizedSearchId}" (original: "${id}")`);
+
         // Chercher le produit qui a ce shopify_product_id dans builder_data.shopify.productId
         const product = products?.find((p: any) => {
           const shopifyData = p.builder_data?.shopify;
-          if (!shopifyData) return false;
+          if (!shopifyData || !shopifyData.productId) {
+            return false;
+          }
           
-          // Essayer plusieurs formats possibles
-          const productIdStr = String(id);
-          const productIdNum = Number(id);
+          // Normaliser l'ID stocké dans le produit
+          const normalizedStoredId = normalizeId(shopifyData.productId);
           
-          return (
-            shopifyData.productId === id ||
-            shopifyData.productId === productIdStr ||
-            shopifyData.productId === productIdNum ||
-            String(shopifyData.productId) === productIdStr ||
-            Number(shopifyData.productId) === productIdNum
-          );
+          // Comparer les IDs normalisés
+          const match = normalizedStoredId === normalizedSearchId;
+          
+          if (match) {
+            console.log(`✅ Produit trouvé:`, {
+              product_id: p.id,
+              name: p.name,
+              shopify_product_id: shopifyData.productId,
+              normalized_stored: normalizedStoredId,
+              normalized_search: normalizedSearchId,
+            });
+          }
+          
+          return match;
         });
 
         if (!product) {
