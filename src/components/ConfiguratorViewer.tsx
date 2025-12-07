@@ -1582,10 +1582,8 @@ function Viewer3D({
   const fontSizeSliderMin = 60;
   const fontSizeSliderMax = 750;
 
-  // Utiliser le snapshot pour accéder aux settings (défini avant le return pour être accessible dans le Canvas)
-  const snapshot = productConfig?.snapshot;
-  
   // Paramètres de caméra depuis le snapshot ou valeurs par défaut
+  // Note: snapshot est défini plus haut (ligne 2984), après useProductConfig
   const cameraSettings = snapshot?.cameraSettings;
   const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 18 : 10);
   const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, initialZoom];
