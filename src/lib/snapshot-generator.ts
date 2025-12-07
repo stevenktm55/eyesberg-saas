@@ -300,11 +300,24 @@ async function resolveDesign2D(designId: string): Promise<Snapshot['design2D']> 
     designIdType: typeof designId
   });
   
-  const { data: design, error } = await supabaseAdmin
-    .from('designs')
+  // Essayer d'abord designs_2d, puis designs en fallback
+  let { data: design, error } = await supabaseAdmin
+    .from('designs_2d')
     .select('*')
     .eq('id', designId)
     .single();
+  
+  // Si designs_2d n'existe pas, essayer designs
+  if (error && error.code === 'PGRST205') {
+    console.log('⚠️ Table designs_2d non trouvée, essai avec designs');
+    const result = await supabaseAdmin
+      .from('designs')
+      .select('*')
+      .eq('id', designId)
+      .single();
+    design = result.data;
+    error = result.error;
+  }
 
   if (error) {
     console.error('❌ Erreur Supabase lors de la récupération du design:', {
