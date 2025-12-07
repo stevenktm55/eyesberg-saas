@@ -2403,147 +2403,85 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
       
-      console.log('🔍 useProductConfig - Paramètres:', { shopDomain, productId, shop, product });
-      
-      if (!shop) {
-        console.warn('⚠️ Pas de shop, impossible de charger la configuration');
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!product) {
-        console.warn('⚠️ Pas de productId, impossible de charger la configuration spécifique');
+      if (!shop || !product) {
         setIsLoading(false);
         return;
       }
       
       try {
-        // Normaliser l'ID Shopify pour s'assurer qu'on utilise le bon format
         const normalizedProductId = normalizeShopifyProductId(product);
-        console.log('🔍 ID Shopify normalisé:', { original: product, normalized: normalizedProductId });
-        
-        // Utiliser l'ID Shopify pour récupérer le produit depuis product_builder
-        // L'API cherche dans builder_data.shopify.productId
         const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}`;
-        
-        console.log('📡 Chargement de la configuration depuis:', url);
-        console.log('📡 Recherche du produit avec shopify_product_id:', normalizedProductId || product);
         const response = await fetch(url);
         
         if (response.ok) {
           const productData = await response.json();
           
-          // NOUVEAU SYSTÈME : Utiliser le snapshot si disponible
-          if (productData.snapshot) {
-            console.log('📸 Utilisation du snapshot publié:', {
-              productId: productData.snapshot.productId,
-              version: productData.snapshot.version,
-              publishedAt: productData.snapshot.publishedAt,
-              modulesCount: productData.snapshot.customizationModules.length
-            });
-            
-            const snapshot = productData.snapshot;
-            
-            // Extraire les modules depuis le snapshot et les convertir au format attendu
-            const rawModules = snapshot.customizationModules || [];
-            const modules = rawModules.map((m: any) => {
-              // Créer un module avec toutes les propriétés nécessaires
-              const module: any = {
-                id: m.id,
-                // Mapper type -> contentType (priorité au type du snapshot)
-                contentType: m.type || m.contentType || 'unknown',
-                // Mapper label -> tabName (priorité au label du snapshot)
-                tabName: m.label || m.tabName || 'Module',
-                // Garder les propriétés originales pour compatibilité
-                type: m.type,
-                label: m.label,
-                // Icône
-                icon: m.icon,
-                iconUrl: m.iconUrl,
-                // Config et selectedItems
-                config: m.config || {},
-                selectedItems: m.selectedItems || {
-                  design2DId: snapshot.defaultState?.design2DId,
-                  colorId: snapshot.defaultState?.colorId,
-                },
-                // Propriétés spécifiques selon le type
-                allowedDesigns: m.allowedDesigns,
-                allowedColors: m.allowedColors,
-                default: m.default
-              };
-              
-              // Pour les modules de type designs-2d, s'assurer que selectedItems a design2DId
-              if ((m.type === 'designs-2d' || m.contentType === 'designs-2d') && !module.selectedItems.design2DId) {
-                module.selectedItems.design2DId = snapshot.defaultState?.design2DId || m.default;
-              }
-              
-              return module;
-            });
-            
-            console.log('📦 Modules mappés depuis le snapshot:', modules.map((m: any) => ({
-              id: m.id,
-              contentType: m.contentType,
-              tabName: m.tabName,
-              type: m.type,
-              label: m.label,
-              hasAllowedDesigns: !!m.allowedDesigns,
-              allowedDesignsCount: m.allowedDesigns?.length || 0,
-              hasAllowedColors: !!m.allowedColors,
-              allowedColorsCount: m.allowedColors?.length || 0
-            })));
-            
-            // Trouver le module logo
-            const logoModule = modules.find((m: any) => (m.type === 'logos' || m.contentType === 'logos'));
-            const logoModuleConfig = logoModule ? {
-              addLogoButtonLabel: logoModule.config?.addLogoButtonLabel,
-              logoPlacementMode: logoModule.config?.logoPlacementMode,
-              logoZoneGroupIds: logoModule.config?.logoZoneGroupIds,
-              logoLibraryIds: logoModule.config?.logoLibraries?.map((lib: any) => lib.id) || [],
-              logoViewFrontLabel: logoModule.config?.logoViewFrontLabel,
-              logoViewBackLabel: logoModule.config?.logoViewBackLabel,
-              logoViewLeftLabel: logoModule.config?.logoViewLeftLabel,
-              logoViewRightLabel: logoModule.config?.logoViewRightLabel,
-            } : null;
-            
-            // Trouver le module design
-            const designModule = modules.find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
-            const designModuleConfig = designModule ? {
-              allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
-            } : null;
-            
-            const configData = {
-              // Utiliser les données du snapshot (déjà résolues)
-              snapshot: snapshot,
-              model3DId: snapshot.model3D?.url ? 'snapshot-model' : null, // Marqueur pour indiquer qu'on utilise le snapshot
-              design2DId: snapshot.design2D?.url ? 'snapshot-design' : null,
-              customizationModules: modules,
-              settings: snapshot.cameraSettings || {},
-              logoModuleConfig,
-              designModuleConfig,
-            };
-            
-            console.log('⚙️ Configuration finale (snapshot):', {
-              hasModel3D: !!snapshot.model3D,
-              hasDesign2D: !!snapshot.design2D,
-              modules_count: modules.length,
-              cameraSettings: snapshot.cameraSettings,
-            });
-            
-            setConfig(configData);
+          if (!productData.snapshot) {
+            setConfig(null);
+            setIsLoading(false);
             return;
           }
           
-          // SNAPSHOT OBLIGATOIRE : Si pas de snapshot, retourner une erreur
-          console.error('❌ Pas de snapshot disponible pour ce produit. Le produit doit être lié et publié depuis le builder.');
-          setConfig(null);
-          setIsLoading(false);
+          const snapshot = productData.snapshot;
+          const rawModules = snapshot.customizationModules || [];
+          const modules = rawModules.map((m: any) => {
+            const module: any = {
+              id: m.id,
+              contentType: m.type || m.contentType || 'unknown',
+              tabName: m.label || m.tabName || 'Module',
+              type: m.type,
+              label: m.label,
+              icon: m.icon,
+              iconUrl: m.iconUrl,
+              config: m.config || {},
+              selectedItems: m.selectedItems || {
+                design2DId: snapshot.defaultState?.design2DId,
+                colorId: snapshot.defaultState?.colorId,
+              },
+              allowedDesigns: m.allowedDesigns,
+              allowedColors: m.allowedColors,
+              default: m.default
+            };
+            
+            if ((m.type === 'designs-2d' || m.contentType === 'designs-2d') && !module.selectedItems.design2DId) {
+              module.selectedItems.design2DId = snapshot.defaultState?.design2DId || m.default;
+            }
+            
+            return module;
+          });
+          
+          const logoModule = modules.find((m: any) => (m.type === 'logos' || m.contentType === 'logos'));
+          const logoModuleConfig = logoModule ? {
+            addLogoButtonLabel: logoModule.config?.addLogoButtonLabel,
+            logoPlacementMode: logoModule.config?.logoPlacementMode,
+            logoZoneGroupIds: logoModule.config?.logoZoneGroupIds,
+            logoLibraryIds: logoModule.config?.logoLibraries?.map((lib: any) => lib.id) || [],
+            logoViewFrontLabel: logoModule.config?.logoViewFrontLabel,
+            logoViewBackLabel: logoModule.config?.logoViewBackLabel,
+            logoViewLeftLabel: logoModule.config?.logoViewLeftLabel,
+            logoViewRightLabel: logoModule.config?.logoViewRightLabel,
+          } : null;
+          
+          const designModule = modules.find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
+          const designModuleConfig = designModule ? {
+            allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
+          } : null;
+          
+          const configData = {
+            snapshot: snapshot,
+            model3DId: snapshot.model3D?.url ? 'snapshot-model' : null,
+            design2DId: snapshot.design2D?.url ? 'snapshot-design' : null,
+            customizationModules: modules,
+            settings: snapshot.cameraSettings || {},
+            logoModuleConfig,
+            designModuleConfig,
+          };
+          
+          setConfig(configData);
           return;
-        } else {
-          const errorText = await response.text();
-          console.error('❌ Erreur lors du chargement de la configuration:', response.status, response.statusText, errorText);
         }
       } catch (error) {
-        console.error('❌ Erreur lors du chargement de la configuration:', error);
+        // Erreur silencieuse
       } finally {
         setIsLoading(false);
       }
@@ -2983,7 +2921,7 @@ export default function ConfiguratorViewer({
   // Extraire le snapshot AVANT les useEffect qui l'utilisent
   const snapshot = productConfig?.snapshot;
   
-  // Initialiser tous les hooks nécessaires
+  // Hooks pour les fonctionnalités (textes, logos, couleurs, etc.)
   const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
   const { fonts, isLoading: isLoadingFonts } = useFonts(finalShopDomain);
   const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
@@ -3006,70 +2944,41 @@ export default function ConfiguratorViewer({
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   
-  // Charger les designs 2D : UNIQUEMENT depuis le snapshot (pas d'API)
+  // Charger les designs 2D depuis le snapshot
   useEffect(() => {
     if (!snapshot) {
-      console.warn('⚠️ Pas de snapshot disponible, designs non chargés');
       setDesigns2D([]);
       return;
     }
     
-    console.log('📸 Snapshot complet pour designs:', {
-      hasCustomizationModules: !!snapshot.customizationModules,
-      modulesCount: snapshot.customizationModules?.length || 0,
-      modules: snapshot.customizationModules?.map((m: any) => ({
-        id: m.id,
-        type: m.type,
-        contentType: m.contentType,
-        hasAllowedDesigns: !!m.allowedDesigns,
-        allowedDesignsCount: m.allowedDesigns?.length || 0
-      }))
-    });
-    
-    // Utiliser les designs du snapshot (déjà résolus)
     const designModule = snapshot.customizationModules
       .find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
-    
-    console.log('📸 Module design trouvé:', {
-      found: !!designModule,
-      module: designModule ? {
-        id: designModule.id,
-        type: designModule.type,
-        contentType: designModule.contentType,
-        allowedDesigns: designModule.allowedDesigns
-      } : null
-    });
-    
     const snapshotDesigns = designModule?.allowedDesigns || [];
     
-    console.log('📸 Designs depuis le snapshot:', snapshotDesigns.length, snapshotDesigns);
     if (snapshotDesigns.length > 0) {
       setDesigns2D(snapshotDesigns.map((d: any) => ({
-        id: d.svgUrl, // Utiliser l'URL comme ID pour le snapshot
+        id: d.svgUrl,
         name: d.label || d.name || 'Design',
         svgUrl: d.svgUrl,
         svg_url: d.svgUrl,
         thumbnail_url: d.thumbnailUrl
       })));
     } else {
-      console.warn('⚠️ Aucun design dans le snapshot');
       setDesigns2D([]);
     }
   }, [snapshot]);
   
-  // Charger les palettes de couleurs : UNIQUEMENT depuis le snapshot (pas d'API)
+  // Charger les palettes de couleurs depuis le snapshot
   useEffect(() => {
     if (!snapshot) {
-      console.warn('⚠️ Pas de snapshot disponible, palettes non chargées');
+      setColorPalettes([]);
       return;
     }
     
-    // Utiliser les couleurs du snapshot (déjà résolues)
     const colorModule = snapshot.customizationModules.find((m: any) => 
       (m.type === 'colors' || m.contentType === 'colors')
     );
     if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
-      console.log('📸 Couleurs depuis le snapshot:', colorModule.allowedColors.length);
       setColorPalettes([{
         id: 'snapshot-palette',
         name: 'Snapshot Palette',
@@ -3078,58 +2987,36 @@ export default function ConfiguratorViewer({
           name: c.label || c.name || '',
           hex: c.hex,
           value: c.hex,
-          class: c.mesh || 'primary' // Pour la compatibilité avec le système de couleurs
+          class: c.mesh || 'primary'
         }))
       }]);
     } else {
-      console.warn('⚠️ Aucune couleur dans le snapshot');
       setColorPalettes([]);
     }
   }, [snapshot]);
   
-  // Charger les bibliothèques de logos : UNIQUEMENT depuis le snapshot (pas d'API)
+  // Charger les bibliothèques de logos depuis le snapshot
   useEffect(() => {
     if (!snapshot) {
-      console.warn('⚠️ Pas de snapshot disponible, bibliothèques de logos non chargées');
+      setLogoLibraries([]);
       return;
     }
     
-    // Utiliser les bibliothèques de logos du snapshot (déjà résolues)
     const logoModule = snapshot.customizationModules.find((m: any) => 
       (m.type === 'logos' || m.contentType === 'logos')
     );
     if (logoModule?.config?.logoLibraries && logoModule.config.logoLibraries.length > 0) {
-      console.log('📸 Bibliothèques de logos depuis le snapshot:', logoModule.config.logoLibraries.length);
       setLogoLibraries(logoModule.config.logoLibraries);
     } else {
-      console.warn('⚠️ Aucune bibliothèque de logos dans le snapshot');
       setLogoLibraries([]);
     }
   }, [snapshot]);
   
-  // Charger le modèle 3D : depuis le snapshot si disponible, sinon depuis useAutoLoadModel
-  const configModel3DId = snapshot ? null : (productConfig?.model3DId || null);
-  const { modelUrl: loadedModelUrl, textureMaps: loadedTextureMaps, materialMaps: loadedMaterialMaps, modelId: loadedModelId, isLoading: isLoadingModel } = useAutoLoadModel(configModel3DId, null, finalProductId, finalShopDomain);
-  
-  // Utiliser les données du snapshot si disponible, sinon utiliser les données chargées
-  const modelUrl = snapshot?.model3D?.url || loadedModelUrl;
-  const textureMaps = snapshot?.model3D?.textureMaps || loadedTextureMaps;
-  const materialMaps = snapshot?.model3D?.materialMaps || loadedMaterialMaps;
-  const modelId = snapshot ? 'snapshot-model' : loadedModelId;
-  
-  // Log pour déboguer le chargement du modèle et des maps
-  useEffect(() => {
-    console.log('🎨 Chargement du modèle 3D:', {
-      configModel3DId,
-      modelId,
-      modelUrl,
-      hasTextureMaps: !!textureMaps,
-      textureMaps: textureMaps ? Object.keys(textureMaps) : [],
-      hasMaterialMaps: !!materialMaps,
-      materialMaps: materialMaps ? Object.keys(materialMaps) : [],
-      isLoadingModel
-    });
-  }, [configModel3DId, modelId, modelUrl, textureMaps, materialMaps, isLoadingModel]);
+  // Charger le modèle 3D depuis le snapshot uniquement
+  const modelUrl = snapshot?.model3D?.url || null;
+  const textureMaps = snapshot?.model3D?.textureMaps || {};
+  const materialMaps = snapshot?.model3D?.materialMaps || {};
+  const modelId = snapshot ? 'snapshot-model' : null;
   
   // Note: designTexture sera défini plus tard, on ne peut pas l'utiliser ici
   
@@ -3148,16 +3035,13 @@ export default function ConfiguratorViewer({
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
   useEffect(() => {
     if (customizationModules.length > 0 && !activeCustomizerTab) {
-      console.log('🎯 Ouverture automatique du premier onglet:', customizationModules[0].id);
       setActiveCustomizerTab(customizationModules[0].id);
     }
   }, [customizationModules, activeCustomizerTab]);
   
-  // Initialiser selectedDesign2DId depuis la configuration ou le snapshot
+  // Initialiser selectedDesign2DId depuis le snapshot
   useEffect(() => {
-    // NOUVEAU SYSTÈME : Utiliser le design du snapshot directement
     if (snapshot?.design2D?.url) {
-      console.log('📸 Initialisation du design2D depuis le snapshot:', snapshot.design2D.url);
       setSelectedDesign2DId('snapshot-design');
       selectDesign({ 
         id: 'snapshot-design', 
@@ -3167,64 +3051,22 @@ export default function ConfiguratorViewer({
       return;
     }
     
-    // ANCIEN SYSTÈME : Attendre que designs2D soit chargé
     if (designs2D.length === 0) {
-      console.log('⏳ En attente du chargement des designs...');
       return;
     }
     
-    console.log('🔍 Initialisation du design2D depuis la configuration:', {
-      productConfigDesign2DId: productConfig?.design2DId,
-      designs2DCount: designs2D.length,
-      designs2DIds: designs2D.map((d: any) => d.id)
-    });
-    
-    if (productConfig?.design2DId) {
-      setSelectedDesign2DId(productConfig.design2DId);
-      // Trouver le design dans designs2D et l'appliquer
-      const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
+    const designModule = customizationModules.find((m: any) => 
+      (m.contentType === 'designs-2d' || m.type === 'designs-2d')
+    );
+    if (designModule?.selectedItems?.design2DId) {
+      setSelectedDesign2DId(designModule.selectedItems.design2DId);
+      const design = designs2D.find((d: any) => d.id === designModule.selectedItems.design2DId);
       if (design) {
-        console.log('✅ Design trouvé et appliqué:', design.id, design.name, design.svg_url || design.svgUrl);
         selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
-      } else {
-        console.warn('⚠️ Design non trouvé dans designs2D:', productConfig.design2DId);
-      }
-    } else {
-      // Sinon, chercher dans le module design
-      const designModule = customizationModules.find((m: any) => 
-        (m.contentType === 'designs-2d' || m.type === 'designs-2d')
-      );
-      if (designModule?.selectedItems?.design2DId) {
-        console.log('🔍 Design trouvé dans le module:', designModule.selectedItems.design2DId);
-        setSelectedDesign2DId(designModule.selectedItems.design2DId);
-        const design = designs2D.find((d: any) => d.id === designModule.selectedItems.design2DId);
-        if (design) {
-          console.log('✅ Design trouvé et appliqué depuis le module:', design.id, design.name);
-          selectDesign({ id: design.id, svgUrl: design.svg_url || design.svgUrl });
-        } else {
-          console.warn('⚠️ Design non trouvé dans designs2D:', designModule.selectedItems.design2DId);
-        }
-      } else {
-        console.log('ℹ️ Aucun design2DId trouvé dans la configuration');
       }
     }
-  }, [snapshot, productConfig?.design2DId, productConfig?.customizationModules, designs2D, selectDesign, customizationModules]);
+  }, [snapshot, designs2D, selectDesign, customizationModules]);
   
-  // Log pour déboguer les modules et leurs selectedItems
-  useEffect(() => {
-    console.log('🔍 Modules et selectedItems:', {
-      modules: customizationModules.map((m: any) => ({
-        id: m.id,
-        contentType: m.contentType,
-        tabName: m.tabName,
-        selectedItems: m.selectedItems
-      })),
-      design2DId: productConfig?.design2DId,
-      designs2DCount: designs2D.length,
-      colorPalettesCount: colorPalettes.length,
-      logoLibrariesCount: logoLibraries.length
-    });
-  }, [customizationModules, productConfig, designs2D, colorPalettes, logoLibraries]);
   
   // Ouvrir/fermer la bibliothèque selon la sélection du logo
   useEffect(() => {
@@ -3634,15 +3476,6 @@ export default function ConfiguratorViewer({
     }
   }, [productConfig?.settings]);
   
-  // Log pour déboguer
-  useEffect(() => {
-    console.log('📦 customizationModules:', customizationModules);
-    console.log('📦 productConfig:', productConfig);
-    console.log('📦 modelId:', modelId);
-    console.log('📦 configModel3DId:', configModel3DId);
-    console.log('📦 selectedDesign:', selectedDesign);
-    console.log('📦 design2DId:', productConfig?.design2DId);
-  }, [customizationModules, productConfig, modelId, configModel3DId, selectedDesign]);
   
   // Mapper les onglets de la sidebar vers les modules
   useEffect(() => {
@@ -3682,37 +3515,11 @@ export default function ConfiguratorViewer({
     }
   }, [activeTab, customizationModules]);
   
-  // Log pour déboguer l'affichage de la sidebar
-  useEffect(() => {
-    console.log('🔍 Condition sidebar gauche:', {
-      modelId: !!modelId,
-      customizationModulesLength: customizationModules.length,
-      shouldShow: modelId && customizationModules.length > 0,
-      modelIdValue: modelId,
-      modules: customizationModules.map((m: any) => ({ id: m.id, contentType: m.contentType, tabName: m.tabName }))
-    });
-  }, [modelId, customizationModules]);
   
   // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
   // La sidebar doit toujours être visible si des modules existent (pas de dépendance à modelId)
   const shouldShowLeftSidebar = customizationModules.length > 0;
   
-  // Log pour vérifier le rendu de la sidebar
-  useEffect(() => {
-    if (shouldShowLeftSidebar) {
-      console.log('✅ Sidebar gauche devrait être affichée:', {
-        modelId,
-        customizationModulesLength: customizationModules.length,
-        modules: customizationModules.map((m: any) => ({ id: m.id, contentType: m.contentType, tabName: m.tabName }))
-      });
-    } else {
-      console.log('❌ Sidebar gauche ne sera pas affichée:', {
-        modelId: !!modelId,
-        customizationModulesLength: customizationModules.length,
-        productConfigLoaded: !!productConfig
-      });
-    }
-  }, [shouldShowLeftSidebar, modelId, customizationModules, productConfig]);
   
   return (
     <div className="h-full flex">
