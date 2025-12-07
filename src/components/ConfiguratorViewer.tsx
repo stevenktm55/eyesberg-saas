@@ -3242,11 +3242,13 @@ export default function ConfiguratorViewer({
   }, [modelId, customizationModules]);
   
   // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
+  const shouldShowLeftSidebar = modelId && customizationModules.length > 0;
+  
   return (
     <div className="h-full flex">
       {/* Sidebar gauche avec icônes des modules */}
-      {modelId && customizationModules.length > 0 && (
-        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
+      {shouldShowLeftSidebar && (
+        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10">
           {customizationModules.map((module: any) => (
             <button
               key={module.id}
