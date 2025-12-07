@@ -2403,26 +2403,49 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
       
+      console.log('🔍 useProductConfig - Paramètres:', { shopDomain, productId, shop, product });
+      
       if (!shop) {
         console.warn('⚠️ Pas de shop, impossible de charger la configuration');
         setIsLoading(false);
         return;
       }
       
+      if (!product) {
+        console.warn('⚠️ Pas de productId, impossible de charger la configuration spécifique');
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        const url = product 
-          ? `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`
-          : `/api/product-builder?shop=${encodeURIComponent(shop)}`;
+        // Utiliser l'ID Shopify pour récupérer le produit depuis product_builder
+        // L'API cherche dans builder_data.shopify.productId
+        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`;
         
         console.log('📡 Chargement de la configuration depuis:', url);
+        console.log('📡 Recherche du produit avec shopify_product_id:', product);
         const response = await fetch(url);
         
         if (response.ok) {
           const productData = await response.json();
-          console.log('✅ Configuration chargée:', productData);
+          console.log('✅ Produit trouvé:', {
+            id: productData.id,
+            name: productData.name,
+            shop_domain: productData.shop_domain,
+            shopify_product_id: productData.builder_data?.shopify?.productId,
+            model3DId: productData.builder_data?.model3DId,
+            design2DId: productData.builder_data?.design2DId,
+            modules_count: productData.builder_data?.customizationModules?.length || 0,
+          });
           
           const builderData = productData.builder_data || {};
           const modules = builderData.customizationModules || [];
+          
+          console.log('📦 Modules de personnalisation:', modules.map((m: any) => ({
+            id: m.id,
+            tabName: m.tabName,
+            contentType: m.contentType,
+          })));
           
           // Trouver le module logo
           const logoModule = modules.find((m: any) => m.contentType === 'logos');
@@ -2443,16 +2466,26 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             allowedDesignIds: designModule.selectedItems?.design2DIds || [],
           } : null;
           
-          setConfig({
+          const configData = {
             model3DId: builderData.model3DId || null,
             design2DId: builderData.design2DId || null,
             customizationModules: modules,
             settings: builderData.settings || {},
             logoModuleConfig,
             designModuleConfig,
+          };
+          
+          console.log('⚙️ Configuration finale:', {
+            model3DId: configData.model3DId,
+            design2DId: configData.design2DId,
+            modules_count: configData.customizationModules.length,
+            settings: configData.settings,
           });
+          
+          setConfig(configData);
         } else {
-          console.error('❌ Erreur lors du chargement de la configuration:', response.status);
+          const errorText = await response.text();
+          console.error('❌ Erreur lors du chargement de la configuration:', response.status, response.statusText, errorText);
         }
       } catch (error) {
         console.error('❌ Erreur lors du chargement de la configuration:', error);
