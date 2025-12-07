@@ -3006,6 +3006,12 @@ export default function ConfiguratorViewer({
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
+  // Déterminer l'onglet actif basé sur les modules (déclaré tôt pour éviter les erreurs de référence)
+  const customizationModules = productConfig?.customizationModules || [];
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(
+    customizationModules.length > 0 ? customizationModules[0].id : null
+  );
+  
   // Ouvrir/fermer la bibliothèque selon la sélection du logo
   useEffect(() => {
     const activeModule = customizationModules.find((m: any) => m.id === activeCustomizerTab);
@@ -3393,12 +3399,6 @@ export default function ConfiguratorViewer({
       controls.update();
     }
   }, [productConfig?.settings]);
-  
-  // Déterminer l'onglet actif basé sur les modules
-  const customizationModules = productConfig?.customizationModules || [];
-  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(
-    customizationModules.length > 0 ? customizationModules[0].id : null
-  );
   
   // Log pour déboguer
   useEffect(() => {
