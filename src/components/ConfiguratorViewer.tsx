@@ -6993,6 +6993,7 @@ export default function ConfiguratorViewer({
       
       {/* Modal de bibliothèque de logos */}
       {showLogoLibrary && (() => {
+        console.log('🖼️ Modal de bibliothèque de logos ouvert, showLogoLibrary:', showLogoLibrary);
         const logoModule = snapshot?.customizationModules?.find((m: any) => 
           (m.type === 'logos' || m.contentType === 'logos')
         );
@@ -7009,6 +7010,8 @@ export default function ConfiguratorViewer({
             }
           });
         }
+        
+        console.log('🖼️ Logos depuis la bibliothèque:', logosFromLibrary.length);
         
         // Trouver le module logos actif
         const activeLogoModule = customizationModules.find((m: any) => m.id === activeCustomizerTab && (m.contentType === 'logos' || m.type === 'logos'));
