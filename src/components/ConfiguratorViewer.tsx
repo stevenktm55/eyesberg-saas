@@ -1592,7 +1592,7 @@ function Viewer3D({
     <div className="h-full flex flex-col bg-white">
       {/* Canvas 3D - prend tout l'espace */}
       <div 
-        className="flex-1 bg-gray-100 relative"
+        className="flex-1 bg-gray-50 relative"
         onContextMenu={(e) => e.preventDefault()}
       >
         <Canvas
@@ -2991,6 +2991,7 @@ export default function ConfiguratorViewer({
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
+  const [showTextZoneSelector, setShowTextZoneSelector] = useState<{textId: string | null, view?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'} | null>(null);
   
   // Utiliser UNIQUEMENT les données du snapshot - AUCUN appel API
   const textZones = snapshot?.textZones || [];
@@ -5277,9 +5278,9 @@ export default function ConfiguratorViewer({
                       onClick={() => {
                         // Si mode zones, ouvrir le modal de sélection de zone
                         if (activeModule.textPlacementMode === 'zones') {
-                          setShowZoneSelector({
+                          setShowTextZoneSelector({
                             textId: null,
-                            view: targetView || 'torse'
+                            view: 'torse'
                           });
                         } else {
                           // Mode libre : ajouter directement un texte
