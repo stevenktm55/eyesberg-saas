@@ -1685,6 +1685,7 @@ function Viewer3D({
                 toggleLogoLock={toggleLogoLock}
                 removeLogo={removeLogo}
                 onRequestLogoDelete={onRequestLogoDelete}
+                onRequestTextDelete={onRequestTextDelete}
                 selectedLogoId={selectedLogoId}
                 selectLogo={selectLogo}
                 isDraggingLogo={isDraggingLogo}
@@ -3024,6 +3025,9 @@ export default function ConfiguratorViewer({
   const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
+  // Modal de confirmation de suppression
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   const [showTextZoneSelector, setShowTextZoneSelector] = useState<{textId: string | null, view?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'} | null>(null);
   const [textZoneInputs, setTextZoneInputs] = useState<Record<string, string>>({});
@@ -3554,24 +3558,68 @@ export default function ConfiguratorViewer({
   }, []);
   
   const onRequestLogoDelete = useCallback((id: string) => {
-    removeLogo(id);
-  }, [removeLogo]);
+    const logo = placedLogos.find(l => l.id === id);
+    setItemToDelete({
+      id,
+      name: logo?.name || 'ce logo',
+      type: 'logo'
+    });
+    setShowDeleteModal(true);
+  }, [placedLogos]);
   
   const onRequestTextDelete = useCallback((id: string) => {
-    removeText(id);
-  }, [removeText]);
+    const text = texts.find(t => t.id === id);
+    setItemToDelete({
+      id,
+      name: text?.content || 'ce texte',
+      type: 'text'
+    });
+    setShowDeleteModal(true);
+  }, [texts]);
   
   const confirmDeleteText = useCallback((id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce texte ?')) {
-      removeText(id);
-    }
-  }, [removeText]);
+    const text = texts.find(t => t.id === id);
+    setItemToDelete({
+      id,
+      name: text?.content || 'ce texte',
+      type: 'text'
+    });
+    setShowDeleteModal(true);
+  }, [texts]);
   
   const confirmDeleteLogo = useCallback((id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce logo ?')) {
-      removeLogo(id);
+    const logo = placedLogos.find(l => l.id === id);
+    setItemToDelete({
+      id,
+      name: logo?.name || 'ce logo',
+      type: 'logo'
+    });
+    setShowDeleteModal(true);
+  }, [placedLogos]);
+  
+  const handleConfirmDelete = useCallback(() => {
+    if (!itemToDelete) return;
+    
+    if (itemToDelete.type === 'text') {
+      removeText(itemToDelete.id);
+      if (selectedTextId === itemToDelete.id) {
+        selectText(null);
+      }
+    } else {
+      removeLogo(itemToDelete.id);
+      if (selectedLogoId === itemToDelete.id) {
+        selectLogo(null);
+      }
     }
-  }, [removeLogo]);
+    
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  }, [itemToDelete, removeText, removeLogo, selectedTextId, selectedLogoId, selectText, selectLogo]);
+  
+  const handleCancelDelete = useCallback(() => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  }, []);
   
   // Constantes pour les textes
   const fontSizeSliderMin = 60;
@@ -6158,12 +6206,7 @@ export default function ConfiguratorViewer({
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (confirm('Êtes-vous sûr de vouloir supprimer ce texte ?')) {
-                                      removeText(text.id);
-                                      if (selectedTextId === text.id) {
-                                        selectText(null);
-                                      }
-                                    }
+                                    confirmDeleteText(text.id);
                                   }}
                                   style={{
                                     background: 'none',
@@ -6754,6 +6797,7 @@ export default function ConfiguratorViewer({
           isResizingLogo={isResizingLogo}
           setIsResizingLogo={setIsResizingLogo}
           onRequestLogoDelete={onRequestLogoDelete}
+          onRequestTextDelete={onRequestTextDelete}
           selectedDesign={selectedDesign}
           modelUrl={modelUrl}
           modelId={modelId}
@@ -6766,6 +6810,107 @@ export default function ConfiguratorViewer({
           cameraSettings={snapshot?.cameraSettings}
         />
       </div>
+      
+      {/* Modal de confirmation de suppression */}
+      {showDeleteModal && itemToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
+          onClick={handleCancelDelete}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#111827',
+              marginBottom: '16px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Confirmer la suppression
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              marginBottom: '24px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Êtes-vous sûr de vouloir supprimer {itemToDelete.type === 'text' ? 'ce texte' : 'ce logo'} ?
+            </p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px'
+            }}>
+              <button
+                onClick={handleCancelDelete}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#111827',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e5e7eb';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#ef4444',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--stepn-font-body)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#dc2626';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ef4444';
+                }}
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Modal de sélection de zone pour les logos */}
       {showLogoZoneModal && (
