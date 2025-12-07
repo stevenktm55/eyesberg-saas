@@ -769,15 +769,42 @@ async function resolveCustomizationModules(
           }
         }
         
+        // Construire textConstraints depuis les propriétés du module
+        // Dans le builder, les contraintes sont stockées directement sur le module :
+        // - module.textStrokeMinWidth
+        // - module.textStrokeMaxWidth
+        // - module.textBaseStrokeWidth
+        // - module.textMinFontSize
+        // - module.textMaxFontSize
+        let textConstraints: any = module.config?.textConstraints || (module as any).textConstraints;
+        
+        // Si textConstraints n'existe pas, le construire depuis les propriétés du module
+        if (!textConstraints) {
+          const strokeMinWidthPx = Number((module as any).textStrokeMinWidth ?? module.config?.textStrokeMinWidth ?? 0);
+          const strokeMaxWidthPx = Number((module as any).textStrokeMaxWidth ?? module.config?.textStrokeMaxWidth ?? 50);
+          const baseStrokeWidthPx = Number((module as any).textBaseStrokeWidth ?? module.config?.textBaseStrokeWidth ?? strokeMinWidthPx);
+          const minFontSizePx = Number((module as any).textMinFontSize ?? module.config?.textMinFontSize ?? 100);
+          const maxFontSizePx = Number((module as any).textMaxFontSize ?? module.config?.textMaxFontSize ?? 2000);
+          const baseFontSize = Number((module as any).textBaseFontSize ?? module.config?.textBaseFontSize ?? 700);
+          
+          textConstraints = {
+            strokeMinWidthPx: Number.isFinite(strokeMinWidthPx) ? strokeMinWidthPx : 0,
+            strokeMaxWidthPx: Number.isFinite(strokeMaxWidthPx) ? strokeMaxWidthPx : 50,
+            baseStrokeWidthPx: Number.isFinite(baseStrokeWidthPx) ? baseStrokeWidthPx : strokeMinWidthPx,
+            minFontSizePx: Number.isFinite(minFontSizePx) ? minFontSizePx : 100,
+            maxFontSizePx: Number.isFinite(maxFontSizePx) ? maxFontSizePx : 2000,
+            baseFontSize: Number.isFinite(baseFontSize) ? baseFontSize : 700
+          };
+        }
+        
         // Préserver TOUS les champs de config du module texte (y compris textConstraints)
-        // textConstraints doit contenir: strokeMinWidthPx, strokeMaxWidthPx, baseStrokeWidthPx
         resolved.config = {
           ...resolved.config,
           ...module.config, // Préserver toute la config existante
           textColorPaletteId: textColorPaletteId,
           textStrokePaletteId: textStrokePaletteId,
           textEnabledDeformations: module.config?.textEnabledDeformations || (module as any).textEnabledDeformations,
-          textConstraints: module.config?.textConstraints || (module as any).textConstraints, // IMPORTANT: Préserver textConstraints
+          textConstraints: textConstraints, // IMPORTANT: Préserver textConstraints construit
           enableTextContent: module.config?.enableTextContent !== false,
           enableTextFont: module.config?.enableTextFont !== false,
           enableTextColor: module.config?.enableTextColor !== false,
@@ -791,7 +818,10 @@ async function resolveCustomizationModules(
           hasTextColorPalette: !!resolved.config.textColorPalette,
           hasTextStrokePalette: !!resolved.config.textStrokePalette,
           hasTextConstraints: !!resolved.config.textConstraints,
-          textConstraints: resolved.config.textConstraints
+          textConstraints: resolved.config.textConstraints,
+          moduleTextStrokeMinWidth: (module as any).textStrokeMinWidth,
+          moduleTextStrokeMaxWidth: (module as any).textStrokeMaxWidth,
+          moduleTextBaseStrokeWidth: (module as any).textBaseStrokeWidth
         });
       }
 
