@@ -3089,6 +3089,9 @@ export default function ConfiguratorViewer({
   // Design texture (à récupérer depuis selectedDesign)
   const designTexture = selectedDesign?.svgUrl || null;
   
+  // Config model URL (URL du modèle depuis la configuration)
+  const configModelUrl = modelUrl || null;
+  
   // Initialiser le design 2D depuis la configuration
   useEffect(() => {
     if (productConfig?.design2DId && !selectedDesign.id) {
