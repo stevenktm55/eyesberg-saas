@@ -5822,6 +5822,25 @@ export default function ConfiguratorViewer({
                                             
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
+                                          onInput={(e) => {
+                                            // Utiliser onInput pour une mise à jour plus fluide pendant le glissement
+                                            const pxValue = parseFloat((e.target as HTMLInputElement).value);
+                                            
+                                            // Vérifier que la valeur est valide
+                                            if (!Number.isFinite(pxValue)) return;
+                                            
+                                            // Clamper strictement entre min et max
+                                            let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                            
+                                            // Arrondir à l'entier le plus proche (step de 1px)
+                                            clampedValue = Math.round(clampedValue);
+                                            
+                                            // Double vérification après arrondi
+                                            if (clampedValue < sliderMin) clampedValue = sliderMin;
+                                            if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            
+                                            updateText(selectedTextId, { strokeWidth: clampedValue });
+                                          }}
                                           disabled={sliderRange <= 0}
                                         />
                                         <div style={{
