@@ -65,25 +65,23 @@ export async function POST(
     });
 
     // Mettre à jour le produit avec le snapshot et le lien Shopify
-    // Stocker le snapshot dans builder_data.publishedSnapshot (la colonne published_snapshot n'existe pas encore)
+    const updateData: any = {
+      shopify_product_id: shopifyProductId,
+      shopify_variant_id: shopifyVariantId || null,
+      published_snapshot: snapshot,
+      last_published_at: new Date().toISOString(),
+      snapshot_version: 1,
+      updated_at: new Date().toISOString()
+    };
+
+    // Mettre à jour aussi le shopify dans builder_data pour compatibilité avec l'ancien système
     const currentBuilderData = product.builder_data || {};
-    currentBuilderData.publishedSnapshot = snapshot;
-    currentBuilderData.publishedAt = new Date().toISOString();
-    currentBuilderData.snapshotVersion = 1;
-    
-    // Mettre à jour aussi le shopify dans builder_data pour compatibilité
     if (!currentBuilderData.shopify) {
       currentBuilderData.shopify = {};
     }
     currentBuilderData.shopify.productId = shopifyProductId;
     currentBuilderData.shopify.variantId = shopifyVariantId || null;
-
-    const updateData: any = {
-      shopify_product_id: shopifyProductId,
-      shopify_variant_id: shopifyVariantId || null,
-      builder_data: currentBuilderData,
-      updated_at: new Date().toISOString()
-    };
+    updateData.builder_data = currentBuilderData;
 
     // Si shopDomain est fourni et différent, le mettre à jour
     if (shopDomain && shopDomain !== product.shop_domain) {
