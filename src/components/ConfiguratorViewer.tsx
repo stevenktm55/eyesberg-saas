@@ -6041,7 +6041,80 @@ export default function ConfiguratorViewer({
                           </div>
                         </div>
                       );
-                    })()}
+                    })() : (
+                      // Si aucun texte n'est sélectionné, afficher le bouton et la liste
+                      <>
+                        {/* Bouton "Ajouter un texte" */}
+                        <button
+                          onClick={() => {
+                            // Vérifier le mode de placement depuis le module ou son config
+                            const placementMode = activeModule.textPlacementMode || activeModule.config?.textPlacementMode || 'zones';
+                            // Si mode zones et qu'il y a des zones disponibles, ouvrir le modal
+                            if (placementMode === 'zones' && textZones && textZones.length > 0) {
+                              setShowTextZoneSelector({
+                                textId: null,
+                                view: 'torse'
+                              });
+                            } else {
+                              // Mode libre ou pas de zones : ajouter directement un texte
+                              addText('', undefined, undefined, 'text');
+                            }
+                          }}
+                          style={{
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            backgroundColor: '#3b82f6',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#2563eb';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                          }}
+                        >
+                          {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                        </button>
+                        
+                        {/* Liste des textes placés */}
+                        {texts.length > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {texts.map((text) => (
+                              <div
+                                key={text.id}
+                                onClick={() => {
+                                  selectText(text.id);
+                                  setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+                                }}
+                                style={{
+                                  padding: '12px',
+                                  backgroundColor: selectedTextId === text.id ? '#f3f4f6' : '#ffffff',
+                                  border: `1px solid ${selectedTextId === text.id ? '#3b82f6' : '#e5e7eb'}`,
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                  {text.content || '(Texte vide)'}
+                                </div>
+                                {text.zoneCategory && (
+                                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                    Zone: {text.zoneCategory}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                     
                     {/* Modal de sélection de zone de texte - Exactement comme dans le builder */}
                     {showTextZoneSelector && (() => {
