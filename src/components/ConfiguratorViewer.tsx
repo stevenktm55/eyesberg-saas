@@ -3006,45 +3006,56 @@ export default function ConfiguratorViewer({
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   
-  // Charger les designs 2D : depuis le snapshot si disponible, sinon depuis l'API
+  // Charger les designs 2D : UNIQUEMENT depuis le snapshot (pas d'API)
   useEffect(() => {
-    if (snapshot) {
-      // Utiliser les designs du snapshot (déjà résolus)
-      const designModule = snapshot.customizationModules
-        .find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
-      const snapshotDesigns = designModule?.allowedDesigns || [];
-      
-      console.log('📸 Designs depuis le snapshot:', snapshotDesigns.length, snapshotDesigns);
-      if (snapshotDesigns.length > 0) {
-        setDesigns2D(snapshotDesigns.map((d: any) => ({
-          id: d.svgUrl, // Utiliser l'URL comme ID pour le snapshot
-          name: d.label || d.name || 'Design',
-          svgUrl: d.svgUrl,
-          svg_url: d.svgUrl,
-          thumbnail_url: d.thumbnailUrl
-        })));
-      }
+    if (!snapshot) {
+      console.warn('⚠️ Pas de snapshot disponible, designs non chargés');
+      setDesigns2D([]);
       return;
     }
     
-    // Ancien système : charger depuis l'API
-    async function loadDesigns() {
-      try {
-        const url = `/api/designs${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
-        console.log('📡 Chargement des designs depuis:', url);
-        const response = await fetch(url);
-        const data = await response.json();
-        const designs = Array.isArray(data) ? data : [];
-        console.log('✅ Designs chargés:', designs.length, designs.map((d: any) => ({ id: d.id, name: d.name })));
-        setDesigns2D(designs);
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des designs:', error);
-      }
+    console.log('📸 Snapshot complet pour designs:', {
+      hasCustomizationModules: !!snapshot.customizationModules,
+      modulesCount: snapshot.customizationModules?.length || 0,
+      modules: snapshot.customizationModules?.map((m: any) => ({
+        id: m.id,
+        type: m.type,
+        contentType: m.contentType,
+        hasAllowedDesigns: !!m.allowedDesigns,
+        allowedDesignsCount: m.allowedDesigns?.length || 0
+      }))
+    });
+    
+    // Utiliser les designs du snapshot (déjà résolus)
+    const designModule = snapshot.customizationModules
+      .find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
+    
+    console.log('📸 Module design trouvé:', {
+      found: !!designModule,
+      module: designModule ? {
+        id: designModule.id,
+        type: designModule.type,
+        contentType: designModule.contentType,
+        allowedDesigns: designModule.allowedDesigns
+      } : null
+    });
+    
+    const snapshotDesigns = designModule?.allowedDesigns || [];
+    
+    console.log('📸 Designs depuis le snapshot:', snapshotDesigns.length, snapshotDesigns);
+    if (snapshotDesigns.length > 0) {
+      setDesigns2D(snapshotDesigns.map((d: any) => ({
+        id: d.svgUrl, // Utiliser l'URL comme ID pour le snapshot
+        name: d.label || d.name || 'Design',
+        svgUrl: d.svgUrl,
+        svg_url: d.svgUrl,
+        thumbnail_url: d.thumbnailUrl
+      })));
+    } else {
+      console.warn('⚠️ Aucun design dans le snapshot');
+      setDesigns2D([]);
     }
-    if (finalShopDomain) {
-      loadDesigns();
-    }
-  }, [finalShopDomain, snapshot]);
+  }, [snapshot]);
   
   // Charger les palettes de couleurs : UNIQUEMENT depuis le snapshot (pas d'API)
   useEffect(() => {
