@@ -256,6 +256,19 @@ Le module logo devrait afficher les bibliothèques chargées depuis `logoLibrari
 1. **Vérifier le snapshot généré** : Inspecter `product.builder_data.publishedSnapshot` dans Supabase
 2. **Vérifier les logs de génération** : Chercher les logs `✅ Design2D résolu avec succès:` pour voir si `color_mappings` est présent
 3. **Vérifier les logs côté client** : Chercher `🎨 Couleurs initiales calculées:` pour voir quelles couleurs sont initialisées
-4. **Vérifier le rendu des modules** : Chercher dans `ConfiguratorViewer.tsx` où "À implémenter" et "sélectionnez des bibliothèques" sont affichés
-5. **Vérifier l'application des couleurs** : Vérifier comment `colors` est passé au `ModelViewer` et comment il applique les couleurs au modèle 3D
+4. **Vérifier le rendu des modules** : 
+   - Chercher dans `ConfiguratorViewer.tsx` où "À implémenter" est affiché (probablement dans le rendu du module texte)
+   - Chercher où "sélectionnez des bibliothèques de logo" est affiché (probablement dans le rendu du module logo)
+5. **Vérifier l'application des couleurs** : Vérifier comment `colors` est passé au `ModelViewer` (ligne ~1632) et comment il applique les couleurs au modèle 3D
+
+## Emplacements du code à vérifier
+
+### Module texte - "À implémenter"
+Chercher dans `ConfiguratorViewer.tsx` où le module texte est rendu dans la sidebar. Le message "À implémenter" suggère qu'il y a une condition qui vérifie si le module est implémenté ou si les données sont disponibles.
+
+### Module logo - "sélectionnez des bibliothèques"
+Chercher dans `ConfiguratorViewer.tsx` où le module logo est rendu. Le message suggère que `logoLibraries.length === 0` ou que `logoModule.config.logoLibraries` n'est pas présent.
+
+### Application des couleurs
+Le `ModelViewer` reçoit `colors` en prop (ligne ~1632). Vérifier comment `ModelViewer` applique ces couleurs au modèle 3D. Les couleurs sont probablement appliquées via des matériaux Three.js ou des shaders.
 
