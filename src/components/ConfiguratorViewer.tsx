@@ -1582,11 +1582,16 @@ function Viewer3D({
   const fontSizeSliderMin = 60;
   const fontSizeSliderMax = 750;
 
-  // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
-  const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, 10];
+  // Utiliser le snapshot pour accéder aux settings (défini avant le return pour être accessible dans le Canvas)
+  const snapshot = productConfig?.snapshot;
+  
+  // Paramètres de caméra depuis le snapshot ou valeurs par défaut
+  const cameraSettings = snapshot?.cameraSettings;
+  const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 18 : 10);
+  const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, initialZoom];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = isMobile ? 7 : 2.5;
-  const maxDistance = isMobile ? 18 : 10;
+  const minDistance = cameraSettings?.minZoom ?? (isMobile ? 7 : 2.5);
+  const maxDistance = cameraSettings?.maxZoom ?? (isMobile ? 18 : 10);
 
   return (
     <div className="h-full flex flex-col bg-white">
