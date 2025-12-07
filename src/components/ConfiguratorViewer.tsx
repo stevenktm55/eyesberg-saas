@@ -1286,6 +1286,7 @@ function Viewer3D({
   isResizingLogo,
   setIsResizingLogo,
   onRequestLogoDelete,
+  onRequestTextDelete,
   selectedDesign,
   modelUrl,
   modelId,
@@ -1357,6 +1358,7 @@ function Viewer3D({
   isResizingLogo: boolean;
   setIsResizingLogo: (resizing: boolean) => void;
   onRequestLogoDelete?: (id: string) => void;
+  onRequestTextDelete?: (id: string) => void;
   selectedDesign: { id: string | null; svgUrl: string | null };
   modelUrl: string | null;
   modelId: string | null;
