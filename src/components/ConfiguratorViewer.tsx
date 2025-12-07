@@ -1609,9 +1609,9 @@ function Viewer3D({
           }}
         >
           {/* Éclairage depuis le snapshot ou valeurs par défaut */}
-          <ambientLight intensity={productConfig?.snapshot?.viewerSettings?.lights?.ambientLight?.intensity ?? 0.5} />
-          {productConfig?.snapshot?.viewerSettings?.lights?.directionalLights && productConfig.snapshot.viewerSettings.lights.directionalLights.length > 0 ? (
-            productConfig.snapshot.viewerSettings.lights.directionalLights.map((light: any, index: number) => (
+          <ambientLight intensity={snapshot?.viewerSettings?.lights?.ambientLight?.intensity ?? 0.5} />
+          {snapshot?.viewerSettings?.lights?.directionalLights && snapshot.viewerSettings.lights.directionalLights.length > 0 ? (
+            snapshot.viewerSettings.lights.directionalLights.map((light: any, index: number) => (
               <directionalLight key={index} position={light.position} intensity={light.intensity} />
             ))
           ) : (
@@ -1620,7 +1620,7 @@ function Viewer3D({
               <directionalLight position={[-10, -10, -5]} intensity={0.5} />
             </>
           )}
-          <Environment preset={productConfig?.snapshot?.viewerSettings?.environment?.preset || "city"} />
+          <Environment preset={snapshot?.viewerSettings?.environment?.preset || "city"} />
           
           {/* Modèle 3D */}
           {modelUrl ? (
