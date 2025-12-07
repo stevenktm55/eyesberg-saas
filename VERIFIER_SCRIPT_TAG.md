@@ -146,3 +146,4 @@ Si le problème persiste, fournissez :
 4. **Erreurs** : Toutes les erreurs en rouge dans la console
 5. **URL de la page produit** où le bouton devrait apparaître
 
+

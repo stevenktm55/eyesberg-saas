@@ -153,3 +153,4 @@ Une fois que tout fonctionne :
 - ✅ Le produit personnalisé est ajouté au panier Shopify
 - ✅ Tout fonctionne de manière transparente pour vos clients !
 
+

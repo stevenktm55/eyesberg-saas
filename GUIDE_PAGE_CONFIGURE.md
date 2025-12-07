@@ -155,3 +155,4 @@ Sauvegarde ou Ajout au panier
 - Le client peut ajouter le produit configuré directement au panier Shopify
 - La page s'adapte automatiquement au mobile
 
+

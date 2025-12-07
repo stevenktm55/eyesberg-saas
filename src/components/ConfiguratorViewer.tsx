@@ -2366,32 +2366,46 @@ function LogoTab({
 }
 
 // Hook pour charger les modules de configuration depuis l'API
-function useProductModules(shopDomain?: string | null, productId?: string | null) {
-  console.log('🚀 useProductModules appelé avec:', { shopDomain, productId });
-  
-  const [logoModuleConfig, setLogoModuleConfig] = useState<{
-    addLogoButtonLabel?: string;
-    logoPlacementMode?: 'zones' | 'free';
-    logoZoneGroupIds?: string[];
-    logoLibraryIds?: string[];
-    logoViewFrontLabel?: string;
-    logoViewBackLabel?: string;
-    logoViewLeftLabel?: string;
-    logoViewRightLabel?: string;
+// Hook pour charger toute la configuration du produit
+function useProductConfig(shopDomain?: string | null, productId?: string | null) {
+  const [config, setConfig] = useState<{
+    model3DId?: string | null;
+    design2DId?: string | null;
+    customizationModules?: any[];
+    settings?: {
+      zoomSpeed?: number;
+      rotateSpeed?: number;
+      minZoom?: number;
+      maxZoom?: number;
+      initialZoom?: number;
+      initialRotation?: [number, number, number];
+      viewDistance?: number;
+    };
+    logoModuleConfig?: {
+      addLogoButtonLabel?: string;
+      logoPlacementMode?: 'zones' | 'free';
+      logoZoneGroupIds?: string[];
+      logoLibraryIds?: string[];
+      logoViewFrontLabel?: string;
+      logoViewBackLabel?: string;
+      logoViewLeftLabel?: string;
+      logoViewRightLabel?: string;
+    } | null;
+    designModuleConfig?: {
+      allowedDesignIds?: string[];
+    } | null;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔄 useProductModules useEffect déclenché');
-    async function loadModules() {
-      // Récupérer shopDomain et productId depuis l'URL si non fournis
+    async function loadConfig() {
       const urlParams = new URLSearchParams(window.location.search);
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
       
-      console.log('🔍 useProductModules - shop:', shop, 'product:', product);
-      
       if (!shop) {
-        console.warn('⚠️ Pas de shop dans l\'URL, impossible de charger les modules');
+        console.warn('⚠️ Pas de shop, impossible de charger la configuration');
+        setIsLoading(false);
         return;
       }
       
@@ -2400,63 +2414,62 @@ function useProductModules(shopDomain?: string | null, productId?: string | null
           ? `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`
           : `/api/product-builder?shop=${encodeURIComponent(shop)}`;
         
-        console.log('📡 Chargement des modules depuis:', url);
+        console.log('📡 Chargement de la configuration depuis:', url);
         const response = await fetch(url);
         
         if (response.ok) {
           const productData = await response.json();
-          console.log('✅ Produit chargé:', productData);
-          const modules = productData.builder_data?.customizationModules || [];
+          console.log('✅ Configuration chargée:', productData);
           
-          console.log('📦 Modules chargés:', modules);
-          console.log('📦 Nombre de modules:', modules.length);
+          const builderData = productData.builder_data || {};
+          const modules = builderData.customizationModules || [];
           
           // Trouver le module logo
           const logoModule = modules.find((m: any) => m.contentType === 'logos');
-          console.log('🎯 Module logo trouvé:', logoModule);
+          const logoModuleConfig = logoModule ? {
+            addLogoButtonLabel: logoModule.addLogoButtonLabel,
+            logoPlacementMode: logoModule.logoPlacementMode,
+            logoZoneGroupIds: logoModule.logoZoneGroupIds,
+            logoLibraryIds: logoModule.selectedItems?.logoLibraryIds || [],
+            logoViewFrontLabel: logoModule.logoViewFrontLabel,
+            logoViewBackLabel: logoModule.logoViewBackLabel,
+            logoViewLeftLabel: logoModule.logoViewLeftLabel,
+            logoViewRightLabel: logoModule.logoViewRightLabel,
+          } : null;
           
-          if (logoModule) {
-            const config = {
-              addLogoButtonLabel: logoModule.addLogoButtonLabel,
-              logoPlacementMode: logoModule.logoPlacementMode,
-              logoZoneGroupIds: logoModule.logoZoneGroupIds,
-              logoLibraryIds: logoModule.selectedItems?.logoLibraryIds || [],
-              logoViewFrontLabel: logoModule.logoViewFrontLabel,
-              logoViewBackLabel: logoModule.logoViewBackLabel,
-              logoViewLeftLabel: logoModule.logoViewLeftLabel,
-              logoViewRightLabel: logoModule.logoViewRightLabel,
-            };
-            console.log('⚙️ Configuration logo module:', config);
-            console.log('📚 logoLibraryIds:', config.logoLibraryIds);
-            console.log('📚 logoLibraryIds type:', typeof config.logoLibraryIds, 'length:', config.logoLibraryIds?.length);
-            setLogoModuleConfig(config);
-          } else {
-            console.warn('⚠️ Aucun module logo trouvé dans les modules');
-            // Si aucun module logo n'est trouvé, créer une config par défaut pour permettre l'affichage de tous les logos
-            setLogoModuleConfig({
-              addLogoButtonLabel: undefined,
-              logoPlacementMode: undefined,
-              logoZoneGroupIds: undefined,
-              logoLibraryIds: undefined, // undefined = afficher tous les logos
-              logoViewFrontLabel: undefined,
-              logoViewBackLabel: undefined,
-              logoViewLeftLabel: undefined,
-              logoViewRightLabel: undefined,
-            });
-          }
+          // Trouver le module design
+          const designModule = modules.find((m: any) => m.contentType === 'designs-2d');
+          const designModuleConfig = designModule ? {
+            allowedDesignIds: designModule.selectedItems?.design2DIds || [],
+          } : null;
+          
+          setConfig({
+            model3DId: builderData.model3DId || null,
+            design2DId: builderData.design2DId || null,
+            customizationModules: modules,
+            settings: builderData.settings || {},
+            logoModuleConfig,
+            designModuleConfig,
+          });
         } else {
-          const errorText = await response.text();
-          console.error('❌ Erreur lors du chargement des modules:', response.status, response.statusText, errorText);
+          console.error('❌ Erreur lors du chargement de la configuration:', response.status);
         }
       } catch (error) {
-        console.error('❌ Erreur lors du chargement des modules:', error);
+        console.error('❌ Erreur lors du chargement de la configuration:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
     
-    loadModules();
+    loadConfig();
   }, [shopDomain, productId]);
 
-  return logoModuleConfig;
+  return { config, isLoading };
+}
+
+function useProductModules(shopDomain?: string | null, productId?: string | null) {
+  const { config } = useProductConfig(shopDomain, productId);
+  return config?.logoModuleConfig || null;
 }
 
 function Sidebar({
@@ -2889,20 +2902,27 @@ export default function ConfiguratorViewer({
   const finalShopDomain: string | null = shopDomain ?? null;
   const finalProductId: string | null = productId ?? null;
   
+  // Charger la configuration complète du produit
+  const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId);
+  
   // Initialiser tous les hooks nécessaires
   const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
   const { fonts, isLoading: isLoadingFonts } = useFonts(finalShopDomain);
   const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
-  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(null, null, finalProductId, finalShopDomain);
+  
+  // Charger le modèle 3D avec le model3DId de la configuration
+  const configModel3DId = productConfig?.model3DId || null;
+  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(configModel3DId, null, finalProductId, finalShopDomain);
+  
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
   const { texts, addText, updateText, removeText, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, selectedTextId, selectText, isDraggingText, setIsDraggingText, startDraggingText, stopDraggingText } = textSelection;
   const logoSelection = useLogoSelection();
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
-  const logoModuleConfig = useProductModules(finalShopDomain, finalProductId);
+  const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
   // États pour la sidebar
   const [activeTab, setActiveTab] = useState<'design' | 'color' | 'numero' | 'nom' | 'logo'>('design');
@@ -3040,8 +3060,8 @@ export default function ConfiguratorViewer({
   const fontsForNames = useFilteredFonts('names', finalShopDomain);
   const fontsForNumbers = useFilteredFonts('numbers', finalShopDomain);
   
-  // Config design IDs (à récupérer depuis le produit)
-  const configDesignIds = null; // TODO: Récupérer depuis le produit
+  // Config design IDs depuis la configuration du produit
+  const configDesignIds = productConfig?.designModuleConfig?.allowedDesignIds || null;
   
   // États pour les linked products (à implémenter)
   const isLinkedPrefillActive = false;
@@ -3069,8 +3089,21 @@ export default function ConfiguratorViewer({
   // Design texture (à récupérer depuis selectedDesign)
   const designTexture = selectedDesign?.svgUrl || null;
   
-  // Config model URL (à récupérer depuis le produit)
-  const configModelUrl = null; // TODO: Récupérer depuis le produit
+  // Initialiser le design 2D depuis la configuration
+  useEffect(() => {
+    if (productConfig?.design2DId && !selectedDesign.id) {
+      // Charger le design depuis l'API
+      fetch('/api/designs')
+        .then(res => res.json())
+        .then(designs => {
+          const design = designs.find((d: any) => d.id === productConfig.design2DId);
+          if (design) {
+            selectDesign({ id: design.id, svgUrl: design.svgUrl });
+          }
+        })
+        .catch(err => console.error('Erreur lors du chargement du design:', err));
+    }
+  }, [productConfig?.design2DId, selectedDesign.id, selectDesign]);
   
   // Retourner le layout combiné : Viewer3D + Sidebar
   return (
@@ -3584,3 +3617,4 @@ function ColorTab({ colors, updateColor }: {
     </div>
   );
 }
+

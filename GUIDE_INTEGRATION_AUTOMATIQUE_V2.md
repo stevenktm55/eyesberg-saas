@@ -139,3 +139,4 @@ Mais normalement, **ce n'est jamais nécessaire** - tout est automatique !
 
 Plus besoin de modifier le thème manuellement. Tout est automatique, comme avec les meilleures apps Shopify !
 
+

@@ -150,3 +150,4 @@ Si le problème persiste, fournissez :
 4. **Tags du produit** (capture d'écran de la section Tags dans Shopify Admin)
 5. **Script tags** (si visible dans Shopify Admin → Apps → Eyesberg)
 
+

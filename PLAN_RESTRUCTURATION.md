@@ -55,3 +55,4 @@ src/
 - Les hooks et utilitaires peuvent être extraits dans des fichiers séparés
 - La logique admin (BUILD, PRICING, VARIANTS, CONNECT) reste dans le builder
 
+

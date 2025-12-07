@@ -152,3 +152,4 @@ Si le problème persiste, fournissez :
 4. **URL de la page produit** où le bouton devrait apparaître
 5. **Tags du produit** (capture d'écran de la section Tags dans Shopify Admin)
 
+

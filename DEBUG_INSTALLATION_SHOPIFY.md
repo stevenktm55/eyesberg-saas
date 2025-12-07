@@ -139,3 +139,4 @@ Si le problème persiste, fournissez :
 4. Les URLs configurées dans App setup
 5. Les logs de Vercel lors de l'appel à `/api/shopify/install`
 
+
