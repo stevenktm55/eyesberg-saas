@@ -3025,8 +3025,28 @@ export default function ConfiguratorViewer({
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   
-  // Charger les designs 2D
+  // Charger les designs 2D : depuis le snapshot si disponible, sinon depuis l'API
   useEffect(() => {
+    if (snapshot) {
+      // Utiliser les designs du snapshot (déjà résolus)
+      const designModule = snapshot.customizationModules
+        .find((m: any) => (m.type === 'designs-2d' || m.contentType === 'designs-2d'));
+      const snapshotDesigns = designModule?.allowedDesigns || [];
+      
+      console.log('📸 Designs depuis le snapshot:', snapshotDesigns.length, snapshotDesigns);
+      if (snapshotDesigns.length > 0) {
+        setDesigns2D(snapshotDesigns.map((d: any) => ({
+          id: d.svgUrl, // Utiliser l'URL comme ID pour le snapshot
+          name: d.label || d.name || 'Design',
+          svgUrl: d.svgUrl,
+          svg_url: d.svgUrl,
+          thumbnail_url: d.thumbnailUrl
+        })));
+      }
+      return;
+    }
+    
+    // Ancien système : charger depuis l'API
     async function loadDesigns() {
       try {
         const url = `/api/designs${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
@@ -3043,10 +3063,33 @@ export default function ConfiguratorViewer({
     if (finalShopDomain) {
       loadDesigns();
     }
-  }, [finalShopDomain]);
+  }, [finalShopDomain, snapshot]);
   
-  // Charger les palettes de couleurs
+  // Charger les palettes de couleurs : depuis le snapshot si disponible, sinon depuis l'API
   useEffect(() => {
+    if (snapshot) {
+      // Utiliser les couleurs du snapshot (déjà résolues)
+      const colorModule = snapshot.customizationModules.find((m: any) => 
+        (m.type === 'colors' || m.contentType === 'colors')
+      );
+      if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
+        console.log('📸 Couleurs depuis le snapshot:', colorModule.allowedColors.length);
+        setColorPalettes([{
+          id: 'snapshot-palette',
+          name: 'Snapshot Palette',
+          colors: colorModule.allowedColors.map((c: any) => ({
+            id: c.hex || c.id,
+            name: c.label || c.name || '',
+            hex: c.hex,
+            value: c.hex,
+            class: c.mesh || 'primary' // Pour la compatibilité avec le système de couleurs
+          }))
+        }]);
+      }
+      return;
+    }
+    
+    // Ancien système : charger depuis l'API
     async function loadPalettes() {
       try {
         const url = `/api/palettes${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
@@ -3063,7 +3106,7 @@ export default function ConfiguratorViewer({
     if (finalShopDomain) {
       loadPalettes();
     }
-  }, [finalShopDomain]);
+  }, [finalShopDomain, snapshot]);
   
   // Charger les bibliothèques de logos
   useEffect(() => {
