@@ -5769,8 +5769,20 @@ export default function ConfiguratorViewer({
                                     const sliderMin = Number(textConstraints.strokeMinWidthPx);
                                     const sliderMax = Number(textConstraints.strokeMaxWidthPx);
                                     
+                                    console.log('📏 Jauge de contour - contraintes:', {
+                                      strokeMinWidthPx: textConstraints.strokeMinWidthPx,
+                                      strokeMaxWidthPx: textConstraints.strokeMaxWidthPx,
+                                      baseStrokeWidthPx: textConstraints.baseStrokeWidthPx,
+                                      sliderMin,
+                                      sliderMax,
+                                      isFiniteMin: Number.isFinite(sliderMin),
+                                      isFiniteMax: Number.isFinite(sliderMax),
+                                      isValid: Number.isFinite(sliderMin) && Number.isFinite(sliderMax) && sliderMin < sliderMax
+                                    });
+                                    
                                     // Vérifier que min et max sont valides
                                     if (!Number.isFinite(sliderMin) || !Number.isFinite(sliderMax) || sliderMin >= sliderMax) {
+                                      console.error('📏 Jauge de contour - contraintes invalides:', { sliderMin, sliderMax });
                                       return (
                                         <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
                                           Les contraintes de contour sont invalides dans le snapshot.
