@@ -4247,20 +4247,8 @@ export default function ConfiguratorViewer({
                         gap: '12px'
                       }}>
                         {availableColorClasses.map((colorClass) => {
-                          const currentColorId = selectedDesignObj?.color_mappings?.[colorClass];
-                          let currentColorHex = '#cccccc';
-                          
-                          if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
-                            const palette = colorPalettes.find((p: any) => p.id === activeModule.selectedItems?.colorPaletteId);
-                            if (palette?.colors) {
-                              palette.colors.forEach((color: any, index: number) => {
-                                const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
-                                if (colorId === currentColorId) {
-                                  currentColorHex = color.hex || '#cccccc';
-                                }
-                              });
-                            }
-                          }
+                          // Utiliser la couleur actuelle depuis colors (state) ou depuis le snapshot
+                          const currentColorHex = colors[colorClass] || snapshot?.resolvedColors?.[colorClass] || '#cccccc';
                           
                           return (
                             <div
