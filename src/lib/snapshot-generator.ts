@@ -678,10 +678,10 @@ async function resolveTextZones(model3DId: string | null): Promise<Snapshot['tex
   let { data: zones, error } = await supabaseAdmin
     .from('zones')
     .select('*')
-    .eq('model_3d_id', model3DId);
+    .eq('model3d_id', model3DId); // Utiliser model3d_id (sans underscore) comme suggéré par l'erreur
 
-  // Si 'zones' n'existe pas, essayer 'text_zones'
-  if (error && error.code === 'PGRST205') {
+  // Si 'zones' n'existe pas ou erreur de colonne, essayer 'text_zones'
+  if ((error && error.code === 'PGRST205') || (error && error.code === '42703')) {
     const result = await supabaseAdmin
       .from('text_zones')
       .select('*')
@@ -741,10 +741,15 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
     return [];
   }
 
-  // Récupérer tous les fontGroups
+  // Récupérer tous les fontGroups avec leurs fonts (via la relation)
   const { data: fontGroups, error } = await supabaseAdmin
     .from('font_groups')
-    .select('*')
+    .select(`
+      *,
+      fonts_in_group (
+        font_id
+      )
+    `)
     .in('id', Array.from(fontGroupIds));
 
   if (error || !fontGroups) {
@@ -752,13 +757,25 @@ async function resolveFonts(customizationModules: any[]): Promise<Snapshot['font
     return [];
   }
 
+  console.log(`📝 FontGroups récupérés: ${fontGroups.length}`, fontGroups.map((g: any) => ({
+    id: g.id,
+    name: g.name,
+    hasFontsInGroup: !!g.fonts_in_group,
+    fontsInGroupCount: g.fonts_in_group?.length || 0
+  })));
+
   // Collecter toutes les polices depuis tous les fontGroups
   const fontIds = new Set<string>();
   fontGroups.forEach((group: any) => {
-    // Le fontGroup peut avoir fonts comme array direct ou comme relation
-    if (group.fonts && Array.isArray(group.fonts)) {
+    // Le fontGroup peut avoir fonts_in_group (relation) ou fonts (array direct)
+    if (group.fonts_in_group && Array.isArray(group.fonts_in_group)) {
+      group.fonts_in_group.forEach((item: any) => {
+        const fontId = item.font_id;
+        if (fontId) fontIds.add(fontId);
+      });
+    } else if (group.fonts && Array.isArray(group.fonts)) {
+      // Fallback: si fonts est un array direct
       group.fonts.forEach((font: any) => {
-        // Si c'est un objet avec font_id, utiliser font_id, sinon utiliser directement
         const fontId = typeof font === 'string' ? font : (font.font_id || font.id);
         if (fontId) fontIds.add(fontId);
       });
