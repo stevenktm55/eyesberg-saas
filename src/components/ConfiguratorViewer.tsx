@@ -3497,6 +3497,34 @@ export default function ConfiguratorViewer({
   // La sidebar doit toujours être visible si des modules existent (pas de dépendance à modelId)
   const shouldShowLeftSidebar = customizationModules.length > 0;
   
+  // Si le snapshot n'est pas disponible, afficher un message d'erreur
+  if (isLoadingConfig) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de la configuration...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!snapshot || !productConfig) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Configuration non disponible</h2>
+          <p className="text-gray-600 mb-4">
+            Ce produit n'a pas encore été configuré ou publié depuis le builder.
+          </p>
+          <p className="text-sm text-gray-500">
+            Veuillez configurer et publier ce produit depuis l'interface d'administration.
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="h-full flex">
@@ -3507,7 +3535,6 @@ export default function ConfiguratorViewer({
             <button
               key={module.id}
               onClick={() => {
-                console.log('🖱️ Clic sur l\'onglet:', module.id, module.contentType, module.tabName);
                 setActiveCustomizerTab(module.id);
                 // Mapper le module vers l'onglet de la sidebar
                 if (module.contentType === 'designs-2d') setActiveTab('design');
