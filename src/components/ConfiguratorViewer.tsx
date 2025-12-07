@@ -1603,7 +1603,7 @@ function Viewer3D({
             alpha: false,
           }}
           style={{
-            background: '#0a0a0a',
+            background: '#f5f5f5',
             width: '100%',
             height: '100%',
           }}
@@ -3129,12 +3129,15 @@ export default function ConfiguratorViewer({
   }, [snapshot]);
   
   // Initialiser les couleurs depuis le snapshot - AUCUNE LOGIQUE, juste exécuter le snapshot
+  // Utiliser une ref pour éviter la boucle infinie
+  const colorsInitializedRef = useRef(false);
   useEffect(() => {
-    if (snapshot?.resolvedColors) {
+    if (snapshot?.resolvedColors && !colorsInitializedRef.current) {
       replaceColors(snapshot.resolvedColors);
+      colorsInitializedRef.current = true;
       console.log('🎨 Couleurs appliquées depuis snapshot.resolvedColors:', snapshot.resolvedColors);
     }
-  }, [snapshot, replaceColors]);
+  }, [snapshot?.resolvedColors]);
   
   // Charger le modèle 3D depuis le snapshot uniquement
   const modelUrl = snapshot?.model3D?.url || null;
