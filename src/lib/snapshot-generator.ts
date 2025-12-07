@@ -458,12 +458,29 @@ async function resolveCustomizationModules(
       if (moduleType === 'colors') {
         // Résoudre la palette de couleurs
         const paletteId = module.config?.paletteId || module.selectedItems?.paletteId;
+        console.log('🎨 Résolution du module couleurs:', {
+          moduleId: module.id,
+          paletteId: paletteId,
+          hasConfig: !!module.config,
+          hasSelectedItems: !!module.selectedItems,
+          configKeys: module.config ? Object.keys(module.config) : []
+        });
+        
         if (paletteId) {
-          const { data: palette } = await supabaseAdmin
+          const { data: palette, error: paletteError } = await supabaseAdmin
             .from('color_palettes')
             .select('*')
             .eq('id', paletteId)
             .single();
+
+          if (paletteError) {
+            console.error('❌ Erreur lors de la récupération de la palette:', {
+              paletteId,
+              errorCode: paletteError.code,
+              errorMessage: paletteError.message,
+              errorDetails: paletteError.details
+            });
+          }
 
           if (palette && palette.colors) {
             resolved.allowedColors = palette.colors.map((color: any) => ({
@@ -472,7 +489,12 @@ async function resolveCustomizationModules(
               mesh: color.mesh || 'primary',
               id: color.id || color.hex
             }));
+            console.log(`✅ Palette résolue: ${resolved.allowedColors.length} couleur(s)`);
+          } else {
+            console.warn('⚠️ Palette trouvée mais sans couleurs:', paletteId);
           }
+        } else {
+          console.warn('⚠️ Aucun paletteId trouvé dans le module couleurs');
         }
         resolved.default = module.selectedItems?.colorId || module.default;
         
