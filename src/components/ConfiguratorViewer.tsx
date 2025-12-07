@@ -3050,7 +3050,17 @@ export default function ConfiguratorViewer({
         svg_url: d.svgUrl,
         thumbnail_url: d.thumbnailUrl,
         thumbnailUrl: d.thumbnailUrl // Ajouter aussi thumbnailUrl pour compatibilité
-      })));
+      }));
+      console.log('🎨 Designs 2D chargés depuis snapshot:', {
+        count: mappedDesigns.length,
+        designs: mappedDesigns.map(d => ({
+          id: d.id,
+          name: d.name,
+          hasThumbnail: !!d.thumbnailUrl,
+          thumbnailUrl: d.thumbnailUrl
+        }))
+      });
+      setDesigns2D(mappedDesigns);
     } else {
       setDesigns2D([]);
     }
