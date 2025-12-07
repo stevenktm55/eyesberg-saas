@@ -142,6 +142,17 @@ export async function generateSnapshot(
     cameraSettings: resolveCameraSettings(builderData.settings || {})
   };
 
+  // Log final pour vérifier que le snapshot contient bien le design2D
+  console.log('📦 Snapshot final créé:', {
+    hasModel3D: !!snapshot.model3D,
+    hasDesign2D: !!snapshot.design2D,
+    design2DUrl: snapshot.design2D?.url,
+    design2DInSnapshot: snapshot.design2D !== undefined,
+    snapshotKeys: Object.keys(snapshot),
+    modulesCount: snapshot.customizationModules.length,
+    defaultStateDesign2DId: snapshot.defaultState?.design2DId
+  });
+
   return snapshot;
 }
 
