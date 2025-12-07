@@ -3842,7 +3842,10 @@ export default function ConfiguratorViewer({
                   
                   // Détecter les classes de couleurs depuis le design2D du snapshot
                   const design2D = snapshot.design2D;
-                  const availableColorClasses = design2D?.colors ? Object.keys(design2D.colors) : ['primary', 'secondary', 'tertiary'];
+                  // Utiliser color_mappings si disponible, sinon colors, sinon valeurs par défaut
+                  const availableColorClasses = design2D?.color_mappings 
+                    ? Object.keys(design2D.color_mappings) 
+                    : (design2D?.colors ? Object.keys(design2D.colors) : ['primary', 'secondary', 'tertiary']);
                   
                   // Si on a sélectionné une classe de couleur, afficher la grille
                   if (selectedColorClass) {
