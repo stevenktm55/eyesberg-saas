@@ -194,12 +194,18 @@ export async function GET(request: NextRequest) {
 
         // Si le produit a un snapshot publié, le retourner au lieu de builder_data
         // (pour le configurateur client)
-        // Le snapshot est stocké dans builder_data.publishedSnapshot
+        // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
         const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
         if (publishedSnapshot) {
-          console.log('📸 Retour du snapshot publié pour le produit:', product.id, {
+          console.log('📸 Retour du snapshot publié pour le produit:', {
+            productId: product.id,
+            productName: product.name,
+            shopifyProductId: product.shopify_product_id,
             fromBuilderData: !!product.builder_data?.publishedSnapshot,
-            fromColumn: !!product.published_snapshot
+            fromColumn: !!product.published_snapshot,
+            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
+            hasModel3D: !!publishedSnapshot.model3D,
+            hasDesign2D: !!publishedSnapshot.design2D
           });
           return NextResponse.json({
             ...product,
@@ -208,6 +214,15 @@ export async function GET(request: NextRequest) {
             builder_data: undefined
           });
         }
+        
+        console.log('⚠️ Aucun snapshot trouvé pour le produit:', {
+          productId: product.id,
+          productName: product.name,
+          shopifyProductId: product.shopify_product_id,
+          hasBuilderData: !!product.builder_data,
+          hasPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+          hasPublishedSnapshotColumn: !!product.published_snapshot
+        });
 
         // Sinon, retourner le produit avec builder_data (pour le builder admin)
         return NextResponse.json(product);
