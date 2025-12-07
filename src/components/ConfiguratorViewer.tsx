@@ -3603,9 +3603,23 @@ export default function ConfiguratorViewer({
       )}
       
       {/* Panneau de contenu qui s'ouvre depuis la sidebar gauche */}
-      {activeCustomizerTab && (() => {
-        const activeModule = customizationModules.find((m: any) => m.id === activeCustomizerTab);
-        if (!activeModule) return null;
+      {shouldShowLeftSidebar && (() => {
+        // Toujours afficher le panneau si la sidebar est visible, même si activeCustomizerTab n'est pas encore défini
+        // Utiliser le premier module par défaut si activeCustomizerTab est null
+        const tabToUse = activeCustomizerTab || (customizationModules.length > 0 ? customizationModules[0].id : null);
+        
+        if (!tabToUse) {
+          console.log('⚠️ Pas de tab à utiliser pour le panneau');
+          return null;
+        }
+        
+        const activeModule = customizationModules.find((m: any) => m.id === tabToUse);
+        if (!activeModule) {
+          console.log('⚠️ Module actif non trouvé:', tabToUse, 'Modules disponibles:', customizationModules.map((m: any) => m.id));
+          return null;
+        }
+        
+        console.log('✅ Rendu du panneau pour le module:', activeModule.id, activeModule.contentType, activeModule.tabName);
         
         // Déterminer l'onglet actif basé sur le contentType du module
         let tabToShow: 'design' | 'color' | 'numero' | 'nom' | 'logo' = 'design';
