@@ -2409,8 +2409,16 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       
       try {
         const normalizedProductId = normalizeShopifyProductId(product);
-        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}`;
-        const response = await fetch(url);
+        // Ajouter un timestamp pour éviter le cache
+        const timestamp = Date.now();
+        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}&_t=${timestamp}`;
+        console.log('📡 Chargement de la configuration depuis:', url);
+        const response = await fetch(url, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
         
         if (response.ok) {
           const productData = await response.json();
