@@ -3468,62 +3468,6 @@ export default function ConfiguratorViewer({
       
       {/* Modal de sélection de zone pour les logos */}
       {zoneModal}
-          selectedDesign={selectedDesign}
-          selectDesign={selectDesign}
-          colors={colors}
-          updateColor={updateColor}
-          replaceColors={replaceColors}
-          resetColors={resetColors}
-          isLinkedPrefillActive={isLinkedPrefillActive}
-          hasPendingLinkedPrefill={hasPendingLinkedPrefill}
-          texts={texts}
-          addText={addText}
-          updateText={updateText}
-          removeText={removeText}
-          updateTextPosition={updateTextPosition}
-          selectedTextId={selectedTextId}
-          selectText={selectText}
-          textZones={textZones}
-          isLoadingZones={isLoadingZones}
-          fonts={fonts}
-          fontsForNames={fontsForNames}
-          fontsForNumbers={fontsForNumbers}
-          placedLogos={placedLogos}
-          addLogo={addLogo}
-          updateLogo={updateLogo}
-          removeLogo={removeLogo}
-          onRequestDelete={onRequestDelete}
-          selectedLogoId={selectedLogoId}
-          selectLogo={selectLogo}
-          logos={logos}
-          isLoadingLogos={isLoadingLogos}
-          autoOpenTypography={autoOpenTypography}
-          shouldOpenTypographyPanel={shouldOpenTypographyPanel}
-          onTypographyPanelOpened={onTypographyPanelOpened}
-          activeTab={activeTab}
-          configModelUrl={configModelUrl}
-          configDesignIds={configDesignIds}
-          modelUrl={modelUrl}
-          textureMaps={textureMaps}
-          materialMaps={materialMaps}
-          modelId={modelId}
-          isLoading={isLoadingModel}
-          setActiveTab={setActiveTab}
-          isDraggingLogo={isDraggingLogo}
-          setIsDraggingLogo={setIsDraggingLogo}
-          isRotatingLogo={isRotatingLogo}
-          setIsRotatingLogo={setIsRotatingLogo}
-          isResizingLogo={isResizingLogo}
-          setIsResizingLogo={setIsResizingLogo}
-          showColorWarningModal={showColorWarningModal}
-          setShowColorWarningModal={setShowColorWarningModal}
-          onCategoryChange={onCategoryChange}
-          isPlacingText={isPlacingText}
-          setIsPlacingText={setIsPlacingText}
-          shopDomain={finalShopDomain}
-          productId={finalProductId}
-        />
-      </div>
     </div>
   );
 }
