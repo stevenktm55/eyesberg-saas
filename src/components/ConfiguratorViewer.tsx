@@ -4179,32 +4179,8 @@ export default function ConfiguratorViewer({
                               <button
                                 key={color.id}
                                 onClick={() => {
-                                  const newDesignColors = { ...designColors };
-                                  newDesignColors[selectedColorClass] = color.id;
-                                  setDesignColors(newDesignColors);
-                                  
-                                  // Mettre à jour les couleurs dans le système
+                                  // Mettre à jour les couleurs dans le système - AUCUN appel API, juste le state
                                   updateColor(selectedColorClass, color.hex);
-                                  
-                                  if (selectedDesignObj) {
-                                    const updatedMappings = {
-                                      ...(selectedDesignObj.color_mappings || {}),
-                                      [selectedColorClass]: color.id
-                                    };
-                                    
-                                    // Mettre à jour le design dans la base de données
-                                    fetch(`/api/designs-2d?id=${selectedDesignObj.id}`, {
-                                      method: 'PATCH',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ color_mappings: updatedMappings })
-                                    }).catch(err => console.error('Error updating color mappings:', err));
-                                    
-                                    setDesigns2D(designs2D.map((d: any) => 
-                                      d.id === selectedDesignObj.id 
-                                        ? { ...d, color_mappings: updatedMappings }
-                                        : d
-                                    ));
-                                  }
                                 }}
                                 style={{
                                   position: 'relative',
