@@ -48,7 +48,17 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Erreur Supabase GET designs:', error);
+      console.error('[API/designs] Erreur Supabase GET designs:', error.message);
+      console.error('[API/designs] Error details:', error.details);
+      console.error('[API/designs] Error hint:', error.hint);
+      console.error('[API/designs] Error code:', error.code);
+      
+      // Si c'est une erreur de colonne manquante, retourner un tableau vide
+      if (error.code === '42P01' || error.code === '42703') {
+        console.warn('[API/designs] Colonne manquante, retour d\'un tableau vide');
+        return NextResponse.json([]);
+      }
+      
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
