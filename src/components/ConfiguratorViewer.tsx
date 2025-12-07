@@ -1294,6 +1294,7 @@ function Viewer3D({
   isPlacingText,
   textZones,
   onTextPlaced,
+  viewerSettings,
 }: { 
   designTexture: string | null; 
   colors: Record<string, string>;
@@ -1612,9 +1613,9 @@ function Viewer3D({
           }}
         >
           {/* Éclairage depuis le snapshot ou valeurs par défaut */}
-          <ambientLight intensity={snapshot?.viewerSettings?.lights?.ambientLight?.intensity ?? 0.5} />
-          {snapshot?.viewerSettings?.lights?.directionalLights && snapshot.viewerSettings.lights.directionalLights.length > 0 ? (
-            snapshot.viewerSettings.lights.directionalLights.map((light: any, index: number) => (
+          <ambientLight intensity={viewerSettings?.lights?.ambientLight?.intensity ?? 0.5} />
+          {viewerSettings?.lights?.directionalLights && viewerSettings.lights.directionalLights.length > 0 ? (
+            viewerSettings.lights.directionalLights.map((light: any, index: number) => (
               <directionalLight key={index} position={light.position} intensity={light.intensity} />
             ))
           ) : (
@@ -1623,7 +1624,7 @@ function Viewer3D({
               <directionalLight position={[-10, -10, -5]} intensity={0.5} />
             </>
           )}
-          <Environment preset={snapshot?.viewerSettings?.environment?.preset || "city"} />
+          <Environment preset={viewerSettings?.environment?.preset || "city"} />
           
           {/* Modèle 3D */}
           {modelUrl ? (
@@ -5456,6 +5457,7 @@ export default function ConfiguratorViewer({
           isPlacingText={isPlacingText}
           textZones={textZones}
           onTextPlaced={onTextPlaced}
+          viewerSettings={snapshot?.viewerSettings}
         />
       </div>
       
