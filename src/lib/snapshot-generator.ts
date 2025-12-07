@@ -206,15 +206,22 @@ export async function generateSnapshot(
   // Résoudre toutes les polices depuis les fontGroups des modules
   const fonts = await resolveFonts(builderData.customizationModules || []);
 
+  // Résoudre les modules de customisation
+  const customizationModules = await resolveCustomizationModules(builderData.customizationModules || []);
+  
+  // Résoudre les couleurs finales (mesh → hex) pour le viewer
+  const resolvedColors = resolveColors(customizationModules, design2D);
+
   const snapshot: Snapshot = {
     productId: shopifyProductId,
     version: 'v1',
     publishedAt: new Date().toISOString(),
     model3D: model3D,
     design2D: design2D,
-    customizationModules: await resolveCustomizationModules(builderData.customizationModules || []),
+    customizationModules: customizationModules,
     textZones: (textZones && textZones.length > 0) ? textZones : undefined,
     fonts: (fonts && fonts.length > 0) ? fonts : undefined,
+    resolvedColors: Object.keys(resolvedColors).length > 0 ? resolvedColors : undefined,
     defaultState: resolveDefaultState(builderData),
     cameraSettings: resolveCameraSettings(builderData.settings || {})
   };
