@@ -4009,10 +4009,6 @@ const loadFontToCache = async (font: any): Promise<string | null> => {
 };
 
 export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, onRequestTextDelete, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, textSizeLimits, ...props }: Props) {
-  console.log('🎨 ModelViewer: designTexture =', designTexture);
-  console.log('🎨 ModelViewer: placedLogos =', placedLogos);
-  console.log('📍 ModelViewer: isPlacingText =', isPlacingText);
-  
   // Wrapper for updateLogoPosition
   const handleUpdateLogoPosition = useCallback((id: string, position: [number, number, number]) => {
     if (updateLogoPosition) {
@@ -4024,8 +4020,6 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
   const logosToDisplay = useMemo(() => {
     return placedLogos || [];
   }, [placedLogos]);
-  
-  console.log('🎨 ModelViewer: logosToDisplay =', logosToDisplay.length, logosToDisplay.map(l => l.id));
   
   // Use SimpleViewer with placedLogos for multi-logo drag support
   // Wrapper for updateLogoScale
