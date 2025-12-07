@@ -2446,21 +2446,39 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             
             // Extraire les modules depuis le snapshot et les convertir au format attendu
             const rawModules = snapshot.customizationModules || [];
-            const modules = rawModules.map((m: any) => ({
-              ...m,
-              // Mapper type -> contentType pour compatibilité
-              contentType: m.type || m.contentType,
-              // Mapper label -> tabName pour compatibilité
-              tabName: m.label || m.tabName,
-              // Garder les propriétés originales aussi
-              type: m.type,
-              label: m.label,
-              // Mapper selectedItems depuis defaultState si nécessaire
-              selectedItems: m.selectedItems || {
-                design2DId: snapshot.defaultState?.design2DId,
-                colorId: snapshot.defaultState?.colorId,
+            const modules = rawModules.map((m: any) => {
+              // Créer un module avec toutes les propriétés nécessaires
+              const module: any = {
+                id: m.id,
+                // Mapper type -> contentType (priorité au type du snapshot)
+                contentType: m.type || m.contentType || 'unknown',
+                // Mapper label -> tabName (priorité au label du snapshot)
+                tabName: m.label || m.tabName || 'Module',
+                // Garder les propriétés originales pour compatibilité
+                type: m.type,
+                label: m.label,
+                // Icône
+                icon: m.icon,
+                iconUrl: m.iconUrl,
+                // Config et selectedItems
+                config: m.config || {},
+                selectedItems: m.selectedItems || {
+                  design2DId: snapshot.defaultState?.design2DId,
+                  colorId: snapshot.defaultState?.colorId,
+                },
+                // Propriétés spécifiques selon le type
+                allowedDesigns: m.allowedDesigns,
+                allowedColors: m.allowedColors,
+                default: m.default
+              };
+              
+              // Pour les modules de type designs-2d, s'assurer que selectedItems a design2DId
+              if ((m.type === 'designs-2d' || m.contentType === 'designs-2d') && !module.selectedItems.design2DId) {
+                module.selectedItems.design2DId = snapshot.defaultState?.design2DId || m.default;
               }
-            }));
+              
+              return module;
+            });
             
             // Trouver le module logo
             const logoModule = modules.find((m: any) => (m.type === 'logos' || m.contentType === 'logos'));
@@ -2503,63 +2521,11 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             return;
           }
           
-          // ANCIEN SYSTÈME : Utiliser builder_data (compatibilité)
-          console.log('⚠️ Pas de snapshot, utilisation de builder_data (ancien système)');
-          console.log('✅ Produit trouvé:', {
-            id: productData.id,
-            name: productData.name,
-            shop_domain: productData.shop_domain,
-            shopify_product_id: productData.builder_data?.shopify?.productId,
-            model3DId: productData.builder_data?.model3DId,
-            design2DId: productData.builder_data?.design2DId,
-            modules_count: productData.builder_data?.customizationModules?.length || 0,
-          });
-          
-          const builderData = productData.builder_data || {};
-          const modules = builderData.customizationModules || [];
-          
-          console.log('📦 Modules de personnalisation:', modules.map((m: any) => ({
-            id: m.id,
-            tabName: m.tabName,
-            contentType: m.contentType,
-          })));
-          
-          // Trouver le module logo
-          const logoModule = modules.find((m: any) => m.contentType === 'logos');
-          const logoModuleConfig = logoModule ? {
-            addLogoButtonLabel: logoModule.addLogoButtonLabel,
-            logoPlacementMode: logoModule.logoPlacementMode,
-            logoZoneGroupIds: logoModule.logoZoneGroupIds,
-            logoLibraryIds: logoModule.selectedItems?.logoLibraryIds || [],
-            logoViewFrontLabel: logoModule.logoViewFrontLabel,
-            logoViewBackLabel: logoModule.logoViewBackLabel,
-            logoViewLeftLabel: logoModule.logoViewLeftLabel,
-            logoViewRightLabel: logoModule.logoViewRightLabel,
-          } : null;
-          
-          // Trouver le module design
-          const designModule = modules.find((m: any) => m.contentType === 'designs-2d');
-          const designModuleConfig = designModule ? {
-            allowedDesignIds: designModule.selectedItems?.design2DIds || [],
-          } : null;
-          
-          const configData = {
-            model3DId: builderData.model3DId || null,
-            design2DId: builderData.design2DId || null,
-            customizationModules: modules,
-            settings: builderData.settings || {},
-            logoModuleConfig,
-            designModuleConfig,
-          };
-          
-          console.log('⚙️ Configuration finale:', {
-            model3DId: configData.model3DId,
-            design2DId: configData.design2DId,
-            modules_count: configData.customizationModules.length,
-            settings: configData.settings,
-          });
-          
-          setConfig(configData);
+          // SNAPSHOT OBLIGATOIRE : Si pas de snapshot, retourner une erreur
+          console.error('❌ Pas de snapshot disponible pour ce produit. Le produit doit être lié et publié depuis le builder.');
+          setConfig(null);
+          setIsLoading(false);
+          return;
         } else {
           const errorText = await response.text();
           console.error('❌ Erreur lors du chargement de la configuration:', response.status, response.statusText, errorText);
@@ -3068,48 +3034,35 @@ export default function ConfiguratorViewer({
     }
   }, [finalShopDomain, snapshot]);
   
-  // Charger les palettes de couleurs : depuis le snapshot si disponible, sinon depuis l'API
+  // Charger les palettes de couleurs : UNIQUEMENT depuis le snapshot (pas d'API)
   useEffect(() => {
-    if (snapshot) {
-      // Utiliser les couleurs du snapshot (déjà résolues)
-      const colorModule = snapshot.customizationModules.find((m: any) => 
-        (m.type === 'colors' || m.contentType === 'colors')
-      );
-      if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
-        console.log('📸 Couleurs depuis le snapshot:', colorModule.allowedColors.length);
-        setColorPalettes([{
-          id: 'snapshot-palette',
-          name: 'Snapshot Palette',
-          colors: colorModule.allowedColors.map((c: any) => ({
-            id: c.hex || c.id,
-            name: c.label || c.name || '',
-            hex: c.hex,
-            value: c.hex,
-            class: c.mesh || 'primary' // Pour la compatibilité avec le système de couleurs
-          }))
-        }]);
-      }
+    if (!snapshot) {
+      console.warn('⚠️ Pas de snapshot disponible, palettes non chargées');
       return;
     }
     
-    // Ancien système : charger depuis l'API
-    async function loadPalettes() {
-      try {
-        const url = `/api/palettes${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
-        console.log('📡 Chargement des palettes depuis:', url);
-        const response = await fetch(url);
-        const data = await response.json();
-        const palettes = Array.isArray(data) ? data : [];
-        console.log('✅ Palettes chargées:', palettes.length, palettes.map((p: any) => ({ id: p.id, name: p.name })));
-        setColorPalettes(palettes);
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des palettes:', error);
-      }
+    // Utiliser les couleurs du snapshot (déjà résolues)
+    const colorModule = snapshot.customizationModules.find((m: any) => 
+      (m.type === 'colors' || m.contentType === 'colors')
+    );
+    if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
+      console.log('📸 Couleurs depuis le snapshot:', colorModule.allowedColors.length);
+      setColorPalettes([{
+        id: 'snapshot-palette',
+        name: 'Snapshot Palette',
+        colors: colorModule.allowedColors.map((c: any) => ({
+          id: c.hex || c.id,
+          name: c.label || c.name || '',
+          hex: c.hex,
+          value: c.hex,
+          class: c.mesh || 'primary' // Pour la compatibilité avec le système de couleurs
+        }))
+      }]);
+    } else {
+      console.warn('⚠️ Aucune couleur dans le snapshot');
+      setColorPalettes([]);
     }
-    if (finalShopDomain) {
-      loadPalettes();
-    }
-  }, [finalShopDomain, snapshot]);
+  }, [snapshot]);
   
   // Charger les bibliothèques de logos
   useEffect(() => {
