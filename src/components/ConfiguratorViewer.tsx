@@ -3107,8 +3107,8 @@ export default function ConfiguratorViewer({
   const { placedLogos, addLogo, updateLogo, removeLogo, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
-  // Déterminer l'onglet actif basé sur les modules (déclaré tôt pour éviter les erreurs de référence)
-  const customizationModules = productConfig?.customizationModules || [];
+  // Déterminer l'onglet actif basé sur les modules : depuis le snapshot si disponible, sinon depuis productConfig
+  const customizationModules = snapshot?.customizationModules || productConfig?.customizationModules || [];
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
@@ -3765,8 +3765,226 @@ export default function ConfiguratorViewer({
                     Configurez le module dans les settings pour afficher du contenu.
                   </p>
                 </div>
-              ) : activeModule.contentType === 'colors' ? (() => {
-                // Détecter automatiquement les couleurs disponibles à modifier
+              ) : (activeModule.contentType === 'colors' || activeModule.type === 'colors') ? (() => {
+                // NOUVEAU SYSTÈME : Utiliser les couleurs du snapshot si disponible
+                if (snapshot) {
+                  const colorModule = activeModule.type === 'colors' ? activeModule : snapshot.customizationModules.find((m: any) => m.type === 'colors');
+                  const allowedColors = colorModule?.allowedColors || [];
+                  
+                  if (allowedColors.length === 0) {
+                    return (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Aucune couleur disponible dans le snapshot.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  // Détecter les classes de couleurs depuis le design2D du snapshot
+                  const design2D = snapshot.design2D;
+                  const availableColorClasses = design2D?.colors ? Object.keys(design2D.colors) : ['primary', 'secondary', 'tertiary'];
+                  
+                  // Si on a sélectionné une classe de couleur, afficher la grille
+                  if (selectedColorClass) {
+                    const allColors = allowedColors.map((color: any, index: number) => ({
+                      id: color.hex,
+                      name: color.label || color.name || '',
+                      hex: color.hex
+                    }));
+                    
+                    const currentColorHex = design2D?.colors?.[selectedColorClass] || colors[selectedColorClass] || null;
+                    const currentColorName = allColors.find(c => c.hex === currentColorHex)?.name || '';
+                    
+                    return (
+                      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        {/* Header avec bouton retour et couleur actuelle */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px',
+                          borderBottom: '1px solid #e5e7eb',
+                          margin: '-16px -16px 16px -16px'
+                        }}>
+                          <button
+                            onClick={() => setSelectedColorClass(null)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#111827',
+                              WebkitTextFillColor: '#111827',
+                              fontFamily: 'var(--stepn-font-body)',
+                              transition: 'color 0.2s'
+                            }}
+                            className="color-class-card-label"
+                          >
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#111827' }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            <span style={{ color: '#111827', WebkitTextFillColor: '#111827' }}>Retour</span>
+                          </button>
+                          
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}>
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#111827',
+                              WebkitTextFillColor: '#111827',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }} className="color-class-card-label">
+                              {currentColorName || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
+                            </span>
+                            <div 
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                border: '2px solid #d1d5db',
+                                backgroundColor: currentColorHex || 'transparent'
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Grille de couleurs */}
+                        <div style={{
+                          flex: 1,
+                          overflowY: 'auto'
+                        }}>
+                          <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(6, 1fr)', 
+                            gap: '12px' 
+                          }}>
+                            {allColors.map((color) => {
+                              const isSelected = color.hex === currentColorHex;
+                              return (
+                                <button
+                                  key={color.id}
+                                  onClick={() => {
+                                    updateColor(selectedColorClass, color.hex);
+                                  }}
+                                  style={{
+                                    position: 'relative',
+                                    aspectRatio: '1',
+                                    borderRadius: '50%',
+                                    border: '2px solid #e5e7eb',
+                                    backgroundColor: color.hex,
+                                    cursor: 'pointer',
+                                    transition: 'border-color 0.2s',
+                                    overflow: 'hidden',
+                                    padding: 0
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = '#d1d5db';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = '#e5e7eb';
+                                  }}
+                                >
+                                  {isSelected && (
+                                    <div style={{
+                                      position: 'absolute',
+                                      inset: 0,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}>
+                                      <div style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        backgroundColor: '#ffffff',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                      }}>
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  // Afficher les classes de couleurs disponibles
+                  return (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '12px'
+                    }}>
+                      {availableColorClasses.map((colorClass) => {
+                        const currentColorHex = design2D?.colors?.[colorClass] || colors[colorClass] || '#000000';
+                        return (
+                          <button
+                            key={colorClass}
+                            onClick={() => setSelectedColorClass(colorClass)}
+                            style={{
+                              padding: '16px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '8px',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = '#d1d5db';
+                              e.currentTarget.style.backgroundColor = '#f9fafb';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = '#e5e7eb';
+                              e.currentTarget.style.backgroundColor = '#ffffff';
+                            }}
+                          >
+                            <div 
+                              style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '50%',
+                                border: '2px solid #d1d5db',
+                                backgroundColor: currentColorHex
+                              }}
+                            />
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#111827',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              {colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+                
+                // ANCIEN SYSTÈME : Détecter automatiquement les couleurs disponibles à modifier
                 const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
                 
                 // Trouver le design 2D sélectionné pour détecter les couleurs
@@ -4804,9 +5022,95 @@ export default function ConfiguratorViewer({
                     )}
                   </div>
                 );
-              })() : activeModule.contentType === 'designs-2d' ? (() => {
-                // Afficher uniquement les designs autorisés pour ce module (si défini)
-                const allowedIds = activeModule.selectedItems?.design2DIds;
+              })() : activeModule.contentType === 'designs-2d' || activeModule.type === 'designs-2d' ? (() => {
+                // NOUVEAU SYSTÈME : Utiliser les designs du snapshot si disponible
+                if (snapshot) {
+                  const designModule = activeModule.type === 'designs-2d' ? activeModule : snapshot.customizationModules.find((m: any) => m.type === 'designs-2d');
+                  const visibleDesigns = designModule?.allowedDesigns || [];
+                  const selectedDesignId = snapshot.defaultState?.design2DId || designModule?.default;
+                  
+                  if (visibleDesigns.length === 0) {
+                    return (
+                      <div>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                          Aucun design disponible dans le snapshot.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '12px'
+                      }}>
+                        {visibleDesigns.map((design: any) => {
+                          const isSelected = design.svgUrl === selectedDesignId || design.label === selectedDesignId;
+                          return (
+                            <div
+                              key={design.svgUrl || design.label}
+                              onClick={() => {
+                                selectDesign({ id: design.svgUrl, svgUrl: design.svgUrl });
+                                setSelectedDesign2DId(design.svgUrl);
+                              }}
+                              style={{
+                                padding: '12px',
+                                backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                borderRadius: '4px',
+                                border: isSelected ? '2px solid #333333' : '1px solid #e0e0e0',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '8px'
+                              }}
+                            >
+                              <div style={{
+                                width: '100%',
+                                padding: '0',
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                aspectRatio: '1',
+                                overflow: 'hidden'
+                              }}>
+                                {design.thumbnailUrl ? (
+                                  <img
+                                    src={design.thumbnailUrl}
+                                    alt={design.label}
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'contain'
+                                    }}
+                                  />
+                                ) : (
+                                  <span style={{ color: '#999', fontSize: '12px' }}>No preview</span>
+                                )}
+                              </div>
+                              <span style={{
+                                fontSize: '12px',
+                                color: '#333',
+                                textAlign: 'center',
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}>
+                                {design.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // ANCIEN SYSTÈME : Utiliser designs2D chargés depuis l'API
+                const allowedIds = activeModule.selectedItems?.design2DIds || activeModule.config?.allowedDesignIds;
                 const visibleDesigns = Array.isArray(allowedIds) && allowedIds.length > 0
                   ? designs2D.filter((d: any) => allowedIds.includes(d.id))
                   : designs2D;
