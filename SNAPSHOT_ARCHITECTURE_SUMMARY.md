@@ -264,10 +264,13 @@ Le module logo devrait afficher les bibliothèques chargées depuis `logoLibrari
 ## Emplacements du code à vérifier
 
 ### Module texte - "À implémenter"
-Chercher dans `ConfiguratorViewer.tsx` où le module texte est rendu dans la sidebar. Le message "À implémenter" suggère qu'il y a une condition qui vérifie si le module est implémenté ou si les données sont disponibles.
+**Ligne ~5377 dans `ConfiguratorViewer.tsx`** : Le message "Module texte - À implémenter" est affiché dans le rendu du module texte. Vérifier la condition qui détermine si ce message est affiché. Il semble que le module texte ne soit pas correctement implémenté ou que les données nécessaires (textZones, fonts) ne soient pas disponibles.
 
 ### Module logo - "sélectionnez des bibliothèques"
-Chercher dans `ConfiguratorViewer.tsx` où le module logo est rendu. Le message suggère que `logoLibraries.length === 0` ou que `logoModule.config.logoLibraries` n'est pas présent.
+**Ligne ~4435 dans `ConfiguratorViewer.tsx`** : Le message "Sélectionnez des bibliothèques de logos dans les settings du module" est affiché quand `logoLibraries.length === 0` ou quand `activeModule.selectedItems?.logoLibraryIds` est vide. Vérifier :
+- Si `logoLibraries` est correctement chargé depuis le snapshot (ligne ~3102)
+- Si `activeModule.selectedItems?.logoLibraryIds` contient les IDs des bibliothèques
+- Si la condition `logoLibraries.length === 0` est vraie alors que le snapshot contient des bibliothèques
 
 ### Application des couleurs
 Le `ModelViewer` reçoit `colors` en prop (ligne ~1632). Vérifier comment `ModelViewer` applique ces couleurs au modèle 3D. Les couleurs sont probablement appliquées via des matériaux Three.js ou des shaders.
