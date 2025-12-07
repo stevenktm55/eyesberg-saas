@@ -5292,6 +5292,87 @@ export default function ConfiguratorViewer({
                         ))}
                       </div>
                     )}
+                    
+                    {/* Modal de sélection de zone de texte */}
+                    {showTextZoneSelector && (
+                      <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 50,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <div style={{
+                          backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
+                          width: '90%', maxWidth: '500px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+                        }}>
+                          <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
+                            Sélectionner une zone de texte
+                          </h3>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                            {textZones.map((zone: any) => (
+                              <button
+                                key={zone.id}
+                                onClick={() => {
+                                  const position: [number, number, number] = zone.position || [0.5, 0.5, 0];
+                                  const categories = zone.categories || [];
+                                  let category: 'nom' | 'numero' | 'text' = 'text';
+                                  if (categories.includes('nom')) {
+                                    category = 'nom';
+                                  } else if (categories.includes('numero')) {
+                                    category = 'numero';
+                                  }
+                                  addText(
+                                    zone.default_text || '',
+                                    position,
+                                    undefined,
+                                    category,
+                                    zone.default_font_size,
+                                    zone.zone_category,
+                                    zone.default_rotation
+                                  );
+                                  setShowTextZoneSelector(null);
+                                }}
+                                style={{
+                                  padding: '16px',
+                                  backgroundColor: '#f3f4f6',
+                                  borderRadius: '8px',
+                                  border: '1px solid #e5e7eb',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#e5e7eb';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                }}
+                              >
+                                {zone.name || `Zone ${zone.zone_category || 'texte'}`}
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => setShowTextZoneSelector(null)}
+                            style={{
+                              padding: '10px 16px',
+                              backgroundColor: '#ef4444',
+                              color: '#ffffff',
+                              borderRadius: '8px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   // Masquer le module si pas de données dans le snapshot (PAS d'erreur)
