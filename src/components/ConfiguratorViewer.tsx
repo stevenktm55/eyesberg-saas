@@ -2480,6 +2480,18 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
               return module;
             });
             
+            console.log('📦 Modules mappés depuis le snapshot:', modules.map((m: any) => ({
+              id: m.id,
+              contentType: m.contentType,
+              tabName: m.tabName,
+              type: m.type,
+              label: m.label,
+              hasAllowedDesigns: !!m.allowedDesigns,
+              allowedDesignsCount: m.allowedDesigns?.length || 0,
+              hasAllowedColors: !!m.allowedColors,
+              allowedColorsCount: m.allowedColors?.length || 0
+            })));
+            
             // Trouver le module logo
             const logoModule = modules.find((m: any) => (m.type === 'logos' || m.contentType === 'logos'));
             const logoModuleConfig = logoModule ? {
@@ -3755,7 +3767,14 @@ export default function ConfiguratorViewer({
           return null;
         }
         
-        console.log('✅ Rendu du panneau pour le module:', activeModule.id, activeModule.contentType, activeModule.tabName);
+        console.log('✅ Rendu du panneau pour le module:', {
+          id: activeModule.id,
+          contentType: activeModule.contentType,
+          tabName: activeModule.tabName,
+          type: activeModule.type,
+          label: activeModule.label,
+          fullModule: activeModule
+        });
         
         // Déterminer l'onglet actif basé sur le contentType du module
         let tabToShow: 'design' | 'color' | 'numero' | 'nom' | 'logo' = 'design';
