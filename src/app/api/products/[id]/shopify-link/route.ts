@@ -61,7 +61,11 @@ export async function POST(
     console.log('✅ Snapshot généré:', {
       productId: snapshot.productId,
       version: snapshot.version,
-      modulesCount: snapshot.customizationModules.length
+      modulesCount: snapshot.customizationModules.length,
+      hasModel3D: !!snapshot.model3D,
+      hasDesign2D: !!snapshot.design2D,
+      model3DUrl: snapshot.model3D?.url,
+      design2DUrl: snapshot.design2D?.url
     });
 
     // Mettre à jour le produit avec le snapshot et le lien Shopify
@@ -114,7 +118,14 @@ export async function POST(
       throw updateError;
     }
 
-    console.log('✅ Produit lié et snapshot publié avec succès');
+    // Vérifier que le snapshot a bien été sauvegardé
+    const savedSnapshot = updated.builder_data?.publishedSnapshot;
+    console.log('✅ Produit lié et snapshot publié avec succès:', {
+      productId: updated.id,
+      shopifyProductId: updated.shopify_product_id,
+      hasSnapshotInBuilderData: !!savedSnapshot,
+      snapshotModulesCount: savedSnapshot?.customizationModules?.length || 0
+    });
 
     return NextResponse.json({
       success: true,
