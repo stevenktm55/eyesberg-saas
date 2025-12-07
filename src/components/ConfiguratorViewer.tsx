@@ -2948,6 +2948,23 @@ export default function ConfiguratorViewer({
   // Extraire le snapshot AVANT les useEffect qui l'utilisent
   const snapshot = productConfig?.snapshot;
   
+  // Tous les useState doivent être déclarés AVANT les useEffect qui les utilisent
+  const [designs2D, setDesigns2D] = useState<any[]>([]);
+  const [colorPalettes, setColorPalettes] = useState<any[]>([]);
+  const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
+  const [logosFromSnapshot, setLogosFromSnapshot] = useState<Logo[]>([]);
+  const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
+  const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null);
+  const [designColors, setDesignColors] = useState<Record<string, string>>({});
+  const [showLogoLibrary, setShowLogoLibrary] = useState(false);
+  const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
+  const [selectedLogoForZone, setSelectedLogoForZone] = useState<{logoId: string, variantId?: string, variantFile?: string} | null>(null);
+  const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right'>('front');
+  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
+  const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
+  const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
+  const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
+  
   // Hooks pour les fonctionnalités (textes, logos, couleurs, etc.)
   // Désactiver les appels API si on utilise le snapshot
   const textZonesFromAPI = useTextZones(null, finalShopDomain);
@@ -2958,8 +2975,10 @@ export default function ConfiguratorViewer({
   const { zones: textZones, isLoading: isLoadingZones } = snapshot ? { zones: [], isLoading: false } : textZonesFromAPI;
   const { fonts, isLoading: isLoadingFonts } = snapshot ? { fonts: [], isLoading: false } : fontsFromAPI;
   
+  const { selectedDesign, selectDesign } = useDesignSelection();
+  const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
+  
   // Pour les logos, extraire depuis logoLibraries du snapshot
-  const [logosFromSnapshot, setLogosFromSnapshot] = useState<Logo[]>([]);
   useEffect(() => {
     if (snapshot && logoLibraries.length > 0) {
       // Extraire tous les logos de toutes les bibliothèques
@@ -2988,13 +3007,6 @@ export default function ConfiguratorViewer({
   }, [snapshot, logoLibraries]);
   
   const { logos, isLoading: isLoadingLogos } = snapshot ? { logos: logosFromSnapshot, isLoading: false } : logosFromAPI;
-  const { selectedDesign, selectDesign } = useDesignSelection();
-  const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
-  
-  // Charger les données nécessaires pour le panneau (comme dans le builder)
-  const [designs2D, setDesigns2D] = useState<any[]>([]);
-  const [colorPalettes, setColorPalettes] = useState<any[]>([]);
-  const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null);
   const [designColors, setDesignColors] = useState<Record<string, string>>({});
