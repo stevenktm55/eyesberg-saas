@@ -3244,11 +3244,28 @@ export default function ConfiguratorViewer({
   // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
   const shouldShowLeftSidebar = modelId && customizationModules.length > 0;
   
+  // Log pour vérifier le rendu de la sidebar
+  useEffect(() => {
+    if (shouldShowLeftSidebar) {
+      console.log('✅ Sidebar gauche devrait être affichée:', {
+        modelId,
+        customizationModulesLength: customizationModules.length,
+        modules: customizationModules.map((m: any) => ({ id: m.id, contentType: m.contentType, tabName: m.tabName }))
+      });
+    } else {
+      console.log('❌ Sidebar gauche ne sera pas affichée:', {
+        modelId: !!modelId,
+        customizationModulesLength: customizationModules.length,
+        productConfigLoaded: !!productConfig
+      });
+    }
+  }, [shouldShowLeftSidebar, modelId, customizationModules, productConfig]);
+  
   return (
     <div className="h-full flex">
       {/* Sidebar gauche avec icônes des modules */}
       {shouldShowLeftSidebar && (
-        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10">
+        <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
           {customizationModules.map((module: any) => (
             <button
               key={module.id}
