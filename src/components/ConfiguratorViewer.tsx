@@ -3027,6 +3027,9 @@ export default function ConfiguratorViewer({
   const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   const [showTextZoneSelector, setShowTextZoneSelector] = useState<{textId: string | null, view?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'} | null>(null);
   const [textZoneInputs, setTextZoneInputs] = useState<Record<string, string>>({});
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [textInputValue, setTextInputValue] = useState<string>('');
+  const [activeTextTab, setActiveTextTab] = useState<'contenu' | 'police' | 'couleur' | 'contour' | 'deformation'>('contenu');
   
   // Utiliser UNIQUEMENT les données du snapshot - AUCUN appel API
   // Note: snapshot est déjà défini plus haut (ligne 2984)
@@ -3103,13 +3106,16 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot]);
   
-  // Charger les palettes de couleurs depuis le snapshot
+  // Charger les palettes de couleurs depuis le snapshot (pour les couleurs du design ET pour le texte)
   useEffect(() => {
     if (!snapshot) {
       setColorPalettes([]);
       return;
     }
     
+    const palettes: any[] = [];
+    
+    // Palette pour les couleurs du design
     const colorModule = snapshot.customizationModules.find((m: any) => 
       (m.type === 'colors' || m.contentType === 'colors')
     );
@@ -3125,14 +3131,41 @@ export default function ConfiguratorViewer({
           class: c.mesh || 'primary'
         }))
       };
-      console.log('🎨 Palette de couleurs chargée depuis snapshot:', {
-        colorsCount: palette.colors.length,
-        colors: palette.colors.map(c => ({ id: c.id, name: c.name, hex: c.hex, class: c.class }))
-      });
-      setColorPalettes([palette]);
-    } else {
-      setColorPalettes([]);
+      palettes.push(palette);
     }
+    
+    // Palettes pour le texte (couleur et contour) depuis le module texte
+    const textModule = snapshot.customizationModules.find((m: any) => 
+      (m.type === 'text' || m.contentType === 'text')
+    );
+    
+    if (textModule?.config) {
+      // Palette pour la couleur du texte
+      if (textModule.config.textColorPaletteId) {
+        const textColorPalette = {
+          id: textModule.config.textColorPaletteId,
+          name: 'Couleur texte',
+          colors: textModule.config.textColorPalette?.colors || []
+        };
+        palettes.push(textColorPalette);
+      }
+      
+      // Palette pour le contour du texte
+      if (textModule.config.textStrokePaletteId) {
+        const textStrokePalette = {
+          id: textModule.config.textStrokePaletteId,
+          name: 'Contour texte',
+          colors: textModule.config.textStrokePalette?.colors || []
+        };
+        palettes.push(textStrokePalette);
+      }
+    }
+    
+    console.log('🎨 Palettes de couleurs chargées depuis snapshot:', {
+      palettesCount: palettes.length,
+      palettes: palettes.map(p => ({ id: p.id, name: p.name, colorsCount: p.colors.length }))
+    });
+    setColorPalettes(palettes);
   }, [snapshot]);
   
   // Charger les bibliothèques de logos depuis le snapshot
@@ -5317,7 +5350,10 @@ export default function ConfiguratorViewer({
                         {texts.map((text) => (
                           <div
                             key={text.id}
-                            onClick={() => selectText(text.id)}
+                            onClick={() => {
+                              selectText(text.id);
+                              setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+                            }}
                             style={{
                               padding: '12px',
                               backgroundColor: selectedTextId === text.id ? '#f3f4f6' : '#ffffff',
@@ -5339,141 +5375,1225 @@ export default function ConfiguratorViewer({
                         ))}
                       </div>
                     )}
-                    
-                    {/* Modal de sélection de zone de texte */}
-                    {showTextZoneSelector && (
-                      <div style={{
-                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 50,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
+
+                    {/* Interface d'édition du texte sélectionné avec onglets */}
+                    {selectedTextId && (() => {
+                      const selectedText = texts.find(t => t.id === selectedTextId);
+                      if (!selectedText) return null;
+                      
+                      const tabs = [
+                        { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
+                        { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
+                        { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
+                        { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
+                        { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
+                      ].filter(tab => tab.enabled);
+                      
+                      return (
                         <div style={{
-                          backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px',
-                          width: '90%', maxWidth: '500px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+                          marginTop: '20px',
+                          backgroundColor: '#ffffff',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          border: '1px solid #e5e5e5'
                         }}>
-                          <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
-                            Sélectionner une zone de texte
-                          </h3>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
-                            {textZones.map((zone: any) => {
-                              const textInput = textZoneInputs[zone.id] ?? (zone.default_text || '');
-                              return (
-                                <div
-                                  key={zone.id}
+                          {/* Header */}
+                          <div style={{
+                            padding: '12px 16px',
+                            backgroundColor: '#ffffff',
+                            borderBottom: '1px solid #e5e5e5',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}>
+                            <button
+                              onClick={() => selectText(null)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                fontSize: '16px',
+                                color: '#111827',
+                                cursor: 'pointer',
+                                padding: '4px 8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}
+                            >
+                              <span style={{ color: '#111827' }}>←</span>
+                              <span style={{ color: '#111827' }}>Retour</span>
+                            </button>
+                            <div style={{
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              color: '#111827',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Typographie
+                            </div>
+                            <div style={{ width: '80px' }} /> {/* Spacer pour centrer */}
+                          </div>
+
+                          {/* Onglets */}
+                          <div style={{
+                            display: 'flex',
+                            borderBottom: '1px solid #e5e5e5',
+                            backgroundColor: '#ffffff',
+                            overflow: 'hidden'
+                          }}>
+                            {tabs.map((tab) => (
+                              <button
+                                key={tab.id}
+                                onClick={() => setActiveTextTab(tab.id)}
+                                style={{
+                                  flex: '1 1 0',
+                                  minWidth: '0',
+                                  padding: '10px 8px',
+                                  background: 'none',
+                                  border: 'none',
+                                  borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
+                                  color: activeTextTab === tab.id ? '#111827' : '#6b7280',
+                                  fontSize: '12px',
+                                  fontWeight: activeTextTab === tab.id ? '600' : '400',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  cursor: 'pointer',
+                                  whiteSpace: 'nowrap',
+                                  transition: 'all 0.2s',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (activeTextTab !== tab.id) {
+                                    e.currentTarget.style.color = '#111827';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (activeTextTab !== tab.id) {
+                                    e.currentTarget.style.color = '#6b7280';
+                                  }
+                                }}
+                              >
+                                {tab.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Contenu de l'onglet sélectionné */}
+                          <div style={{ padding: '20px' }}>
+                            {/* Onglet Contenu */}
+                            {activeTextTab === 'contenu' && (
+                              <div>
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '12px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Contenu du texte
+                                </div>
+                                <input
+                                  type="text"
+                                  value={selectedText.content}
+                                  onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
                                   style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px',
-                                    padding: '12px',
-                                    backgroundColor: '#f3f4f6',
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    backgroundColor: '#ffffff',
+                                    border: '1px solid #d1d5db',
                                     borderRadius: '8px',
-                                    border: '1px solid #e5e7eb'
+                                    color: '#111827',
+                                    fontSize: '14px',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    outline: 'none',
+                                    transition: 'border-color 0.2s'
                                   }}
-                                >
-                                  {/* Vignette de la zone */}
-                                  {zone.thumbnail_url && (
-                                    <img
-                                      src={zone.thumbnail_url}
-                                      alt={zone.name}
-                                      style={{
-                                        width: '100%',
-                                        height: '120px',
-                                        objectFit: 'cover',
-                                        borderRadius: '6px',
-                                        marginBottom: '8px'
-                                      }}
-                                    />
-                                  )}
-                                  {/* Nom de la zone */}
-                                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
-                                    {zone.name || `Zone ${zone.zone_category || 'texte'}`}
+                                  onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                />
+                              </div>
+                            )}
+
+                            {/* Onglet Police */}
+                            {activeTextTab === 'police' && (
+                              <div>
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '12px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Police
+                                </div>
+                                {fonts.length === 0 ? (
+                                  <p style={{ 
+                                    color: '#6b7280', 
+                                    fontSize: '12px', 
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    padding: '12px',
+                                    backgroundColor: '#f9fafb',
+                                    borderRadius: '8px'
+                                  }}>
+                                    Aucune police disponible.
+                                  </p>
+                                ) : (
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(4, 1fr)',
+                                    gap: '12px',
+                                    padding: '4px'
+                                  }}>
+                                    {fonts.map((font) => {
+                                      const isSelected = selectedText.fontFamily === font.id;
+                                      const fontFamilyValue = font.display_name || font.name;
+                                      const previewText = selectedText.content && selectedText.content.trim() !== '' 
+                                        ? selectedText.content 
+                                        : 'ZG';
+                                      
+                                      return (
+                                        <div
+                                          key={font.id}
+                                          onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
+                                          style={{
+                                            padding: '12px',
+                                            backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                            borderRadius: '8px',
+                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            minHeight: '100px',
+                                            position: 'relative'
+                                          }}
+                                        >
+                                          <div style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            minHeight: '60px',
+                                            fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                            fontSize: '18px',
+                                            fontWeight: 'bold',
+                                            color: '#111827'
+                                          }}>
+                                            {previewText}
+                                          </div>
+                                          <span style={{
+                                            fontSize: '11px',
+                                            color: '#111827',
+                                            WebkitTextFillColor: '#111827',
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            textAlign: 'center',
+                                            fontWeight: '500',
+                                            backgroundColor: 'transparent'
+                                          }}>
+                                            {font.display_name || font.name}
+                                          </span>
+                                          {isSelected && (
+                                            <div style={{
+                                              position: 'absolute',
+                                              bottom: '8px',
+                                              right: '8px',
+                                              width: '20px',
+                                              height: '20px',
+                                              borderRadius: '50%',
+                                              backgroundColor: '#111827',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center'
+                                            }}>
+                                              <span style={{ color: '#ffffff', fontSize: '12px' }}>✓</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                  {/* Input pour le texte */}
+                                )}
+                              </div>
+                            )}
+
+                            {/* Onglet Couleur */}
+                            {activeTextTab === 'couleur' && (
+                              <div>
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '12px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Couleur
+                                </div>
+                                {activeModule.textColorPaletteId ? (() => {
+                                  const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
+                                  if (!palette) {
+                                    return (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                        Palette introuvable.
+                                      </p>
+                                    );
+                                  }
+                                  const paletteColors = palette.colors || [];
+                                  if (paletteColors.length === 0) {
+                                    return (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                        La palette sélectionnée ne contient aucune couleur.
+                                      </p>
+                                    );
+                                  }
+                                  return (
+                                    <div style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                                      gap: '12px'
+                                    }}>
+                                      {paletteColors.map((color: any, index: number) => {
+                                        const hex = (color?.hex || '#000000').toLowerCase();
+                                        const isSelected = (selectedText.color || '').toLowerCase() === hex;
+                                        return (
+                                          <button
+                                            key={color?.id || `${palette.id}-${index}`}
+                                            onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
+                                            style={{
+                                              border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                              borderRadius: '10px',
+                                              padding: '10px',
+                                              backgroundColor: '#ffffff',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              cursor: 'pointer',
+                                              transition: 'border-color 0.2s, transform 0.2s'
+                                            }}
+                                          >
+                                            <span style={{
+                                              width: '36px',
+                                              height: '36px',
+                                              borderRadius: '50%',
+                                              border: '1px solid #d1d5db',
+                                              backgroundColor: color?.hex || '#000000',
+                                              display: 'inline-block'
+                                            }} />
+                                            <span style={{
+                                              fontSize: '11px',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              textAlign: 'center'
+                                            }}>
+                                              {color?.name || (color?.hex || '#000000').toUpperCase()}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })() : (
+                                  <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                    Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Onglet Contour */}
+                            {activeTextTab === 'contour' && (
+                              <div>
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '12px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Contour
+                                </div>
+                                {activeModule.textStrokePaletteId ? (() => {
+                                  const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
+                                  if (!palette) {
+                                    return (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                        Palette introuvable.
+                                      </p>
+                                    );
+                                  }
+                                  const paletteColors = palette.colors || [];
+                                  if (paletteColors.length === 0) {
+                                    return (
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                        La palette sélectionnée ne contient aucune couleur.
+                                      </p>
+                                    );
+                                  }
+                                  return (
+                                    <div style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                                      gap: '12px',
+                                      marginBottom: '20px'
+                                    }}>
+                                      {paletteColors.map((color: any, index: number) => {
+                                        const hex = (color?.hex || '#000000').toLowerCase();
+                                        const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
+                                        return (
+                                          <button
+                                            key={color?.id || `${palette.id}-${index}`}
+                                            onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
+                                            style={{
+                                              border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                              borderRadius: '10px',
+                                              padding: '10px',
+                                              backgroundColor: '#ffffff',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              gap: '6px',
+                                              cursor: 'pointer',
+                                              transition: 'border-color 0.2s, transform 0.2s'
+                                            }}
+                                          >
+                                            <span style={{
+                                              width: '36px',
+                                              height: '36px',
+                                              borderRadius: '50%',
+                                              border: '1px solid #d1d5db',
+                                              backgroundColor: color?.hex || '#000000',
+                                              display: 'inline-block'
+                                            }} />
+                                            <span style={{
+                                              fontSize: '11px',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              textAlign: 'center'
+                                            }}>
+                                              {color?.name || (color?.hex || '#000000').toUpperCase()}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })() : (
+                                  <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
+                                    Sélectionnez une palette de contours dans les réglages du module.
+                                  </p>
+                                )}
+                                <div>
+                                  {(() => {
+                                    const textConstraints = activeModule.textConstraints || {
+                                      strokeMinWidthPx: 0,
+                                      strokeMaxWidthPx: 50,
+                                      baseStrokeWidthPx: 5
+                                    };
+                                    const sliderMin = textConstraints.strokeMinWidthPx || 0;
+                                    const sliderMax = textConstraints.strokeMaxWidthPx || 50;
+                                    const sliderRange = sliderMax - sliderMin;
+                                    
+                                    const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx ?? 5;
+                                    let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                    currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
+                                    currentPxValue = Math.round(currentPxValue);
+                                    
+                                    if (currentPxValue < sliderMin) currentPxValue = sliderMin;
+                                    if (currentPxValue > sliderMax) currentPxValue = sliderMax;
+                                    
+                                    const sliderId = `stroke-slider-${selectedTextId}`;
+                                    
+                                    return (
+                                      <div style={{ width: '100%' }}>
+                                        <div style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          marginBottom: '8px'
+                                        }}>
+                                          <div style={{
+                                            fontSize: '13px',
+                                            fontWeight: '500',
+                                            color: '#111827',
+                                            fontFamily: 'var(--stepn-font-body)'
+                                          }}>
+                                            Épaisseur {currentPxValue}
+                                          </div>
+                                        </div>
+                                        <style>{`
+                                          #${sliderId} {
+                                            -webkit-appearance: none;
+                                            appearance: none;
+                                            width: 100%;
+                                            height: 6px;
+                                            border-radius: 3px;
+                                            background: #e5e7eb;
+                                            outline: none;
+                                            padding: 0;
+                                            margin: 0;
+                                          }
+                                          #${sliderId}::-webkit-slider-thumb {
+                                            -webkit-appearance: none;
+                                            appearance: none;
+                                            width: 18px;
+                                            height: 18px;
+                                            border-radius: 50%;
+                                            background: #3b82f6;
+                                            cursor: pointer;
+                                            border: none;
+                                            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                          }
+                                          #${sliderId}::-moz-range-thumb {
+                                            width: 18px;
+                                            height: 18px;
+                                            border-radius: 50%;
+                                            background: #3b82f6;
+                                            cursor: pointer;
+                                            border: none;
+                                            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                          }
+                                          #${sliderId}::-webkit-slider-runnable-track {
+                                            width: 100%;
+                                            height: 6px;
+                                            background: #e5e7eb;
+                                            border-radius: 3px;
+                                          }
+                                          #${sliderId}::-moz-range-track {
+                                            width: 100%;
+                                            height: 6px;
+                                            background: #e5e7eb;
+                                            border-radius: 3px;
+                                            border: none;
+                                          }
+                                        `}</style>
+                                        <input
+                                          id={sliderId}
+                                          type="range"
+                                          min={sliderMin}
+                                          max={sliderMax}
+                                          step="1"
+                                          value={currentPxValue}
+                                          onChange={(e) => {
+                                            const pxValue = parseFloat(e.target.value);
+                                            if (!Number.isFinite(pxValue)) return;
+                                            let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                            clampedValue = Math.round(clampedValue);
+                                            if (clampedValue < sliderMin) clampedValue = sliderMin;
+                                            if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            updateText(selectedTextId, { strokeWidth: clampedValue });
+                                          }}
+                                          disabled={sliderRange <= 0}
+                                        />
+                                        <div style={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                          marginTop: '6px',
+                                          paddingTop: '4px',
+                                          fontSize: '11px',
+                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontWeight: '400'
+                                        }}>
+                                          <span style={{ 
+                                            flex: '0 0 auto',
+                                            color: '#111827',
+                                            WebkitTextFillColor: '#111827'
+                                          }}>Min.</span>
+                                          <span style={{ 
+                                            flex: '0 0 auto',
+                                            color: '#111827',
+                                            WebkitTextFillColor: '#111827'
+                                          }}>Max.</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Onglet Déformation */}
+                            {activeTextTab === 'deformation' && (
+                              <div>
+                                <div style={{
+                                  fontSize: '13px',
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '12px',
+                                  fontFamily: 'var(--stepn-font-body)'
+                                }}>
+                                  Type de déformation
+                                </div>
+                                <div>
+                                  <style>{`
+                                    select.deformation-select {
+                                      color: #111827 !important;
+                                    }
+                                    select.deformation-select option {
+                                      color: #111827 !important;
+                                      background-color: #ffffff !important;
+                                    }
+                                    select.deformation-select:focus {
+                                      color: #111827 !important;
+                                    }
+                                  `}</style>
+                                  <select
+                                    className="deformation-select"
+                                    value={selectedText.deformation || ''}
+                                    onChange={(e) => updateText(selectedTextId, { 
+                                      deformation: e.target.value || undefined 
+                                    })}
+                                    style={{
+                                      width: '100%',
+                                      padding: '12px 16px',
+                                      backgroundColor: '#ffffff',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '8px',
+                                      color: '#111827',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      cursor: 'pointer',
+                                      outline: 'none',
+                                      marginBottom: selectedText.deformation ? '20px' : '0',
+                                      transition: 'border-color 0.2s'
+                                    }}
+                                    onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                    onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                  >
+                                    {(() => {
+                                      const allDeformations = [
+                                        { value: '', label: 'Aucune' },
+                                        { value: 'arc', label: 'Arc' },
+                                        { value: 'wave', label: 'Vague' },
+                                        { value: 'bulge', label: 'Bombé' },
+                                        { value: 'pinch', label: 'Pincement' },
+                                        { value: 'flag', label: 'Drapeau' },
+                                        { value: 'fisheye', label: 'Fisheye' },
+                                        { value: 'squeeze', label: 'Compression' },
+                                        { value: 'skew', label: 'Inclinaison' },
+                                        { value: 'spiral', label: 'Spirale' },
+                                        { value: 'rotate', label: 'Rotation progressive' },
+                                        { value: 'tilt', label: 'Tilt' },
+                                        { value: 'perspective', label: 'Perspective' },
+                                        { value: 'fade', label: 'Fondu' },
+                                        { value: 'ribbon', label: 'Ruban' },
+                                        { value: 'incline', label: 'Montée/descente' },
+                                        { value: 'staircase', label: 'Escalier' },
+                                        { value: 'wave-arc', label: 'Vague + Arc' },
+                                        { value: 'pulse', label: 'Pulse' },
+                                      ];
+                                      
+                                      const enabledDeformations = activeModule.textEnabledDeformations;
+                                      const filteredDeformations = enabledDeformations && enabledDeformations.length > 0
+                                        ? allDeformations.filter(def => 
+                                            def.value === '' || enabledDeformations.includes(def.value)
+                                          )
+                                        : allDeformations;
+                                      
+                                      return filteredDeformations.map(def => (
+                                        <option key={def.value} value={def.value} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{def.label}</option>
+                                      ));
+                                    })()}
+                                  </select>
+                                </div>
+                                {selectedText.deformation && (() => {
+                                  const sliderId = `deformation-slider-${selectedTextId}`;
+                                  const intensity = selectedText.deformationIntensity ?? 0;
+                                  const positionPercent = ((intensity + 100) / 200) * 100;
+                                  
+                                  return (
+                                    <div style={{ marginTop: '20px' }}>
+                                      <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '8px'
+                                      }}>
+                                        <div style={{
+                                          fontSize: '13px',
+                                          fontWeight: '500',
+                                          color: '#111827',
+                                          fontFamily: 'var(--stepn-font-body)'
+                                        }}>
+                                          Intensité {intensity}
+                                        </div>
+                                      </div>
+                                      <style>{`
+                                        #${sliderId} {
+                                          -webkit-appearance: none;
+                                          appearance: none;
+                                          width: 100%;
+                                          height: 6px;
+                                          border-radius: 3px;
+                                          background: linear-gradient(to right, #ef4444 0%, #ef4444 ${positionPercent}%, #e5e7eb ${positionPercent}%, #e5e7eb 100%);
+                                          outline: none;
+                                          padding: 0;
+                                          margin: 0;
+                                        }
+                                        #${sliderId}::-webkit-slider-thumb {
+                                          -webkit-appearance: none;
+                                          appearance: none;
+                                          width: 18px;
+                                          height: 18px;
+                                          border-radius: 50%;
+                                          background: #3b82f6;
+                                          cursor: pointer;
+                                          border: none;
+                                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                        }
+                                        #${sliderId}::-moz-range-thumb {
+                                          width: 18px;
+                                          height: 18px;
+                                          border-radius: 50%;
+                                          background: #3b82f6;
+                                          cursor: pointer;
+                                          border: none;
+                                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                        }
+                                        #${sliderId}::-webkit-slider-runnable-track {
+                                          width: 100%;
+                                          height: 6px;
+                                          background: linear-gradient(to right, #ef4444 0%, #ef4444 ${positionPercent}%, #e5e7eb ${positionPercent}%, #e5e7eb 100%);
+                                          border-radius: 3px;
+                                        }
+                                        #${sliderId}::-moz-range-track {
+                                          width: 100%;
+                                          height: 6px;
+                                          background: linear-gradient(to right, #ef4444 0%, #ef4444 ${positionPercent}%, #e5e7eb ${positionPercent}%, #e5e7eb 100%);
+                                          border-radius: 3px;
+                                          border: none;
+                                        }
+                                      `}</style>
+                                      <input
+                                        id={sliderId}
+                                        type="range"
+                                        min={-100}
+                                        max={100}
+                                        step="1"
+                                        value={intensity}
+                                        onChange={(e) => {
+                                          const newIntensity = parseFloat(e.target.value);
+                                          if (Number.isFinite(newIntensity)) {
+                                            updateText(selectedTextId, { deformationIntensity: newIntensity });
+                                          }
+                                        }}
+                                      />
+                                      <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginTop: '6px',
+                                        paddingTop: '4px',
+                                        fontSize: '11px',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontWeight: '400'
+                                      }}>
+                                        <span style={{ 
+                                          flex: '0 0 auto',
+                                          color: '#111827',
+                                          WebkitTextFillColor: '#111827'
+                                        }}>-100</span>
+                                        <span style={{ 
+                                          flex: '0 0 auto',
+                                          color: '#111827',
+                                          WebkitTextFillColor: '#111827'
+                                        }}>+100</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    
+                    {/* Modal de sélection de zone de texte - Exactement comme dans le builder */}
+                    {showTextZoneSelector && (() => {
+                      const availableZones = textZones;
+                      
+                      return (
+                        <div
+                          style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 10000
+                          }}
+                          onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                              setShowTextZoneSelector(null);
+                              setSelectedZoneId(null);
+                              setTextInputValue('');
+                            }
+                          }}
+                        >
+                          <div
+                            style={{
+                              backgroundColor: '#ffffff',
+                              borderRadius: '8px',
+                              padding: '32px',
+                              width: '90%',
+                              maxWidth: '700px',
+                              maxHeight: '90vh',
+                              overflowY: 'auto',
+                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* Header */}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '24px'
+                            }}>
+                              <h2 style={{
+                                fontSize: '20px',
+                                fontWeight: '600',
+                                color: '#000000',
+                                fontFamily: 'var(--stepn-font-body)',
+                                margin: 0
+                              }}>
+                                {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                              </h2>
+                              <button
+                                onClick={() => {
+                                  setShowTextZoneSelector(null);
+                                  setSelectedZoneId(null);
+                                  setTextInputValue('');
+                                }}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#666666',
+                                  fontSize: '24px',
+                                  cursor: 'pointer',
+                                  padding: '0',
+                                  width: '32px',
+                                  height: '32px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  lineHeight: '1'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+
+                            {availableZones.length === 0 ? (
+                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                Aucune zone disponible.
+                              </p>
+                            ) : (
+                              <div>
+                                {/* Section: Choisissez une position standard */}
+                                <div style={{ marginBottom: '32px' }}>
+                                  <h3 style={{
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    color: '#000000',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    marginBottom: '16px'
+                                  }}>
+                                    Choisissez une position standard
+                                  </h3>
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(3, 1fr)',
+                                    gap: '16px'
+                                  }}>
+                                    {availableZones.map((zone: any) => {
+                                      const isSelected = selectedZoneId === zone.id;
+                                      return (
+                                        <div
+                                          key={zone.id}
+                                          onClick={() => {
+                                            setSelectedZoneId(zone.id);
+                                            setTextInputValue(zone.default_text || '');
+                                          }}
+                                          style={{
+                                            position: 'relative',
+                                            cursor: 'pointer',
+                                            border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                            backgroundColor: '#ffffff',
+                                            transition: 'all 0.2s'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (!isSelected) {
+                                              e.currentTarget.style.borderColor = '#999999';
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (!isSelected) {
+                                              e.currentTarget.style.borderColor = '#e0e0e0';
+                                            }
+                                          }}
+                                        >
+                                          {/* Checkmark icon */}
+                                          {isSelected && (
+                                            <div style={{
+                                              position: 'absolute',
+                                              top: '8px',
+                                              right: '8px',
+                                              width: '24px',
+                                              height: '24px',
+                                              backgroundColor: '#000000',
+                                              borderRadius: '50%',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              zIndex: 10
+                                            }}>
+                                              <span style={{
+                                                color: '#ffffff',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold'
+                                              }}>
+                                                ✓
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Zone thumbnail */}
+                                          <div style={{
+                                            width: '100%',
+                                            height: '140px',
+                                            backgroundColor: '#f5f5f5',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            overflow: 'hidden',
+                                            padding: '8px'
+                                          }}>
+                                            {zone.thumbnail_url && !zone.thumbnail_url.startsWith('blob:') ? (
+                                              <img
+                                                src={zone.thumbnail_url}
+                                                alt={zone.name}
+                                                style={{
+                                                  maxWidth: '100%',
+                                                  maxHeight: '100%',
+                                                  objectFit: 'contain',
+                                                  filter: 'grayscale(100%)',
+                                                  display: 'block'
+                                                }}
+                                                onError={(e) => {
+                                                  console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnail_url);
+                                                  e.currentTarget.style.display = 'none';
+                                                }}
+                                              />
+                                            ) : (
+                                              <div style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: '#e0e0e0',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#111827',
+                                                WebkitTextFillColor: '#111827',
+                                                fontSize: '12px',
+                                                textAlign: 'center',
+                                                padding: '8px'
+                                              }}>
+                                                {zone.name}
+                                                {!zone.thumbnail_url && (
+                                                  <div style={{ fontSize: '10px', marginTop: '4px', color: '#999' }}>
+                                                    (Pas de vignette)
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          {/* Zone label */}
+                                          <div style={{
+                                            padding: '12px',
+                                            textAlign: 'center',
+                                            backgroundColor: '#ffffff'
+                                          }}>
+                                            <p style={{
+                                              margin: 0,
+                                              fontSize: '12px',
+                                              fontWeight: '500',
+                                              color: '#111827',
+                                              WebkitTextFillColor: '#111827',
+                                              WebkitTextStrokeColor: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}>
+                                              {zone.name}
+                                              {zone.view && ` (${zone.view})`}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                {/* Section: Contenu du texte */}
+                                <div style={{ marginBottom: '32px' }}>
+                                  <h3 style={{
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    color: '#000000',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    marginBottom: '12px'
+                                  }}>
+                                    Contenu du texte
+                                  </h3>
                                   <input
                                     type="text"
-                                    value={textInput}
-                                    onChange={(e) => {
-                                      setTextZoneInputs(prev => ({
-                                        ...prev,
-                                        [zone.id]: e.target.value
-                                      }));
+                                    value={textInputValue}
+                                    onChange={(e) => setTextInputValue(e.target.value)}
+                                    placeholder="Saisir l'inscription ici..."
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
+                                        const selectedZone = availableZones.find((z: any) => z.id === selectedZoneId);
+                                        if (selectedZone) {
+                                          const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                            'Face': 'torse',
+                                            'Dos': 'dos',
+                                            'Gauche': 'bras-gauche',
+                                            'Droite': 'bras-droit',
+                                            'front': 'torse',
+                                            'back': 'dos',
+                                            'left': 'bras-gauche',
+                                            'right': 'bras-droit'
+                                          };
+                                          const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : selectedZone.zone_category;
+                                          
+                                          // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                                          // IMPORTANT: Les zones sont stockées avec inversion verticale (comme dans UVMapViewer)
+                                          // Mais ModelViewer utilise des coordonnées directes, donc on doit inverser v
+                                          const zonePosition: [number, number, number] = [
+                                            selectedZone.position[0],
+                                            1 - selectedZone.position[1], // Inverser v pour correspondre à ModelViewer
+                                            selectedZone.position[2] || 0
+                                          ];
+                                          
+                                          // Convertir la rotation de degrés à radians si nécessaire
+                                          const zoneRotationRaw = selectedZone.rotation || selectedZone.default_rotation || 0;
+                                          const zoneRotation = zoneRotationRaw * (Math.PI / 180);
+                                          
+                                          // Calculer la taille de police en fonction des dimensions de la zone
+                                          const CANVAS_SIZE = 2048;
+                                          const SCALE_FACTOR = 0.5;
+                                          const zoneWidth = selectedZone.width || 0.1;
+                                          const zoneHeight = selectedZone.height || 0.1;
+                                          
+                                          const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+                                          const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+                                          
+                                          const availableWidth = zoneWidthPx * 0.8;
+                                          const availableHeight = zoneHeightPx * 0.8;
+                                          
+                                          const estimatedCharWidth = 0.6;
+                                          const textLength = textInputValue.length || 1;
+                                          
+                                          const fontSizeFromWidth = (availableWidth / textLength) / estimatedCharWidth / SCALE_FACTOR;
+                                          const fontSizeFromHeight = availableHeight / SCALE_FACTOR;
+                                          
+                                          const calculatedFontSize = Math.min(fontSizeFromWidth, fontSizeFromHeight);
+                                          const finalFontSize = Math.max(100, Math.min(2000, calculatedFontSize));
+                                          
+                                          const categories = selectedZone.categories || [];
+                                          let category: 'nom' | 'numero' | 'text' = 'text';
+                                          if (categories.includes('nom')) {
+                                            category = 'nom';
+                                          } else if (categories.includes('numero')) {
+                                            category = 'numero';
+                                          }
+                                          
+                                          addText(
+                                            textInputValue,
+                                            zonePosition,
+                                            undefined,
+                                            category,
+                                            finalFontSize,
+                                            zoneCategory,
+                                            zoneRotation
+                                          );
+                                          
+                                          // Positionner la caméra sur la vue de la zone
+                                          if (zoneCategory) {
+                                            setTargetView(zoneCategory);
+                                          }
+                                          
+                                          setShowTextZoneSelector(null);
+                                          setSelectedZoneId(null);
+                                          setTextInputValue('');
+                                        }
+                                      }
                                     }}
-                                    placeholder="Entrez votre texte..."
                                     style={{
-                                      padding: '8px 12px',
+                                      width: '100%',
+                                      padding: '12px 16px',
+                                      backgroundColor: '#ffffff',
+                                      border: '1px solid #e0e0e0',
+                                      borderRadius: '4px',
                                       fontSize: '14px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      width: '100%'
+                                      color: '#000000',
+                                      outline: 'none'
                                     }}
                                   />
-                                  {/* Bouton pour ajouter */}
+                                </div>
+
+                                {/* Action buttons */}
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  gap: '12px'
+                                }}>
                                   <button
                                     onClick={() => {
-                                      const position: [number, number, number] = zone.position || [0.5, 0.5, 0];
-                                      const categories = zone.categories || [];
-                                      let category: 'nom' | 'numero' | 'text' = 'text';
-                                      if (categories.includes('nom')) {
-                                        category = 'nom';
-                                      } else if (categories.includes('numero')) {
-                                        category = 'numero';
-                                      }
-                                      addText(
-                                        textInput || zone.default_text || '',
-                                        position,
-                                        undefined,
-                                        category,
-                                        zone.default_font_size,
-                                        zone.zone_category,
-                                        zone.default_rotation
-                                      );
                                       setShowTextZoneSelector(null);
+                                      setSelectedZoneId(null);
+                                      setTextInputValue('');
                                     }}
                                     style={{
-                                      padding: '8px 16px',
-                                      backgroundColor: '#3b82f6',
-                                      color: '#ffffff',
-                                      borderRadius: '6px',
-                                      border: 'none',
-                                      cursor: 'pointer',
+                                      padding: '12px 24px',
+                                      backgroundColor: '#f5f5f5',
+                                      border: '1px solid #e0e0e0',
+                                      borderRadius: '4px',
                                       fontSize: '14px',
-                                      fontWeight: '500',
                                       fontFamily: 'var(--stepn-font-body)',
-                                      transition: 'background-color 0.2s'
+                                      color: '#000000',
+                                      cursor: 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s'
                                     }}
                                     onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#2563eb';
+                                      e.currentTarget.style.backgroundColor = '#e8e8e8';
                                     }}
                                     onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#3b82f6';
+                                      e.currentTarget.style.backgroundColor = '#f5f5f5';
                                     }}
                                   >
-                                    Ajouter
+                                    Annuler
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const selectedZone = availableZones.find((z: any) => z.id === selectedZoneId);
+                                      if (selectedZone && textInputValue.trim()) {
+                                        const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                          'Face': 'torse',
+                                          'Dos': 'dos',
+                                          'Gauche': 'bras-gauche',
+                                          'Droite': 'bras-droit',
+                                          'front': 'torse',
+                                          'back': 'dos',
+                                          'left': 'bras-gauche',
+                                          'right': 'bras-droit'
+                                        };
+                                        const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : selectedZone.zone_category;
+                                        
+                                        const zonePosition: [number, number, number] = [
+                                          selectedZone.position[0],
+                                          1 - selectedZone.position[1],
+                                          selectedZone.position[2] || 0
+                                        ];
+                                        
+                                        const zoneRotationRaw = selectedZone.rotation || selectedZone.default_rotation || 0;
+                                        const zoneRotation = zoneRotationRaw * (Math.PI / 180);
+                                        
+                                        const CANVAS_SIZE = 2048;
+                                        const SCALE_FACTOR = 0.5;
+                                        const zoneWidth = selectedZone.width || 0.1;
+                                        const zoneHeight = selectedZone.height || 0.1;
+                                        
+                                        const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+                                        const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+                                        
+                                        const availableWidth = zoneWidthPx * 0.8;
+                                        const availableHeight = zoneHeightPx * 0.8;
+                                        
+                                        const estimatedCharWidth = 0.6;
+                                        const textLength = textInputValue.length || 1;
+                                        
+                                        const fontSizeFromWidth = (availableWidth / textLength) / estimatedCharWidth / SCALE_FACTOR;
+                                        const fontSizeFromHeight = availableHeight / SCALE_FACTOR;
+                                        
+                                        const calculatedFontSize = Math.min(fontSizeFromWidth, fontSizeFromHeight);
+                                        const finalFontSize = Math.max(100, Math.min(2000, calculatedFontSize));
+                                        
+                                        const categories = selectedZone.categories || [];
+                                        let category: 'nom' | 'numero' | 'text' = 'text';
+                                        if (categories.includes('nom')) {
+                                          category = 'nom';
+                                        } else if (categories.includes('numero')) {
+                                          category = 'numero';
+                                        }
+                                        
+                                        addText(
+                                          textInputValue,
+                                          zonePosition,
+                                          undefined,
+                                          category,
+                                          finalFontSize,
+                                          zoneCategory,
+                                          zoneRotation
+                                        );
+                                        
+                                        if (zoneCategory) {
+                                          setTargetView(zoneCategory);
+                                        }
+                                        
+                                        setShowTextZoneSelector(null);
+                                        setSelectedZoneId(null);
+                                        setTextInputValue('');
+                                      }
+                                    }}
+                                    disabled={!textInputValue.trim() || !selectedZoneId}
+                                    style={{
+                                      padding: '12px 24px',
+                                      backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
+                                      cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (textInputValue.trim() && selectedZoneId) {
+                                        e.currentTarget.style.backgroundColor = '#333333';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (textInputValue.trim() && selectedZoneId) {
+                                        e.currentTarget.style.backgroundColor = '#000000';
+                                      }
+                                    }}
+                                  >
+                                    {activeModule.addTextButtonLabel || 'Ajouter un texte'}
                                   </button>
                                 </div>
-                              );
-                            })}
+                              </div>
+                            )}
                           </div>
-                          <button
-                            onClick={() => setShowTextZoneSelector(null)}
-                            style={{
-                              padding: '10px 16px',
-                              backgroundColor: '#ef4444',
-                              color: '#ffffff',
-                              borderRadius: '8px',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '16px',
-                              fontWeight: '600',
-                              fontFamily: 'var(--stepn-font-body)'
-                            }}
-                          >
-                            Annuler
-                          </button>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 ) : (
                   // Masquer le module si pas de données dans le snapshot (PAS d'erreur)

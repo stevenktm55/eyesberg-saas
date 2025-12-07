@@ -54,6 +54,12 @@ export interface Snapshot {
     default_logo_height?: number;
     thumbnail_url?: string;
     view?: 'front' | 'back' | 'left' | 'right';
+    default_text?: string;
+    default_font_size?: number;
+    default_rotation?: number;
+    width?: number;
+    height?: number;
+    rotation?: number;
   }>;
   fonts?: Array<{
     id: string;
@@ -778,7 +784,13 @@ async function resolveTextZones(model3DId: string | null): Promise<Snapshot['tex
     default_logo_width: zone.default_logo_width || zone.defaultLogoWidth,
     default_logo_height: zone.default_logo_height || zone.defaultLogoHeight,
     thumbnail_url: zone.thumbnail_url || zone.thumbnailUrl,
-    view: zone.view || 'front'
+    view: zone.view || 'front',
+    default_text: zone.default_text || zone.defaultText || '',
+    default_font_size: zone.default_font_size || zone.defaultFontSize,
+    default_rotation: zone.default_rotation || zone.defaultRotation || 0,
+    width: zone.width,
+    height: zone.height,
+    rotation: zone.rotation
   }));
 }
 
