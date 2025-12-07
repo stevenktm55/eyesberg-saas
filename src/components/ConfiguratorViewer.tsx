@@ -3039,6 +3039,44 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot]);
   
+  // Initialiser les couleurs depuis le snapshot
+  useEffect(() => {
+    if (!snapshot) {
+      return;
+    }
+    
+    const colorModule = snapshot.customizationModules.find((m: any) => 
+      (m.type === 'colors' || m.contentType === 'colors')
+    );
+    
+    if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
+      // Construire l'objet colors depuis allowedColors
+      const initialColors: Record<string, string> = {};
+      
+      colorModule.allowedColors.forEach((color: any) => {
+        const mesh = color.mesh || 'primary';
+        const hex = color.hex || '#000000';
+        initialColors[mesh] = hex;
+      });
+      
+      // Si defaultState a des couleurs, les utiliser
+      if (snapshot.defaultState?.colorId) {
+        const defaultColor = colorModule.allowedColors.find((c: any) => 
+          c.hex === snapshot.defaultState.colorId || c.id === snapshot.defaultState.colorId
+        );
+        if (defaultColor) {
+          const mesh = defaultColor.mesh || 'primary';
+          initialColors[mesh] = defaultColor.hex;
+        }
+      }
+      
+      // Appliquer les couleurs initiales
+      if (Object.keys(initialColors).length > 0) {
+        replaceColors(initialColors);
+      }
+    }
+  }, [snapshot, replaceColors]);
+  
   // Charger le modèle 3D depuis le snapshot uniquement
   const modelUrl = snapshot?.model3D?.url || null;
   const textureMaps = snapshot?.model3D?.textureMaps || {};
