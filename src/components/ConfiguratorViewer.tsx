@@ -3182,6 +3182,16 @@ export default function ConfiguratorViewer({
     customizationModules.length > 0 ? customizationModules[0].id : null
   );
   
+  // Log pour déboguer
+  useEffect(() => {
+    console.log('📦 customizationModules:', customizationModules);
+    console.log('📦 productConfig:', productConfig);
+    console.log('📦 modelId:', modelId);
+    console.log('📦 configModel3DId:', configModel3DId);
+    console.log('📦 selectedDesign:', selectedDesign);
+    console.log('📦 design2DId:', productConfig?.design2DId);
+  }, [customizationModules, productConfig, modelId, configModel3DId, selectedDesign]);
+  
   // Mapper les onglets de la sidebar vers les modules
   useEffect(() => {
     if (customizationModules.length > 0 && !activeCustomizerTab) {
