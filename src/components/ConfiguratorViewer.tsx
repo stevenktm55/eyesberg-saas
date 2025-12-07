@@ -6850,11 +6850,15 @@ export default function ConfiguratorViewer({
                       
                       {/* Bouton "Ajouter un logo" */}
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🖼️ Clic sur "Ajouter un logo", showLogoLibrary avant:', showLogoLibrary);
                           // NOUVEAU FLUX : Ouvrir la bibliothèque de logos d'abord
                           setShowLogoLibrary(true);
                           setSelectedLogoForZone(null);
                           setSelectedLogoForVariants(null);
+                          console.log('🖼️ showLogoLibrary après:', true);
                         }}
                         style={{
                           width: '100%',
