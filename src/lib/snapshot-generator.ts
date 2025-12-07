@@ -399,7 +399,9 @@ async function resolveDesign2D(designId: string): Promise<Snapshot['design2D']> 
     name: design.name,
     hasSvgUrl: !!design.svg_url,
     svgUrl: design.svg_url,
-    hasThumbnailUrl: !!design.thumbnail_url
+    hasThumbnailUrl: !!design.thumbnail_url,
+    hasColorMappings: !!(design.color_mappings || design.colorMappings),
+    colorMappings: design.color_mappings || design.colorMappings || null
   });
 
   // Résoudre les couleurs
