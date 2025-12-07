@@ -852,31 +852,53 @@ function resolveColors(
   
   // Si on a des color_mappings, les utiliser pour mapper les couleurs aux meshes
   if (Object.keys(colorMappings).length > 0) {
+    console.log('🎨 Résolution des color_mappings:', {
+      colorMappings,
+      allowedColorsCount: allowedColors.length,
+      allowedColors: allowedColors.map((c: any) => ({ id: c.id, hex: c.hex, label: c.label }))
+    });
+    
     Object.keys(colorMappings).forEach((colorClass) => {
       const colorId = colorMappings[colorClass];
+      console.log(`  → Résolution de ${colorClass}: colorId = ${colorId}`);
+      
       // Chercher la couleur correspondante dans allowedColors
-      // colorId peut être un ID (string UUID) ou un hex directement
-      const color = allowedColors.find((c: any) => {
+      // colorId peut être un ID (string UUID), un hex directement, ou un index
+      let color = allowedColors.find((c: any) => {
         // Comparer par ID si disponible
-        if (c.id && c.id === colorId) return true;
-        // Comparer par hex si colorId est un hex
-        if (c.hex && c.hex.toLowerCase() === colorId.toLowerCase()) return true;
-        // Comparer par hex si colorId commence par #
-        if (c.hex && colorId.startsWith('#') && c.hex.toLowerCase() === colorId.toLowerCase()) return true;
+        if (c.id && c.id === colorId) {
+          console.log(`    ✅ Trouvé par ID: ${c.id} → ${c.hex}`);
+          return true;
+        }
+        // Comparer par hex (avec ou sans #)
+        const cHex = c.hex?.toLowerCase().replace('#', '');
+        const colorIdHex = String(colorId).toLowerCase().replace('#', '');
+        if (cHex && cHex === colorIdHex) {
+          console.log(`    ✅ Trouvé par hex: ${c.hex} === ${colorId}`);
+          return true;
+        }
         return false;
       });
       
-      if (color) {
-        resolvedColors[colorClass] = color.hex;
-      } else {
+      if (!color) {
         // Si la couleur n'est pas trouvée, essayer de trouver une couleur par index
         // Les color_mappings peuvent contenir des indices (0, 1, 2) au lieu d'IDs
-        const colorIndex = parseInt(colorId);
+        const colorIndex = parseInt(String(colorId));
         if (!isNaN(colorIndex) && allowedColors[colorIndex]) {
-          resolvedColors[colorClass] = allowedColors[colorIndex].hex;
-        } else if (allowedColors.length > 0) {
-          // Fallback: utiliser la première couleur disponible
+          color = allowedColors[colorIndex];
+          console.log(`    ✅ Trouvé par index: [${colorIndex}] → ${color.hex}`);
+        }
+      }
+      
+      if (color) {
+        resolvedColors[colorClass] = color.hex;
+        console.log(`    ✅ Couleur résolue pour ${colorClass}: ${color.hex}`);
+      } else {
+        console.warn(`    ⚠️ Couleur non trouvée pour ${colorClass} (colorId: ${colorId})`);
+        // Fallback: utiliser la première couleur disponible
+        if (allowedColors.length > 0) {
           resolvedColors[colorClass] = allowedColors[0].hex;
+          console.log(`    ⚠️ Utilisation de la première couleur disponible: ${allowedColors[0].hex}`);
         }
       }
     });
