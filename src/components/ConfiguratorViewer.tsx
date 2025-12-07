@@ -1600,7 +1600,7 @@ function Viewer3D({
           gl={{
             preserveDrawingBuffer: true,
             antialias: true,
-            alpha: false,
+            alpha: true,
           }}
           style={{
             background: '#f5f5f5',
