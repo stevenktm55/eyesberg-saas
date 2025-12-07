@@ -60,6 +60,24 @@ export async function generateSnapshot(
   shopDomain: string,
   shopifyProductId: string
 ): Promise<Snapshot> {
+  // Log complet de builderData pour debug
+  console.log('📦 builderData reçu pour génération du snapshot:', {
+    hasBuilderData: !!builderData,
+    builderDataKeys: builderData ? Object.keys(builderData) : [],
+    model3DId: builderData?.model3DId,
+    design2DId: builderData?.design2DId,
+    hasDefaultState: !!builderData?.defaultState,
+    defaultStateDesign2DId: builderData?.defaultState?.design2DId,
+    hasCustomizationModules: !!builderData?.customizationModules,
+    customizationModulesCount: builderData?.customizationModules?.length || 0,
+    customizationModulesTypes: builderData?.customizationModules?.map((m: any) => ({
+      type: m.type || m.contentType,
+      hasSelectedItems: !!m.selectedItems,
+      selectedItemsDesign2DId: m.selectedItems?.design2DId,
+      default: m.default
+    })) || []
+  });
+  
   // Trouver le design2DId : d'abord dans builderData.design2DId, puis dans defaultState, puis dans les modules
   let design2DId = builderData.design2DId;
   if (!design2DId && builderData.defaultState?.design2DId) {
@@ -81,7 +99,13 @@ export async function generateSnapshot(
     design2DId: design2DId,
     design2DIdSource: builderData.design2DId ? 'root' : 
                       builderData.defaultState?.design2DId ? 'defaultState' : 
-                      'modules',
+                      builderData.customizationModules?.find((m: any) => 
+                        (m.type === 'designs-2d' || m.contentType === 'designs-2d')
+                      )?.selectedItems?.design2DId ? 'modules.selectedItems' :
+                      builderData.customizationModules?.find((m: any) => 
+                        (m.type === 'designs-2d' || m.contentType === 'designs-2d')
+                      )?.default ? 'modules.default' :
+                      'notFound',
     modulesCount: builderData.customizationModules?.length || 0
   });
 
