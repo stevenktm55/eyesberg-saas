@@ -271,15 +271,43 @@ async function resolveModel3D(modelId: string | null): Promise<Snapshot['model3D
  * Résout le design 2D : convertit l'ID en URL et couleurs résolues
  */
 async function resolveDesign2D(designId: string): Promise<Snapshot['design2D']> {
+  console.log('🔍 Résolution du design2D depuis la DB:', {
+    designId,
+    designIdType: typeof designId
+  });
+  
   const { data: design, error } = await supabaseAdmin
     .from('designs')
     .select('*')
     .eq('id', designId)
     .single();
 
-  if (error || !design) {
+  if (error) {
+    console.error('❌ Erreur Supabase lors de la récupération du design:', {
+      designId,
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorDetails: error.details,
+      errorHint: error.hint
+    });
+    throw new Error(`Design not found: ${designId} - ${error.message}`);
+  }
+  
+  if (!design) {
+    console.error('❌ Design non trouvé dans la DB:', {
+      designId,
+      queryReturnedNull: true
+    });
     throw new Error(`Design not found: ${designId}`);
   }
+  
+  console.log('✅ Design trouvé dans la DB:', {
+    designId: design.id,
+    name: design.name,
+    hasSvgUrl: !!design.svg_url,
+    svgUrl: design.svg_url,
+    hasThumbnailUrl: !!design.thumbnail_url
+  });
 
   // Résoudre les couleurs
   const colors: Record<string, string> = {};
