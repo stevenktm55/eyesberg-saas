@@ -3016,6 +3016,35 @@ export default function ConfiguratorViewer({
   const configModel3DId = productConfig?.model3DId || null;
   const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(configModel3DId, null, finalProductId, finalShopDomain);
   
+  // Log pour déboguer le chargement du modèle et des maps
+  useEffect(() => {
+    console.log('🎨 Chargement du modèle 3D:', {
+      configModel3DId,
+      modelId,
+      modelUrl,
+      hasTextureMaps: !!textureMaps,
+      textureMaps: textureMaps ? Object.keys(textureMaps) : [],
+      hasMaterialMaps: !!materialMaps,
+      materialMaps: materialMaps ? Object.keys(materialMaps) : [],
+      isLoadingModel
+    });
+  }, [configModel3DId, modelId, modelUrl, textureMaps, materialMaps, isLoadingModel]);
+  
+  // Log pour déboguer les props passées au Viewer3D
+  useEffect(() => {
+    console.log('🎨 Props passées au Viewer3D:', {
+      designTexture,
+      hasTextureMaps: !!textureMaps,
+      textureMapsKeys: textureMaps ? Object.keys(textureMaps) : [],
+      hasMaterialMaps: !!materialMaps,
+      materialMapsKeys: materialMaps ? Object.keys(materialMaps) : [],
+      modelUrl,
+      modelId,
+      selectedDesignId: selectedDesign?.id,
+      selectedDesignSvgUrl: selectedDesign?.svgUrl
+    });
+  }, [designTexture, textureMaps, materialMaps, modelUrl, modelId, selectedDesign]);
+  
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
