@@ -642,10 +642,22 @@ async function resolveTextZones(model3DId: string | null): Promise<Snapshot['tex
     error = result.error;
   }
 
-  if (error || !zones) {
-    console.warn('⚠️ Aucune zone de texte trouvée pour le modèle:', model3DId);
+  if (error) {
+    console.warn('⚠️ Aucune zone de texte trouvée pour le modèle:', model3DId, {
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorDetails: error.details,
+      errorHint: error.hint
+    });
     return [];
   }
+  
+  if (!zones || zones.length === 0) {
+    console.warn('⚠️ Aucune zone de texte trouvée pour le modèle:', model3DId, '(table trouvée mais vide)');
+    return [];
+  }
+  
+  console.log(`✅ ${zones.length} zone(s) de texte trouvée(s) pour le modèle: ${model3DId}`);
 
   return zones.map((zone: any) => ({
     id: zone.id,
