@@ -2454,8 +2454,29 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             hasModel3D: !!snapshot.model3D,
             hasDesign2D: !!snapshot.design2D,
             design2DUrl: snapshot.design2D?.url,
-            modulesCount: snapshot.customizationModules?.length || 0
+            modulesCount: snapshot.customizationModules?.length || 0,
+            hasTextZones: !!snapshot.textZones?.length,
+            textZonesCount: snapshot.textZones?.length || 0,
+            hasFonts: !!snapshot.fonts?.length,
+            fontsCount: snapshot.fonts?.length || 0
           });
+          
+          // Log détaillé des modules pour debug
+          console.log('📦 Modules du snapshot:', snapshot.customizationModules?.map((m: any) => ({
+            id: m.id,
+            type: m.type,
+            label: m.label,
+            icon: m.icon,
+            iconUrl: m.iconUrl,
+            hasAllowedDesigns: !!m.allowedDesigns?.length,
+            allowedDesignsCount: m.allowedDesigns?.length || 0,
+            hasThumbnails: m.allowedDesigns?.some((d: any) => d.thumbnailUrl),
+            hasAllowedColors: !!m.allowedColors?.length,
+            allowedColorsCount: m.allowedColors?.length || 0,
+            hasConfig: !!m.config,
+            configKeys: m.config ? Object.keys(m.config) : []
+          })));
+          
           const rawModules = snapshot.customizationModules || [];
           const modules = rawModules.map((m: any) => {
             const module: any = {
@@ -3046,7 +3067,7 @@ export default function ConfiguratorViewer({
       (m.type === 'colors' || m.contentType === 'colors')
     );
     if (colorModule?.allowedColors && colorModule.allowedColors.length > 0) {
-      setColorPalettes([{
+      const palette = {
         id: 'snapshot-palette',
         name: 'Snapshot Palette',
         colors: colorModule.allowedColors.map((c: any) => ({
@@ -3056,7 +3077,12 @@ export default function ConfiguratorViewer({
           value: c.hex,
           class: c.mesh || 'primary'
         }))
-      }]);
+      };
+      console.log('🎨 Palette de couleurs chargée depuis snapshot:', {
+        colorsCount: palette.colors.length,
+        colors: palette.colors.map(c => ({ id: c.id, name: c.name, hex: c.hex, class: c.class }))
+      });
+      setColorPalettes([palette]);
     } else {
       setColorPalettes([]);
     }
