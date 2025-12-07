@@ -3007,17 +3007,6 @@ export default function ConfiguratorViewer({
   }, [snapshot, logoLibraries]);
   
   const { logos, isLoading: isLoadingLogos } = snapshot ? { logos: logosFromSnapshot, isLoading: false } : logosFromAPI;
-  const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
-  const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null);
-  const [designColors, setDesignColors] = useState<Record<string, string>>({});
-  const [showLogoLibrary, setShowLogoLibrary] = useState(false);
-  const [showLogoZoneModal, setShowLogoZoneModal] = useState(false);
-  const [selectedLogoForZone, setSelectedLogoForZone] = useState<{logoId: string, variantId?: string, variantFile?: string} | null>(null);
-  const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right'>('front');
-  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
-  const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
-  const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
-  const [targetView, setTargetView] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null>(null);
   
   // Charger les designs 2D depuis le snapshot
   useEffect(() => {
