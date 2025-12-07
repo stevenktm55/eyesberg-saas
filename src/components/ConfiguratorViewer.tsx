@@ -3230,6 +3230,17 @@ export default function ConfiguratorViewer({
     }
   }, [activeTab, customizationModules]);
   
+  // Log pour déboguer l'affichage de la sidebar
+  useEffect(() => {
+    console.log('🔍 Condition sidebar gauche:', {
+      modelId: !!modelId,
+      customizationModulesLength: customizationModules.length,
+      shouldShow: modelId && customizationModules.length > 0,
+      modelIdValue: modelId,
+      modules: customizationModules.map((m: any) => ({ id: m.id, contentType: m.contentType, tabName: m.tabName }))
+    });
+  }, [modelId, customizationModules]);
+  
   // Retourner le layout combiné : Sidebar gauche + Viewer3D + Sidebar droite
   return (
     <div className="h-full flex">
