@@ -5703,16 +5703,22 @@ export default function ConfiguratorViewer({
                                 })()}
                                 <div>
                                   {(() => {
-                                    const textConstraints = activeModule.config?.textConstraints || activeModule.textConstraints || {
-                                      strokeMinWidthPx: 0,
-                                      strokeMaxWidthPx: 50,
-                                      baseStrokeWidthPx: 5
-                                    };
+                                    // Utiliser UNIQUEMENT les contraintes depuis le snapshot (pas de fallback)
+                                    const textConstraints = activeModule.config?.textConstraints || activeModule.textConstraints;
+                                    
+                                    if (!textConstraints || typeof textConstraints.strokeMinWidthPx !== 'number' || typeof textConstraints.strokeMaxWidthPx !== 'number') {
+                                      return (
+                                        <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          Les contraintes de contour ne sont pas disponibles dans le snapshot.
+                                        </p>
+                                      );
+                                    }
+                                    
                                     const sliderMin = textConstraints.strokeMinWidthPx;
                                     const sliderMax = textConstraints.strokeMaxWidthPx;
                                     const sliderRange = sliderMax - sliderMin;
                                     
-                                    // Utiliser directement la valeur stockée
+                                    // Utiliser directement la valeur stockée, ou baseStrokeWidthPx depuis le snapshot
                                     const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
                                     let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
                                     
@@ -6088,27 +6094,70 @@ export default function ConfiguratorViewer({
                             {texts.map((text) => (
                               <div
                                 key={text.id}
-                                onClick={() => {
-                                  selectText(text.id);
-                                  setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
-                                }}
                                 style={{
                                   padding: '12px',
                                   backgroundColor: selectedTextId === text.id ? '#f3f4f6' : '#ffffff',
                                   border: `1px solid ${selectedTextId === text.id ? '#3b82f6' : '#e5e7eb'}`,
                                   borderRadius: '6px',
-                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '8px',
                                   transition: 'all 0.2s'
                                 }}
                               >
-                                <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
-                                  {text.content || '(Texte vide)'}
-                                </div>
-                                {text.zoneCategory && (
-                                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                                    Zone: {text.zoneCategory}
+                                <div
+                                  onClick={() => {
+                                    selectText(text.id);
+                                    setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+                                  }}
+                                  style={{
+                                    flex: 1,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                    {text.content || '(Texte vide)'}
                                   </div>
-                                )}
+                                  {text.zoneCategory && (
+                                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                                      Zone: {text.zoneCategory}
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm('Êtes-vous sûr de vouloir supprimer ce texte ?')) {
+                                      removeText(text.id);
+                                      if (selectedTextId === text.id) {
+                                        selectText(null);
+                                      }
+                                    }
+                                  }}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: '4px 8px',
+                                    cursor: 'pointer',
+                                    color: '#ef4444',
+                                    fontSize: '18px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '4px',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#fee2e2';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                  }}
+                                  title="Supprimer le texte"
+                                >
+                                  🗑️
+                                </button>
                               </div>
                             ))}
                           </div>
