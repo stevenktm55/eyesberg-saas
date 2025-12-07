@@ -107,30 +107,41 @@ export async function GET(request: NextRequest) {
         const normalizedSearchId = normalizeId(id);
         console.log(`🔍 Recherche du produit avec ID Shopify normalisé: "${normalizedSearchId}" (original: "${id}")`);
 
-        // Chercher le produit qui a ce shopify_product_id dans builder_data.shopify.productId
+        // Chercher le produit qui a ce shopify_product_id
+        // Priorité 1: colonne shopify_product_id (nouveau système avec snapshot)
+        // Priorité 2: builder_data.shopify.productId (ancien système)
         const product = products?.find((p: any) => {
+          // Nouveau système: chercher dans la colonne shopify_product_id
+          if (p.shopify_product_id) {
+            const normalizedStoredId = normalizeId(p.shopify_product_id);
+            const match = normalizedStoredId === normalizedSearchId;
+            if (match) {
+              console.log(`✅ Produit trouvé (nouveau système):`, {
+                product_id: p.id,
+                name: p.name,
+                shopify_product_id: p.shopify_product_id,
+                has_snapshot: !!p.published_snapshot
+              });
+            }
+            return match;
+          }
+          
+          // Ancien système: chercher dans builder_data.shopify.productId
           const shopifyData = p.builder_data?.shopify;
-          if (!shopifyData || !shopifyData.productId) {
-            return false;
+          if (shopifyData && shopifyData.productId) {
+            const normalizedStoredId = normalizeId(shopifyData.productId);
+            const match = normalizedStoredId === normalizedSearchId;
+            if (match) {
+              console.log(`✅ Produit trouvé (ancien système):`, {
+                product_id: p.id,
+                name: p.name,
+                shopify_product_id: shopifyData.productId
+              });
+            }
+            return match;
           }
           
-          // Normaliser l'ID stocké dans le produit
-          const normalizedStoredId = normalizeId(shopifyData.productId);
-          
-          // Comparer les IDs normalisés
-          const match = normalizedStoredId === normalizedSearchId;
-          
-          if (match) {
-            console.log(`✅ Produit trouvé:`, {
-              product_id: p.id,
-              name: p.name,
-              shopify_product_id: shopifyData.productId,
-              normalized_stored: normalizedStoredId,
-              normalized_search: normalizedSearchId,
-            });
-          }
-          
-          return match;
+          return false;
         });
 
         if (!product) {
@@ -139,9 +150,9 @@ export async function GET(request: NextRequest) {
             name: p.name,
             shop_domain: p.shop_domain,
             subdomain: p.subdomain,
-            shopify_product_id: p.builder_data?.shopify?.productId,
-            has_shopify_data: !!p.builder_data?.shopify,
-            builder_data_keys: p.builder_data ? Object.keys(p.builder_data) : []
+            shopify_product_id: p.shopify_product_id || p.builder_data?.shopify?.productId,
+            has_snapshot: !!p.published_snapshot,
+            has_shopify_data: !!p.builder_data?.shopify
           })));
           console.error('❌ Search details:', {
             searchedId: id,
@@ -174,13 +185,26 @@ export async function GET(request: NextRequest) {
               availableProducts: products?.map((p: any) => ({
                 id: p.id,
                 name: p.name,
-                shopify_product_id: p.builder_data?.shopify?.productId
+                shopify_product_id: p.shopify_product_id || p.builder_data?.shopify?.productId
               })) || []
             },
             { status: 404 }
           );
         }
 
+        // Si le produit a un snapshot publié, le retourner au lieu de builder_data
+        // (pour le configurateur client)
+        if (product.published_snapshot) {
+          console.log('📸 Retour du snapshot publié pour le produit:', product.id);
+          return NextResponse.json({
+            ...product,
+            snapshot: product.published_snapshot,
+            // Ne pas exposer builder_data au client
+            builder_data: undefined
+          });
+        }
+
+        // Sinon, retourner le produit avec builder_data (pour le builder admin)
         return NextResponse.json(product);
       }
     } else if (shopDomain) {
