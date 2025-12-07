@@ -1366,6 +1366,27 @@ function Viewer3D({
   isPlacingText?: 'nom' | 'numero' | null;
   textZones?: TextZone[];
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
+  viewerSettings?: {
+    lights?: {
+      ambientLight?: {
+        intensity?: number;
+      };
+      directionalLights?: Array<{
+        position: [number, number, number];
+        intensity: number;
+      }>;
+    };
+    environment?: {
+      preset?: string;
+    };
+  };
+  cameraSettings?: {
+    initialZoom?: number;
+    minZoom?: number;
+    maxZoom?: number;
+    zoomSpeed?: number;
+    rotateSpeed?: number;
+  };
 }) {
   const [testUVMap, setTestUVMap] = useState<string | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{uv: [number, number], svg: [number, number]} | null>(null);
