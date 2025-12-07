@@ -456,14 +456,19 @@ async function resolveCustomizationModules(
 
       // Résoudre selon le type de module
       if (moduleType === 'colors') {
-        // Résoudre la palette de couleurs
-        const paletteId = module.config?.paletteId || module.selectedItems?.paletteId;
+        // Résoudre la palette de couleurs - chercher dans config, selectedItems, ou directement dans module
+        const paletteId = module.config?.paletteId || 
+                         module.selectedItems?.paletteId || 
+                         module.paletteId ||
+                         module.selectedItems?.colorPaletteId;
         console.log('🎨 Résolution du module couleurs:', {
           moduleId: module.id,
           paletteId: paletteId,
           hasConfig: !!module.config,
           hasSelectedItems: !!module.selectedItems,
-          configKeys: module.config ? Object.keys(module.config) : []
+          configKeys: module.config ? Object.keys(module.config) : [],
+          selectedItemsKeys: module.selectedItems ? Object.keys(module.selectedItems) : [],
+          moduleKeys: Object.keys(module)
         });
         
         if (paletteId) {
@@ -505,8 +510,21 @@ async function resolveCustomizationModules(
           paletteId: paletteId
         };
       } else if (moduleType === 'designs-2d') {
-        // Résoudre les designs autorisés
-        const allowedIds = module.selectedItems?.design2DIds || module.config?.allowedDesignIds || [];
+        // Résoudre les designs autorisés - chercher dans config, selectedItems, ou directement
+        const allowedIds = module.selectedItems?.design2DIds || 
+                          module.config?.allowedDesignIds || 
+                          module.allowedDesignIds ||
+                          module.selectedItems?.allowedDesignIds ||
+                          [];
+        console.log('🎨 Résolution du module designs-2d:', {
+          moduleId: module.id,
+          allowedIdsCount: allowedIds.length,
+          allowedIds: allowedIds,
+          hasConfig: !!module.config,
+          hasSelectedItems: !!module.selectedItems,
+          configKeys: module.config ? Object.keys(module.config) : [],
+          selectedItemsKeys: module.selectedItems ? Object.keys(module.selectedItems) : []
+        });
         if (allowedIds.length > 0) {
           // Essayer d'abord designs_2d, puis designs en fallback
           let { data: designs, error: designsError } = await supabaseAdmin
