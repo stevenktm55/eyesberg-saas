@@ -4906,8 +4906,17 @@ export default function ConfiguratorViewer({
                     {/* Bouton "Ajouter un logo" */}
                     <button
                       onClick={() => {
-                        setLogoToReplace(null);
-                        setShowLogoLibrary(true);
+                        // Vérifier le mode de placement depuis le module ou son config
+                        const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || 'zones';
+                        // Si mode zones, ouvrir le modal de sélection de zone
+                        if (placementMode === 'zones') {
+                          setShowLogoZoneModal(true);
+                          setSelectedLogoForZone(null);
+                        } else {
+                          // Mode libre : ouvrir la bibliothèque de logos
+                          setLogoToReplace(null);
+                          setShowLogoLibrary(true);
+                        }
                       }}
                       style={{
                         width: '100%',
