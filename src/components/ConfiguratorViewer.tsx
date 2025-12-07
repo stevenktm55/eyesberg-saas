@@ -2418,12 +2418,16 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       }
       
       try {
+        // Normaliser l'ID Shopify pour s'assurer qu'on utilise le bon format
+        const normalizedProductId = normalizeShopifyProductId(product);
+        console.log('🔍 ID Shopify normalisé:', { original: product, normalized: normalizedProductId });
+        
         // Utiliser l'ID Shopify pour récupérer le produit depuis product_builder
         // L'API cherche dans builder_data.shopify.productId
-        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(product)}`;
+        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}`;
         
         console.log('📡 Chargement de la configuration depuis:', url);
-        console.log('📡 Recherche du produit avec shopify_product_id:', product);
+        console.log('📡 Recherche du produit avec shopify_product_id:', normalizedProductId || product);
         const response = await fetch(url);
         
         if (response.ok) {
