@@ -2949,9 +2949,45 @@ export default function ConfiguratorViewer({
   const snapshot = productConfig?.snapshot;
   
   // Hooks pour les fonctionnalités (textes, logos, couleurs, etc.)
-  const { zones: textZones, isLoading: isLoadingZones } = useTextZones(null, finalShopDomain);
-  const { fonts, isLoading: isLoadingFonts } = useFonts(finalShopDomain);
-  const { logos, isLoading: isLoadingLogos } = useLogos(null, finalShopDomain);
+  // Désactiver les appels API si on utilise le snapshot
+  const textZonesFromAPI = useTextZones(null, finalShopDomain);
+  const fontsFromAPI = useFonts(finalShopDomain);
+  const logosFromAPI = useLogos(null, finalShopDomain);
+  
+  // Utiliser les données du snapshot si disponible, sinon utiliser les APIs
+  const { zones: textZones, isLoading: isLoadingZones } = snapshot ? { zones: [], isLoading: false } : textZonesFromAPI;
+  const { fonts, isLoading: isLoadingFonts } = snapshot ? { fonts: [], isLoading: false } : fontsFromAPI;
+  
+  // Pour les logos, extraire depuis logoLibraries du snapshot
+  const [logosFromSnapshot, setLogosFromSnapshot] = useState<Logo[]>([]);
+  useEffect(() => {
+    if (snapshot && logoLibraries.length > 0) {
+      // Extraire tous les logos de toutes les bibliothèques
+      const allLogos: Logo[] = [];
+      logoLibraries.forEach((library: any) => {
+        if (library.logos && Array.isArray(library.logos)) {
+          library.logos.forEach((logo: any) => {
+            allLogos.push({
+              id: logo.id || logo.logoId,
+              name: logo.name || '',
+              variants: logo.variants || (logo.variantFile ? [{
+                id: 'base',
+                file: logo.variantFile || logo.file_url || '',
+                name: logo.name || 'Base'
+              }] : []),
+              file_url: logo.file_url || logo.variantFile || '',
+              vector: logo.vector || false
+            });
+          });
+        }
+      });
+      setLogosFromSnapshot(allLogos);
+    } else {
+      setLogosFromSnapshot([]);
+    }
+  }, [snapshot, logoLibraries]);
+  
+  const { logos, isLoading: isLoadingLogos } = snapshot ? { logos: logosFromSnapshot, isLoading: false } : logosFromAPI;
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
   
