@@ -205,7 +205,12 @@ export async function GET(request: NextRequest) {
             fromColumn: !!product.published_snapshot,
             snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
             hasModel3D: !!publishedSnapshot.model3D,
-            hasDesign2D: !!publishedSnapshot.design2D
+            hasDesign2D: !!publishedSnapshot.design2D,
+            design2DUrl: publishedSnapshot.design2D?.url,
+            snapshotVersion: publishedSnapshot.version,
+            publishedAt: publishedSnapshot.publishedAt,
+            // Vérifier la structure complète du snapshot
+            snapshotKeys: Object.keys(publishedSnapshot)
           });
           return NextResponse.json({
             ...product,
@@ -221,7 +226,8 @@ export async function GET(request: NextRequest) {
           shopifyProductId: product.shopify_product_id,
           hasBuilderData: !!product.builder_data,
           hasPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
-          hasPublishedSnapshotColumn: !!product.published_snapshot
+          hasPublishedSnapshotColumn: !!product.published_snapshot,
+          builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
         });
 
         // Sinon, retourner le produit avec builder_data (pour le builder admin)

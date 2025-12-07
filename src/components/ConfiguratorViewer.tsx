@@ -2415,13 +2415,33 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         if (response.ok) {
           const productData = await response.json();
           
+          console.log('📦 Données reçues de l\'API:', {
+            hasSnapshot: !!productData.snapshot,
+            productId: productData.id,
+            productName: productData.name,
+            shopifyProductId: productData.shopify_product_id,
+            snapshotKeys: productData.snapshot ? Object.keys(productData.snapshot) : [],
+            hasDesign2D: !!productData.snapshot?.design2D,
+            design2DUrl: productData.snapshot?.design2D?.url
+          });
+          
           if (!productData.snapshot) {
+            console.error('❌ Aucun snapshot dans la réponse de l\'API');
             setConfig(null);
             setIsLoading(false);
             return;
           }
           
           const snapshot = productData.snapshot;
+          
+          console.log('✅ Snapshot chargé:', {
+            version: snapshot.version,
+            publishedAt: snapshot.publishedAt,
+            hasModel3D: !!snapshot.model3D,
+            hasDesign2D: !!snapshot.design2D,
+            design2DUrl: snapshot.design2D?.url,
+            modulesCount: snapshot.customizationModules?.length || 0
+          });
           const rawModules = snapshot.customizationModules || [];
           const modules = rawModules.map((m: any) => {
             const module: any = {

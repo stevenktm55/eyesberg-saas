@@ -122,9 +122,32 @@ export async function POST(
     const savedSnapshot = updated.builder_data?.publishedSnapshot;
     console.log('✅ Produit lié et snapshot publié avec succès:', {
       productId: updated.id,
+      productName: updated.name,
       shopifyProductId: updated.shopify_product_id,
       hasSnapshotInBuilderData: !!savedSnapshot,
-      snapshotModulesCount: savedSnapshot?.customizationModules?.length || 0
+      snapshotModulesCount: savedSnapshot?.customizationModules?.length || 0,
+      hasModel3D: !!savedSnapshot?.model3D,
+      hasDesign2D: !!savedSnapshot?.design2D,
+      design2DUrl: savedSnapshot?.design2D?.url,
+      snapshotVersion: savedSnapshot?.version,
+      publishedAt: savedSnapshot?.publishedAt,
+      // Vérifier que le snapshot est bien dans builder_data
+      builderDataHasPublishedSnapshot: !!updated.builder_data?.publishedSnapshot,
+      builderDataKeys: updated.builder_data ? Object.keys(updated.builder_data) : []
+    });
+    
+    // Vérifier immédiatement après la sauvegarde en récupérant le produit
+    const { data: verifyProduct } = await supabaseAdmin
+      .from('product_builder')
+      .select('builder_data')
+      .eq('id', productId)
+      .single();
+    
+    const verifySnapshot = verifyProduct?.builder_data?.publishedSnapshot;
+    console.log('🔍 Vérification post-sauvegarde:', {
+      hasSnapshot: !!verifySnapshot,
+      hasDesign2D: !!verifySnapshot?.design2D,
+      design2DUrl: verifySnapshot?.design2D?.url
     });
 
     return NextResponse.json({
