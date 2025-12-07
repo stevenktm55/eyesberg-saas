@@ -419,30 +419,12 @@ async function resolveDesign2D(designId: string): Promise<Snapshot['design2D']> 
     if (design.tertiary_color) colors.tertiary = design.tertiary_color;
   }
 
-  // Générer l'URL de thumbnail si elle n'existe pas mais qu'on a un SVG
-  let thumbnailUrl = design.thumbnail_url || design.thumbnailUrl;
-  if (!thumbnailUrl && design.svg_url) {
-    // Essayer de générer une URL de thumbnail depuis le SVG
-    // Format: https://[supabase-url]/storage/v1/object/public/thumbnails/[design-id].png
-    const svgUrl = design.svg_url || design.svgUrl;
-    if (svgUrl) {
-      // Extraire l'ID du design depuis l'URL ou utiliser l'ID du design
-      const designId = design.id;
-      // Construire l'URL potentielle du thumbnail
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      if (supabaseUrl && designId) {
-        // Essayer l'URL standard du bucket thumbnails
-        thumbnailUrl = `${supabaseUrl}/storage/v1/object/public/thumbnails/${designId}.png`;
-      }
-    }
-  }
-  
   // Récupérer les color_mappings si disponibles
   const colorMappings = design.color_mappings || design.colorMappings || {};
   
   return {
     url: design.svg_url || design.svgUrl || '',
-    thumbnailUrl: thumbnailUrl || undefined,
+    thumbnailUrl: design.thumbnail_url || design.thumbnailUrl || undefined,
     colors: Object.keys(colors).length > 0 ? colors : undefined,
     color_mappings: Object.keys(colorMappings).length > 0 ? colorMappings : undefined
   };
