@@ -5634,8 +5634,13 @@ export default function ConfiguratorViewer({
                                 }}>
                                   Couleur
                                 </div>
-                                {activeModule.textColorPaletteId ? (() => {
-                                  const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
+                                {activeModule.config?.textColorPaletteId || activeModule.textColorPaletteId ? (() => {
+                                  const paletteId = activeModule.config?.textColorPaletteId || activeModule.textColorPaletteId;
+                                  // Chercher dans les palettes chargées ou dans la config du module
+                                  let palette = colorPalettes.find(p => p.id === paletteId);
+                                  if (!palette && activeModule.config?.textColorPalette) {
+                                    palette = activeModule.config.textColorPalette;
+                                  }
                                   if (!palette) {
                                     return (
                                       <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
@@ -5718,8 +5723,13 @@ export default function ConfiguratorViewer({
                                 }}>
                                   Contour
                                 </div>
-                                {activeModule.textStrokePaletteId ? (() => {
-                                  const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
+                                {activeModule.config?.textStrokePaletteId || activeModule.textStrokePaletteId ? (() => {
+                                  const paletteId = activeModule.config?.textStrokePaletteId || activeModule.textStrokePaletteId;
+                                  // Chercher dans les palettes chargées ou dans la config du module
+                                  let palette = colorPalettes.find(p => p.id === paletteId);
+                                  if (!palette && activeModule.config?.textStrokePalette) {
+                                    palette = activeModule.config.textStrokePalette;
+                                  }
                                   if (!palette) {
                                     return (
                                       <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
@@ -5790,7 +5800,7 @@ export default function ConfiguratorViewer({
                                 )}
                                 <div>
                                   {(() => {
-                                    const textConstraints = activeModule.textConstraints || {
+                                    const textConstraints = activeModule.config?.textConstraints || activeModule.textConstraints || {
                                       strokeMinWidthPx: 0,
                                       strokeMaxWidthPx: 50,
                                       baseStrokeWidthPx: 5
@@ -5989,7 +5999,7 @@ export default function ConfiguratorViewer({
                                         { value: 'pulse', label: 'Pulse' },
                                       ];
                                       
-                                      const enabledDeformations = activeModule.textEnabledDeformations;
+                                      const enabledDeformations = activeModule.config?.textEnabledDeformations || activeModule.textEnabledDeformations;
                                       const filteredDeformations = enabledDeformations && enabledDeformations.length > 0
                                         ? allDeformations.filter(def => 
                                             def.value === '' || enabledDeformations.includes(def.value)
