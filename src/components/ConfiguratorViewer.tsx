@@ -3023,11 +3023,12 @@ export default function ConfiguratorViewer({
     
     if (snapshotDesigns.length > 0) {
       setDesigns2D(snapshotDesigns.map((d: any) => ({
-        id: d.svgUrl,
+        id: d.id || d.svgUrl, // Utiliser l'ID si disponible, sinon l'URL
         name: d.label || d.name || 'Design',
         svgUrl: d.svgUrl,
         svg_url: d.svgUrl,
-        thumbnail_url: d.thumbnailUrl
+        thumbnail_url: d.thumbnailUrl,
+        thumbnailUrl: d.thumbnailUrl // Ajouter aussi thumbnailUrl pour compatibilité
       })));
     } else {
       setDesigns2D([]);
