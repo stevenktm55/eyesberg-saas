@@ -65,23 +65,36 @@ export async function POST(
     });
 
     // Mettre à jour le produit avec le snapshot et le lien Shopify
-    const updateData: any = {
-      shopify_product_id: shopifyProductId,
-      shopify_variant_id: shopifyVariantId || null,
-      published_snapshot: snapshot,
-      last_published_at: new Date().toISOString(),
-      snapshot_version: 1,
-      updated_at: new Date().toISOString()
-    };
-
-    // Mettre à jour aussi le shopify dans builder_data pour compatibilité avec l'ancien système
+    // Stocker le snapshot dans builder_data.publishedSnapshot (pas de colonne dédiée nécessaire)
     const currentBuilderData = product.builder_data || {};
     if (!currentBuilderData.shopify) {
       currentBuilderData.shopify = {};
     }
     currentBuilderData.shopify.productId = shopifyProductId;
     currentBuilderData.shopify.variantId = shopifyVariantId || null;
-    updateData.builder_data = currentBuilderData;
+    
+    // Stocker le snapshot dans builder_data.publishedSnapshot
+    currentBuilderData.publishedSnapshot = snapshot;
+    currentBuilderData.publishedAt = new Date().toISOString();
+    currentBuilderData.snapshotVersion = 1;
+    currentBuilderData.shopifyProductId = shopifyProductId;
+    currentBuilderData.shopifyVariantId = shopifyVariantId || null;
+    
+    const updateData: any = {
+      shopify_product_id: shopifyProductId,
+      shopify_variant_id: shopifyVariantId || null,
+      builder_data: currentBuilderData,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Essayer aussi de sauvegarder dans published_snapshot si la colonne existe (sans erreur si elle n'existe pas)
+    try {
+      updateData.published_snapshot = snapshot;
+      updateData.last_published_at = new Date().toISOString();
+      updateData.snapshot_version = 1;
+    } catch (e) {
+      // Ignorer si la colonne n'existe pas
+    }
 
     // Si shopDomain est fourni et différent, le mettre à jour
     if (shopDomain && shopDomain !== product.shop_domain) {

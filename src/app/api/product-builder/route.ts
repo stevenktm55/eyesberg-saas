@@ -194,15 +194,18 @@ export async function GET(request: NextRequest) {
 
         // Si le produit a un snapshot publié, le retourner au lieu de builder_data
         // (pour le configurateur client)
-        // Le snapshot peut être dans published_snapshot (colonne) ou builder_data.publishedSnapshot (JSON)
-        const publishedSnapshot = product.published_snapshot || product.builder_data?.publishedSnapshot;
+        // Le snapshot est stocké dans builder_data.publishedSnapshot
+        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
         if (publishedSnapshot) {
-          console.log('📸 Retour du snapshot publié pour le produit:', product.id);
+          console.log('📸 Retour du snapshot publié pour le produit:', product.id, {
+            fromBuilderData: !!product.builder_data?.publishedSnapshot,
+            fromColumn: !!product.published_snapshot
+          });
           return NextResponse.json({
             ...product,
             snapshot: publishedSnapshot,
-            // Ne pas exposer builder_data au client (sauf si le snapshot est dedans)
-            builder_data: product.published_snapshot ? undefined : { publishedSnapshot }
+            // Ne pas exposer builder_data au client
+            builder_data: undefined
           });
         }
 
