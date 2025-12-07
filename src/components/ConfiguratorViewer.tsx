@@ -3064,25 +3064,25 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot]);
   
-  // Charger les bibliothèques de logos
+  // Charger les bibliothèques de logos : UNIQUEMENT depuis le snapshot (pas d'API)
   useEffect(() => {
-    async function loadLogoLibraries() {
-      try {
-        const url = `/api/logo-libraries${finalShopDomain ? `?shop=${finalShopDomain}` : ''}`;
-        console.log('📡 Chargement des bibliothèques de logos depuis:', url);
-        const response = await fetch(url);
-        const data = await response.json();
-        const libraries = Array.isArray(data) ? data : [];
-        console.log('✅ Bibliothèques de logos chargées:', libraries.length, libraries.map((l: any) => ({ id: l.id, name: l.name, logosCount: l.logos?.length || 0 })));
-        setLogoLibraries(libraries);
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des bibliothèques de logos:', error);
-      }
+    if (!snapshot) {
+      console.warn('⚠️ Pas de snapshot disponible, bibliothèques de logos non chargées');
+      return;
     }
-    if (finalShopDomain) {
-      loadLogoLibraries();
+    
+    // Utiliser les bibliothèques de logos du snapshot (déjà résolues)
+    const logoModule = snapshot.customizationModules.find((m: any) => 
+      (m.type === 'logos' || m.contentType === 'logos')
+    );
+    if (logoModule?.config?.logoLibraries && logoModule.config.logoLibraries.length > 0) {
+      console.log('📸 Bibliothèques de logos depuis le snapshot:', logoModule.config.logoLibraries.length);
+      setLogoLibraries(logoModule.config.logoLibraries);
+    } else {
+      console.warn('⚠️ Aucune bibliothèque de logos dans le snapshot');
+      setLogoLibraries([]);
     }
-  }, [finalShopDomain]);
+  }, [snapshot]);
   
   // Charger le modèle 3D : depuis le snapshot si disponible, sinon depuis useAutoLoadModel
   const configModel3DId = snapshot ? null : (productConfig?.model3DId || null);
