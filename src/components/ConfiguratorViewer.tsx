@@ -4344,20 +4344,21 @@ export default function ConfiguratorViewer({
                 // Label du bouton personnalisable
                 const buttonLabel = activeModule.addLogoButtonLabel || 'Ajouter un logo';
                 
-                // Vérifier si des bibliothèques sont sélectionnées
+                // Vérifier si le module logo a des bibliothèques dans le snapshot (pas dans le state async)
+                const logoModule = snapshot?.customizationModules?.find((m: any) => 
+                  (m.type === 'logos' || m.contentType === 'logos')
+                );
+                const hasLogoModule = logoModule?.config?.logoLibraries?.length > 0;
+                
+                // Si pas de bibliothèques dans le snapshot, masquer le module (PAS d'erreur)
+                if (!hasLogoModule) {
+                  return null;
+                }
+                
+                // Vérifier si des bibliothèques sont sélectionnées (pour le filtrage)
                 const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
                   Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
                   activeModule.selectedItems.logoLibraryIds.length > 0;
-                
-                if (!hasSelectedLibraries) {
-                  return (
-                    <div>
-                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                        Sélectionnez des bibliothèques de logos dans les settings du module.
-                      </p>
-                    </div>
-                  );
-                }
                 
                 // Récupérer toutes les bibliothèques sélectionnées
                 const selectedLibraries = logoLibraries.filter((l: any) => 
@@ -5293,11 +5294,18 @@ export default function ConfiguratorViewer({
                   </div>
                 );
               })() : activeModule.contentType === 'text' ? (
-                <div>
-                  <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
-                    Module texte - À implémenter
-                  </p>
-                </div>
+                // Le module texte doit s'afficher si snapshot.textZones et snapshot.fonts existent
+                (snapshot?.textZones && snapshot.textZones.length > 0 && snapshot?.fonts && snapshot.fonts.length > 0) ? (
+                  <div>
+                    {/* TODO: Implémenter le rendu du module texte avec textZones et fonts du snapshot */}
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                      Module texte - {snapshot.textZones.length} zone(s) disponible(s), {snapshot.fonts.length} police(s) disponible(s)
+                    </p>
+                  </div>
+                ) : (
+                  // Masquer le module si pas de données dans le snapshot (PAS d'erreur)
+                  null
+                )
               ) : null}
             </div>
           </div>
