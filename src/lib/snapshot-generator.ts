@@ -495,7 +495,7 @@ async function resolveCustomizationModules(
               mesh: color.mesh || 'primary',
               id: color.id || color.hex
             }));
-            console.log(`✅ Palette résolue: ${resolved.allowedColors.length} couleur(s)`);
+            console.log(`✅ Palette résolue: ${resolved.allowedColors?.length || 0} couleur(s)`);
           } else {
             console.warn('⚠️ Palette trouvée mais sans couleurs:', paletteId);
           }
