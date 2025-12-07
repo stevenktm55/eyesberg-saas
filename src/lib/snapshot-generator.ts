@@ -561,7 +561,19 @@ async function resolveCustomizationModules(
         };
       } else if (moduleType === 'logos') {
         // Pour les logos, on garde la config mais on résout les bibliothèques avec leurs logos et variantes
-        const libraryIds = module.config?.logoLibraryIds || module.selectedItems?.logoLibraryIds || [];
+        const libraryIds = module.config?.logoLibraryIds || 
+                          module.selectedItems?.logoLibraryIds || 
+                          module.logoLibraryIds ||
+                          [];
+        console.log('📚 Résolution du module logos:', {
+          moduleId: module.id,
+          libraryIdsCount: libraryIds.length,
+          libraryIds: libraryIds,
+          hasConfig: !!module.config,
+          hasSelectedItems: !!module.selectedItems,
+          configKeys: module.config ? Object.keys(module.config) : [],
+          selectedItemsKeys: module.selectedItems ? Object.keys(module.selectedItems) : []
+        });
         if (libraryIds.length > 0) {
           const { data: libraries } = await supabaseAdmin
             .from('logo_libraries')
