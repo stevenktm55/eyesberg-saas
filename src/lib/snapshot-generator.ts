@@ -480,11 +480,19 @@ async function resolveCustomizationModules(
             resolved.allowedDesigns = designs.map((design: any) => ({
               label: design.name || '',
               svgUrl: design.svg_url || '',
-              thumbnailUrl: design.thumbnail_url || undefined
+              thumbnailUrl: design.thumbnail_url || undefined,
+              id: design.id
             }));
           }
         }
         resolved.default = module.selectedItems?.design2DId || module.default;
+        
+        // Préserver toute la config du module designs
+        resolved.config = {
+          ...resolved.config,
+          ...module.config,
+          allowedDesignIds: allowedIds
+        };
       } else if (moduleType === 'logos') {
         // Pour les logos, on garde la config mais on résout les bibliothèques avec leurs logos et variantes
         const libraryIds = module.config?.logoLibraryIds || module.selectedItems?.logoLibraryIds || [];
