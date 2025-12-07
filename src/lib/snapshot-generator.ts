@@ -542,6 +542,113 @@ function resolveDefaultState(builderData: any): Record<string, any> {
 }
 
 /**
+ * Résout les zones de texte depuis le modèle 3D
+ */
+async function resolveTextZones(model3DId: string | null): Promise<Snapshot['textZones']> {
+  if (!model3DId) {
+    return [];
+  }
+
+  // Essayer d'abord 'zones', puis 'text_zones' en fallback
+  let { data: zones, error } = await supabaseAdmin
+    .from('zones')
+    .select('*')
+    .eq('model_3d_id', model3DId);
+
+  // Si 'zones' n'existe pas, essayer 'text_zones'
+  if (error && error.code === 'PGRST205') {
+    const result = await supabaseAdmin
+      .from('text_zones')
+      .select('*')
+      .eq('model_id', model3DId);
+    zones = result.data;
+    error = result.error;
+  }
+
+  if (error || !zones) {
+    console.warn('⚠️ Aucune zone de texte trouvée pour le modèle:', model3DId);
+    return [];
+  }
+
+  return zones.map((zone: any) => ({
+    id: zone.id,
+    name: zone.name,
+    categories: zone.categories || [],
+    zone_category: zone.zone_category || zone.zoneCategory || 'torse',
+    position: zone.position || [0, 0, 0],
+    default_text_width: zone.default_text_width || zone.defaultTextWidth,
+    default_text_height: zone.default_text_height || zone.defaultTextHeight,
+    default_logo_width: zone.default_logo_width || zone.defaultLogoWidth,
+    default_logo_height: zone.default_logo_height || zone.defaultLogoHeight,
+    thumbnail_url: zone.thumbnail_url || zone.thumbnailUrl,
+    view: zone.view || 'front'
+  }));
+}
+
+/**
+ * Résout toutes les polices depuis les fontGroups des modules
+ */
+async function resolveFonts(customizationModules: any[]): Promise<Snapshot['fonts']> {
+  const fontGroupIds = new Set<string>();
+  
+  // Collecter tous les fontGroupIds depuis les modules texte
+  customizationModules.forEach((module: any) => {
+    const moduleType = module.contentType || module.type;
+    if (moduleType === 'text') {
+      const ids = module.selectedItems?.fontGroupIds || module.config?.fontGroupIds || [];
+      ids.forEach((id: string) => fontGroupIds.add(id));
+    }
+  });
+
+  if (fontGroupIds.size === 0) {
+    return [];
+  }
+
+  // Récupérer tous les fontGroups
+  const { data: fontGroups, error } = await supabaseAdmin
+    .from('font_groups')
+    .select('*')
+    .in('id', Array.from(fontGroupIds));
+
+  if (error || !fontGroups) {
+    console.warn('⚠️ Aucun fontGroup trouvé:', error?.message);
+    return [];
+  }
+
+  // Collecter toutes les polices depuis tous les fontGroups
+  const fontIds = new Set<string>();
+  fontGroups.forEach((group: any) => {
+    if (group.fonts && Array.isArray(group.fonts)) {
+      group.fonts.forEach((fontId: string) => fontIds.add(fontId));
+    }
+  });
+
+  if (fontIds.size === 0) {
+    return [];
+  }
+
+  // Récupérer toutes les polices
+  const { data: fonts, error: fontsError } = await supabaseAdmin
+    .from('fonts')
+    .select('*')
+    .in('id', Array.from(fontIds));
+
+  if (fontsError || !fonts) {
+    console.warn('⚠️ Aucune police trouvée:', fontsError?.message);
+    return [];
+  }
+
+  return fonts.map((font: any) => ({
+    id: font.id,
+    name: font.name,
+    display_name: font.display_name || font.name,
+    font_url: font.font_url || font.fontUrl,
+    format: font.format || 'woff2',
+    category: font.category
+  }));
+}
+
+/**
  * Résout les paramètres de caméra
  */
 function resolveCameraSettings(settings: any): Snapshot['cameraSettings'] {
