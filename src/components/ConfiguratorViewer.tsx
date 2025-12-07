@@ -3570,6 +3570,7 @@ export default function ConfiguratorViewer({
   }, [placedLogos]);
   
   const onRequestTextDelete = useCallback((id: string) => {
+    if (!id) return;
     const text = texts.find(t => t.id === id);
     setItemToDelete({
       id,
