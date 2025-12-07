@@ -3146,7 +3146,7 @@ export default function ConfiguratorViewer({
       const design2D = snapshot.design2D;
       const colorMappings = design2D?.color_mappings || {};
       
-      // Si on a des color_mappings, utiliser la première couleur de chaque mapping
+      // Si on a des color_mappings, utiliser les couleurs mappées
       if (Object.keys(colorMappings).length > 0) {
         Object.keys(colorMappings).forEach((colorClass) => {
           const colorId = colorMappings[colorClass];
@@ -3155,12 +3155,15 @@ export default function ConfiguratorViewer({
           );
           if (color) {
             initialColors[colorClass] = color.hex;
+          } else {
+            // Si la couleur n'est pas trouvée, utiliser la première couleur disponible
+            if (colorModule.allowedColors.length > 0) {
+              initialColors[colorClass] = colorModule.allowedColors[0].hex;
+            }
           }
         });
-      }
-      
-      // Sinon, utiliser les meshes des couleurs directement
-      if (Object.keys(initialColors).length === 0) {
+      } else {
+        // Sinon, utiliser les meshes des couleurs directement
         colorModule.allowedColors.forEach((color: any) => {
           const mesh = color.mesh || 'primary';
           const hex = color.hex || '#000000';
