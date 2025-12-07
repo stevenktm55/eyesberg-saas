@@ -1124,7 +1124,6 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const selectLogo = (id: string | null) => {
-    console.log('🔄 selectLogo appelé:', { id, stack: new Error().stack });
     setSelectedLogoId(id);
     
     if (onLogoSelectionChange) {
@@ -3541,7 +3540,6 @@ export default function ConfiguratorViewer({
                   if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
                 }
                 else if (module.contentType === 'logos') setActiveTab('logo');
-                console.log('✅ activeCustomizerTab mis à jour vers:', module.id);
               }}
               className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
                 activeCustomizerTab === module.id
@@ -3563,9 +3561,7 @@ export default function ConfiguratorViewer({
           ))}
         </div>
       ) : (
-        <div className="w-0" data-testid="left-sidebar-hidden">
-          {console.log('❌ Sidebar gauche masquée - shouldShowLeftSidebar:', shouldShowLeftSidebar, 'modelId:', modelId, 'modules:', customizationModules.length)}
-        </div>
+        <div className="w-0" data-testid="left-sidebar-hidden" />
       )}
       
       {/* Panneau de contenu qui s'ouvre depuis la sidebar gauche */}
@@ -3575,24 +3571,13 @@ export default function ConfiguratorViewer({
         const tabToUse = activeCustomizerTab || (customizationModules.length > 0 ? customizationModules[0].id : null);
         
         if (!tabToUse) {
-          console.log('⚠️ Pas de tab à utiliser pour le panneau');
           return null;
         }
         
         const activeModule = customizationModules.find((m: any) => m.id === tabToUse);
         if (!activeModule) {
-          console.log('⚠️ Module actif non trouvé:', tabToUse, 'Modules disponibles:', customizationModules.map((m: any) => m.id));
           return null;
         }
-        
-        console.log('✅ Rendu du panneau pour le module:', {
-          id: activeModule.id,
-          contentType: activeModule.contentType,
-          tabName: activeModule.tabName,
-          type: activeModule.type,
-          label: activeModule.label,
-          fullModule: activeModule
-        });
         
         // Déterminer l'onglet actif basé sur le contentType du module
         let tabToShow: 'design' | 'color' | 'numero' | 'nom' | 'logo' = 'design';
