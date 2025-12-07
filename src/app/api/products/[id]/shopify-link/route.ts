@@ -71,18 +71,32 @@ export async function POST(
     // Mettre à jour le produit avec le snapshot et le lien Shopify
     // Stocker le snapshot dans builder_data.publishedSnapshot (pas de colonne dédiée nécessaire)
     const currentBuilderData = product.builder_data || {};
+    
+    // Supprimer l'ancien snapshot s'il existe pour s'assurer qu'on écrase complètement
+    if (currentBuilderData.publishedSnapshot) {
+      console.log('🗑️ Suppression de l\'ancien snapshot avant sauvegarde du nouveau');
+      delete currentBuilderData.publishedSnapshot;
+    }
+    
     if (!currentBuilderData.shopify) {
       currentBuilderData.shopify = {};
     }
     currentBuilderData.shopify.productId = shopifyProductId;
     currentBuilderData.shopify.variantId = shopifyVariantId || null;
     
-    // Stocker le snapshot dans builder_data.publishedSnapshot
+    // Stocker le snapshot dans builder_data.publishedSnapshot (écrase complètement l'ancien)
     currentBuilderData.publishedSnapshot = snapshot;
     currentBuilderData.publishedAt = new Date().toISOString();
-    currentBuilderData.snapshotVersion = 1;
+    currentBuilderData.snapshotVersion = (currentBuilderData.snapshotVersion || 0) + 1;
     currentBuilderData.shopifyProductId = shopifyProductId;
     currentBuilderData.shopifyVariantId = shopifyVariantId || null;
+    
+    console.log('💾 Sauvegarde du snapshot:', {
+      snapshotSize: JSON.stringify(snapshot).length,
+      hasDesign2D: !!snapshot.design2D,
+      design2DUrl: snapshot.design2D?.url,
+      snapshotVersion: currentBuilderData.snapshotVersion
+    });
     
     const updateData: any = {
       shopify_product_id: shopifyProductId,
