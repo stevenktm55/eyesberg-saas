@@ -1608,11 +1608,19 @@ function Viewer3D({
             height: '100%',
           }}
         >
-          {/* Éclairage aligné sur le viewer des Material Maps */}
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
-          <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-          <Environment preset="city" />
+          {/* Éclairage depuis le snapshot ou valeurs par défaut */}
+          <ambientLight intensity={snapshot?.viewerSettings?.lights?.ambientLight?.intensity ?? 0.5} />
+          {snapshot?.viewerSettings?.lights?.directionalLights && snapshot.viewerSettings.lights.directionalLights.length > 0 ? (
+            snapshot.viewerSettings.lights.directionalLights.map((light: any, index: number) => (
+              <directionalLight key={index} position={light.position} intensity={light.intensity} />
+            ))
+          ) : (
+            <>
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+            </>
+          )}
+          <Environment preset={snapshot?.viewerSettings?.environment?.preset || "city"} />
           
           {/* Modèle 3D */}
           {modelUrl ? (
@@ -5231,14 +5239,16 @@ export default function ConfiguratorViewer({
                     {/* Bouton "Ajouter un texte" */}
                     <button
                       onClick={() => {
-                        // Si mode zones, ouvrir le modal de sélection de zone
-                        if (activeModule.textPlacementMode === 'zones') {
+                        // Vérifier le mode de placement depuis le module ou son config
+                        const placementMode = activeModule.textPlacementMode || activeModule.config?.textPlacementMode || 'zones';
+                        // Si mode zones et qu'il y a des zones disponibles, ouvrir le modal
+                        if (placementMode === 'zones' && textZones && textZones.length > 0) {
                           setShowTextZoneSelector({
                             textId: null,
                             view: 'torse'
                           });
                         } else {
-                          // Mode libre : ajouter directement un texte
+                          // Mode libre ou pas de zones : ajouter directement un texte
                           addText('', undefined, undefined, 'text');
                         }
                       }}

@@ -73,6 +73,20 @@ export interface Snapshot {
     rotateSpeed?: number;
     viewDistance?: Record<string, number>;
   };
+  viewerSettings?: {
+    lights?: {
+      ambientLight?: {
+        intensity?: number;
+      };
+      directionalLights?: Array<{
+        position: [number, number, number];
+        intensity: number;
+      }>;
+    };
+    environment?: {
+      preset?: string;
+    };
+  };
 }
 
 /**
@@ -223,7 +237,8 @@ export async function generateSnapshot(
     fonts: (fonts && fonts.length > 0) ? fonts : undefined,
     resolvedColors: Object.keys(resolvedColors).length > 0 ? resolvedColors : undefined,
     defaultState: resolveDefaultState(builderData),
-    cameraSettings: resolveCameraSettings(builderData.settings || {})
+    cameraSettings: resolveCameraSettings(builderData.settings || {}),
+    viewerSettings: resolveViewerSettings(builderData.settings || {})
   };
 
   // Log final pour vérifier que le snapshot contient bien toutes les données
@@ -958,6 +973,28 @@ function resolveCameraSettings(settings: any): Snapshot['cameraSettings'] {
     zoomSpeed: settings.zoomSpeed,
     rotateSpeed: settings.rotateSpeed,
     viewDistance: settings.viewDistance
+  };
+}
+
+/**
+ * Résout les paramètres du viewer 3D (lumières, environnement)
+ */
+function resolveViewerSettings(settings: any): Snapshot['viewerSettings'] {
+  if (!settings || !settings.viewer) {
+    return undefined;
+  }
+  
+  const viewer = settings.viewer;
+  return {
+    lights: viewer.lights ? {
+      ambientLight: viewer.lights.ambientLight ? {
+        intensity: viewer.lights.ambientLight.intensity
+      } : undefined,
+      directionalLights: viewer.lights.directionalLights || undefined
+    } : undefined,
+    environment: viewer.environment ? {
+      preset: viewer.environment.preset
+    } : undefined
   };
 }
 
