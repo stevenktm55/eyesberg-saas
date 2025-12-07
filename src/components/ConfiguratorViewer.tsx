@@ -3030,20 +3030,7 @@ export default function ConfiguratorViewer({
     });
   }, [configModel3DId, modelId, modelUrl, textureMaps, materialMaps, isLoadingModel]);
   
-  // Log pour déboguer les props passées au Viewer3D
-  useEffect(() => {
-    console.log('🎨 Props passées au Viewer3D:', {
-      designTexture,
-      hasTextureMaps: !!textureMaps,
-      textureMapsKeys: textureMaps ? Object.keys(textureMaps) : [],
-      hasMaterialMaps: !!materialMaps,
-      materialMapsKeys: materialMaps ? Object.keys(materialMaps) : [],
-      modelUrl,
-      modelId,
-      selectedDesignId: selectedDesign?.id,
-      selectedDesignSvgUrl: selectedDesign?.svgUrl
-    });
-  }, [designTexture, textureMaps, materialMaps, modelUrl, modelId, selectedDesign]);
+  // Note: designTexture sera défini plus tard, on ne peut pas l'utiliser ici
   
   const textSelection = useTextSelection();
   const [isRotatingText, setIsRotatingText] = useState(false);
