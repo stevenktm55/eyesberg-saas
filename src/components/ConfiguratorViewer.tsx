@@ -2432,6 +2432,64 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         
         if (response.ok) {
           const productData = await response.json();
+          
+          // NOUVEAU SYSTÈME : Utiliser le snapshot si disponible
+          if (productData.snapshot) {
+            console.log('📸 Utilisation du snapshot publié:', {
+              productId: productData.snapshot.productId,
+              version: productData.snapshot.version,
+              publishedAt: productData.snapshot.publishedAt,
+              modulesCount: productData.snapshot.customizationModules.length
+            });
+            
+            const snapshot = productData.snapshot;
+            
+            // Extraire les modules depuis le snapshot
+            const modules = snapshot.customizationModules || [];
+            
+            // Trouver le module logo
+            const logoModule = modules.find((m: any) => m.type === 'logos');
+            const logoModuleConfig = logoModule ? {
+              addLogoButtonLabel: logoModule.config?.addLogoButtonLabel,
+              logoPlacementMode: logoModule.config?.logoPlacementMode,
+              logoZoneGroupIds: logoModule.config?.logoZoneGroupIds,
+              logoLibraryIds: logoModule.config?.logoLibraries?.map((lib: any) => lib.id) || [],
+              logoViewFrontLabel: logoModule.config?.logoViewFrontLabel,
+              logoViewBackLabel: logoModule.config?.logoViewBackLabel,
+              logoViewLeftLabel: logoModule.config?.logoViewLeftLabel,
+              logoViewRightLabel: logoModule.config?.logoViewRightLabel,
+            } : null;
+            
+            // Trouver le module design
+            const designModule = modules.find((m: any) => m.type === 'designs-2d');
+            const designModuleConfig = designModule ? {
+              allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
+            } : null;
+            
+            const configData = {
+              // Utiliser les données du snapshot (déjà résolues)
+              snapshot: snapshot,
+              model3DId: snapshot.model3D?.url ? 'snapshot-model' : null, // Marqueur pour indiquer qu'on utilise le snapshot
+              design2DId: snapshot.design2D?.url ? 'snapshot-design' : null,
+              customizationModules: modules,
+              settings: snapshot.cameraSettings || {},
+              logoModuleConfig,
+              designModuleConfig,
+            };
+            
+            console.log('⚙️ Configuration finale (snapshot):', {
+              hasModel3D: !!snapshot.model3D,
+              hasDesign2D: !!snapshot.design2D,
+              modules_count: modules.length,
+              cameraSettings: snapshot.cameraSettings,
+            });
+            
+            setConfig(configData);
+            return;
+          }
+          
+          // ANCIEN SYSTÈME : Utiliser builder_data (compatibilité)
+          console.log('⚠️ Pas de snapshot, utilisation de builder_data (ancien système)');
           console.log('✅ Produit trouvé:', {
             id: productData.id,
             name: productData.name,
@@ -3012,9 +3070,18 @@ export default function ConfiguratorViewer({
     }
   }, [finalShopDomain]);
   
-  // Charger le modèle 3D avec le model3DId de la configuration
-  const configModel3DId = productConfig?.model3DId || null;
-  const { modelUrl, textureMaps, materialMaps, modelId, isLoading: isLoadingModel } = useAutoLoadModel(configModel3DId, null, finalProductId, finalShopDomain);
+  // Si on a un snapshot, utiliser directement les données du snapshot (pas de requêtes DB)
+  const snapshot = productConfig?.snapshot;
+  
+  // Charger le modèle 3D : depuis le snapshot si disponible, sinon depuis useAutoLoadModel
+  const configModel3DId = snapshot ? null : (productConfig?.model3DId || null);
+  const { modelUrl: loadedModelUrl, textureMaps: loadedTextureMaps, materialMaps: loadedMaterialMaps, modelId: loadedModelId, isLoading: isLoadingModel } = useAutoLoadModel(configModel3DId, null, finalProductId, finalShopDomain);
+  
+  // Utiliser les données du snapshot si disponible, sinon utiliser les données chargées
+  const modelUrl = snapshot?.model3D?.url || loadedModelUrl;
+  const textureMaps = snapshot?.model3D?.textureMaps || loadedTextureMaps;
+  const materialMaps = snapshot?.model3D?.materialMaps || loadedMaterialMaps;
+  const modelId = snapshot ? 'snapshot-model' : loadedModelId;
   
   // Log pour déboguer le chargement du modèle et des maps
   useEffect(() => {
@@ -3446,9 +3513,8 @@ export default function ConfiguratorViewer({
     console.log('Request delete:', id);
   }, []);
   
-  // Design texture (à récupérer depuis selectedDesign)
-  // Créer designTexture depuis selectedDesign ou depuis la configuration
-  const designTexture = selectedDesign?.svgUrl || (productConfig?.design2DId ? (() => {
+  // Design texture : depuis le snapshot si disponible, sinon depuis selectedDesign ou configuration
+  const designTexture = snapshot?.design2D?.url || selectedDesign?.svgUrl || (productConfig?.design2DId ? (() => {
     const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
     return design ? (design.svg_url || design.svgUrl) : null;
   })() : null);
@@ -3488,10 +3554,11 @@ export default function ConfiguratorViewer({
     }
   }, [productConfig?.design2DId, selectedDesign.id, selectDesign, designs2D]);
   
-  // Initialiser les paramètres de caméra depuis la configuration
+  // Initialiser les paramètres de caméra depuis le snapshot ou la configuration
   useEffect(() => {
-    if (productConfig?.settings && controlsRef.current) {
-      const settings = productConfig.settings;
+    const cameraSettings = snapshot?.cameraSettings || productConfig?.settings;
+    if (cameraSettings && controlsRef.current) {
+      const settings = cameraSettings;
       const controls = controlsRef.current;
       const camera = controls.object;
       
