@@ -3453,16 +3453,22 @@ export default function ConfiguratorViewer({
     return design ? (design.svg_url || design.svgUrl) : null;
   })() : null);
   
-  // Log pour déboguer designTexture
+  // Log pour déboguer designTexture et les props passées au Viewer3D
   useEffect(() => {
-    console.log('🎨 designTexture:', {
+    console.log('🎨 designTexture et props Viewer3D:', {
+      designTexture,
       selectedDesign: selectedDesign?.id,
       selectedDesignSvgUrl: selectedDesign?.svgUrl,
       productConfigDesign2DId: productConfig?.design2DId,
-      designTexture,
-      designs2DCount: designs2D.length
+      designs2DCount: designs2D.length,
+      hasTextureMaps: !!textureMaps,
+      textureMapsKeys: textureMaps ? Object.keys(textureMaps) : [],
+      hasMaterialMaps: !!materialMaps,
+      materialMapsKeys: materialMaps ? Object.keys(materialMaps) : [],
+      modelUrl,
+      modelId
     });
-  }, [selectedDesign, productConfig?.design2DId, designTexture, designs2D]);
+  }, [designTexture, selectedDesign, productConfig?.design2DId, designs2D, textureMaps, materialMaps, modelUrl, modelId]);
   
   // Config model URL (URL du modèle depuis la configuration)
   const configModelUrl = modelUrl || null;
