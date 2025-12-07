@@ -3545,7 +3545,7 @@ export default function ConfiguratorViewer({
         });
       }
     }
-  }, [productConfig?.design2DId, selectedDesign.id, selectDesign, designs2D]);
+  }, [productConfig?.design2DId, designs2D.length]); // Retirer selectedDesign.id et selectDesign des dépendances pour éviter la boucle
   
   // Initialiser les paramètres de caméra depuis le snapshot ou la configuration
   useEffect(() => {
