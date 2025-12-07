@@ -5310,80 +5310,8 @@ export default function ConfiguratorViewer({
                 // Le module texte doit s'afficher si snapshot.textZones et snapshot.fonts existent
                 (snapshot?.textZones && snapshot.textZones.length > 0 && snapshot?.fonts && snapshot.fonts.length > 0) ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {/* Bouton "Ajouter un texte" - Masqué quand un texte est sélectionné */}
-                    {!selectedTextId && (
-                      <button
-                        onClick={() => {
-                          // Vérifier le mode de placement depuis le module ou son config
-                          const placementMode = activeModule.textPlacementMode || activeModule.config?.textPlacementMode || 'zones';
-                          // Si mode zones et qu'il y a des zones disponibles, ouvrir le modal
-                          if (placementMode === 'zones' && textZones && textZones.length > 0) {
-                            setShowTextZoneSelector({
-                              textId: null,
-                              view: 'torse'
-                            });
-                          } else {
-                            // Mode libre ou pas de zones : ajouter directement un texte
-                            addText('', undefined, undefined, 'text');
-                          }
-                        }}
-                        style={{
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          backgroundColor: '#3b82f6',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontFamily: 'var(--stepn-font-body)',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#2563eb';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#3b82f6';
-                        }}
-                      >
-                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
-                      </button>
-                    )}
-                    
-                    {/* Liste des textes placés */}
-                    {texts.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {texts.map((text) => (
-                          <div
-                            key={text.id}
-                            onClick={() => {
-                              selectText(text.id);
-                              setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
-                            }}
-                            style={{
-                              padding: '12px',
-                              backgroundColor: selectedTextId === text.id ? '#f3f4f6' : '#ffffff',
-                              border: `1px solid ${selectedTextId === text.id ? '#3b82f6' : '#e5e7eb'}`,
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
-                              {text.content || '(Texte vide)'}
-                            </div>
-                            {text.zoneCategory && (
-                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                                Zone: {text.zoneCategory}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Interface d'édition du texte sélectionné avec onglets */}
-                    {selectedTextId && (() => {
+                    {/* Si un texte est sélectionné, afficher uniquement l'interface de typographie */}
+                    {selectedTextId ? (() => {
                       const selectedText = texts.find(t => t.id === selectedTextId);
                       if (!selectedText) return null;
                       
@@ -5397,7 +5325,6 @@ export default function ConfiguratorViewer({
                       
                       return (
                         <div style={{
-                          marginTop: '20px',
                           backgroundColor: '#ffffff',
                           borderRadius: '8px',
                           overflow: 'hidden',
@@ -5640,28 +5567,17 @@ export default function ConfiguratorViewer({
                                 }}>
                                   Couleur
                                 </div>
-                                {activeModule.config?.textColorPaletteId || activeModule.textColorPaletteId ? (() => {
-                                  const paletteId = activeModule.config?.textColorPaletteId || activeModule.textColorPaletteId;
-                                  // Chercher dans les palettes chargées ou dans la config du module
-                                  let palette = colorPalettes.find(p => p.id === paletteId);
-                                  if (!palette && activeModule.config?.textColorPalette) {
-                                    palette = activeModule.config.textColorPalette;
-                                  }
-                                  if (!palette) {
+                                {(() => {
+                                  // Utiliser DIRECTEMENT la palette depuis le snapshot (pas de recherche dans colorPalettes)
+                                  const palette = activeModule.config?.textColorPalette;
+                                  if (!palette || !palette.colors || palette.colors.length === 0) {
                                     return (
                                       <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                                        Palette introuvable.
+                                        Aucune palette de couleur disponible dans le snapshot.
                                       </p>
                                     );
                                   }
-                                  const paletteColors = palette.colors || [];
-                                  if (paletteColors.length === 0) {
-                                    return (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                                        La palette sélectionnée ne contient aucune couleur.
-                                      </p>
-                                    );
-                                  }
+                                  const paletteColors = palette.colors;
                                   return (
                                     <div style={{
                                       display: 'grid',
@@ -5709,11 +5625,7 @@ export default function ConfiguratorViewer({
                                       })}
                                     </div>
                                   );
-                                })() : (
-                                  <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                                    Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
-                                  </p>
-                                )}
+                                })()}
                               </div>
                             )}
 
@@ -5729,28 +5641,17 @@ export default function ConfiguratorViewer({
                                 }}>
                                   Contour
                                 </div>
-                                {activeModule.config?.textStrokePaletteId || activeModule.textStrokePaletteId ? (() => {
-                                  const paletteId = activeModule.config?.textStrokePaletteId || activeModule.textStrokePaletteId;
-                                  // Chercher dans les palettes chargées ou dans la config du module
-                                  let palette = colorPalettes.find(p => p.id === paletteId);
-                                  if (!palette && activeModule.config?.textStrokePalette) {
-                                    palette = activeModule.config.textStrokePalette;
-                                  }
-                                  if (!palette) {
+                                {(() => {
+                                  // Utiliser DIRECTEMENT la palette depuis le snapshot (pas de recherche dans colorPalettes)
+                                  const palette = activeModule.config?.textStrokePalette;
+                                  if (!palette || !palette.colors || palette.colors.length === 0) {
                                     return (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                                        Palette introuvable.
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
+                                        Aucune palette de contour disponible dans le snapshot.
                                       </p>
                                     );
                                   }
-                                  const paletteColors = palette.colors || [];
-                                  if (paletteColors.length === 0) {
-                                    return (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
-                                        La palette sélectionnée ne contient aucune couleur.
-                                      </p>
-                                    );
-                                  }
+                                  const paletteColors = palette.colors;
                                   return (
                                     <div style={{
                                       display: 'grid',
@@ -5799,11 +5700,7 @@ export default function ConfiguratorViewer({
                                       })}
                                     </div>
                                   );
-                                })() : (
-                                  <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
-                                    Sélectionnez une palette de contours dans les réglages du module.
-                                  </p>
-                                )}
+                                })()}
                                 <div>
                                   {(() => {
                                     const textConstraints = activeModule.config?.textConstraints || activeModule.textConstraints || {
