@@ -3142,22 +3142,61 @@ export default function ConfiguratorViewer({
       // Construire l'objet colors depuis allowedColors
       const initialColors: Record<string, string> = {};
       
-      colorModule.allowedColors.forEach((color: any) => {
-        const mesh = color.mesh || 'primary';
-        const hex = color.hex || '#000000';
-        initialColors[mesh] = hex;
-      });
+      // Si le design2D a des color_mappings, les utiliser pour mapper les couleurs aux meshes
+      const design2D = snapshot.design2D;
+      const colorMappings = design2D?.color_mappings || {};
       
-      // Si defaultState a des couleurs, les utiliser
+      // Si on a des color_mappings, utiliser la première couleur de chaque mapping
+      if (Object.keys(colorMappings).length > 0) {
+        Object.keys(colorMappings).forEach((colorClass) => {
+          const colorId = colorMappings[colorClass];
+          const color = colorModule.allowedColors.find((c: any) => 
+            c.id === colorId || c.hex === colorId
+          );
+          if (color) {
+            initialColors[colorClass] = color.hex;
+          }
+        });
+      }
+      
+      // Sinon, utiliser les meshes des couleurs directement
+      if (Object.keys(initialColors).length === 0) {
+        colorModule.allowedColors.forEach((color: any) => {
+          const mesh = color.mesh || 'primary';
+          const hex = color.hex || '#000000';
+          // Ne pas écraser si déjà défini
+          if (!initialColors[mesh]) {
+            initialColors[mesh] = hex;
+          }
+        });
+      }
+      
+      // Si defaultState a des couleurs, les utiliser pour écraser
       if (snapshot.defaultState?.colorId) {
         const defaultColor = colorModule.allowedColors.find((c: any) => 
           c.hex === snapshot.defaultState.colorId || c.id === snapshot.defaultState.colorId
         );
         if (defaultColor) {
+          // Trouver le mesh correspondant dans colorMappings ou utiliser le mesh de la couleur
           const mesh = defaultColor.mesh || 'primary';
-          initialColors[mesh] = defaultColor.hex;
+          // Si on a des colorMappings, trouver la classe correspondante
+          if (Object.keys(colorMappings).length > 0) {
+            const colorClass = Object.keys(colorMappings).find(c => 
+              colorMappings[c] === defaultColor.id || colorMappings[c] === defaultColor.hex
+            ) || mesh;
+            initialColors[colorClass] = defaultColor.hex;
+          } else {
+            initialColors[mesh] = defaultColor.hex;
+          }
         }
       }
+      
+      console.log('🎨 Couleurs initiales calculées:', {
+        initialColors,
+        hasColorMappings: Object.keys(colorMappings).length > 0,
+        colorMappings,
+        allowedColorsCount: colorModule.allowedColors.length
+      });
       
       // Appliquer les couleurs initiales
       if (Object.keys(initialColors).length > 0) {
@@ -3972,7 +4011,11 @@ export default function ConfiguratorViewer({
                       gap: '12px'
                     }}>
                       {availableColorClasses.map((colorClass) => {
-                        const currentColorHex = design2D?.colors?.[colorClass] || colors[colorClass] || '#000000';
+                        // Utiliser color_mappings si disponible, sinon colors
+                        const colorId = design2D?.color_mappings?.[colorClass] || design2D?.colors?.[colorClass];
+                        const currentColorHex = colorId 
+                          ? (colorPalettes[0]?.colors?.find((c: any) => c.id === colorId || c.hex === colorId)?.hex || colors[colorClass] || '#000000')
+                          : (colors[colorClass] || '#000000');
                         return (
                           <button
                             key={colorClass}

@@ -19,6 +19,7 @@ export interface Snapshot {
     url: string;
     thumbnailUrl?: string;
     colors?: Record<string, string>;
+    color_mappings?: Record<string, string>;
   };
   customizationModules: Array<{
     id: string;
