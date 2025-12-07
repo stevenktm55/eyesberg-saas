@@ -3109,6 +3109,19 @@ export default function ConfiguratorViewer({
       (m.type === 'logos' || m.contentType === 'logos')
     );
     if (logoModule?.config?.logoLibraries && logoModule.config.logoLibraries.length > 0) {
+      console.log('📚 Bibliothèques de logos chargées depuis snapshot:', {
+        librariesCount: logoModule.config.logoLibraries.length,
+        libraries: logoModule.config.logoLibraries.map((lib: any) => ({
+          id: lib.id,
+          name: lib.name,
+          logosCount: lib.logos?.length || 0,
+          logos: lib.logos?.map((logo: any) => ({
+            id: logo.id,
+            name: logo.name,
+            variantsCount: logo.variants?.length || 0
+          })) || []
+        }))
+      });
       setLogoLibraries(logoModule.config.logoLibraries);
     } else {
       setLogoLibraries([]);
