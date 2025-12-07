@@ -3567,6 +3567,7 @@ export default function ConfiguratorViewer({
             <button
               key={module.id}
               onClick={() => {
+                console.log('🖱️ Clic sur l\'onglet:', module.id, module.contentType, module.tabName);
                 setActiveCustomizerTab(module.id);
                 // Mapper le module vers l'onglet de la sidebar
                 if (module.contentType === 'designs-2d') setActiveTab('design');
@@ -3576,6 +3577,7 @@ export default function ConfiguratorViewer({
                   if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
                 }
                 else if (module.contentType === 'logos') setActiveTab('logo');
+                console.log('✅ activeCustomizerTab mis à jour vers:', module.id);
               }}
               className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
                 activeCustomizerTab === module.id
