@@ -3002,6 +3002,7 @@ export default function ConfiguratorViewer({
   const [showTextZoneSelector, setShowTextZoneSelector] = useState<{textId: string | null, view?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'} | null>(null);
   
   // Utiliser UNIQUEMENT les données du snapshot - AUCUN appel API
+  const snapshot = productConfig?.snapshot;
   const textZones = snapshot?.textZones || [];
   const fonts = snapshot?.fonts || [];
   
