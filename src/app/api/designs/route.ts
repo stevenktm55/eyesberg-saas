@@ -35,29 +35,13 @@ export async function GET(request: Request) {
         primary_color,
         secondary_color,
         tertiary_color,
-        colors,
-        subdomain
+        colors
       `)
       .eq('active', true);
     
-    // Filtrer par subdomain si shop est fourni
-    if (shop) {
-      try {
-        // Récupérer le subdomain depuis product_builder
-        const { data: product } = await supabaseAdmin
-          .from('product_builder')
-          .select('subdomain')
-          .eq('shop_domain', shop)
-          .limit(1)
-          .maybeSingle();
-        
-        if (product?.subdomain) {
-          query = query.eq('subdomain', product.subdomain);
-        }
-      } catch (error) {
-        console.warn('Could not fetch subdomain from shop_domain for designs API:', error);
-      }
-    }
+    // Note: La table designs n'a pas de colonne subdomain dans la structure actuelle
+    // Le filtrage par shop/subdomain n'est pas nécessaire pour l'instant
+    // Si besoin, on peut ajouter cette fonctionnalité plus tard
     
     query = query.order('created_at', { ascending: false });
     
