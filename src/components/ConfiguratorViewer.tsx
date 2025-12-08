@@ -2749,11 +2749,25 @@ function Sidebar({
   // Filtrer les zones selon la vue active pour le sélecteur de zone
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
-    if (!zone.categories || !zone.categories.includes(`logo-${categoryForView}`)) return false;
+    console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
+    // Vérifier si la zone a la catégorie logo pour cette vue
+    // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
+    const hasLogoCategory = zone.categories && (
+      zone.categories.includes(`logo-${categoryForView}`) ||
+      zone.categories.includes('logo') ||
+      (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
+    );
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory);
+    if (!hasLogoCategory) return false;
     // Filtrer par view si disponible et si showZoneSelector a une vue
-    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) return false;
+    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
+      console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
+      return false;
+    }
+    console.log('🖼️ Zone acceptée:', zone.name);
     return true;
   });
+  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length);
 
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
@@ -3326,11 +3340,25 @@ export default function ConfiguratorViewer({
   // Filtrer les zones selon la vue active pour le sélecteur de zone
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
-    if (!zone.categories || !zone.categories.includes(`logo-${categoryForView}`)) return false;
+    console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
+    // Vérifier si la zone a la catégorie logo pour cette vue
+    // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
+    const hasLogoCategory = zone.categories && (
+      zone.categories.includes(`logo-${categoryForView}`) ||
+      zone.categories.includes('logo') ||
+      (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
+    );
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory);
+    if (!hasLogoCategory) return false;
     // Filtrer par view si disponible et si showZoneSelector a une vue
-    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) return false;
+    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
+      console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
+      return false;
+    }
+    console.log('🖼️ Zone acceptée:', zone.name);
     return true;
   });
+  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length);
 
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
