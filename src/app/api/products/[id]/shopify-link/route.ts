@@ -83,6 +83,7 @@ export async function POST(
     }
     currentBuilderData.shopify.productId = shopifyProductId;
     currentBuilderData.shopify.variantId = shopifyVariantId || null;
+    currentBuilderData.shopify.lastConnectedAt = new Date().toISOString();
     
     // Stocker le snapshot dans builder_data.publishedSnapshot (écrase complètement l'ancien)
     currentBuilderData.publishedSnapshot = snapshot;
@@ -102,7 +103,8 @@ export async function POST(
       shopify_product_id: shopifyProductId,
       shopify_variant_id: shopifyVariantId || null,
       builder_data: currentBuilderData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      shopify_last_connected_at: new Date().toISOString() // Date/heure de dernière connexion
     };
     
     // Essayer aussi de sauvegarder dans published_snapshot si la colonne existe (sans erreur si elle n'existe pas)
