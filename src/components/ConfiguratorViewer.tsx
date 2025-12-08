@@ -6870,8 +6870,10 @@ export default function ConfiguratorViewer({
                       </div>
                       
                       {/* Bouton "Ajouter un logo" */}
+                      {console.log('🖼️ RENDU DU BOUTON - buttonLabel:', buttonLabel, 'setShowLogoLibrary:', typeof setShowLogoLibrary)}
                       <button
                         data-testid="add-logo-button"
+                        data-button-type="add-logo"
                         onClick={(e) => {
                           console.log('🖼️🖼️🖼️ CLIC DÉTECTÉ SUR LE BOUTON!');
                           e.preventDefault();
