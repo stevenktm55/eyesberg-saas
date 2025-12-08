@@ -6879,6 +6879,12 @@ export default function ConfiguratorViewer({
                           console.log('🖼️ Clic sur bouton "Ajouter un logo"');
                           console.log('🖼️ showLogoLibrary avant:', showLogoLibrary);
                           console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
+                          // IMPORTANT: setShowLogoLibrary est défini au niveau du composant principal
+                          // Il devrait être accessible via closure, mais vérifions
+                          if (typeof setShowLogoLibrary !== 'function') {
+                            console.error('🖼️ ERREUR CRITIQUE: setShowLogoLibrary n\'est pas une fonction!');
+                            return;
+                          }
                           // Utiliser directement setShowLogoLibrary depuis le scope parent
                           // Le state est défini au niveau du composant principal, donc il devrait être accessible
                           try {
@@ -6895,10 +6901,15 @@ export default function ConfiguratorViewer({
                               console.log('🖼️ Modal element trouvé:', !!modalElement);
                               if (!modalElement) {
                                 console.error('🖼️ ERREUR: Le modal n\'est pas rendu dans le DOM!');
+                                console.log('🖼️ Vérification du state showLogoLibrary dans le DOM...');
+                                // Essayer de forcer un re-render
+                                const event = new Event('forceUpdate');
+                                window.dispatchEvent(event);
                               }
                             }, 100);
                           } catch (error) {
                             console.error('🖼️ ERREUR lors de l\'ouverture du modal:', error);
+                            console.error('🖼️ Stack trace:', error.stack);
                           }
                         }}
                         onMouseDown={(e) => {
