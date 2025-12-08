@@ -5020,18 +5020,28 @@ export default function ConfiguratorViewer({
                     )}
                     
                     {/* Bouton "Ajouter un logo" */}
+                    {console.log('🖼️ RENDU DU BOUTON "Ajouter un logo" - buttonLabel:', buttonLabel, 'setShowLogoLibrary:', typeof setShowLogoLibrary)}
                     <button
-                      onClick={() => {
+                      data-testid="add-logo-button-main"
+                      onClick={(e) => {
+                        console.log('🖼️🖼️🖼️ CLIC SUR LE BOUTON "Ajouter un logo" (PREMIÈRE IMPLÉMENTATION)');
+                        e.preventDefault();
+                        e.stopPropagation();
                         // Vérifier le mode de placement depuis le module ou son config
                         const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || 'zones';
+                        console.log('🖼️ Placement mode:', placementMode);
                         // Si mode zones, ouvrir le modal de sélection de zone
                         if (placementMode === 'zones') {
+                          console.log('🖼️ Mode zones - ouverture du modal de zone');
                           setShowLogoZoneModal(true);
                           setSelectedLogoForZone(null);
                         } else {
                           // Mode libre : ouvrir la bibliothèque de logos
+                          console.log('🖼️ Mode libre - ouverture de la bibliothèque de logos');
                           setLogoToReplace(null);
+                          console.log('🖼️ Appel de setShowLogoLibrary(true)...');
                           setShowLogoLibrary(true);
+                          console.log('🖼️ setShowLogoLibrary(true) appelé');
                         }
                       }}
                       style={{
