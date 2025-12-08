@@ -6771,9 +6771,14 @@ export default function ConfiguratorViewer({
                   );
                   const hasLogoModule = logoModule?.config?.logoLibraries?.length > 0;
                   
+                  console.log('🖼️ Module logos - hasLogoModule:', hasLogoModule, 'logoModule:', logoModule);
+                  
                   if (!hasLogoModule) {
+                    console.log('🖼️ Module logos caché car pas de bibliothèques');
                     return null; // Hide module if no libraries in snapshot
                   }
+                  
+                  console.log('🖼️ Module logos RENDU, bouton devrait être visible');
 
                   // Labels des vues depuis le module ou par défaut
                   const viewLabels = {
