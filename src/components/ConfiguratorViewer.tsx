@@ -2750,15 +2750,24 @@ function Sidebar({
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
     console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
+    
+    // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
+    const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
+    
     // Vérifier si la zone a la catégorie logo pour cette vue
     // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
-    const hasLogoCategory = zone.categories && (
+    const hasLogoCategory = zone.categories && zone.categories.length > 0 && (
       zone.categories.includes(`logo-${categoryForView}`) ||
       zone.categories.includes('logo') ||
       (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
     );
-    console.log('🖼️ hasLogoCategory:', hasLogoCategory);
-    if (!hasLogoCategory) return false;
+    
+    // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
+    const isLogoZone = hasLogoCategory || (hasLogoInName && (!zone.categories || zone.categories.length === 0));
+    
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'hasLogoInName:', hasLogoInName, 'isLogoZone:', isLogoZone);
+    if (!isLogoZone) return false;
+    
     // Filtrer par view si disponible et si showZoneSelector a une vue
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
       console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
@@ -3341,15 +3350,24 @@ export default function ConfiguratorViewer({
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
     console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
+    
+    // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
+    const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
+    
     // Vérifier si la zone a la catégorie logo pour cette vue
     // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
-    const hasLogoCategory = zone.categories && (
+    const hasLogoCategory = zone.categories && zone.categories.length > 0 && (
       zone.categories.includes(`logo-${categoryForView}`) ||
       zone.categories.includes('logo') ||
       (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
     );
-    console.log('🖼️ hasLogoCategory:', hasLogoCategory);
-    if (!hasLogoCategory) return false;
+    
+    // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
+    const isLogoZone = hasLogoCategory || (hasLogoInName && (!zone.categories || zone.categories.length === 0));
+    
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'hasLogoInName:', hasLogoInName, 'isLogoZone:', isLogoZone);
+    if (!isLogoZone) return false;
+    
     // Filtrer par view si disponible et si showZoneSelector a une vue
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
       console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
