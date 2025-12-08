@@ -2751,37 +2751,41 @@ function Sidebar({
     const categoryForView = activeCategoryForZone;
     console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
     
-    // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
+    // Vérifier si le nom de la zone contient "logo" (insensible à la casse)
     const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
     console.log('🖼️ hasLogoInName:', hasLogoInName, 'zone.name:', zone.name);
     
     // Vérifier si la zone a la catégorie logo pour cette vue
-    // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
     const hasLogoCategory = zone.categories && zone.categories.length > 0 && (
       zone.categories.includes(`logo-${categoryForView}`) ||
       zone.categories.includes('logo') ||
-      (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
+      zone.categories.some((cat: string) => cat.toLowerCase().includes('logo'))
     );
     console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories length:', zone.categories?.length);
     
-    // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
-    // OU si zoneCategory correspond à la catégorie de vue (même sans catégories)
-    const categoriesEmpty = !zone.categories || zone.categories.length === 0;
+    // Vérifier si zoneCategory correspond à la catégorie de vue
     const zoneCategoryMatches = zone.zoneCategory && zone.zoneCategory === categoryForView;
-    const isLogoZone = hasLogoCategory || (hasLogoInName && categoriesEmpty) || (zoneCategoryMatches && hasLogoInName);
+    console.log('🖼️ zoneCategoryMatches:', zoneCategoryMatches, 'zone.zoneCategory:', zone.zoneCategory);
     
-    console.log('🖼️ categoriesEmpty:', categoriesEmpty, 'zoneCategoryMatches:', zoneCategoryMatches, 'isLogoZone:', isLogoZone);
+    // Accepter la zone si :
+    // 1. Elle a une catégorie logo
+    // 2. Son nom contient "logo" (même si les catégories sont vides)
+    // 3. Sa zoneCategory correspond à la catégorie de vue ET son nom contient "logo"
+    const isLogoZone = hasLogoCategory || hasLogoInName || (zoneCategoryMatches && hasLogoInName);
+    
+    console.log('🖼️ isLogoZone:', isLogoZone);
     if (!isLogoZone) {
-      console.log('🖼️ Zone rejetée:', zone.name);
+      console.log('🖼️ Zone rejetée (pas une zone logo):', zone.name);
       return false;
     }
     
     // Filtrer par view si disponible et si showZoneSelector a une vue
+    // Mais seulement si la zone a une propriété view définie
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
       console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
       return false;
     }
-    console.log('🖼️ Zone acceptée:', zone.name);
+    console.log('🖼️ ✅ Zone acceptée:', zone.name);
     return true;
   });
   console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
@@ -3359,37 +3363,41 @@ export default function ConfiguratorViewer({
     const categoryForView = activeCategoryForZone;
     console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
     
-    // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
+    // Vérifier si le nom de la zone contient "logo" (insensible à la casse)
     const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
     console.log('🖼️ hasLogoInName:', hasLogoInName, 'zone.name:', zone.name);
     
     // Vérifier si la zone a la catégorie logo pour cette vue
-    // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
     const hasLogoCategory = zone.categories && zone.categories.length > 0 && (
       zone.categories.includes(`logo-${categoryForView}`) ||
       zone.categories.includes('logo') ||
-      (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
+      zone.categories.some((cat: string) => cat.toLowerCase().includes('logo'))
     );
     console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories length:', zone.categories?.length);
     
-    // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
-    // OU si zoneCategory correspond à la catégorie de vue (même sans catégories)
-    const categoriesEmpty = !zone.categories || zone.categories.length === 0;
+    // Vérifier si zoneCategory correspond à la catégorie de vue
     const zoneCategoryMatches = zone.zoneCategory && zone.zoneCategory === categoryForView;
-    const isLogoZone = hasLogoCategory || (hasLogoInName && categoriesEmpty) || (zoneCategoryMatches && hasLogoInName);
+    console.log('🖼️ zoneCategoryMatches:', zoneCategoryMatches, 'zone.zoneCategory:', zone.zoneCategory);
     
-    console.log('🖼️ categoriesEmpty:', categoriesEmpty, 'zoneCategoryMatches:', zoneCategoryMatches, 'isLogoZone:', isLogoZone);
+    // Accepter la zone si :
+    // 1. Elle a une catégorie logo
+    // 2. Son nom contient "logo" (même si les catégories sont vides)
+    // 3. Sa zoneCategory correspond à la catégorie de vue ET son nom contient "logo"
+    const isLogoZone = hasLogoCategory || hasLogoInName || (zoneCategoryMatches && hasLogoInName);
+    
+    console.log('🖼️ isLogoZone:', isLogoZone);
     if (!isLogoZone) {
-      console.log('🖼️ Zone rejetée:', zone.name);
+      console.log('🖼️ Zone rejetée (pas une zone logo):', zone.name);
       return false;
     }
     
     // Filtrer par view si disponible et si showZoneSelector a une vue
+    // Mais seulement si la zone a une propriété view définie
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
       console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
       return false;
     }
-    console.log('🖼️ Zone acceptée:', zone.name);
+    console.log('🖼️ ✅ Zone acceptée:', zone.name);
     return true;
   });
   console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
