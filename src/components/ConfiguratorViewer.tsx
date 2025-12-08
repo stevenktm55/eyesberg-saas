@@ -7039,6 +7039,7 @@ export default function ConfiguratorViewer({
         
         return (
           <div
+            data-logo-modal="true"
             style={{
               position: 'fixed',
               top: 0,
