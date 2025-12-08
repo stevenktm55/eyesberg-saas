@@ -5767,20 +5767,14 @@ export default function ConfiguratorViewer({
                                     
                                     // CODE EXACT DU BUILDER - Copié depuis /app/[subdomain]/admin/products/new/page.tsx
                                     // Convertir en nombres si nécessaire (peut être string dans le snapshot)
-                                    const sliderMin = typeof textConstraints.strokeMinWidthPx === 'number' 
-                                      ? textConstraints.strokeMinWidthPx 
-                                      : Number(textConstraints.strokeMinWidthPx) || 0;
-                                    const sliderMax = typeof textConstraints.strokeMaxWidthPx === 'number' 
-                                      ? textConstraints.strokeMaxWidthPx 
-                                      : Number(textConstraints.strokeMaxWidthPx) || 30;
+                                    const sliderMin = Number(textConstraints.strokeMinWidthPx) || 0;
+                                    const sliderMax = Number(textConstraints.strokeMaxWidthPx) || 30;
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée
-                                    const baseValue = typeof textConstraints.baseStrokeWidthPx === 'number'
-                                      ? textConstraints.baseStrokeWidthPx
-                                      : Number(textConstraints.baseStrokeWidthPx) || sliderMin;
+                                    const baseValue = Number(textConstraints.baseStrokeWidthPx) || sliderMin;
                                     const rawValue = selectedText.strokeWidth ?? baseValue;
-                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
+                                    let currentPxValue = Number(rawValue) || sliderMin;
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
@@ -5791,6 +5785,17 @@ export default function ConfiguratorViewer({
                                     // S'assurer que la valeur ne dépasse jamais les limites après arrondi
                                     if (currentPxValue < sliderMin) currentPxValue = sliderMin;
                                     if (currentPxValue > sliderMax) currentPxValue = sliderMax;
+                                    
+                                    // Debug logs
+                                    console.log('📏 Jauge de contour:', {
+                                      sliderMin,
+                                      sliderMax,
+                                      sliderRange,
+                                      rawValue,
+                                      currentPxValue,
+                                      baseValue,
+                                      strokeWidth: selectedText.strokeWidth
+                                    });
                                     
                                     const sliderId = `stroke-slider-${selectedTextId}`;
                                     
@@ -5879,6 +5884,38 @@ export default function ConfiguratorViewer({
                                             // Double vérification après arrondi
                                             if (clampedValue < sliderMin) clampedValue = sliderMin;
                                             if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            
+                                            console.log('📏 onChange slider:', {
+                                              pxValue,
+                                              clampedValue,
+                                              sliderMin,
+                                              sliderMax
+                                            });
+                                            
+                                            updateText(selectedTextId, { strokeWidth: clampedValue });
+                                          }}
+                                          onInput={(e) => {
+                                            const pxValue = parseFloat((e.target as HTMLInputElement).value);
+                                            
+                                            // Vérifier que la valeur est valide
+                                            if (!Number.isFinite(pxValue)) return;
+                                            
+                                            // Clamper strictement entre min et max
+                                            let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                            
+                                            // Arrondir à l'entier le plus proche (step de 1px)
+                                            clampedValue = Math.round(clampedValue);
+                                            
+                                            // Double vérification après arrondi
+                                            if (clampedValue < sliderMin) clampedValue = sliderMin;
+                                            if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                            
+                                            console.log('📏 onInput slider:', {
+                                              pxValue,
+                                              clampedValue,
+                                              sliderMin,
+                                              sliderMax
+                                            });
                                             
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}

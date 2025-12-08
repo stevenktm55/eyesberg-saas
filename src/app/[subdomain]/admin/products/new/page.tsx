@@ -253,21 +253,10 @@ function ConnectTabContent({
     onProductLinked(selectedProduct.id, selectedVariant.id);
     setError(null);
     // Recharger la date de dernière connexion après la connexion
-    setTimeout(async () => {
-      if (productId) {
-        try {
-          const response = await fetch(`/api/products/${productId}`);
-          if (response.ok) {
-            const data = await response.json();
-            const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
-            if (lastConnected) {
-              setLastConnectedAt(lastConnected);
-            }
-          }
-        } catch (err) {
-          console.error('Error loading last connected at:', err);
-        }
-      }
+    // La date est déjà dans onProductLinked, donc on peut la récupérer directement
+    setTimeout(() => {
+      // La date sera mise à jour automatiquement lors du prochain clic sur le produit
+      // car elle est chargée dans le onClick du produit
     }, 1000);
   };
 
