@@ -5054,13 +5054,7 @@ export default function ConfiguratorViewer({
                   'bras-droit': 'right'
                 };
                 
-                // Définir les labels de vue
-                const viewLabels = {
-                  'front': activeModule.logoViewFrontLabel || activeModule.config?.logoViewFrontLabel || 'FRONT',
-                  'back': activeModule.logoViewBackLabel || activeModule.config?.logoViewBackLabel || 'BACK',
-                  'left': activeModule.logoViewLeftLabel || activeModule.config?.logoViewLeftLabel || 'LEFT',
-                  'right': activeModule.logoViewRightLabel || activeModule.config?.logoViewRightLabel || 'RIGHT'
-                };
+                // viewLabels est déjà défini plus haut dans ce bloc (ligne 4435), ne pas le redéfinir
                 
                 // Vérifier le mode de placement
                 const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || 'zones';
