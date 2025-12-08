@@ -550,10 +550,14 @@ function ConnectTabContent({
                       fontSize: '11px',
                       fontFamily: 'var(--stepn-font-body)',
                       color: '#888888',
-                      textAlign: 'right'
+                      textAlign: 'right',
+                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                      padding: '6px 10px',
+                      borderRadius: '4px',
+                      zIndex: 10
                     }}>
-                      <div style={{ marginBottom: '2px' }}>Dernière connexion:</div>
-                      <div style={{ fontWeight: '500', color: '#a0a0a0' }}>
+                      <div style={{ marginBottom: '2px', fontSize: '10px' }}>Dernière connexion:</div>
+                      <div style={{ fontWeight: '500', color: '#ffffff', fontSize: '11px' }}>
                         {new Date(lastConnectedAt).toLocaleString('fr-FR', {
                           day: '2-digit',
                           month: '2-digit',

@@ -6756,22 +6756,6 @@ export default function ConfiguratorViewer({
                   
                   const buttonLabel = activeModule.addLogoButtonLabel || activeModule.config?.addLogoButtonLabel || 'Ajouter un logo';
                   
-                  // Fonction pour ouvrir le modal de bibliothèque de logos
-                  // IMPORTANT: Utiliser directement setShowLogoLibrary depuis le scope parent du composant
-                  const handleOpenLogoLibrary = () => {
-                    console.log('🖼️ handleOpenLogoLibrary appelé');
-                    console.log('🖼️ showLogoLibrary avant:', showLogoLibrary);
-                    console.log('🖼️ setShowLogoLibrary type:', typeof setShowLogoLibrary);
-                    try {
-                      setShowLogoLibrary(true);
-                      setSelectedLogoForZone(null);
-                      setSelectedLogoForVariants(null);
-                      console.log('🖼️ setShowLogoLibrary(true) appelé avec succès');
-                    } catch (error) {
-                      console.error('🖼️ Erreur lors de l\'ouverture du modal:', error);
-                    }
-                  };
-                  
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {/* Boutons de vue en haut */}
@@ -6840,7 +6824,13 @@ export default function ConfiguratorViewer({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleOpenLogoLibrary();
+                          console.log('🖼️ Clic sur bouton "Ajouter un logo"');
+                          console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
+                          // Utiliser directement setShowLogoLibrary depuis le scope parent
+                          setShowLogoLibrary(true);
+                          setSelectedLogoForZone(null);
+                          setSelectedLogoForVariants(null);
+                          console.log('🖼️ setShowLogoLibrary(true) appelé');
                         }}
                         style={{
                           width: '100%',
