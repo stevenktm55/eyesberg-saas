@@ -2753,6 +2753,7 @@ function Sidebar({
     
     // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
     const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
+    console.log('🖼️ hasLogoInName:', hasLogoInName, 'zone.name:', zone.name);
     
     // Vérifier si la zone a la catégorie logo pour cette vue
     // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
@@ -2761,12 +2762,19 @@ function Sidebar({
       zone.categories.includes('logo') ||
       (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
     );
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories length:', zone.categories?.length);
     
     // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
-    const isLogoZone = hasLogoCategory || (hasLogoInName && (!zone.categories || zone.categories.length === 0));
+    // OU si zoneCategory correspond à la catégorie de vue (même sans catégories)
+    const categoriesEmpty = !zone.categories || zone.categories.length === 0;
+    const zoneCategoryMatches = zone.zoneCategory && zone.zoneCategory === categoryForView;
+    const isLogoZone = hasLogoCategory || (hasLogoInName && categoriesEmpty) || (zoneCategoryMatches && hasLogoInName);
     
-    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'hasLogoInName:', hasLogoInName, 'isLogoZone:', isLogoZone);
-    if (!isLogoZone) return false;
+    console.log('🖼️ categoriesEmpty:', categoriesEmpty, 'zoneCategoryMatches:', zoneCategoryMatches, 'isLogoZone:', isLogoZone);
+    if (!isLogoZone) {
+      console.log('🖼️ Zone rejetée:', zone.name);
+      return false;
+    }
     
     // Filtrer par view si disponible et si showZoneSelector a une vue
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
@@ -2776,7 +2784,7 @@ function Sidebar({
     console.log('🖼️ Zone acceptée:', zone.name);
     return true;
   });
-  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length);
+  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
 
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
@@ -3353,6 +3361,7 @@ export default function ConfiguratorViewer({
     
     // Si les catégories sont vides, vérifier si le nom de la zone contient "logo"
     const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
+    console.log('🖼️ hasLogoInName:', hasLogoInName, 'zone.name:', zone.name);
     
     // Vérifier si la zone a la catégorie logo pour cette vue
     // Les zones peuvent avoir: 'logo-torse', 'logo', ou zoneCategory === categoryForView avec une catégorie contenant 'logo'
@@ -3361,12 +3370,19 @@ export default function ConfiguratorViewer({
       zone.categories.includes('logo') ||
       (zone.zoneCategory && zone.zoneCategory === categoryForView && zone.categories.some((cat: string) => cat.includes('logo')))
     );
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories length:', zone.categories?.length);
     
     // Si les catégories sont vides mais que le nom contient "logo", accepter la zone
-    const isLogoZone = hasLogoCategory || (hasLogoInName && (!zone.categories || zone.categories.length === 0));
+    // OU si zoneCategory correspond à la catégorie de vue (même sans catégories)
+    const categoriesEmpty = !zone.categories || zone.categories.length === 0;
+    const zoneCategoryMatches = zone.zoneCategory && zone.zoneCategory === categoryForView;
+    const isLogoZone = hasLogoCategory || (hasLogoInName && categoriesEmpty) || (zoneCategoryMatches && hasLogoInName);
     
-    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'hasLogoInName:', hasLogoInName, 'isLogoZone:', isLogoZone);
-    if (!isLogoZone) return false;
+    console.log('🖼️ categoriesEmpty:', categoriesEmpty, 'zoneCategoryMatches:', zoneCategoryMatches, 'isLogoZone:', isLogoZone);
+    if (!isLogoZone) {
+      console.log('🖼️ Zone rejetée:', zone.name);
+      return false;
+    }
     
     // Filtrer par view si disponible et si showZoneSelector a une vue
     if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
@@ -3376,7 +3392,7 @@ export default function ConfiguratorViewer({
     console.log('🖼️ Zone acceptée:', zone.name);
     return true;
   });
-  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length);
+  console.log('🖼️ filteredZonesForSelector count:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
 
   // Mettre à jour la zone sélectionnée quand les zones sont chargées
   useEffect(() => {
