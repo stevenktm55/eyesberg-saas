@@ -7057,8 +7057,8 @@ export default function ConfiguratorViewer({
         );
       })()}
       
-      {/* Modal de bibliothèque de logos */}
-      {showLogoLibrary ? (() => {
+      {/* Modal de bibliothèque de logos - NE PAS UTILISER, la bibliothèque s'affiche dans la sidebar */}
+      {false && showLogoLibrary ? (() => {
         console.log('🖼️ RENDERING MODAL, showLogoLibrary:', showLogoLibrary);
         console.log('🖼️ Modal de bibliothèque de logos RENDU, showLogoLibrary:', showLogoLibrary);
         const logoModule = snapshot?.customizationModules?.find((m: any) => 
