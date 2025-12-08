@@ -4433,10 +4433,10 @@ export default function ConfiguratorViewer({
               })() : activeModule.contentType === 'logos' ? (() => {
                 // Labels des vues personnalisables
                 const viewLabels = {
-                  'front': activeModule.logoViewFrontLabel || 'Torse',
-                  'back': activeModule.logoViewBackLabel || 'Dos',
-                  'left': activeModule.logoViewLeftLabel || 'Bras gauche',
-                  'right': activeModule.logoViewRightLabel || 'Bras droit'
+                  'front': activeModule.logoViewFrontLabel || activeModule.config?.logoViewFrontLabel || 'FRONT',
+                  'back': activeModule.logoViewBackLabel || activeModule.config?.logoViewBackLabel || 'BACK',
+                  'left': activeModule.logoViewLeftLabel || activeModule.config?.logoViewLeftLabel || 'LEFT',
+                  'right': activeModule.logoViewRightLabel || activeModule.config?.logoViewRightLabel || 'RIGHT'
                 };
                 
                 // Label du bouton personnalisable
