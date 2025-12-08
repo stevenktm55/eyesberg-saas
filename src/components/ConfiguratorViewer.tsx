@@ -5911,17 +5911,24 @@ export default function ConfiguratorViewer({
                                           step="1"
                                           value={currentPxValue}
                                           onChange={(e) => {
-                                            const pxValue = parseFloat(e.target.value);
+                                            const inputValue = e.target.value;
+                                            const pxValue = parseFloat(inputValue);
                                             
-                                            console.log('📏 onChange - valeur brute:', pxValue, 'sliderMin:', sliderMin, 'sliderMax:', sliderMax);
+                                            console.log('📏 onChange - valeur brute du slider:', JSON.stringify({
+                                              inputValue,
+                                              pxValue,
+                                              sliderMin,
+                                              sliderMax,
+                                              sliderRange: sliderMax - sliderMin
+                                            }));
                                             
                                             // Vérifier que la valeur est valide
-                                            if (!Number.isFinite(pxValue)) {
+                                            if (!Number.isFinite(pxValue) || isNaN(pxValue)) {
                                               console.warn('📏 onChange - valeur invalide:', pxValue);
                                               return;
                                             }
                                             
-                                            // Clamper strictement entre min et max
+                                            // Clamper strictement entre min et max AVANT arrondi
                                             let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
                                             
                                             // Arrondir à l'entier le plus proche (step de 1px)
@@ -5929,16 +5936,17 @@ export default function ConfiguratorViewer({
                                             
                                             // Double vérification après arrondi
                                             if (clampedValue < sliderMin) {
-                                              console.warn('📏 onChange - valeur trop basse, correction:', clampedValue, '->', sliderMin);
+                                              console.warn('📏 onChange - valeur trop basse après arrondi, correction:', clampedValue, '->', sliderMin);
                                               clampedValue = sliderMin;
                                             }
                                             if (clampedValue > sliderMax) {
-                                              console.warn('📏 onChange - valeur trop haute, correction:', clampedValue, '->', sliderMax);
+                                              console.warn('📏 onChange - valeur trop haute après arrondi, correction:', clampedValue, '->', sliderMax);
                                               clampedValue = sliderMax;
                                             }
                                             
-                                            console.log('📏 onChange - valeur finale:', clampedValue);
+                                            console.log('📏 onChange - valeur finale à stocker:', clampedValue);
                                             
+                                            // Mettre à jour le texte avec la valeur exacte
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
                                           onInput={(e) => {
