@@ -5035,19 +5035,14 @@ export default function ConfiguratorViewer({
                         // Vérifier le mode de placement depuis le module ou son config
                         const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || 'zones';
                         console.log('🖼️ Placement mode:', placementMode);
-                        // Si mode zones, ouvrir le modal de sélection de zone
-                        if (placementMode === 'zones') {
-                          console.log('🖼️ Mode zones - ouverture du modal de zone');
-                          setShowLogoZoneModal(true);
-                          setSelectedLogoForZone(null);
-                        } else {
-                          // Mode libre : ouvrir la bibliothèque de logos
-                          console.log('🖼️ Mode libre - ouverture de la bibliothèque de logos');
-                          setLogoToReplace(null);
-                          console.log('🖼️ Appel de setShowLogoLibrary(true)...');
-                          setShowLogoLibrary(true);
-                          console.log('🖼️ setShowLogoLibrary(true) appelé');
-                        }
+                        // IMPORTANT: Dans les deux cas, ouvrir d'abord la bibliothèque de logos
+                        // Le modal de zone s'ouvrira automatiquement après sélection d'un logo
+                        console.log('🖼️ Ouverture de la bibliothèque de logos (mode:', placementMode, ')');
+                        setLogoToReplace(null);
+                        setSelectedLogoForZone(null);
+                        console.log('🖼️ Appel de setShowLogoLibrary(true)...');
+                        setShowLogoLibrary(true);
+                        console.log('🖼️ setShowLogoLibrary(true) appelé');
                       }}
                       style={{
                         width: '100%',
