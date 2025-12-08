@@ -2733,6 +2733,7 @@ function Sidebar({
   // Gestion du sélecteur de zone pour les logos
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
+  const [isLoadingZones] = useState(false); // Les zones sont déjà chargées dans le snapshot
   
   // Mapper la vue vers la catégorie
   const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
