@@ -7330,7 +7330,7 @@ export default function ConfiguratorViewer({
             </div>
           </div>
         );
-      })()}
+      })() : null}
       
       {/* Viewer 3D au centre */}
       <div className="flex-1">
