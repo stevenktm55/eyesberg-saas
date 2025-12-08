@@ -143,7 +143,7 @@ function ConnectTabContent({
 }: { 
   shop: string | null; 
   productId: string | null;
-  onProductLinked: (shopifyProductId: string, shopifyVariantId: string) => void;
+  onProductLinked: (shopifyProductId: string, shopifyVariantId: string) => Promise<any> | void;
 }) {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -250,14 +250,36 @@ function ConnectTabContent({
       return;
     }
 
-    onProductLinked(selectedProduct.id, selectedVariant.id);
+    const result = await onProductLinked(selectedProduct.id, selectedVariant.id);
     setError(null);
-    // Recharger la date de dernière connexion après la connexion
-    // La date est déjà dans onProductLinked, donc on peut la récupérer directement
-    setTimeout(() => {
-      // La date sera mise à jour automatiquement lors du prochain clic sur le produit
-      // car elle est chargée dans le onClick du produit
-    }, 1000);
+    
+    // Mettre à jour la date de dernière connexion immédiatement après la connexion
+    if (result?.product?.builder_data?.shopify?.lastConnectedAt) {
+      console.log('📅 Date de connexion depuis onProductLinked:', result.product.builder_data.shopify.lastConnectedAt);
+      setLastConnectedAt(result.product.builder_data.shopify.lastConnectedAt);
+    } else {
+      // Sinon, recharger après un court délai pour laisser le temps à la DB de se mettre à jour
+      setTimeout(async () => {
+        if (productId && selectedProduct) {
+          try {
+            // Utiliser l'API shopify-link pour récupérer les données mises à jour
+            const response = await fetch(`/api/products/${productId}/shopify-link`, {
+              method: 'GET'
+            });
+            if (response.ok) {
+              const data = await response.json();
+              const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
+              if (lastConnected) {
+                console.log('📅 Date de connexion rechargée:', lastConnected);
+                setLastConnectedAt(lastConnected);
+              }
+            }
+          } catch (err) {
+            console.error('Error reloading last connected at:', err);
+          }
+        }
+      }, 500);
+    }
   };
 
   return (

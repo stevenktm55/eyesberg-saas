@@ -6872,18 +6872,23 @@ export default function ConfiguratorViewer({
                           console.log('🖼️ Clic sur bouton "Ajouter un logo"');
                           console.log('🖼️ showLogoLibrary avant:', showLogoLibrary);
                           console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
+                          console.log('🖼️ setShowLogoLibrary === setShowLogoLibrary:', setShowLogoLibrary === setShowLogoLibrary);
                           // Utiliser directement setShowLogoLibrary depuis le scope parent
-                          if (typeof setShowLogoLibrary === 'function') {
+                          // Le state est défini au niveau du composant principal, donc il devrait être accessible
+                          try {
                             setShowLogoLibrary(true);
                             setSelectedLogoForZone(null);
                             setSelectedLogoForVariants(null);
                             console.log('🖼️ setShowLogoLibrary(true) appelé avec succès');
-                            // Vérifier après un court délai
+                            // Forcer un re-render en vérifiant après un court délai
                             setTimeout(() => {
-                              console.log('🖼️ showLogoLibrary après setTimeout:', showLogoLibrary);
+                              console.log('🖼️ showLogoLibrary après setTimeout (peut être stale):', showLogoLibrary);
+                              // Vérifier si le modal est rendu
+                              const modalElement = document.querySelector('[data-logo-modal]');
+                              console.log('🖼️ Modal element trouvé:', !!modalElement);
                             }, 100);
-                          } else {
-                            console.error('🖼️ ERREUR: setShowLogoLibrary n\'est pas une fonction! Type:', typeof setShowLogoLibrary);
+                          } catch (error) {
+                            console.error('🖼️ ERREUR lors de l\'ouverture du modal:', error);
                           }
                         }}
                         style={{
