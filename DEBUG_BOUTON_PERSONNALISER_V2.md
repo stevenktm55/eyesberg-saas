@@ -153,3 +153,4 @@ Si le problème persiste, fournissez :
 5. **Tags du produit** (capture d'écran de la section Tags dans Shopify Admin)
 
 
+

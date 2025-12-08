@@ -151,3 +151,4 @@ Si le problème persiste, fournissez :
 5. **Script tags** (si visible dans Shopify Admin → Apps → Eyesberg)
 
 
+

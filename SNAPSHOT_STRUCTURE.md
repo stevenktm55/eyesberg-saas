@@ -252,3 +252,4 @@ snapLines?: Array<{
 4. ❌ Vérifier que tous les détails des logos sont inclus
 5. ❌ Tester que le configurateur client fonctionne sans appels API
 
+

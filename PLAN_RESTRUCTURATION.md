@@ -56,3 +56,4 @@ src/
 - La logique admin (BUILD, PRICING, VARIANTS, CONNECT) reste dans le builder
 
 
+

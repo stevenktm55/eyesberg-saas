@@ -5796,27 +5796,47 @@ export default function ConfiguratorViewer({
                                     // Si le texte n'a pas de strokeWidth défini, utiliser baseStrokeWidthPx du snapshot
                                     const baseStrokeWidth = textConstraints?.baseStrokeWidthPx ?? sliderMin;
                                     const rawValue = selectedText.strokeWidth ?? baseStrokeWidth;
-                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : baseStrokeWidth;
                                     
-                                    console.log('📏 Jauge de contour - valeurs:', {
+                                    // Convertir en nombre et vérifier que c'est valide
+                                    let currentPxValue = Number(rawValue);
+                                    if (!Number.isFinite(currentPxValue) || isNaN(currentPxValue)) {
+                                      currentPxValue = baseStrokeWidth;
+                                    }
+                                    
+                                    console.log('📏 Jauge de contour - valeurs AVANT traitement:', {
                                       selectedTextStrokeWidth: selectedText.strokeWidth,
                                       textConstraintsBaseStrokeWidthPx: textConstraints?.baseStrokeWidthPx,
                                       baseStrokeWidth,
                                       sliderMin,
                                       sliderMax,
                                       rawValue,
-                                      currentPxValue
+                                      currentPxValue,
+                                      typeofRawValue: typeof rawValue,
+                                      isFinite: Number.isFinite(currentPxValue)
                                     });
                                     
-                                    // Clamper strictement entre min et max
+                                    // Clamper strictement entre min et max AVANT arrondi
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
                                     
                                     // Arrondir à l'entier le plus proche (step de 1px)
                                     currentPxValue = Math.round(currentPxValue);
                                     
                                     // S'assurer que la valeur ne dépasse jamais les limites après arrondi
-                                    if (currentPxValue < sliderMin) currentPxValue = sliderMin;
-                                    if (currentPxValue > sliderMax) currentPxValue = sliderMax;
+                                    if (currentPxValue < sliderMin) {
+                                      console.warn('📏 Valeur trop basse après arrondi:', currentPxValue, '->', sliderMin);
+                                      currentPxValue = sliderMin;
+                                    }
+                                    if (currentPxValue > sliderMax) {
+                                      console.warn('📏 Valeur trop haute après arrondi:', currentPxValue, '->', sliderMax);
+                                      currentPxValue = sliderMax;
+                                    }
+                                    
+                                    console.log('📏 Jauge de contour - valeurs APRÈS traitement:', {
+                                      currentPxValue,
+                                      sliderMin,
+                                      sliderMax,
+                                      range: sliderMax - sliderMin
+                                    });
                                     
                                     const sliderId = `stroke-slider-${selectedTextId}`;
                                     
@@ -5924,17 +5944,24 @@ export default function ConfiguratorViewer({
                                           onInput={(e) => {
                                             // Utiliser onInput pour une mise à jour plus fluide pendant le glissement
                                             const inputElement = e.target as HTMLInputElement;
-                                            const pxValue = parseFloat(inputElement.value);
+                                            const inputValue = inputElement.value;
+                                            const pxValue = parseFloat(inputValue);
                                             
-                                            console.log('📏 onInput - valeur brute:', pxValue, 'sliderMin:', sliderMin, 'sliderMax:', sliderMax);
+                                            console.log('📏 onInput - valeur brute du slider:', {
+                                              inputValue,
+                                              pxValue,
+                                              sliderMin,
+                                              sliderMax,
+                                              sliderRange: sliderMax - sliderMin
+                                            });
                                             
                                             // Vérifier que la valeur est valide
-                                            if (!Number.isFinite(pxValue)) {
+                                            if (!Number.isFinite(pxValue) || isNaN(pxValue)) {
                                               console.warn('📏 onInput - valeur invalide:', pxValue);
                                               return;
                                             }
                                             
-                                            // Clamper strictement entre min et max
+                                            // Clamper strictement entre min et max AVANT arrondi
                                             let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
                                             
                                             // Arrondir à l'entier le plus proche (step de 1px)
@@ -5942,16 +5969,17 @@ export default function ConfiguratorViewer({
                                             
                                             // Double vérification après arrondi
                                             if (clampedValue < sliderMin) {
-                                              console.warn('📏 onInput - valeur trop basse, correction:', clampedValue, '->', sliderMin);
+                                              console.warn('📏 onInput - valeur trop basse après arrondi, correction:', clampedValue, '->', sliderMin);
                                               clampedValue = sliderMin;
                                             }
                                             if (clampedValue > sliderMax) {
-                                              console.warn('📏 onInput - valeur trop haute, correction:', clampedValue, '->', sliderMax);
+                                              console.warn('📏 onInput - valeur trop haute après arrondi, correction:', clampedValue, '->', sliderMax);
                                               clampedValue = sliderMax;
                                             }
                                             
-                                            console.log('📏 onInput - valeur finale:', clampedValue);
+                                            console.log('📏 onInput - valeur finale à stocker:', clampedValue);
                                             
+                                            // Mettre à jour le texte avec la valeur exacte
                                             updateText(selectedTextId, { strokeWidth: clampedValue });
                                           }}
                                           disabled={sliderRange <= 0}

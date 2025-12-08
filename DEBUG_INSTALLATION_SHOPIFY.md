@@ -140,3 +140,4 @@ Si le problème persiste, fournissez :
 5. Les logs de Vercel lors de l'appel à `/api/shopify/install`
 
 
+

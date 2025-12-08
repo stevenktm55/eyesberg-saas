@@ -27,3 +27,4 @@ COMMENT ON COLUMN product_builder.published_snapshot IS 'Snapshot autonome du co
 COMMENT ON COLUMN product_builder.last_published_at IS 'Date de dernière publication du snapshot';
 COMMENT ON COLUMN product_builder.snapshot_version IS 'Version du snapshot (pour migrations futures)';
 
+
