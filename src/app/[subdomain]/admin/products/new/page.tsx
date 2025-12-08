@@ -153,7 +153,6 @@ function ConnectTabContent({
   const [shopDomain, setShopDomain] = useState<string | null>(null);
   const [loadingShop, setLoadingShop] = useState(true);
   const [lastConnectedAt, setLastConnectedAt] = useState<string | null>(null);
-  const [lastConnectedAt, setLastConnectedAt] = useState<string | null>(null);
 
   // Charger automatiquement le shop domain depuis les paramètres
   useEffect(() => {
