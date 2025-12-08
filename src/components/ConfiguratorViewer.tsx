@@ -5054,9 +5054,21 @@ export default function ConfiguratorViewer({
                   'bras-droit': 'right'
                 };
                 
+                // Définir les labels de vue
+                const viewLabels = {
+                  'front': activeModule.logoViewFrontLabel || activeModule.config?.logoViewFrontLabel || 'FRONT',
+                  'back': activeModule.logoViewBackLabel || activeModule.config?.logoViewBackLabel || 'BACK',
+                  'left': activeModule.logoViewLeftLabel || activeModule.config?.logoViewLeftLabel || 'LEFT',
+                  'right': activeModule.logoViewRightLabel || activeModule.config?.logoViewRightLabel || 'RIGHT'
+                };
+                
+                // Vérifier le mode de placement
+                const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || 'zones';
+                console.log('🖼️ Placement mode pour boutons de vue:', placementMode);
+                
                 // Filtrer les logos selon la vue active
                 const filteredPlacedLogos = placedLogos.filter(logo => {
-                  if (activeModule.logoPlacementMode === 'zones') {
+                  if (placementMode === 'zones' || placementMode === 'zone') {
                     const logoView = categoryToView[logo.category];
                     return logoView === activeLogoView;
                   }
@@ -5066,7 +5078,7 @@ export default function ConfiguratorViewer({
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {/* Boutons de vue en haut - uniquement si mode zones */}
-                    {activeModule.logoPlacementMode === 'zones' && (
+                    {(placementMode === 'zones' || placementMode === 'zone') && (
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(4, 1fr)', 
