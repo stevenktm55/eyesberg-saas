@@ -4849,13 +4849,19 @@ export default function ConfiguratorViewer({
                                   // Sinon, ouvrir directement le modal de sélection de zone
                                   if (activeModule.logoPlacementMode === 'zones') {
                                     console.log('🖼️ Ouverture du modal de zone pour logo:', logo.id);
-                                    setShowZoneSelector({
+                                    console.log('🖼️ activeLogoView:', activeLogoView);
+                                    console.log('🖼️ logo.file_url:', logo.file_url);
+                                    const zoneSelectorData = {
                                       logoId: logo.id,
                                       variantId: '',
                                       variantFile: logo.file_url,
                                       view: activeLogoView
-                                    });
+                                    };
+                                    console.log('🖼️ zoneSelectorData:', JSON.stringify(zoneSelectorData));
+                                    setShowZoneSelector(zoneSelectorData);
+                                    console.log('🖼️ setShowZoneSelector appelé avec:', JSON.stringify(zoneSelectorData));
                                     setShowLogoLibrary(false);
+                                    console.log('🖼️ setShowLogoLibrary(false) appelé');
                                   } else {
                                     // Mode libre : ajouter directement
                                     let logoWidth: number | undefined = undefined;
