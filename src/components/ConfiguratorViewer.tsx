@@ -5766,14 +5766,13 @@ export default function ConfiguratorViewer({
                                     }
                                     
                                     // CODE EXACT DU BUILDER - Copié depuis /app/[subdomain]/admin/products/new/page.tsx
-                                    // Convertir en nombres pour s'assurer qu'ils sont valides
-                                    const sliderMin = Number(textConstraints.strokeMinWidthPx) || 0;
-                                    const sliderMax = Number(textConstraints.strokeMaxWidthPx) || 30;
+                                    const sliderMin = textConstraints.strokeMinWidthPx;
+                                    const sliderMax = textConstraints.strokeMaxWidthPx;
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée
                                     const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
+                                    let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));

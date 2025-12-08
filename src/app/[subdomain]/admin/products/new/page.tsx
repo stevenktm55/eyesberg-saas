@@ -433,8 +433,17 @@ function ConnectTabContent({
                             lastConnected: data.product?.builder_data?.shopify?.lastConnectedAt
                           });
                           const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
-                          // Vérifier si ce produit Shopify est connecté à ce produit builder
-                          if (lastConnected && data.product?.shopify_product_id === product.id) {
+                          // Vérifier si ce produit Shopify est connecté (peut être dans shopify_product_id ou builder_data.shopify.productId)
+                          const connectedProductId = data.product?.shopify_product_id || data.product?.builder_data?.shopify?.productId;
+                          console.log('📅 Produit data:', {
+                            shopify_product_id: data.product?.shopify_product_id,
+                            builder_data_shopify_productId: data.product?.builder_data?.shopify?.productId,
+                            connectedProductId,
+                            product_id: product.id,
+                            match: connectedProductId === product.id,
+                            lastConnected
+                          });
+                          if (lastConnected && connectedProductId === product.id) {
                             console.log('📅 Date de connexion trouvée:', lastConnected);
                             setLastConnectedAt(lastConnected);
                           } else {
