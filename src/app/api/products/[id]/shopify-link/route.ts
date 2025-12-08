@@ -103,8 +103,8 @@ export async function POST(
       shopify_product_id: shopifyProductId,
       shopify_variant_id: shopifyVariantId || null,
       builder_data: currentBuilderData,
-      updated_at: new Date().toISOString(),
-      shopify_last_connected_at: new Date().toISOString() // Date/heure de dernière connexion
+      updated_at: new Date().toISOString()
+      // La date de dernière connexion est stockée dans builder_data.shopify.lastConnectedAt
     };
     
     // Essayer aussi de sauvegarder dans published_snapshot si la colonne existe (sans erreur si elle n'existe pas)

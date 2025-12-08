@@ -152,6 +152,8 @@ function ConnectTabContent({
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
   const [shopDomain, setShopDomain] = useState<string | null>(null);
   const [loadingShop, setLoadingShop] = useState(true);
+  const [lastConnectedAt, setLastConnectedAt] = useState<string | null>(null);
+  const [lastConnectedAt, setLastConnectedAt] = useState<string | null>(null);
 
   // Charger automatiquement le shop domain depuis les paramètres
   useEffect(() => {
@@ -243,7 +245,7 @@ function ConnectTabContent({
     }
   };
 
-  const handleLinkProduct = () => {
+  const handleLinkProduct = async () => {
     if (!selectedProduct || !selectedVariant) {
       setError('Veuillez sélectionner un produit et une variante');
       return;
@@ -251,6 +253,23 @@ function ConnectTabContent({
 
     onProductLinked(selectedProduct.id, selectedVariant.id);
     setError(null);
+    // Recharger la date de dernière connexion après la connexion
+    setTimeout(async () => {
+      if (productId) {
+        try {
+          const response = await fetch(`/api/products/${productId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
+            if (lastConnected) {
+              setLastConnectedAt(lastConnected);
+            }
+          }
+        } catch (err) {
+          console.error('Error loading last connected at:', err);
+        }
+      }
+    }, 1000);
   };
 
   return (
@@ -399,9 +418,27 @@ function ConnectTabContent({
               {products.map((product) => (
                 <div
                   key={product.id}
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedProduct(product);
                     setSelectedVariant(product.variants[0] || null);
+                    // Charger la date de dernière connexion si ce produit est déjà connecté
+                    if (productId) {
+                      try {
+                        const response = await fetch(`/api/products/${productId}`);
+                        if (response.ok) {
+                          const data = await response.json();
+                          const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
+                          if (lastConnected && data.product?.shopify_product_id === product.id) {
+                            setLastConnectedAt(lastConnected);
+                          } else {
+                            setLastConnectedAt(null);
+                          }
+                        }
+                      } catch (err) {
+                        console.error('Error loading last connected at:', err);
+                        setLastConnectedAt(null);
+                      }
+                    }
                   }}
                   style={{
                     padding: '16px',
@@ -409,7 +446,8 @@ function ConnectTabContent({
                     border: selectedProduct?.id === product.id ? '2px solid #8eff36' : '1px solid #2a2a2a',
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    position: 'relative'
                   }}
                 >
                   <div style={{ display: 'flex', gap: '16px' }}>
@@ -486,6 +524,29 @@ function ConnectTabContent({
                       )}
                     </div>
                   </div>
+                  {/* Date de dernière connexion en bas à droite */}
+                  {selectedProduct?.id === product.id && lastConnectedAt && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      right: '16px',
+                      fontSize: '11px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      color: '#888888',
+                      textAlign: 'right'
+                    }}>
+                      <div style={{ marginBottom: '2px' }}>Dernière connexion:</div>
+                      <div style={{ fontWeight: '500', color: '#a0a0a0' }}>
+                        {new Date(lastConnectedAt).toLocaleString('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
