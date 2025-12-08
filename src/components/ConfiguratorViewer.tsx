@@ -6759,10 +6759,14 @@ export default function ConfiguratorViewer({
                   // Fonction pour ouvrir le modal de bibliothèque de logos
                   const handleOpenLogoLibrary = () => {
                     console.log('🖼️ handleOpenLogoLibrary appelé, showLogoLibrary avant:', showLogoLibrary);
+                    console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
                     setShowLogoLibrary(true);
                     setSelectedLogoForZone(null);
                     setSelectedLogoForVariants(null);
-                    console.log('🖼️ showLogoLibrary après:', true);
+                    // Vérifier immédiatement après
+                    setTimeout(() => {
+                      console.log('🖼️ showLogoLibrary après setTimeout:', showLogoLibrary);
+                    }, 100);
                   };
                   
                   return (
