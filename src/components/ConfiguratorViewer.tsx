@@ -6866,16 +6866,18 @@ export default function ConfiguratorViewer({
                       
                       {/* Bouton "Ajouter un logo" */}
                       <button
+                        data-testid="add-logo-button"
                         onClick={(e) => {
+                          console.log('🖼️🖼️🖼️ CLIC DÉTECTÉ SUR LE BOUTON!');
                           e.preventDefault();
                           e.stopPropagation();
                           console.log('🖼️ Clic sur bouton "Ajouter un logo"');
                           console.log('🖼️ showLogoLibrary avant:', showLogoLibrary);
                           console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
-                          console.log('🖼️ setShowLogoLibrary === setShowLogoLibrary:', setShowLogoLibrary === setShowLogoLibrary);
                           // Utiliser directement setShowLogoLibrary depuis le scope parent
                           // Le state est défini au niveau du composant principal, donc il devrait être accessible
                           try {
+                            console.log('🖼️ Appel de setShowLogoLibrary(true)...');
                             setShowLogoLibrary(true);
                             setSelectedLogoForZone(null);
                             setSelectedLogoForVariants(null);
@@ -6886,10 +6888,21 @@ export default function ConfiguratorViewer({
                               // Vérifier si le modal est rendu
                               const modalElement = document.querySelector('[data-logo-modal]');
                               console.log('🖼️ Modal element trouvé:', !!modalElement);
+                              if (!modalElement) {
+                                console.error('🖼️ ERREUR: Le modal n\'est pas rendu dans le DOM!');
+                              }
                             }, 100);
                           } catch (error) {
                             console.error('🖼️ ERREUR lors de l\'ouverture du modal:', error);
                           }
+                        }}
+                        onMouseDown={(e) => {
+                          console.log('🖼️ onMouseDown sur le bouton');
+                          e.stopPropagation();
+                        }}
+                        onMouseUp={(e) => {
+                          console.log('🖼️ onMouseUp sur le bouton');
+                          e.stopPropagation();
                         }}
                         style={{
                           width: '100%',
@@ -6906,7 +6919,9 @@ export default function ConfiguratorViewer({
                           justifyContent: 'center',
                           gap: '8px',
                           transition: 'all 0.2s',
-                          fontFamily: 'var(--stepn-font-body)'
+                          fontFamily: 'var(--stepn-font-body)',
+                          position: 'relative',
+                          zIndex: 1000
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#2563eb';
