@@ -4571,6 +4571,7 @@ export default function ConfiguratorViewer({
                                       ? selectedLogoForVariants.file_url 
                                       : (variant.file_url || selectedLogoForVariants.file_url);
                                     
+                                    console.log('🖼️ Ouverture du modal de zone pour logo avec variante:', selectedLogoForVariants.id, variant.id);
                                     setShowZoneSelector({
                                       logoId: selectedLogoForVariants.id,
                                       variantId: variant.id === 'base' ? '' : variant.id,
@@ -4578,6 +4579,7 @@ export default function ConfiguratorViewer({
                                       view: activeLogoView
                                     });
                                     setSelectedLogoForVariants(null);
+                                    setShowLogoLibrary(false);
                                   } else {
                                     // Mode libre : ajouter directement
                                     const fileToUse = variant.id === 'base' 
@@ -4846,12 +4848,14 @@ export default function ConfiguratorViewer({
                                   
                                   // Sinon, ouvrir directement le modal de sélection de zone
                                   if (activeModule.logoPlacementMode === 'zones') {
+                                    console.log('🖼️ Ouverture du modal de zone pour logo:', logo.id);
                                     setShowZoneSelector({
                                       logoId: logo.id,
                                       variantId: '',
                                       variantFile: logo.file_url,
                                       view: activeLogoView
                                     });
+                                    setShowLogoLibrary(false);
                                   } else {
                                     // Mode libre : ajouter directement
                                     let logoWidth: number | undefined = undefined;
