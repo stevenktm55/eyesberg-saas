@@ -4566,21 +4566,28 @@ export default function ConfiguratorViewer({
                                   }
                                   
                                   // Si mode zones, ouvrir le modal de sélection de zone
-                                  if (activeModule.logoPlacementMode === 'zones') {
+                                  console.log('🖼️ Vérification du mode de placement (variante) - activeModule.logoPlacementMode:', activeModule.logoPlacementMode);
+                                  console.log('🖼️ activeModule.config?.logoPlacementMode:', activeModule.config?.logoPlacementMode);
+                                  if (activeModule.logoPlacementMode === 'zones' || activeModule.config?.logoPlacementMode === 'zones') {
                                     const fileToUse = variant.id === 'base' 
                                       ? selectedLogoForVariants.file_url 
                                       : (variant.file_url || selectedLogoForVariants.file_url);
                                     
                                     console.log('🖼️ Ouverture du modal de zone pour logo avec variante:', selectedLogoForVariants.id, variant.id);
-                                    setShowZoneSelector({
+                                    const zoneSelectorData = {
                                       logoId: selectedLogoForVariants.id,
                                       variantId: variant.id === 'base' ? '' : variant.id,
                                       variantFile: fileToUse,
                                       view: activeLogoView
-                                    });
+                                    };
+                                    console.log('🖼️ zoneSelectorData (variante):', JSON.stringify(zoneSelectorData));
+                                    setShowZoneSelector(zoneSelectorData);
+                                    console.log('🖼️ setShowZoneSelector appelé avec (variante):', JSON.stringify(zoneSelectorData));
                                     setSelectedLogoForVariants(null);
                                     setShowLogoLibrary(false);
+                                    console.log('🖼️ setShowLogoLibrary(false) appelé (variante)');
                                   } else {
+                                    console.log('🖼️ Mode de placement n\'est pas "zones" (variante), mode actuel:', activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode);
                                     // Mode libre : ajouter directement
                                     const fileToUse = variant.id === 'base' 
                                       ? selectedLogoForVariants.file_url 
