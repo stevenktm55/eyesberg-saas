@@ -3883,7 +3883,7 @@ export default function ConfiguratorViewer({
         else if (activeModule.contentType === 'logos') tabToShow = 'logo';
         
         return (
-          <div className="w-[420px] bg-white border-r border-gray-200 flex flex-col overflow-hidden relative z-20">
+          <div className="w-[420px] min-w-[420px] flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden relative z-20">
             {/* En-tête du panneau */}
             <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-3">
@@ -5769,7 +5769,7 @@ export default function ConfiguratorViewer({
                                     const sliderMin = Number(textConstraints.strokeMinWidthPx);
                                     const sliderMax = Number(textConstraints.strokeMaxWidthPx);
                                     
-                                    console.log('📏 Jauge de contour - contraintes:', {
+                                    console.log('📏 Jauge de contour - contraintes:', JSON.stringify({
                                       strokeMinWidthPx: textConstraints.strokeMinWidthPx,
                                       strokeMaxWidthPx: textConstraints.strokeMaxWidthPx,
                                       baseStrokeWidthPx: textConstraints.baseStrokeWidthPx,
@@ -5778,7 +5778,7 @@ export default function ConfiguratorViewer({
                                       isFiniteMin: Number.isFinite(sliderMin),
                                       isFiniteMax: Number.isFinite(sliderMax),
                                       isValid: Number.isFinite(sliderMin) && Number.isFinite(sliderMax) && sliderMin < sliderMax
-                                    });
+                                    }));
                                     
                                     // Vérifier que min et max sont valides
                                     if (!Number.isFinite(sliderMin) || !Number.isFinite(sliderMax) || sliderMin >= sliderMax) {
@@ -5803,7 +5803,7 @@ export default function ConfiguratorViewer({
                                       currentPxValue = baseStrokeWidth;
                                     }
                                     
-                                    console.log('📏 Jauge de contour - valeurs AVANT traitement:', {
+                                    console.log('📏 Jauge de contour - valeurs AVANT traitement:', JSON.stringify({
                                       selectedTextStrokeWidth: selectedText.strokeWidth,
                                       textConstraintsBaseStrokeWidthPx: textConstraints?.baseStrokeWidthPx,
                                       baseStrokeWidth,
@@ -5813,7 +5813,7 @@ export default function ConfiguratorViewer({
                                       currentPxValue,
                                       typeofRawValue: typeof rawValue,
                                       isFinite: Number.isFinite(currentPxValue)
-                                    });
+                                    }));
                                     
                                     // Clamper strictement entre min et max AVANT arrondi
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
@@ -5831,12 +5831,12 @@ export default function ConfiguratorViewer({
                                       currentPxValue = sliderMax;
                                     }
                                     
-                                    console.log('📏 Jauge de contour - valeurs APRÈS traitement:', {
+                                    console.log('📏 Jauge de contour - valeurs APRÈS traitement:', JSON.stringify({
                                       currentPxValue,
                                       sliderMin,
                                       sliderMax,
                                       range: sliderMax - sliderMin
-                                    });
+                                    }));
                                     
                                     const sliderId = `stroke-slider-${selectedTextId}`;
                                     
@@ -5947,13 +5947,13 @@ export default function ConfiguratorViewer({
                                             const inputValue = inputElement.value;
                                             const pxValue = parseFloat(inputValue);
                                             
-                                            console.log('📏 onInput - valeur brute du slider:', {
+                                            console.log('📏 onInput - valeur brute du slider:', JSON.stringify({
                                               inputValue,
                                               pxValue,
                                               sliderMin,
                                               sliderMax,
                                               sliderRange: sliderMax - sliderMin
-                                            });
+                                            }));
                                             
                                             // Vérifier que la valeur est valide
                                             if (!Number.isFinite(pxValue) || isNaN(pxValue)) {
