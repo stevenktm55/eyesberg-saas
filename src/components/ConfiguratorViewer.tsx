@@ -4847,7 +4847,9 @@ export default function ConfiguratorViewer({
                                   }
                                   
                                   // Sinon, ouvrir directement le modal de sélection de zone
-                                  if (activeModule.logoPlacementMode === 'zones') {
+                                  console.log('🖼️ Vérification du mode de placement - activeModule.logoPlacementMode:', activeModule.logoPlacementMode);
+                                  console.log('🖼️ activeModule.config?.logoPlacementMode:', activeModule.config?.logoPlacementMode);
+                                  if (activeModule.logoPlacementMode === 'zones' || activeModule.config?.logoPlacementMode === 'zones') {
                                     console.log('🖼️ Ouverture du modal de zone pour logo:', logo.id);
                                     console.log('🖼️ activeLogoView:', activeLogoView);
                                     console.log('🖼️ logo.file_url:', logo.file_url);
@@ -4863,6 +4865,7 @@ export default function ConfiguratorViewer({
                                     setShowLogoLibrary(false);
                                     console.log('🖼️ setShowLogoLibrary(false) appelé');
                                   } else {
+                                    console.log('🖼️ Mode de placement n\'est pas "zones", mode actuel:', activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode);
                                     // Mode libre : ajouter directement
                                     let logoWidth: number | undefined = undefined;
                                     let logoHeight: number | undefined = undefined;
