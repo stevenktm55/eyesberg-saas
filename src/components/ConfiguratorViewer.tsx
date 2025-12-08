@@ -5766,13 +5766,14 @@ export default function ConfiguratorViewer({
                                     }
                                     
                                     // CODE EXACT DU BUILDER - Copié depuis /app/[subdomain]/admin/products/new/page.tsx
-                                    const sliderMin = textConstraints.strokeMinWidthPx;
-                                    const sliderMax = textConstraints.strokeMaxWidthPx;
+                                    // Convertir en nombres pour s'assurer qu'ils sont valides
+                                    const sliderMin = Number(textConstraints.strokeMinWidthPx) || 0;
+                                    const sliderMax = Number(textConstraints.strokeMaxWidthPx) || 30;
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée
                                     const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                    let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
@@ -6760,13 +6761,11 @@ export default function ConfiguratorViewer({
                   const handleOpenLogoLibrary = () => {
                     console.log('🖼️ handleOpenLogoLibrary appelé, showLogoLibrary avant:', showLogoLibrary);
                     console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
+                    // Utiliser directement setShowLogoLibrary depuis le scope parent
                     setShowLogoLibrary(true);
                     setSelectedLogoForZone(null);
                     setSelectedLogoForVariants(null);
-                    // Vérifier immédiatement après
-                    setTimeout(() => {
-                      console.log('🖼️ showLogoLibrary après setTimeout:', showLogoLibrary);
-                    }, 100);
+                    console.log('🖼️ setShowLogoLibrary(true) appelé');
                   };
                   
                   return (
