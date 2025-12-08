@@ -4566,9 +4566,12 @@ export default function ConfiguratorViewer({
                                   }
                                   
                                   // Si mode zones, ouvrir le modal de sélection de zone
+                                  const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || activeModule.config?.placementMode;
                                   console.log('🖼️ Vérification du mode de placement (variante) - activeModule.logoPlacementMode:', activeModule.logoPlacementMode);
                                   console.log('🖼️ activeModule.config?.logoPlacementMode:', activeModule.config?.logoPlacementMode);
-                                  if (activeModule.logoPlacementMode === 'zones' || activeModule.config?.logoPlacementMode === 'zones') {
+                                  console.log('🖼️ activeModule.config?.placementMode:', activeModule.config?.placementMode);
+                                  console.log('🖼️ placementMode final (variante):', placementMode);
+                                  if (placementMode === 'zones') {
                                     const fileToUse = variant.id === 'base' 
                                       ? selectedLogoForVariants.file_url 
                                       : (variant.file_url || selectedLogoForVariants.file_url);
@@ -4587,7 +4590,7 @@ export default function ConfiguratorViewer({
                                     setShowLogoLibrary(false);
                                     console.log('🖼️ setShowLogoLibrary(false) appelé (variante)');
                                   } else {
-                                    console.log('🖼️ Mode de placement n\'est pas "zones" (variante), mode actuel:', activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode);
+                                    console.log('🖼️ Mode de placement n\'est pas "zones" (variante), mode actuel:', placementMode);
                                     // Mode libre : ajouter directement
                                     const fileToUse = variant.id === 'base' 
                                       ? selectedLogoForVariants.file_url 
@@ -4854,9 +4857,12 @@ export default function ConfiguratorViewer({
                                   }
                                   
                                   // Sinon, ouvrir directement le modal de sélection de zone
+                                  const placementMode = activeModule.logoPlacementMode || activeModule.config?.logoPlacementMode || activeModule.config?.placementMode;
                                   console.log('🖼️ Vérification du mode de placement - activeModule.logoPlacementMode:', activeModule.logoPlacementMode);
                                   console.log('🖼️ activeModule.config?.logoPlacementMode:', activeModule.config?.logoPlacementMode);
-                                  if (activeModule.logoPlacementMode === 'zones' || activeModule.config?.logoPlacementMode === 'zones') {
+                                  console.log('🖼️ activeModule.config?.placementMode:', activeModule.config?.placementMode);
+                                  console.log('🖼️ placementMode final:', placementMode);
+                                  if (placementMode === 'zones') {
                                     console.log('🖼️ Ouverture du modal de zone pour logo:', logo.id);
                                     console.log('🖼️ activeLogoView:', activeLogoView);
                                     console.log('🖼️ logo.file_url:', logo.file_url);
