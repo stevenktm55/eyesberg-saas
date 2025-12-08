@@ -426,24 +426,24 @@ function ConnectTabContent({
                         const response = await fetch(`/api/products/${productId}`);
                         if (response.ok) {
                           const data = await response.json();
-                          console.log('📅 Produit data:', {
-                            shopify_product_id: data.product?.shopify_product_id,
-                            product_id: product.id,
-                            match: data.product?.shopify_product_id === product.id,
-                            lastConnected: data.product?.builder_data?.shopify?.lastConnectedAt
-                          });
                           const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
                           // Vérifier si ce produit Shopify est connecté (peut être dans shopify_product_id ou builder_data.shopify.productId)
                           const connectedProductId = data.product?.shopify_product_id || data.product?.builder_data?.shopify?.productId;
+                          // Comparer les IDs en tant que strings pour éviter les problèmes de type
+                          const isConnected = lastConnected && (
+                            String(connectedProductId) === String(product.id) || 
+                            String(connectedProductId) === String(product.id.toString())
+                          );
                           console.log('📅 Produit data:', {
                             shopify_product_id: data.product?.shopify_product_id,
                             builder_data_shopify_productId: data.product?.builder_data?.shopify?.productId,
                             connectedProductId,
                             product_id: product.id,
-                            match: connectedProductId === product.id,
+                            product_id_string: String(product.id),
+                            isConnected,
                             lastConnected
                           });
-                          if (lastConnected && connectedProductId === product.id) {
+                          if (isConnected) {
                             console.log('📅 Date de connexion trouvée:', lastConnected);
                             setLastConnectedAt(lastConnected);
                           } else {

@@ -5757,7 +5757,7 @@ export default function ConfiguratorViewer({
                                     // Utiliser UNIQUEMENT les contraintes depuis le snapshot (pas de fallback)
                                     const textConstraints = activeModule.config?.textConstraints || activeModule.textConstraints;
                                     
-                                    if (!textConstraints || typeof textConstraints.strokeMinWidthPx !== 'number' || typeof textConstraints.strokeMaxWidthPx !== 'number') {
+                                    if (!textConstraints) {
                                       return (
                                         <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
                                           Les contraintes de contour ne sont pas disponibles dans le snapshot.
@@ -5766,13 +5766,21 @@ export default function ConfiguratorViewer({
                                     }
                                     
                                     // CODE EXACT DU BUILDER - Copié depuis /app/[subdomain]/admin/products/new/page.tsx
-                                    const sliderMin = textConstraints.strokeMinWidthPx;
-                                    const sliderMax = textConstraints.strokeMaxWidthPx;
+                                    // Convertir en nombres si nécessaire (peut être string dans le snapshot)
+                                    const sliderMin = typeof textConstraints.strokeMinWidthPx === 'number' 
+                                      ? textConstraints.strokeMinWidthPx 
+                                      : Number(textConstraints.strokeMinWidthPx) || 0;
+                                    const sliderMax = typeof textConstraints.strokeMaxWidthPx === 'number' 
+                                      ? textConstraints.strokeMaxWidthPx 
+                                      : Number(textConstraints.strokeMaxWidthPx) || 30;
                                     const sliderRange = sliderMax - sliderMin;
                                     
                                     // Utiliser directement la valeur stockée
-                                    const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                                    let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                    const baseValue = typeof textConstraints.baseStrokeWidthPx === 'number'
+                                      ? textConstraints.baseStrokeWidthPx
+                                      : Number(textConstraints.baseStrokeWidthPx) || sliderMin;
+                                    const rawValue = selectedText.strokeWidth ?? baseValue;
+                                    let currentPxValue = Number.isFinite(Number(rawValue)) ? Number(rawValue) : sliderMin;
                                     
                                     // Clamper strictement entre min et max
                                     currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
