@@ -4865,7 +4865,10 @@ export default function ConfiguratorViewer({
                                   console.log('🖼️ activeModule.config?.logoPlacementMode:', activeModule.config?.logoPlacementMode);
                                   console.log('🖼️ activeModule.config?.placementMode:', activeModule.config?.placementMode);
                                   console.log('🖼️ placementMode final:', placementMode);
-                                  if (placementMode === 'zones') {
+                                  
+                                  // Si le mode est 'zones' ou non défini, ouvrir le modal de zone
+                                  // (par défaut, on utilise le mode zones pour permettre la sélection)
+                                  if (placementMode === 'zones' || !placementMode || placementMode === 'zone') {
                                     console.log('🖼️ Ouverture du modal de zone pour logo:', logo.id);
                                     console.log('🖼️ activeLogoView:', activeLogoView);
                                     console.log('🖼️ logo.file_url:', logo.file_url);
