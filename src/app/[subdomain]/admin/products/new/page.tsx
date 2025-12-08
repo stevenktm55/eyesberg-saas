@@ -250,36 +250,40 @@ function ConnectTabContent({
       return;
     }
 
-    const result = await onProductLinked(selectedProduct.id, selectedVariant.id);
+    await onProductLinked(selectedProduct.id, selectedVariant.id);
     setError(null);
     
-    // Mettre à jour la date de dernière connexion immédiatement après la connexion
-    if (result?.product?.builder_data?.shopify?.lastConnectedAt) {
-      console.log('📅 Date de connexion depuis onProductLinked:', result.product.builder_data.shopify.lastConnectedAt);
-      setLastConnectedAt(result.product.builder_data.shopify.lastConnectedAt);
-    } else {
-      // Sinon, recharger après un court délai pour laisser le temps à la DB de se mettre à jour
-      setTimeout(async () => {
-        if (productId && selectedProduct) {
-          try {
-            // Utiliser l'API shopify-link pour récupérer les données mises à jour
-            const response = await fetch(`/api/products/${productId}/shopify-link`, {
-              method: 'GET'
+    // Recharger la date de dernière connexion après la connexion
+    // La date est stockée dans builder_data.shopify.lastConnectedAt
+    setTimeout(async () => {
+      if (productId && selectedProduct) {
+        try {
+          // Recharger les données du produit depuis Supabase directement
+          const response = await fetch(`/api/products/${productId}?subdomain=${encodeURIComponent(shop || '')}`);
+          if (response.ok) {
+            const data = await response.json();
+            const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
+            console.log('📅 Données du produit après connexion:', {
+              lastConnected,
+              shopify_product_id: data.product?.shopify_product_id,
+              product_id: selectedProduct.id,
+              match: String(data.product?.shopify_product_id) === String(selectedProduct.id)
             });
-            if (response.ok) {
-              const data = await response.json();
-              const lastConnected = data.product?.builder_data?.shopify?.lastConnectedAt;
-              if (lastConnected) {
-                console.log('📅 Date de connexion rechargée:', lastConnected);
-                setLastConnectedAt(lastConnected);
-              }
+            if (lastConnected && String(data.product?.shopify_product_id) === String(selectedProduct.id)) {
+              console.log('📅 Date de connexion trouvée et affichée:', lastConnected);
+              setLastConnectedAt(lastConnected);
+            } else {
+              console.log('📅 Pas de date de connexion pour ce produit');
+              setLastConnectedAt(null);
             }
-          } catch (err) {
-            console.error('Error reloading last connected at:', err);
+          } else {
+            console.error('📅 Erreur lors du rechargement:', response.status);
           }
+        } catch (err) {
+          console.error('📅 Error reloading last connected at:', err);
         }
-      }, 500);
-    }
+      }
+    }, 1000);
   };
 
   return (
