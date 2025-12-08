@@ -4400,10 +4400,15 @@ export default function ConfiguratorViewer({
                 );
                 const hasLogoModule = logoModule?.config?.logoLibraries?.length > 0;
                 
+                console.log('🖼️ Module logos - hasLogoModule:', hasLogoModule, 'logoModule:', logoModule);
+                
                 // Si pas de bibliothèques dans le snapshot, masquer le module (PAS d'erreur)
                 if (!hasLogoModule) {
+                  console.log('🖼️ Module logos caché car pas de bibliothèques');
                   return null;
                 }
+                
+                console.log('🖼️ Module logos RENDU, bouton devrait être visible');
                 
                 // Vérifier si des bibliothèques sont sélectionnées (pour le filtrage)
                 const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
