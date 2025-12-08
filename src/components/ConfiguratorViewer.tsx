@@ -6833,12 +6833,21 @@ export default function ConfiguratorViewer({
                           e.preventDefault();
                           e.stopPropagation();
                           console.log('🖼️ Clic sur bouton "Ajouter un logo"');
+                          console.log('🖼️ showLogoLibrary avant:', showLogoLibrary);
                           console.log('🖼️ setShowLogoLibrary disponible:', typeof setShowLogoLibrary);
                           // Utiliser directement setShowLogoLibrary depuis le scope parent
-                          setShowLogoLibrary(true);
-                          setSelectedLogoForZone(null);
-                          setSelectedLogoForVariants(null);
-                          console.log('🖼️ setShowLogoLibrary(true) appelé');
+                          if (typeof setShowLogoLibrary === 'function') {
+                            setShowLogoLibrary(true);
+                            setSelectedLogoForZone(null);
+                            setSelectedLogoForVariants(null);
+                            console.log('🖼️ setShowLogoLibrary(true) appelé avec succès');
+                            // Vérifier après un court délai
+                            setTimeout(() => {
+                              console.log('🖼️ showLogoLibrary après setTimeout:', showLogoLibrary);
+                            }, 100);
+                          } else {
+                            console.error('🖼️ ERREUR: setShowLogoLibrary n\'est pas une fonction! Type:', typeof setShowLogoLibrary);
+                          }
                         }}
                         style={{
                           width: '100%',
