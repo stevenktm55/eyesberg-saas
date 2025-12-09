@@ -3255,6 +3255,9 @@ export default function ConfiguratorViewer({
     console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
     console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
     
+    // Trouver le module actif pour les logos
+    const activeModule = customizationModules.find((m: any) => m.contentType === 'logos');
+    
     return (
       <div
         style={{
