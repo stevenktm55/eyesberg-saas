@@ -487,7 +487,11 @@ async function resolveCustomizationModules(
         type: module.type,
         resolvedType: moduleType,
         hasConfig: !!module.config,
-        hasSelectedItems: !!module.selectedItems
+        hasSelectedItems: !!module.selectedItems,
+        icon: module.icon || module.config?.icon,
+        iconUrl: module.iconUrl || module.config?.iconUrl,
+        resolvedIcon: resolved.icon,
+        resolvedIconUrl: resolved.iconUrl
       });
 
       // Résoudre selon le type de module

@@ -2493,6 +2493,8 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             label: m.label,
             icon: m.icon,
             iconUrl: m.iconUrl,
+            hasIcon: !!m.icon,
+            hasIconUrl: !!m.iconUrl,
             hasAllowedDesigns: !!m.allowedDesigns?.length,
             allowedDesignsCount: m.allowedDesigns?.length || 0,
             hasThumbnails: m.allowedDesigns?.some((d: any) => d.thumbnailUrl),
