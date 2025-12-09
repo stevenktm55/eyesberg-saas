@@ -3250,95 +3250,300 @@ export default function ConfiguratorViewer({
     console.log('🖼️ AVANT zoneModal - showZoneSelector:', showZoneSelector, 'filteredZonesForSelector.length:', filteredZonesForSelector.length);
   }, [showZoneSelector, filteredZonesForSelector.length]);
   
-  // Modal de sélection de zone pour les logos
+  // Modal de sélection de zone pour les logos - Même UI que pour les textes
   const zoneModal = showZoneSelector ? (() => {
     console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
     console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
-    console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
+    
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-        <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
-            
-            {/* Affichage de la vue active (non modifiable depuis le modal) */}
-            {showZoneSelector?.view && (
-              <div className="mb-4">
-                <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
-                  Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowZoneSelector(null);
+            setSelectedZone('');
+          }
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '8px',
+            padding: '32px',
+            width: '90%',
+            maxWidth: '700px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '24px'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '600',
+              color: '#000000',
+              fontFamily: 'var(--stepn-font-body)',
+              margin: 0
+            }}>
+              {activeModule?.addLogoButtonLabel || 'Ajouter un logo'}
+            </h2>
+            <button
+              onClick={() => {
+                setShowZoneSelector(null);
+                setSelectedZone('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#666666',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '0',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: '1'
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {filteredZonesForSelector.length === 0 ? (
+            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+              Aucune zone disponible.
+            </p>
+          ) : (
+            <div>
+              {/* Section: Choisissez une position standard */}
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)',
+                  marginBottom: '16px'
+                }}>
+                  Choisissez une position standard
+                </h3>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '16px'
+                }}>
+                  {filteredZonesForSelector.map((zone: any) => {
+                    const isSelected = selectedZone === zone.id;
+                    return (
+                      <div
+                        key={zone.id}
+                        onClick={() => {
+                          setSelectedZone(zone.id);
+                          
+                          // Faire pivoter la caméra vers la vue de la zone
+                          const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                            'Face': 'torse',
+                            'Dos': 'dos',
+                            'Gauche': 'bras-gauche',
+                            'Droite': 'bras-droit',
+                            'front': 'torse',
+                            'back': 'dos',
+                            'left': 'bras-gauche',
+                            'right': 'bras-droit'
+                          };
+                          const zoneCategory = zone.view ? viewToCategory[zone.view] : zone.zone_category;
+                          
+                          if (zoneCategory) {
+                            setTargetView(zoneCategory);
+                            // Convertir la catégorie en vue de caméra
+                            const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
+                              'torse': 'front',
+                              'dos': 'back',
+                              'bras-gauche': 'left',
+                              'bras-droit': 'right'
+                            };
+                            const cameraView = categoryToView[zoneCategory];
+                            if (cameraView) {
+                              window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                            }
+                          }
+                        }}
+                        style={{
+                          position: 'relative',
+                          cursor: 'pointer',
+                          border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          backgroundColor: '#ffffff',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#999999';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.borderColor = '#e0e0e0';
+                          }
+                        }}
+                      >
+                        {/* Checkmark icon */}
+                        {isSelected && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '24px',
+                            height: '24px',
+                            backgroundColor: '#000000',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 10
+                          }}>
+                            <span style={{
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontWeight: 'bold'
+                            }}>
+                              ✓
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Zone thumbnail */}
+                        <div style={{
+                          width: '100%',
+                          height: '140px',
+                          backgroundColor: '#f5f5f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                          padding: '8px'
+                        }}>
+                          {zone.thumbnail_url && !zone.thumbnail_url.startsWith('blob:') ? (
+                            <img
+                              src={zone.thumbnail_url}
+                              alt={zone.name}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '100%',
+                                objectFit: 'contain',
+                                filter: 'grayscale(100%)',
+                                display: 'block'
+                              }}
+                              onError={(e) => {
+                                console.error('❌ Error loading thumbnail for zone:', zone.name, zone.thumbnail_url);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: '100%',
+                              height: '100%',
+                              backgroundColor: '#e0e0e0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#111827',
+                              WebkitTextFillColor: '#111827',
+                              fontSize: '12px',
+                              textAlign: 'center',
+                              padding: '8px'
+                            }}>
+                              {zone.name}
+                              {!zone.thumbnail_url && (
+                                <div style={{ fontSize: '10px', marginTop: '4px', color: '#999' }}>
+                                  (Pas de vignette)
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Zone label */}
+                        <div style={{
+                          padding: '12px',
+                          textAlign: 'center',
+                          backgroundColor: '#ffffff'
+                        }}>
+                          <p style={{
+                            margin: 0,
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: '#111827',
+                            WebkitTextFillColor: '#111827',
+                            WebkitTextStrokeColor: '#111827',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            {zone.name}
+                            {zone.view && ` (${zone.view})`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-            
-            {/* Sélection de zone par vignettes */}
-            <div className="mb-6">
-              {isLoadingZones ? (
-                <div className="text-center py-4 text-gray-500">Chargement...</div>
-              ) : filteredZonesForSelector.length > 0 ? (
-                <div className="grid grid-cols-3 gap-3">
-                  {filteredZonesForSelector.map((zone) => (
-                    <button
-                      key={zone.id}
-                      onClick={() => setSelectedZone(zone.id)}
-                      className={`relative rounded-lg border-2 overflow-hidden transition-all ${
-                        selectedZone === zone.id
-                          ? 'border-blue-500 ring-2 ring-blue-200'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {zone.image ? (
-                        <div className="relative h-32 bg-gray-100">
-                          <Image
-                            src={zone.image}
-                            alt={zone.name}
-                            width={160}
-                            height={128}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative h-32 bg-gray-100 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
-                              <span className="text-xs font-bold text-black">LOGO</span>
-                            </div>
-                            <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
-                          </div>
-                        </div>
-                      )}
-                      {selectedZone === zone.id && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
-                </div>
-              )}
-            </div>
 
-            {/* Boutons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowZoneSelector(null);
-                  setSelectedZone('');
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => {
-                  if (showZoneSelector && selectedZone) {
-                    const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
-                    if (zone) {
+              {/* Action buttons */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowZoneSelector(null);
+                    setSelectedZone('');
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#f5f5f5',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    color: '#000000',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e8e8e8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    const selectedZoneData = filteredZonesForSelector.find((z: any) => z.id === selectedZone);
+                    if (showZoneSelector && selectedZoneData) {
                       // Si pas de variante, utiliser le logo principal
                       let variantId = showZoneSelector.variantId;
                       let variantFile = showZoneSelector.variantFile;
@@ -3351,19 +3556,143 @@ export default function ConfiguratorViewer({
                         }
                       }
                       
-                      addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
+                      // Utiliser la position de la zone directement (déjà en coordonnées UV2)
+                      // IMPORTANT: Les zones sont stockées avec inversion verticale (comme dans UVMapViewer)
+                      // Mais ModelViewer utilise des coordonnées directes, donc on doit inverser v
+                      const zonePosition: [number, number, number] = [
+                        selectedZoneData.position[0],
+                        1 - selectedZoneData.position[1], // Inverser v pour correspondre à ModelViewer
+                        selectedZoneData.position[2] || 0
+                      ];
+                      
+                      // Convertir la rotation de degrés à radians si nécessaire
+                      const zoneRotationRaw = selectedZoneData.rotation || selectedZoneData.default_rotation || 0;
+                      const zoneRotation = zoneRotationRaw * (Math.PI / 180);
+                      
+                      // Calculer les dimensions en pixels à partir des dimensions de la zone
+                      const CANVAS_SIZE = 2048;
+                      const zoneWidth = selectedZoneData.width || 0.1;
+                      const zoneHeight = selectedZoneData.height || 0.1;
+                      
+                      const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+                      const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+                      
+                      // Déterminer la catégorie de la zone
+                      const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                        'Face': 'torse',
+                        'Dos': 'dos',
+                        'Gauche': 'bras-gauche',
+                        'Droite': 'bras-droit',
+                        'front': 'torse',
+                        'back': 'dos',
+                        'left': 'bras-gauche',
+                        'right': 'bras-droit'
+                      };
+                      const zoneCategory = selectedZoneData.view ? viewToCategory[selectedZoneData.view] : selectedZoneData.zone_category || activeCategoryForZone;
+                      
+                      // Récupérer les dimensions du logo SVG pour calculer le scale
+                      let logoWidth: number | undefined = undefined;
+                      let logoHeight: number | undefined = undefined;
+                      
+                      try {
+                        const response = await fetch(variantFile);
+                        const svgText = await response.text();
+                        const parser = new DOMParser();
+                        const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                        const svgElement = svgDoc.querySelector('svg');
+                        if (svgElement) {
+                          const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+                          const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+                          const viewBox = svgElement.getAttribute('viewBox');
+                          
+                          let actualWidth = svgWidth;
+                          let actualHeight = svgHeight;
+                          
+                          if (viewBox) {
+                            const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+                            if (vbWidth && vbHeight) {
+                              actualWidth = vbWidth;
+                              actualHeight = vbHeight;
+                            }
+                          }
+                          
+                          if (actualWidth > 0 && actualHeight > 0) {
+                            logoWidth = actualWidth;
+                            logoHeight = actualHeight;
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Erreur lors du calcul des dimensions du logo:', error);
+                      }
+                      
+                      // Calculer le scale pour que le logo s'adapte à la zone
+                      // Utiliser 80% de la zone pour laisser une marge
+                      const SCALE_FACTOR = 0.5;
+                      const availableWidth = zoneWidthPx * 0.8;
+                      const availableHeight = zoneHeightPx * 0.8;
+                      
+                      let initialPixelWidth = availableWidth;
+                      let initialPixelHeight = availableHeight;
+                      
+                      if (logoWidth && logoHeight) {
+                        // Calculer le scale pour maintenir les proportions
+                        const scaleX = availableWidth / logoWidth;
+                        const scaleY = availableHeight / logoHeight;
+                        const scale = Math.min(scaleX, scaleY);
+                        
+                        initialPixelWidth = logoWidth * scale;
+                        initialPixelHeight = logoHeight * scale;
+                      }
+                      
+                      addLogo(
+                        showZoneSelector.logoId,
+                        variantId,
+                        variantFile,
+                        zonePosition,
+                        zoneCategory,
+                        initialPixelWidth,
+                        initialPixelHeight,
+                        zoneRotation
+                      );
+                      
+                      // Positionner la caméra sur la vue de la zone
+                      if (zoneCategory) {
+                        setTargetView(zoneCategory);
+                      }
+                      
                       setShowZoneSelector(null);
                       setSelectedZone('');
                     }
-                  }
-                }}
-                disabled={!selectedZone}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Confirmer
-              </button>
+                  }}
+                  disabled={!selectedZone}
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: selectedZone ? '#000000' : '#e0e0e0',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    color: selectedZone ? '#ffffff' : '#999999',
+                    cursor: selectedZone ? 'pointer' : 'not-allowed',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedZone) {
+                      e.currentTarget.style.backgroundColor = '#333333';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedZone) {
+                      e.currentTarget.style.backgroundColor = '#000000';
+                    }
+                  }}
+                >
+                  Confirmer
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
