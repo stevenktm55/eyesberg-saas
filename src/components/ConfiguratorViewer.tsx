@@ -3132,8 +3132,9 @@ export default function ConfiguratorViewer({
     if (activeModule?.contentType === 'logos') {
       if (selectedLogoId) {
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
+        // MAIS ne pas rouvrir si le modal de zone est ouvert (pour éviter le retour visuel)
         const logo = placedLogos.find(l => l.id === selectedLogoId);
-        if (logo) {
+        if (logo && !showZoneSelector) {
           if (!logoToReplace && !showLogoLibrary) {
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
@@ -3147,7 +3148,7 @@ export default function ConfiguratorViewer({
         }
       }
     }
-  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary, showZoneSelector]);
   
   // Gestion du sélecteur de zone pour les logos
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
@@ -4800,6 +4801,7 @@ export default function ConfiguratorViewer({
                                       setLogoToReplace(null);
                                       setSelectedLogoForVariants(null);
                                       setShowLogoLibrary(false);
+                                      // Ne pas rouvrir la bibliothèque automatiquement après remplacement
                                       return;
                                     }
                                   }
@@ -5097,6 +5099,7 @@ export default function ConfiguratorViewer({
                                       selectLogo(logoToReplace);
                                       setLogoToReplace(null);
                                       setShowLogoLibrary(false);
+                                      // Ne pas rouvrir la bibliothèque automatiquement après remplacement
                                       return;
                                     }
                                   }
