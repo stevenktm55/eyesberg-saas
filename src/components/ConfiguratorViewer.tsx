@@ -3165,6 +3165,11 @@ export default function ConfiguratorViewer({
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [isLoadingZones] = useState(false); // Les zones sont déjà chargées dans le snapshot
   
+  // Log pour déboguer showZoneSelector
+  useEffect(() => {
+    console.log('🖼️ showZoneSelector changed:', showZoneSelector);
+  }, [showZoneSelector]);
+  
   // Mapper la vue vers la catégorie
   const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
     'front': 'torse',
