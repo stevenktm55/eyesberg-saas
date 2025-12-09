@@ -1028,7 +1028,6 @@ const getSvgDimensions = async (svgUrl: string): Promise<{width: number, height:
 };
 // Hook pour gérer les logos placés sur le modèle
 function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => void) {
-  const lockToggleRef = useRef<Map<string, boolean>>(new Map());
   const [placedLogos, setPlacedLogos] = useState<Array<{
     id: string;
     logoId: string; // ID du logo de la bibliothèque
@@ -1148,30 +1147,9 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   const toggleLogoLock = useCallback((id: string) => {
     console.log('🔒 toggleLogoLock appelé pour:', id);
     
-    setPlacedLogos(currentLogos => {
-      const currentLogo = currentLogos.find(l => l.id === id);
-      if (!currentLogo) {
-        console.log('🔒 Logo non trouvé:', id);
-        return currentLogos;
-      }
-      
-      if (!lockToggleRef.current.has(id)) {
-        const targetLockState = !currentLogo.locked;
-        lockToggleRef.current.set(id, targetLockState);
-        console.log('🔒 Première exécution - Ancien état:', currentLogo.locked, '→ Nouveau:', targetLockState);
-      } else {
-        console.log('🔒 Exécution suivante - Utilisation valeur mémorisée:', lockToggleRef.current.get(id));
-      }
-      
-      const targetLockState = lockToggleRef.current.get(id)!;
-      
-      return currentLogos.map(logo => 
-        logo.id === id ? { ...logo, locked: targetLockState } : logo
-      );
-    });
-    
-    // Nettoyer la ref immédiatement
-    lockToggleRef.current.delete(id);
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, locked: !logo.locked } : logo
+    ));
   }, []);
 
   // Fonction pour charger plusieurs logos en une fois (pour restauration de config)
@@ -7700,12 +7678,7 @@ export default function ConfiguratorViewer({
           updateLogoPosition={(id, position) => updateLogo(id, { position })}
           updateLogoRotation={(id, rotation) => updateLogo(id, { rotation })}
           updateLogoScale={(id, scale) => updateLogo(id, { scale })}
-          toggleLogoLock={(id) => {
-            const logo = placedLogos.find(l => l.id === id);
-            if (logo) {
-              updateLogo(id, { locked: !logo.locked });
-            }
-          }}
+          toggleLogoLock={toggleLogoLock}
           removeLogo={removeLogo}
           selectedLogoId={selectedLogoId}
           selectLogo={selectLogo}
