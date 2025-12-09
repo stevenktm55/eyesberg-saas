@@ -3135,11 +3135,9 @@ export default function ConfiguratorViewer({
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
         // MAIS ne pas rouvrir si :
         // - le modal de zone est ouvert (pour éviter le retour visuel)
-        // - on vient de fermer la bibliothèque (showLogoLibrary est false et logoToReplace est null, ce qui signifie qu'on vient de remplacer un logo)
+        // - on vient de remplacer un logo (isReplacingLogo est true)
         const logo = placedLogos.find(l => l.id === selectedLogoId);
-        if (logo && !showZoneSelector) {
-          // Ne rouvrir la bibliothèque que si elle n'a pas été fermée récemment
-          // (évite le retour visuel lors du remplacement de logo)
+        if (logo && !showZoneSelector && !isReplacingLogo) {
           if (!logoToReplace && !showLogoLibrary) {
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
@@ -3153,7 +3151,7 @@ export default function ConfiguratorViewer({
         }
       }
     }
-  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary, showZoneSelector]);
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary, showZoneSelector, isReplacingLogo]);
   
   // Gestion du sélecteur de zone pour les logos
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
@@ -4802,11 +4800,16 @@ export default function ConfiguratorViewer({
                                         height: logoHeight,
                                         scale: newScale
                                       });
-                                      selectLogo(logoToReplace);
+                                      // Fermer la bibliothèque et marquer qu'on est en train de remplacer un logo
+                                      setIsReplacingLogo(true);
+                                      setShowLogoLibrary(false);
                                       setLogoToReplace(null);
                                       setSelectedLogoForVariants(null);
-                                      setShowLogoLibrary(false);
-                                      // Ne pas rouvrir la bibliothèque automatiquement après remplacement
+                                      selectLogo(logoToReplace);
+                                      // Réinitialiser le flag après un court délai pour permettre au useEffect de se stabiliser
+                                      setTimeout(() => {
+                                        setIsReplacingLogo(false);
+                                      }, 100);
                                       return;
                                     }
                                   }
@@ -5101,13 +5104,15 @@ export default function ConfiguratorViewer({
                                         height: logoHeight,
                                         scale: newScale
                                       });
-                                      // Fermer la bibliothèque AVANT de sélectionner le logo pour éviter que le useEffect ne la rouvre
+                                      // Fermer la bibliothèque et marquer qu'on est en train de remplacer un logo
+                                      setIsReplacingLogo(true);
                                       setShowLogoLibrary(false);
                                       setLogoToReplace(null);
-                                      // Utiliser setTimeout pour éviter que le useEffect ne rouvre la bibliothèque
+                                      selectLogo(logoToReplace);
+                                      // Réinitialiser le flag après un court délai pour permettre au useEffect de se stabiliser
                                       setTimeout(() => {
-                                        selectLogo(logoToReplace);
-                                      }, 0);
+                                        setIsReplacingLogo(false);
+                                      }, 100);
                                       return;
                                     }
                                   }
