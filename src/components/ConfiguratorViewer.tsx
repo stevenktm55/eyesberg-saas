@@ -4103,17 +4103,31 @@ export default function ConfiguratorViewer({
               }`}
               title={module.tabName}
             >
-              {module.iconUrl ? (
-                <img
-                  src={module.iconUrl}
-                  alt={module.tabName}
-                  className="w-8 h-8 object-contain"
-                />
-              ) : module.icon ? (
-                <span className="text-2xl">{module.icon}</span>
-              ) : (
-                <span className="text-2xl">🎨</span>
-              )}
+              {(() => {
+                // Debug: vérifier les valeurs d'icône pour ce module
+                console.log('🎨 Rendu onglet sidebar - module:', {
+                  id: module.id,
+                  tabName: module.tabName,
+                  icon: module.icon,
+                  iconUrl: module.iconUrl,
+                  hasIcon: !!module.icon,
+                  hasIconUrl: !!module.iconUrl
+                });
+                
+                if (module.iconUrl) {
+                  return (
+                    <img
+                      src={module.iconUrl}
+                      alt={module.tabName}
+                      className="w-8 h-8 object-contain"
+                    />
+                  );
+                } else if (module.icon) {
+                  return <span className="text-2xl">{module.icon}</span>;
+                } else {
+                  return <span className="text-2xl">🎨</span>;
+                }
+              })()}
             </button>
           ))}
         </div>
