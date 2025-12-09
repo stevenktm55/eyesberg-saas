@@ -2799,6 +2799,11 @@ function Sidebar({
 
   // Modal de sélection de zone pour les logos
   const zoneModal = showZoneSelector ? (
+    (() => {
+      console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
+      console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
+      console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
+      return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
@@ -3411,6 +3416,11 @@ export default function ConfiguratorViewer({
   
   // Modal de sélection de zone pour les logos
   const zoneModal = showZoneSelector ? (
+    (() => {
+      console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
+      console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
+      console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
+      return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
