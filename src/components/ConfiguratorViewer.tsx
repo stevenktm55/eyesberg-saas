@@ -2870,6 +2870,7 @@ export default function ConfiguratorViewer({
   const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
+  const [isReplacingLogo, setIsReplacingLogo] = useState(false);
   // Modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
