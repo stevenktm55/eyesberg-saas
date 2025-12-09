@@ -2194,8 +2194,10 @@ function LogoTab({
                     if (logoPlacementMode === 'zones') {
                       if (logo.variants.length === 0) {
                         onOpenZoneSelector({ logoId: logo.id, variantId: '', variantFile: '', view: activeView });
+                        setShowLibrary(false); // Fermer la bibliothèque immédiatement pour éviter le retour visuel
                       } else if (logo.variants.length === 1) {
                         onOpenZoneSelector({ logoId: logo.id, variantId: logo.variants[0].id, variantFile: logo.variants[0].file, view: activeView });
+                        setShowLibrary(false); // Fermer la bibliothèque immédiatement pour éviter le retour visuel
                       } else {
                         // Plusieurs variantes : ouvrir le sélecteur de variantes d'abord
                         setShowVariantSelector(logo.id);
@@ -2204,8 +2206,10 @@ function LogoTab({
                       // Mode libre : ajouter directement
                       if (logo.variants.length === 0) {
                         addLogo(logo.id, '', '', [0.5, 0.5, 0], activeCategory);
+                        setShowLibrary(false); // Fermer la bibliothèque après ajout
                       } else if (logo.variants.length === 1) {
                         addLogo(logo.id, logo.variants[0].id, logo.variants[0].file, [0.5, 0.5, 0], activeCategory);
+                        setShowLibrary(false); // Fermer la bibliothèque après ajout
                       } else {
                         setShowVariantSelector(logo.id);
                       }
