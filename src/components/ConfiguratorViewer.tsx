@@ -4112,31 +4112,29 @@ export default function ConfiguratorViewer({
               }`}
               title={module.tabName}
             >
-              {(() => {
-                // Debug: vérifier les valeurs d'icône pour ce module
-                console.log('🎨 Rendu onglet sidebar - module:', {
-                  id: module.id,
-                  tabName: module.tabName,
-                  icon: module.icon,
-                  iconUrl: module.iconUrl,
-                  hasIcon: !!module.icon,
-                  hasIconUrl: !!module.iconUrl
-                });
-                
-                if (module.iconUrl) {
-                  return (
-                    <img
-                      src={module.iconUrl}
-                      alt={module.tabName}
-                      className="w-8 h-8 object-contain"
-                    />
-                  );
-                } else if (module.icon) {
-                  return <span className="text-2xl">{module.icon}</span>;
-                } else {
-                  return <span className="text-2xl">🎨</span>;
-                }
-              })()}
+              {module.iconUrl ? (
+                <img
+                  src={module.iconUrl}
+                  alt={module.tabName}
+                  className="w-8 h-8 object-contain"
+                  onError={(e) => {
+                    console.error('❌ Erreur chargement icône:', module.iconUrl, e);
+                    // Fallback sur l'icône emoji si l'image ne charge pas
+                    const target = e.target as HTMLImageElement;
+                    if (target.parentElement) {
+                      target.style.display = 'none';
+                      const fallback = document.createElement('span');
+                      fallback.className = 'text-2xl';
+                      fallback.textContent = module.icon || '🎨';
+                      target.parentElement.appendChild(fallback);
+                    }
+                  }}
+                />
+              ) : module.icon ? (
+                <span className="text-2xl">{module.icon}</span>
+              ) : (
+                <span className="text-2xl">🎨</span>
+              )}
             </button>
           ))}
         </div>
