@@ -3232,8 +3232,12 @@ export default function ConfiguratorViewer({
     }
   }, [filteredZonesForSelector, selectedZone]);
   
+  // Log pour déboguer avant le modal
+  useEffect(() => {
+    console.log('🖼️ AVANT zoneModal - showZoneSelector:', showZoneSelector, 'filteredZonesForSelector.length:', filteredZonesForSelector.length);
+  }, [showZoneSelector, filteredZonesForSelector.length]);
+  
   // Modal de sélection de zone pour les logos
-  console.log('🖼️ AVANT zoneModal - showZoneSelector:', showZoneSelector, 'filteredZonesForSelector.length:', filteredZonesForSelector.length);
   const zoneModal = showZoneSelector ? (() => {
     console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
     console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
