@@ -4686,11 +4686,14 @@ export default function ConfiguratorViewer({
                               <div
                                 key={logo.id}
                                 onClick={async () => {
+                                  console.log('🖼️🖼️🖼️ CLIC SUR UN LOGO - logo.id:', logo.id, 'hasVariants:', hasVariants);
                                   // Si le logo a des variantes, toujours ouvrir la vue des variantes
                                   if (hasVariants) {
+                                    console.log('🖼️ Logo a des variantes, ouverture de la vue des variantes');
                                     setSelectedLogoForVariants(logo);
                                     return;
                                   }
+                                  console.log('🖼️ Logo n\'a pas de variantes, traitement direct');
                                   
                                   // Si on est en mode remplacement et que le logo n'a pas de variantes, remplacer directement
                                   if (logoToReplace) {
