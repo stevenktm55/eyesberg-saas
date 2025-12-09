@@ -3216,9 +3216,22 @@ export default function ConfiguratorViewer({
     
     // Filtrer par view si disponible et si showZoneSelector a une vue
     // Mais seulement si la zone a une propriété view définie
-    if (showZoneSelector?.view && zone.view && zone.view !== showZoneSelector.view) {
-      console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'showZoneSelector.view:', showZoneSelector.view);
-      return false;
+    // Normaliser les valeurs de view pour la comparaison (Face -> front, Dos -> back, etc.)
+    if (showZoneSelector?.view && zone.view) {
+      const normalizeView = (view: string): string => {
+        const normalized = view.toLowerCase();
+        if (normalized === 'face' || normalized === 'front') return 'front';
+        if (normalized === 'dos' || normalized === 'back') return 'back';
+        if (normalized === 'gauche' || normalized === 'left') return 'left';
+        if (normalized === 'droit' || normalized === 'right') return 'right';
+        return normalized;
+      };
+      const normalizedZoneView = normalizeView(zone.view);
+      const normalizedSelectorView = normalizeView(showZoneSelector.view);
+      if (normalizedZoneView !== normalizedSelectorView) {
+        console.log('🖼️ Zone filtrée par view - zone.view:', zone.view, 'normalized:', normalizedZoneView, 'showZoneSelector.view:', showZoneSelector.view, 'normalized:', normalizedSelectorView);
+        return false;
+      }
     }
     console.log('🖼️ ✅ Zone acceptée:', zone.name);
     return true;
