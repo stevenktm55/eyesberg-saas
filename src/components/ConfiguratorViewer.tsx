@@ -2512,8 +2512,8 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
               tabName: m.label || m.tabName || 'Module',
               type: m.type,
               label: m.label,
-              icon: m.icon,
-              iconUrl: m.iconUrl,
+              icon: m.icon || m.config?.icon,
+              iconUrl: m.iconUrl || m.config?.iconUrl,
               config: m.config || {},
               selectedItems: m.selectedItems || {
                 design2DId: snapshot.defaultState?.design2DId,
