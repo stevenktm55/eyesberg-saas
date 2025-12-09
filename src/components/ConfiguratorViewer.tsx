@@ -1909,9 +1909,11 @@ function LogoTab({
   const handleVariantSelect = (logoId: string, variantId: string, variantFile: string) => {
     if (logoPlacementMode === 'zones') {
       onOpenZoneSelector({ logoId, variantId, variantFile, view: activeView });
+      setShowLibrary(false); // Fermer la bibliothèque immédiatement pour éviter le retour visuel
     } else {
       // Placement libre - ajouter directement au centre
       addLogo(logoId, variantId, variantFile, [0.5, 0.5, 0], activeCategory);
+      setShowLibrary(false); // Fermer la bibliothèque après ajout
     }
     setShowVariantSelector(null);
   };
