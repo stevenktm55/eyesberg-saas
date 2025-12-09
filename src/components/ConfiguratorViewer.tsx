@@ -4790,7 +4790,7 @@ export default function ConfiguratorViewer({
                                         newScale = Math.min(scaleX, scaleY);
                                       }
                                       
-                                      // Remplacer le logo
+                                      // Remplacer le logo mais garder la bibliothèque ouverte pour permettre d'autres remplacements
                                       updateLogo(logoToReplace, {
                                         logoId: selectedLogoForVariants.id,
                                         variantId: variant.id === 'base' ? undefined : variant.id,
@@ -4799,16 +4799,9 @@ export default function ConfiguratorViewer({
                                         height: logoHeight,
                                         scale: newScale
                                       });
-                                      // Fermer la bibliothèque et marquer qu'on est en train de remplacer un logo
-                                      setIsReplacingLogo(true);
-                                      setShowLogoLibrary(false);
-                                      setLogoToReplace(null);
-                                      setSelectedLogoForVariants(null);
                                       selectLogo(logoToReplace);
-                                      // Réinitialiser le flag après un court délai pour permettre au useEffect de se stabiliser
-                                      setTimeout(() => {
-                                        setIsReplacingLogo(false);
-                                      }, 100);
+                                      setSelectedLogoForVariants(null);
+                                      // Ne pas fermer la bibliothèque - elle reste ouverte pour permettre d'autres remplacements
                                       return;
                                     }
                                   }
@@ -5094,7 +5087,7 @@ export default function ConfiguratorViewer({
                                         newScale = Math.min(scaleX, scaleY);
                                       }
                                       
-                                      // Remplacer le logo
+                                      // Remplacer le logo mais garder la bibliothèque ouverte pour permettre d'autres remplacements
                                       updateLogo(logoToReplace, {
                                         logoId: logo.id,
                                         variantId: undefined,
@@ -5103,15 +5096,8 @@ export default function ConfiguratorViewer({
                                         height: logoHeight,
                                         scale: newScale
                                       });
-                                      // Fermer la bibliothèque et marquer qu'on est en train de remplacer un logo
-                                      setIsReplacingLogo(true);
-                                      setShowLogoLibrary(false);
-                                      setLogoToReplace(null);
                                       selectLogo(logoToReplace);
-                                      // Réinitialiser le flag après un court délai pour permettre au useEffect de se stabiliser
-                                      setTimeout(() => {
-                                        setIsReplacingLogo(false);
-                                      }, 100);
+                                      // Ne pas fermer la bibliothèque - elle reste ouverte pour permettre d'autres remplacements
                                       return;
                                     }
                                   }
