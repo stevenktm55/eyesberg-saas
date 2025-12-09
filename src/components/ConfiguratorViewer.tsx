@@ -4091,52 +4091,54 @@ export default function ConfiguratorViewer({
       {/* Sidebar gauche avec icônes des modules */}
       {shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
-          {customizationModules.map((module: any) => (
-            <button
-              key={module.id}
-              onClick={() => {
-                setActiveCustomizerTab(module.id);
-                // Mapper le module vers l'onglet de la sidebar
-                if (module.contentType === 'designs-2d') setActiveTab('design');
-                else if (module.contentType === 'colors') setActiveTab('color');
-                else if (module.contentType === 'text') {
-                  // Pour les textes, on garde l'onglet actuel (numero ou nom)
-                  if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
-                }
-                else if (module.contentType === 'logos') setActiveTab('logo');
-              }}
-              className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
-                activeCustomizerTab === module.id
-                  ? 'bg-gray-100 border-gray-300'
-                  : 'bg-transparent border-gray-200 hover:bg-gray-50'
-              }`}
-              title={module.tabName}
-            >
-              {module.iconUrl ? (
-                <img
-                  src={module.iconUrl}
-                  alt={module.tabName}
-                  className="w-8 h-8 object-contain"
-                  onError={(e) => {
-                    console.error('❌ Erreur chargement icône:', module.iconUrl, e);
-                    // Fallback sur l'icône emoji si l'image ne charge pas
-                    const target = e.target as HTMLImageElement;
-                    if (target.parentElement) {
+          {customizationModules.map((module: any) => {
+            const hasIconUrl = !!module.iconUrl;
+            const iconToShow = module.icon || '🎨';
+            
+            return (
+              <button
+                key={module.id}
+                onClick={() => {
+                  setActiveCustomizerTab(module.id);
+                  // Mapper le module vers l'onglet de la sidebar
+                  if (module.contentType === 'designs-2d') setActiveTab('design');
+                  else if (module.contentType === 'colors') setActiveTab('color');
+                  else if (module.contentType === 'text') {
+                    // Pour les textes, on garde l'onglet actuel (numero ou nom)
+                    if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
+                  }
+                  else if (module.contentType === 'logos') setActiveTab('logo');
+                }}
+                className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
+                  activeCustomizerTab === module.id
+                    ? 'bg-gray-100 border-gray-300'
+                    : 'bg-transparent border-gray-200 hover:bg-gray-50'
+                }`}
+                title={module.tabName}
+              >
+                {hasIconUrl ? (
+                  <img
+                    src={module.iconUrl}
+                    alt={module.tabName}
+                    className="w-8 h-8 object-contain flex-shrink-0"
+                    style={{ display: 'block' }}
+                    onError={(e) => {
+                      console.error('❌ Erreur chargement icône:', module.iconUrl);
+                      const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
+                      // Créer un fallback avec l'emoji
                       const fallback = document.createElement('span');
                       fallback.className = 'text-2xl';
-                      fallback.textContent = module.icon || '🎨';
-                      target.parentElement.appendChild(fallback);
-                    }
-                  }}
-                />
-              ) : module.icon ? (
-                <span className="text-2xl">{module.icon}</span>
-              ) : (
-                <span className="text-2xl">🎨</span>
-              )}
-            </button>
-          ))}
+                      fallback.textContent = iconToShow;
+                      target.parentElement?.appendChild(fallback);
+                    }}
+                  />
+                ) : (
+                  <span className="text-2xl flex-shrink-0" style={{ display: 'block', lineHeight: '1' }}>{iconToShow}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       ) : (
         <div className="w-0" data-testid="left-sidebar-hidden" />
