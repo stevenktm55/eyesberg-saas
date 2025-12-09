@@ -3132,9 +3132,13 @@ export default function ConfiguratorViewer({
     if (activeModule?.contentType === 'logos') {
       if (selectedLogoId) {
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
-        // MAIS ne pas rouvrir si le modal de zone est ouvert (pour éviter le retour visuel)
+        // MAIS ne pas rouvrir si :
+        // - le modal de zone est ouvert (pour éviter le retour visuel)
+        // - on vient de fermer la bibliothèque (showLogoLibrary est false et logoToReplace est null, ce qui signifie qu'on vient de remplacer un logo)
         const logo = placedLogos.find(l => l.id === selectedLogoId);
         if (logo && !showZoneSelector) {
+          // Ne rouvrir la bibliothèque que si elle n'a pas été fermée récemment
+          // (évite le retour visuel lors du remplacement de logo)
           if (!logoToReplace && !showLogoLibrary) {
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
@@ -5096,10 +5100,13 @@ export default function ConfiguratorViewer({
                                         height: logoHeight,
                                         scale: newScale
                                       });
-                                      selectLogo(logoToReplace);
-                                      setLogoToReplace(null);
+                                      // Fermer la bibliothèque AVANT de sélectionner le logo pour éviter que le useEffect ne la rouvre
                                       setShowLogoLibrary(false);
-                                      // Ne pas rouvrir la bibliothèque automatiquement après remplacement
+                                      setLogoToReplace(null);
+                                      // Utiliser setTimeout pour éviter que le useEffect ne rouvre la bibliothèque
+                                      setTimeout(() => {
+                                        selectLogo(logoToReplace);
+                                      }, 0);
                                       return;
                                     }
                                   }
