@@ -1749,6 +1749,7 @@ function LogoTab({
   logoViewLeftLabel,
   logoViewRightLabel,
   onCameraViewChange,
+  onRequestLogoDelete,
 }: {
   placedLogos: Array<{
     id: string;
@@ -1782,6 +1783,7 @@ function LogoTab({
   logoViewLeftLabel?: string;
   logoViewRightLabel?: string;
   onCameraViewChange?: (view: 'front' | 'back' | 'left' | 'right') => void;
+  onRequestLogoDelete?: (id: string) => void;
 }) {
   const [activeView, setActiveView] = useState<'front' | 'back' | 'left' | 'right'>('front');
   const [activeCategory, setActiveCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
@@ -2378,7 +2380,7 @@ function LogoTab({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeLogo(logo.id);
+                      confirmDeleteLogo(logo.id);
                     }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
@@ -2813,6 +2815,7 @@ function Sidebar({
               // Émettre un événement pour changer la vue de la caméra
               window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
             }}
+            onRequestLogoDelete={confirmDeleteLogo}
           />
         )}
         {activeTab === 'numero' && (
@@ -5425,9 +5428,7 @@ export default function ConfiguratorViewer({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm('Êtes-vous sûr de vouloir supprimer ce logo ?')) {
-                                    removeLogo(logo.id);
-                                  }
+                                  confirmDeleteLogo(logo.id);
                                 }}
                                 style={{
                                   padding: '4px 8px',
