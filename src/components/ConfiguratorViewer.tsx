@@ -4090,8 +4090,10 @@ export default function ConfiguratorViewer({
                   alt={module.tabName}
                   className="w-8 h-8 object-contain"
                 />
-              ) : (
+              ) : module.icon ? (
                 <span className="text-2xl">{module.icon}</span>
+              ) : (
+                <span className="text-2xl">🎨</span>
               )}
             </button>
           ))}
