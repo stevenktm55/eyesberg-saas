@@ -2493,8 +2493,12 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             label: m.label,
             icon: m.icon,
             iconUrl: m.iconUrl,
+            configIcon: m.config?.icon,
+            configIconUrl: m.config?.iconUrl,
             hasIcon: !!m.icon,
             hasIconUrl: !!m.iconUrl,
+            hasConfigIcon: !!m.config?.icon,
+            hasConfigIconUrl: !!m.config?.iconUrl,
             hasAllowedDesigns: !!m.allowedDesigns?.length,
             allowedDesignsCount: m.allowedDesigns?.length || 0,
             hasThumbnails: m.allowedDesigns?.some((d: any) => d.thumbnailUrl),
@@ -3087,6 +3091,21 @@ export default function ConfiguratorViewer({
   
   // Déterminer l'onglet actif basé sur les modules mappés depuis productConfig
   const customizationModules = productConfig?.customizationModules || [];
+  
+  // Log pour vérifier les icônes des modules dans la sidebar
+  useEffect(() => {
+    if (customizationModules.length > 0) {
+      console.log('🎨 Modules dans la sidebar:', customizationModules.map((m: any) => ({
+        id: m.id,
+        tabName: m.tabName,
+        icon: m.icon,
+        iconUrl: m.iconUrl,
+        hasIcon: !!m.icon,
+        hasIconUrl: !!m.iconUrl
+      })));
+    }
+  }, [customizationModules]);
+  
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
