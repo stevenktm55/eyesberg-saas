@@ -2798,123 +2798,123 @@ function Sidebar({
   }, [filteredZonesForSelector, selectedZone]);
 
   // Modal de sélection de zone pour les logos
-  const zoneModal = showZoneSelector ? (
-    (() => {
-      console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
-      console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
-      console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
-      return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
-          
-          {/* Affichage de la vue active (non modifiable depuis le modal) */}
-          {showZoneSelector?.view && (
-            <div className="mb-4">
-              <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
-                Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+  const zoneModal = showZoneSelector ? (() => {
+    console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
+    console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
+    console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+        <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
+            
+            {/* Affichage de la vue active (non modifiable depuis le modal) */}
+            {showZoneSelector?.view && (
+              <div className="mb-4">
+                <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
+                  Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {/* Sélection de zone par vignettes */}
-          <div className="mb-6">
-            {isLoadingZones ? (
-              <div className="text-center py-4 text-gray-500">Chargement...</div>
-            ) : filteredZonesForSelector.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3">
-                {filteredZonesForSelector.map((zone) => (
-                  <button
-                    key={zone.id}
-                    onClick={() => setSelectedZone(zone.id)}
-                    className={`relative rounded-lg border-2 overflow-hidden transition-all ${
-                      selectedZone === zone.id
-                        ? 'border-blue-500 ring-2 ring-blue-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {zone.image ? (
-                      <div className="relative h-32 bg-gray-100">
-                        <Image
-                          src={zone.image}
-                          alt={zone.name}
-                          width={160}
-                          height={128}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
-                            <span className="text-xs font-bold text-black">LOGO</span>
-                          </div>
-                          <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+            )}
+            
+            {/* Sélection de zone par vignettes */}
+            <div className="mb-6">
+              {isLoadingZones ? (
+                <div className="text-center py-4 text-gray-500">Chargement...</div>
+              ) : filteredZonesForSelector.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {filteredZonesForSelector.map((zone) => (
+                    <button
+                      key={zone.id}
+                      onClick={() => setSelectedZone(zone.id)}
+                      className={`relative rounded-lg border-2 overflow-hidden transition-all ${
+                        selectedZone === zone.id
+                          ? 'border-blue-500 ring-2 ring-blue-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {zone.image ? (
+                        <div className="relative h-32 bg-gray-100">
+                          <Image
+                            src={zone.image}
+                            alt={zone.name}
+                            width={160}
+                            height={128}
+                            className="w-full h-full object-contain"
+                          />
                         </div>
-                      </div>
-                    )}
-                    {selectedZone === zone.id && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      ) : (
+                        <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
+                              <span className="text-xs font-bold text-black">LOGO</span>
+                            </div>
+                            <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedZone === zone.id && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
-              </div>
-            )}
-          </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
+                </div>
+              )}
+            </div>
 
-          {/* Boutons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setShowZoneSelector(null);
-                setSelectedZone('');
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={() => {
-                if (showZoneSelector && selectedZone) {
-                  const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
-                  if (zone) {
-                    // Si pas de variante, utiliser le logo principal
-                    let variantId = showZoneSelector.variantId;
-                    let variantFile = showZoneSelector.variantFile;
-                    
-                    if (!variantId || !variantFile) {
-                      const logo = logos.find(l => l.id === showZoneSelector.logoId);
-                      if (logo && logo.variants.length > 0) {
-                        variantId = logo.variants[0].id;
-                        variantFile = logo.variants[0].file;
+            {/* Boutons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowZoneSelector(null);
+                  setSelectedZone('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (showZoneSelector && selectedZone) {
+                    const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
+                    if (zone) {
+                      // Si pas de variante, utiliser le logo principal
+                      let variantId = showZoneSelector.variantId;
+                      let variantFile = showZoneSelector.variantFile;
+                      
+                      if (!variantId || !variantFile) {
+                        const logo = logos.find(l => l.id === showZoneSelector.logoId);
+                        if (logo && logo.variants.length > 0) {
+                          variantId = logo.variants[0].id;
+                          variantFile = logo.variants[0].file;
+                        }
                       }
+                      
+                      addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
+                      setShowZoneSelector(null);
+                      setSelectedZone('');
                     }
-                    
-                    addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
-                    setShowZoneSelector(null);
-                    setSelectedZone('');
                   }
-                }
-              }}
-              disabled={!selectedZone}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              Confirmer
-            </button>
+                }}
+                disabled={!selectedZone}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Confirmer
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  ) : null;
+    );
+  })() : null;
 
   // La sidebar droite affiche seulement le contenu basé sur activeTab
   // Les onglets sont maintenant dans la sidebar gauche (gérés par ConfiguratorViewer)
@@ -3415,123 +3415,123 @@ export default function ConfiguratorViewer({
   }, [filteredZonesForSelector, selectedZone]);
   
   // Modal de sélection de zone pour les logos
-  const zoneModal = showZoneSelector ? (
-    (() => {
-      console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
-      console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
-      console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
-      return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
-          
-          {/* Affichage de la vue active (non modifiable depuis le modal) */}
-          {showZoneSelector?.view && (
-            <div className="mb-4">
-              <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
-                Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+  const zoneModal = showZoneSelector ? (() => {
+    console.log('🖼️ RENDERING ZONE MODAL, showZoneSelector:', JSON.stringify(showZoneSelector));
+    console.log('🖼️ filteredZonesForSelector dans modal:', filteredZonesForSelector.length, 'zones:', filteredZonesForSelector.map(z => z.name));
+    console.log('🖼️ isLoadingZones dans modal:', isLoadingZones);
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+        <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
+            
+            {/* Affichage de la vue active (non modifiable depuis le modal) */}
+            {showZoneSelector?.view && (
+              <div className="mb-4">
+                <div className="px-3 py-2 text-sm font-medium bg-blue-50 text-blue-700 rounded-lg">
+                  Vue: {showZoneSelector.view === 'front' ? 'Front' : showZoneSelector.view === 'back' ? 'Back' : showZoneSelector.view === 'left' ? 'Left' : 'Right'}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {/* Sélection de zone par vignettes */}
-          <div className="mb-6">
-            {isLoadingZones ? (
-              <div className="text-center py-4 text-gray-500">Chargement...</div>
-            ) : filteredZonesForSelector.length > 0 ? (
-              <div className="grid grid-cols-3 gap-3">
-                {filteredZonesForSelector.map((zone) => (
-                  <button
-                    key={zone.id}
-                    onClick={() => setSelectedZone(zone.id)}
-                    className={`relative rounded-lg border-2 overflow-hidden transition-all ${
-                      selectedZone === zone.id
-                        ? 'border-blue-500 ring-2 ring-blue-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {zone.image ? (
-                      <div className="relative h-32 bg-gray-100">
-                        <Image
-                          src={zone.image}
-                          alt={zone.name}
-                          width={160}
-                          height={128}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
-                            <span className="text-xs font-bold text-black">LOGO</span>
-                          </div>
-                          <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+            )}
+            
+            {/* Sélection de zone par vignettes */}
+            <div className="mb-6">
+              {isLoadingZones ? (
+                <div className="text-center py-4 text-gray-500">Chargement...</div>
+              ) : filteredZonesForSelector.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {filteredZonesForSelector.map((zone) => (
+                    <button
+                      key={zone.id}
+                      onClick={() => setSelectedZone(zone.id)}
+                      className={`relative rounded-lg border-2 overflow-hidden transition-all ${
+                        selectedZone === zone.id
+                          ? 'border-blue-500 ring-2 ring-blue-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {zone.image ? (
+                        <div className="relative h-32 bg-gray-100">
+                          <Image
+                            src={zone.image}
+                            alt={zone.name}
+                            width={160}
+                            height={128}
+                            className="w-full h-full object-contain"
+                          />
                         </div>
-                      </div>
-                    )}
-                    {selectedZone === zone.id && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      ) : (
+                        <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded flex items-center justify-center mb-2 mx-auto">
+                              <span className="text-xs font-bold text-black">LOGO</span>
+                            </div>
+                            <p className="text-xs text-gray-600 font-medium">{zone.name}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedZone === zone.id && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
-              </div>
-            )}
-          </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
+                </div>
+              )}
+            </div>
 
-          {/* Boutons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                setShowZoneSelector(null);
-                setSelectedZone('');
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={() => {
-                if (showZoneSelector && selectedZone) {
-                  const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
-                  if (zone) {
-                    // Si pas de variante, utiliser le logo principal
-                    let variantId = showZoneSelector.variantId;
-                    let variantFile = showZoneSelector.variantFile;
-                    
-                    if (!variantId || !variantFile) {
-                      const logo = logos.find(l => l.id === showZoneSelector.logoId);
-                      if (logo && logo.variants.length > 0) {
-                        variantId = logo.variants[0].id;
-                        variantFile = logo.variants[0].file;
+            {/* Boutons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowZoneSelector(null);
+                  setSelectedZone('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (showZoneSelector && selectedZone) {
+                    const zone = filteredZonesForSelector.find(z => z.id === selectedZone);
+                    if (zone) {
+                      // Si pas de variante, utiliser le logo principal
+                      let variantId = showZoneSelector.variantId;
+                      let variantFile = showZoneSelector.variantFile;
+                      
+                      if (!variantId || !variantFile) {
+                        const logo = logos.find(l => l.id === showZoneSelector.logoId);
+                        if (logo && logo.variants.length > 0) {
+                          variantId = logo.variants[0].id;
+                          variantFile = logo.variants[0].file;
+                        }
                       }
+                      
+                      addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
+                      setShowZoneSelector(null);
+                      setSelectedZone('');
                     }
-                    
-                    addLogo(showZoneSelector.logoId, variantId, variantFile, zone.position, activeCategoryForZone);
-                    setShowZoneSelector(null);
-                    setSelectedZone('');
                   }
-                }
-              }}
-              disabled={!selectedZone}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              Confirmer
-            </button>
+                }}
+                disabled={!selectedZone}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Confirmer
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  ) : null;
+    );
+  })() : null;
   
   // États pour la sidebar
   const [activeTab, setActiveTab] = useState<'design' | 'color' | 'numero' | 'nom' | 'logo'>('design');
