@@ -2552,6 +2552,15 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
           } : null;
           
+          console.log('📦 Modules mappés pour productConfig:', modules.map((m: any) => ({
+            id: m.id,
+            tabName: m.tabName,
+            icon: m.icon,
+            iconUrl: m.iconUrl,
+            hasIcon: !!m.icon,
+            hasIconUrl: !!m.iconUrl
+          })));
+          
           const configData = {
             snapshot: snapshot,
             model3DId: snapshot.model3D?.url ? 'snapshot-model' : null,
