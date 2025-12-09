@@ -2871,6 +2871,10 @@ export default function ConfiguratorViewer({
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [isReplacingLogo, setIsReplacingLogo] = useState(false);
+  // Gestion du sélecteur de zone pour les logos
+  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+  const [isLoadingZones] = useState(false); // Les zones sont déjà chargées dans le snapshot
   // Modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
@@ -3152,11 +3156,6 @@ export default function ConfiguratorViewer({
       }
     }
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary, showZoneSelector, isReplacingLogo]);
-  
-  // Gestion du sélecteur de zone pour les logos
-  const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
-  const [selectedZone, setSelectedZone] = useState<string>('');
-  const [isLoadingZones] = useState(false); // Les zones sont déjà chargées dans le snapshot
   
   // Log pour déboguer showZoneSelector
   useEffect(() => {
