@@ -987,14 +987,34 @@ export default function ProductBuilderPage() {
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
             // Charger les réglages 3D
             const settings = product.builder_data?.settings || {};
-            if (settings.zoomSpeed !== undefined) setZoomSpeed(settings.zoomSpeed);
-            if (settings.rotateSpeed !== undefined) setRotateSpeed(settings.rotateSpeed);
-            if (settings.minZoom !== undefined) setMinZoom(settings.minZoom);
-            if (settings.maxZoom !== undefined) setMaxZoom(settings.maxZoom);
-            if (settings.initialZoom !== undefined) setInitialZoom(settings.initialZoom);
-            if (settings.initialRotation !== undefined) setInitialRotation(settings.initialRotation);
+            console.log('📸 Chargement des réglages 3D depuis le produit:', settings);
+            if (settings.zoomSpeed !== undefined) {
+              console.log('📸 zoomSpeed:', settings.zoomSpeed);
+              setZoomSpeed(settings.zoomSpeed);
+            }
+            if (settings.rotateSpeed !== undefined) {
+              console.log('📸 rotateSpeed:', settings.rotateSpeed);
+              setRotateSpeed(settings.rotateSpeed);
+            }
+            if (settings.minZoom !== undefined) {
+              console.log('📸 minZoom:', settings.minZoom);
+              setMinZoom(settings.minZoom);
+            }
+            if (settings.maxZoom !== undefined) {
+              console.log('📸 maxZoom:', settings.maxZoom);
+              setMaxZoom(settings.maxZoom);
+            }
+            if (settings.initialZoom !== undefined) {
+              console.log('📸 initialZoom:', settings.initialZoom);
+              setInitialZoom(settings.initialZoom);
+            }
+            if (settings.initialRotation !== undefined) {
+              console.log('📸 initialRotation:', settings.initialRotation);
+              setInitialRotation(settings.initialRotation);
+            }
             // Charger les distances par vue
             if (settings.viewDistance) {
+              console.log('📸 viewDistance:', settings.viewDistance);
               setViewDistance(prev => ({
                 ...prev,
                 ...settings.viewDistance
