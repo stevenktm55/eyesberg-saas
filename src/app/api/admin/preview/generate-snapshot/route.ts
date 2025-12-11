@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       },
       texts: [],
       logos: [],
-      productId: product.shopify_product_id,
+      productId: product?.shopify_product_id || productId,
       variantId: variantId || undefined,
     };
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         preview_image_url: null,
         status: 'draft',
         share_token: shareToken,
-        product_name: product.shopify_product_title || null,
+        product_name: product?.shopify_product_title || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -118,7 +118,22 @@ export async function POST(request: NextRequest) {
 
     // Construire l'URL du configurateur avec la configuration
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eyesberg.app';
-    const configuratorUrl = `${baseUrl}/configure?config=${previewConfigId}&productId=${product.shopify_product_id}${variantId ? `&variantId=${variantId}` : ''}&shop=${shop}&preview=true`;
+    const urlParams = new URLSearchParams();
+    urlParams.append('config', previewConfigId);
+    if (product?.shopify_product_id) {
+      urlParams.append('productId', product.shopify_product_id);
+    } else {
+      urlParams.append('productId', productId);
+    }
+    if (variantId) {
+      urlParams.append('variantId', variantId);
+    }
+    if (shop) {
+      urlParams.append('shop', shop);
+    }
+    urlParams.append('preview', 'true');
+    
+    const configuratorUrl = `${baseUrl}/configure?${urlParams.toString()}`;
 
     return NextResponse.json({
       success: true,
