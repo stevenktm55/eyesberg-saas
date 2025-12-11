@@ -2550,10 +2550,6 @@ export default function ProductBuilderPage() {
 
                   {/* View Distances */}
                   <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #2a2a2a' }}>
-                    {(() => {
-                      console.log('🎯 Rendering View Zoom Distances section, viewDistance:', viewDistance);
-                      return null;
-                    })()}
                     <div style={{
                       fontSize: '14px',
                       fontFamily: 'var(--stepn-font-body)',
