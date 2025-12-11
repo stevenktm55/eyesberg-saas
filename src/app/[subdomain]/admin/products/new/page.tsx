@@ -1201,6 +1201,18 @@ export default function ProductBuilderPage() {
 
     setSaving(true);
     try {
+      const settingsToSave = {
+        zoomSpeed,
+        rotateSpeed,
+        minZoom,
+        maxZoom,
+        initialZoom,
+        initialRotation,
+        viewDistance
+      };
+      
+      console.log('💾 Sauvegarde des réglages 3D:', settingsToSave);
+      
       const res = await fetch('/api/product-builder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1213,15 +1225,7 @@ export default function ProductBuilderPage() {
             activeTab: activeTab,
             model3DId: selectedModel3DId,
             design2DId: selectedDesign2DId,
-            settings: {
-              zoomSpeed,
-              rotateSpeed,
-              minZoom,
-              maxZoom,
-              initialZoom,
-              initialRotation,
-              viewDistance
-            }
+            settings: settingsToSave
           },
         }),
       });
