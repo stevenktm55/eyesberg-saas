@@ -5884,6 +5884,15 @@ export default function ProductBuilderPage() {
                                     
                                     const camera = controlsRef.current.object;
                                     const distance = viewDistance[targetView] || initialZoom;
+                                    
+                                    console.log('📸 Changement de vue:', {
+                                      targetView,
+                                      viewDistance: viewDistance[targetView],
+                                      initialZoom,
+                                      distanceUtilisee: distance,
+                                      toutesLesDistances: viewDistance
+                                    });
+                                    
                                     // Positionner la caméra aux positions standard (sans rotation initiale)
                                     switch (targetView) {
                                       case 'torse':
