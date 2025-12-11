@@ -5643,12 +5643,6 @@ export default function ProductBuilderPage() {
                               function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
                                 const { camera } = useThree();
                                 const initializedRef = useRef(false);
-                                const valuesRef = useRef({ initialZoom, initialRotation });
-                                
-                                // Stocker les valeurs initiales
-                                useEffect(() => {
-                                  valuesRef.current = { initialZoom, initialRotation };
-                                }, [initialZoom, initialRotation]);
                                 
                                 useEffect(() => {
                                   // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
@@ -5659,15 +5653,13 @@ export default function ProductBuilderPage() {
                                     // Vérifier à nouveau si une vue a été définie entre-temps
                                     if (initializedRef.current || viewHasBeenSetRef.current) return;
                                     
-                                    const { initialZoom: zoom, initialRotation: rotation } = valuesRef.current;
-                                    
-                                    // Appliquer le zoom initial
-                                    const distance = zoom || 5;
+                                    // Utiliser les valeurs actuelles des props (pas un ref qui pourrait être obsolète)
+                                    const distance = initialZoom || 5;
                                     camera.position.set(0, 0, distance);
                                     
                                     // Appliquer la rotation initiale en faisant tourner la position autour du target
-                                    if (rotation !== 0) {
-                                      const angleRad = (rotation * Math.PI) / 180;
+                                    if (initialRotation !== 0) {
+                                      const angleRad = (initialRotation * Math.PI) / 180;
                                       // Rotation autour de l'axe Y
                                       const x = 0;
                                       const z = distance;
@@ -5681,7 +5673,7 @@ export default function ProductBuilderPage() {
                                   }, 200);
                                   
                                   return () => clearTimeout(timer);
-                                }, []); // Pas de dépendances - s'exécute une seule fois au montage
+                                }, [initialZoom, initialRotation, camera, viewHasBeenSetRef]); // Inclure les dépendances pour réinitialiser si les valeurs changent
                                 
                                 return null;
                               }
