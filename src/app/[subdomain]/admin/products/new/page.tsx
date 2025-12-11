@@ -2612,7 +2612,11 @@ export default function ProductBuilderPage() {
                         max="15"
                         step="0.1"
                         value={viewDistance.torse}
-                        onChange={(e) => setViewDistance(prev => ({ ...prev, torse: parseFloat(e.target.value) }))}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value);
+                          console.log('📸 Front View Distance changé:', newValue);
+                          setViewDistance(prev => ({ ...prev, torse: newValue }));
+                        }}
                         style={{
                           width: '100%',
                           height: '6px',
@@ -2657,7 +2661,11 @@ export default function ProductBuilderPage() {
                         max="15"
                         step="0.1"
                         value={viewDistance.dos}
-                        onChange={(e) => setViewDistance(prev => ({ ...prev, dos: parseFloat(e.target.value) }))}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value);
+                          console.log('📸 Back View Distance changé:', newValue);
+                          setViewDistance(prev => ({ ...prev, dos: newValue }));
+                        }}
                         style={{
                           width: '100%',
                           height: '6px',
@@ -2702,7 +2710,11 @@ export default function ProductBuilderPage() {
                         max="15"
                         step="0.1"
                         value={viewDistance['bras-droit']}
-                        onChange={(e) => setViewDistance(prev => ({ ...prev, 'bras-droit': parseFloat(e.target.value) }))}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value);
+                          console.log('📸 Left View Distance changé:', newValue);
+                          setViewDistance(prev => ({ ...prev, 'bras-droit': newValue }));
+                        }}
                         style={{
                           width: '100%',
                           height: '6px',
@@ -2747,7 +2759,11 @@ export default function ProductBuilderPage() {
                         max="15"
                         step="0.1"
                         value={viewDistance['bras-gauche']}
-                        onChange={(e) => setViewDistance(prev => ({ ...prev, 'bras-gauche': parseFloat(e.target.value) }))}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value);
+                          console.log('📸 Right View Distance changé:', newValue);
+                          setViewDistance(prev => ({ ...prev, 'bras-gauche': newValue }));
+                        }}
                         style={{
                           width: '100%',
                           height: '6px',
