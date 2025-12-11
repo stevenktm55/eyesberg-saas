@@ -2486,28 +2486,6 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             fontsCount: snapshot.fonts?.length || 0
           });
           
-          // Log détaillé des modules pour debug
-          console.log('📦 Modules du snapshot:', snapshot.customizationModules?.map((m: any) => ({
-            id: m.id,
-            type: m.type,
-            label: m.label,
-            icon: m.icon,
-            iconUrl: m.iconUrl,
-            configIcon: m.config?.icon,
-            configIconUrl: m.config?.iconUrl,
-            hasIcon: !!m.icon,
-            hasIconUrl: !!m.iconUrl,
-            hasConfigIcon: !!m.config?.icon,
-            hasConfigIconUrl: !!m.config?.iconUrl,
-            hasAllowedDesigns: !!m.allowedDesigns?.length,
-            allowedDesignsCount: m.allowedDesigns?.length || 0,
-            hasThumbnails: m.allowedDesigns?.some((d: any) => d.thumbnailUrl),
-            hasAllowedColors: !!m.allowedColors?.length,
-            allowedColorsCount: m.allowedColors?.length || 0,
-            hasConfig: !!m.config,
-            configKeys: m.config ? Object.keys(m.config) : []
-          })));
-          
           const rawModules = snapshot.customizationModules || [];
           const modules = rawModules.map((m: any) => {
             const module: any = {
@@ -2551,15 +2529,6 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
           const designModuleConfig = designModule ? {
             allowedDesignIds: designModule.allowedDesigns?.map((d: any) => d.svgUrl) || [],
           } : null;
-          
-          console.log('📦 Modules mappés pour productConfig:', modules.map((m: any) => ({
-            id: m.id,
-            tabName: m.tabName,
-            icon: m.icon,
-            iconUrl: m.iconUrl,
-            hasIcon: !!m.icon,
-            hasIconUrl: !!m.iconUrl
-          })));
           
           const configData = {
             snapshot: snapshot,
@@ -3100,21 +3069,6 @@ export default function ConfiguratorViewer({
   
   // Déterminer l'onglet actif basé sur les modules mappés depuis productConfig
   const customizationModules = productConfig?.customizationModules || [];
-  
-  // Log pour vérifier les icônes des modules dans la sidebar
-  useEffect(() => {
-    if (customizationModules.length > 0) {
-      console.log('🎨 Modules dans la sidebar:', customizationModules.map((m: any) => ({
-        id: m.id,
-        tabName: m.tabName,
-        icon: m.icon,
-        iconUrl: m.iconUrl,
-        hasIcon: !!m.icon,
-        hasIconUrl: !!m.iconUrl
-      })));
-    }
-  }, [customizationModules]);
-  
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
@@ -4095,16 +4049,6 @@ export default function ConfiguratorViewer({
             const hasIconUrl = !!module.iconUrl;
             const iconToShow = module.icon || '🎨';
             
-            // Debug: log pour chaque module
-            console.log('🎨 Rendu bouton sidebar:', {
-              id: module.id,
-              tabName: module.tabName,
-              hasIconUrl,
-              iconUrl: module.iconUrl,
-              icon: module.icon,
-              iconToShow
-            });
-            
             return (
               <button
                 key={module.id}
@@ -4142,11 +4086,7 @@ export default function ConfiguratorViewer({
                       flexShrink: 0,
                       pointerEvents: 'none'
                     }}
-                    onLoad={() => {
-                      console.log('✅ Image chargée avec succès:', module.iconUrl);
-                    }}
                     onError={(e) => {
-                      console.error('❌ Erreur chargement icône:', module.iconUrl);
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       // Créer un fallback avec l'emoji
