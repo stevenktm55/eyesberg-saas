@@ -5807,6 +5807,8 @@ export default function ProductBuilderPage() {
                                     controlsRef.current.rotateSpeed = rotateSpeed;
                                     controlsRef.current.minDistance = minZoom;
                                     controlsRef.current.maxDistance = maxZoom;
+                                    // Forcer la mise à jour des contrôles
+                                    controlsRef.current.update();
                                   }
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
