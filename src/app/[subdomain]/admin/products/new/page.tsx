@@ -5903,7 +5903,6 @@ export default function ProductBuilderPage() {
                                     maxDistance={maxZoom}
                                     zoomSpeed={zoomSpeed}
                                     rotateSpeed={rotateSpeed}
-                                    key={`controls-${minZoom}-${maxZoom}-${zoomSpeed}-${rotateSpeed}`}
                                   />
                                 );
                               }
