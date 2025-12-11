@@ -976,9 +976,16 @@ export default function ProductBuilderPage() {
       try {
         if (id) {
           // Charger un produit existant
+          console.log('📸 Chargement du produit avec ID:', id);
           const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}`);
           if (res.ok) {
             const product = await res.json();
+            console.log('📸 Produit chargé:', {
+              id: product.id,
+              name: product.name,
+              hasBuilderData: !!product.builder_data,
+              hasSettings: !!product.builder_data?.settings
+            });
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
             setQuestions(product.builder_data?.questions || []);
