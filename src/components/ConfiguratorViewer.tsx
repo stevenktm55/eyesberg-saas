@@ -4156,10 +4156,6 @@ export default function ConfiguratorViewer({
                         target.parentElement?.appendChild(fallback);
                       }}
                     />
-                    {/* Fallback emoji en cas d'échec de chargement */}
-                    {!module.iconUrl && (
-                      <span className="text-2xl" style={{ display: 'block' }}>{iconToShow}</span>
-                    )}
                   </>
                 ) : (
                   <span 
