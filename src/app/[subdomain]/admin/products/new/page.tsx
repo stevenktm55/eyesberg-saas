@@ -1021,11 +1021,18 @@ export default function ProductBuilderPage() {
             }
             // Charger les distances par vue
             if (settings.viewDistance) {
-              console.log('📸 viewDistance:', settings.viewDistance);
+              console.log('📸 viewDistance chargée depuis le produit:', settings.viewDistance);
+              const newViewDistance = {
+                ...prev,
+                ...settings.viewDistance
+              };
+              console.log('📸 Nouvelle viewDistance après merge:', newViewDistance);
               setViewDistance(prev => ({
                 ...prev,
                 ...settings.viewDistance
               }));
+            } else {
+              console.log('⚠️ Aucune viewDistance trouvée dans les settings, utilisation des valeurs par défaut');
             }
           }
         } else if (shop) {
