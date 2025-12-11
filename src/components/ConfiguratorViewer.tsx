@@ -4128,41 +4128,45 @@ export default function ConfiguratorViewer({
                 style={{ minWidth: '48px', minHeight: '48px' }}
               >
                 {hasIconUrl ? (
-                  <>
-                    <img
-                      src={module.iconUrl}
-                      alt={module.tabName}
-                      className="w-8 h-8 object-contain"
-                      style={{ 
-                        display: 'block',
-                        width: '32px',
-                        height: '32px',
-                        maxWidth: '32px',
-                        maxHeight: '32px',
-                        flexShrink: 0
-                      }}
-                      onLoad={() => {
-                        console.log('✅ Image chargée avec succès:', module.iconUrl);
-                      }}
-                      onError={(e) => {
-                        console.error('❌ Erreur chargement icône:', module.iconUrl);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        // Créer un fallback avec l'emoji
-                        const fallback = document.createElement('span');
-                        fallback.className = 'text-2xl';
-                        fallback.style.display = 'block';
-                        fallback.textContent = iconToShow;
-                        target.parentElement?.appendChild(fallback);
-                      }}
-                    />
-                  </>
+                  <img
+                    key={`icon-img-${module.id}`}
+                    src={module.iconUrl}
+                    alt={module.tabName}
+                    className="w-8 h-8 object-contain"
+                    style={{ 
+                      display: 'block',
+                      width: '32px',
+                      height: '32px',
+                      maxWidth: '32px',
+                      maxHeight: '32px',
+                      flexShrink: 0,
+                      pointerEvents: 'none'
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Image chargée avec succès:', module.iconUrl);
+                    }}
+                    onError={(e) => {
+                      console.error('❌ Erreur chargement icône:', module.iconUrl);
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      // Créer un fallback avec l'emoji
+                      const fallback = document.createElement('span');
+                      fallback.className = 'text-2xl';
+                      fallback.style.display = 'block';
+                      fallback.style.width = '32px';
+                      fallback.style.height = '32px';
+                      fallback.style.textAlign = 'center';
+                      fallback.style.lineHeight = '32px';
+                      fallback.textContent = iconToShow;
+                      target.parentElement?.appendChild(fallback);
+                    }}
+                  />
                 ) : (
                   <span 
                     className="text-2xl" 
                     style={{ 
                       display: 'block', 
-                      lineHeight: '1',
+                      lineHeight: '32px',
                       fontSize: '24px',
                       width: '32px',
                       height: '32px',
