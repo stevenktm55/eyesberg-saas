@@ -5643,37 +5643,89 @@ export default function ProductBuilderPage() {
                               function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
                                 const { camera } = useThree();
                                 const initializedRef = useRef(false);
+                                const lastZoomRef = useRef<number | null>(null);
+                                const lastRotationRef = useRef<number | null>(null);
                                 
                                 useEffect(() => {
                                   // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
                                   if (initializedRef.current || viewHasBeenSetRef.current) return;
                                   
-                                  // Attendre un peu pour s'assurer que OrbitControls est prêt
-                                  const timer = setTimeout(() => {
-                                    // Vérifier à nouveau si une vue a été définie entre-temps
-                                    if (initializedRef.current || viewHasBeenSetRef.current) return;
-                                    
-                                    // Utiliser les valeurs actuelles des props (pas un ref qui pourrait être obsolète)
-                                    const distance = initialZoom || 5;
-                                    camera.position.set(0, 0, distance);
-                                    
-                                    // Appliquer la rotation initiale en faisant tourner la position autour du target
-                                    if (initialRotation !== 0) {
-                                      const angleRad = (initialRotation * Math.PI) / 180;
-                                      // Rotation autour de l'axe Y
-                                      const x = 0;
-                                      const z = distance;
-                                      const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                      const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                      camera.position.set(newX, camera.position.y, newZ);
-                                    }
-                                    
-                                    camera.updateProjectionMatrix();
-                                    initializedRef.current = true;
-                                  }, 200);
+                                  // Attendre que les valeurs soient chargées depuis le produit (pas les valeurs par défaut)
+                                  // Si initialZoom est toujours la valeur par défaut (5) et qu'on n'a pas encore initialisé, attendre un peu plus
+                                  if (initialZoom === 5 && !lastZoomRef.current) {
+                                    // Attendre un peu pour que les valeurs soient chargées depuis le produit
+                                    const checkTimer = setTimeout(() => {
+                                      if (!initializedRef.current && !viewHasBeenSetRef.current) {
+                                        // Utiliser les valeurs actuelles même si ce sont les valeurs par défaut
+                                        const distance = initialZoom || 5;
+                                        camera.position.set(0, 0, distance);
+                                        
+                                        if (initialRotation !== 0) {
+                                          const angleRad = (initialRotation * Math.PI) / 180;
+                                          const x = 0;
+                                          const z = distance;
+                                          const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                          const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                          camera.position.set(newX, camera.position.y, newZ);
+                                        }
+                                        
+                                        camera.updateProjectionMatrix();
+                                        initializedRef.current = true;
+                                        lastZoomRef.current = initialZoom;
+                                        lastRotationRef.current = initialRotation;
+                                      }
+                                    }, 500);
+                                    return () => clearTimeout(checkTimer);
+                                  }
                                   
-                                  return () => clearTimeout(timer);
-                                }, [initialZoom, initialRotation, camera, viewHasBeenSetRef]); // Inclure les dépendances pour réinitialiser si les valeurs changent
+                                  // Si les valeurs ont changé depuis la dernière initialisation, réinitialiser
+                                  if (lastZoomRef.current !== null && (lastZoomRef.current !== initialZoom || lastRotationRef.current !== initialRotation)) {
+                                    if (!viewHasBeenSetRef.current) {
+                                      const distance = initialZoom || 5;
+                                      camera.position.set(0, 0, distance);
+                                      
+                                      if (initialRotation !== 0) {
+                                        const angleRad = (initialRotation * Math.PI) / 180;
+                                        const x = 0;
+                                        const z = distance;
+                                        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                        camera.position.set(newX, camera.position.y, newZ);
+                                      }
+                                      
+                                      camera.updateProjectionMatrix();
+                                      lastZoomRef.current = initialZoom;
+                                      lastRotationRef.current = initialRotation;
+                                    }
+                                    return;
+                                  }
+                                  
+                                  // Première initialisation
+                                  if (!initializedRef.current) {
+                                    const timer = setTimeout(() => {
+                                      if (initializedRef.current || viewHasBeenSetRef.current) return;
+                                      
+                                      const distance = initialZoom || 5;
+                                      camera.position.set(0, 0, distance);
+                                      
+                                      if (initialRotation !== 0) {
+                                        const angleRad = (initialRotation * Math.PI) / 180;
+                                        const x = 0;
+                                        const z = distance;
+                                        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
+                                        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
+                                        camera.position.set(newX, camera.position.y, newZ);
+                                      }
+                                      
+                                      camera.updateProjectionMatrix();
+                                      initializedRef.current = true;
+                                      lastZoomRef.current = initialZoom;
+                                      lastRotationRef.current = initialRotation;
+                                    }, 200);
+                                    
+                                    return () => clearTimeout(timer);
+                                  }
+                                }, [initialZoom, initialRotation, camera, viewHasBeenSetRef]);
                                 
                                 return null;
                               }
