@@ -253,3 +253,7 @@ snapLines?: Array<{
 5. ❌ Tester que le configurateur client fonctionne sans appels API
 
 
+
+
+
+

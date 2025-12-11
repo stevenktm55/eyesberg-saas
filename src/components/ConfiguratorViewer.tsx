@@ -4095,6 +4095,16 @@ export default function ConfiguratorViewer({
             const hasIconUrl = !!module.iconUrl;
             const iconToShow = module.icon || '🎨';
             
+            // Debug: log pour chaque module
+            console.log('🎨 Rendu bouton sidebar:', {
+              id: module.id,
+              tabName: module.tabName,
+              hasIconUrl,
+              iconUrl: module.iconUrl,
+              icon: module.icon,
+              iconToShow
+            });
+            
             return (
               <button
                 key={module.id}
@@ -4109,32 +4119,63 @@ export default function ConfiguratorViewer({
                   }
                   else if (module.contentType === 'logos') setActiveTab('logo');
                 }}
-                className={`w-12 h-12 flex items-center justify-center rounded border transition-all ${
+                className={`w-12 h-12 flex items-center justify-center rounded border transition-all relative ${
                   activeCustomizerTab === module.id
                     ? 'bg-gray-100 border-gray-300'
                     : 'bg-transparent border-gray-200 hover:bg-gray-50'
                 }`}
                 title={module.tabName}
+                style={{ minWidth: '48px', minHeight: '48px' }}
               >
                 {hasIconUrl ? (
-                  <img
-                    src={module.iconUrl}
-                    alt={module.tabName}
-                    className="w-8 h-8 object-contain flex-shrink-0"
-                    style={{ display: 'block' }}
-                    onError={(e) => {
-                      console.error('❌ Erreur chargement icône:', module.iconUrl);
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      // Créer un fallback avec l'emoji
-                      const fallback = document.createElement('span');
-                      fallback.className = 'text-2xl';
-                      fallback.textContent = iconToShow;
-                      target.parentElement?.appendChild(fallback);
-                    }}
-                  />
+                  <>
+                    <img
+                      src={module.iconUrl}
+                      alt={module.tabName}
+                      className="w-8 h-8 object-contain"
+                      style={{ 
+                        display: 'block',
+                        width: '32px',
+                        height: '32px',
+                        maxWidth: '32px',
+                        maxHeight: '32px',
+                        flexShrink: 0
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Image chargée avec succès:', module.iconUrl);
+                      }}
+                      onError={(e) => {
+                        console.error('❌ Erreur chargement icône:', module.iconUrl);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        // Créer un fallback avec l'emoji
+                        const fallback = document.createElement('span');
+                        fallback.className = 'text-2xl';
+                        fallback.style.display = 'block';
+                        fallback.textContent = iconToShow;
+                        target.parentElement?.appendChild(fallback);
+                      }}
+                    />
+                    {/* Fallback emoji en cas d'échec de chargement */}
+                    {!module.iconUrl && (
+                      <span className="text-2xl" style={{ display: 'block' }}>{iconToShow}</span>
+                    )}
+                  </>
                 ) : (
-                  <span className="text-2xl flex-shrink-0" style={{ display: 'block', lineHeight: '1' }}>{iconToShow}</span>
+                  <span 
+                    className="text-2xl" 
+                    style={{ 
+                      display: 'block', 
+                      lineHeight: '1',
+                      fontSize: '24px',
+                      width: '32px',
+                      height: '32px',
+                      textAlign: 'center',
+                      flexShrink: 0
+                    }}
+                  >
+                    {iconToShow}
+                  </span>
                 )}
               </button>
             );

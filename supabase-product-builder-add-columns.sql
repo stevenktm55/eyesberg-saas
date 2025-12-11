@@ -28,3 +28,7 @@ COMMENT ON COLUMN product_builder.last_published_at IS 'Date de dernière public
 COMMENT ON COLUMN product_builder.snapshot_version IS 'Version du snapshot (pour migrations futures)';
 
 
+
+
+
+
