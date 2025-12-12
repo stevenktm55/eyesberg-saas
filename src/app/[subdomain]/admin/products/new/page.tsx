@@ -986,6 +986,7 @@ export default function ProductBuilderPage() {
               hasBuilderData: !!product.builder_data,
               hasSettings: !!product.builder_data?.settings,
               builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              builderData: product.builder_data, // Afficher tout le builder_data pour debug
               model3DId: product.builder_data?.model3DId,
               design2DId: product.builder_data?.design2DId,
               questionsCount: product.builder_data?.questions?.length || 0,
