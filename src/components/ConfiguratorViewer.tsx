@@ -2432,6 +2432,7 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       const urlParams = new URLSearchParams(window.location.search);
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
+      const isPreview = urlParams.get('preview') === 'true';
       
       if (!shop || !product) {
         setIsLoading(false);
@@ -2442,8 +2443,19 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         const normalizedProductId = normalizeShopifyProductId(product);
         // Ajouter un timestamp pour éviter le cache
         const timestamp = Date.now();
-        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}&_t=${timestamp}`;
-        console.log('📡 Chargement de la configuration depuis:', url);
+        // Si preview=true dans l'URL, l'ajouter à l'API pour ignorer publishedSnapshot
+        const apiParams = new URLSearchParams();
+        apiParams.append('shop', shop || '');
+        apiParams.append('id', normalizedProductId || product);
+        apiParams.append('_t', timestamp.toString());
+        if (isPreview) {
+          apiParams.append('preview', 'true');
+        }
+        const url = `/api/product-builder?${apiParams.toString()}`;
+        console.log('📡 Chargement de la configuration depuis:', url, {
+          isPreview,
+          previewParam: isPreview ? 'preview=true' : 'none'
+        });
         const response = await fetch(url, {
           cache: 'no-store',
           headers: {

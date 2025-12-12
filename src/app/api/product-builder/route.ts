@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
     // Si for=admin, on retourne builder_data (pour le builder admin)
     // Sinon, on retourne snapshot (pour le configurateur client)
     const forAdmin = searchParams.get('for') === 'admin';
+    // Si preview=true, on ignore publishedSnapshot et génère uniquement depuis builder_data actuel
+    const isPreview = searchParams.get('preview') === 'true';
     
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
@@ -88,31 +90,95 @@ export async function GET(request: NextRequest) {
           subdomain = product.subdomain;
         }
 
-        // Si le produit a un snapshot publié, le retourner
-        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot && !forAdmin) {
-          // Pour le configurateur client, retourner le snapshot sans builder_data
-          console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+        // Pour le preview, ignorer publishedSnapshot et générer uniquement depuis builder_data actuel
+        // Pour le preview, vérifier que builder_data contient des données valides
+        if (isPreview) {
+          if (!product.builder_data) {
+            console.warn('⚠️ Preview demandé mais builder_data est vide:', {
+              productId: product.id,
+              productName: product.name
+            });
+            return NextResponse.json({
+              error: 'Aucune configuration dans le builder. Le preview nécessite au moins un modèle 3D et des modules de personnalisation.',
+              product: {
+                id: product.id,
+                name: product.name
+              }
+            }, { status: 400 });
+          }
+
+          const hasModel3DId = !!(product.builder_data?.model3DId || 
+                                 product.builder_data?.modelId || 
+                                 product.builder_data?.selectedModel3DId || 
+                                 product.builder_data?.selectedModelId);
+          
+          const hasCustomizationModules = !!(product.builder_data?.customizationModules && 
+                                            product.builder_data.customizationModules.length > 0);
+
+          if (!hasModel3DId) {
+            console.warn('⚠️ Preview demandé mais pas de model3DId dans builder_data:', {
+              productId: product.id,
+              productName: product.name,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+            });
+            return NextResponse.json({
+              error: 'Aucun modèle 3D sélectionné dans le builder. Le preview nécessite un modèle 3D.',
+              product: {
+                id: product.id,
+                name: product.name
+              }
+            }, { status: 400 });
+          }
+
+          if (!hasCustomizationModules) {
+            console.warn('⚠️ Preview demandé mais pas de customizationModules dans builder_data:', {
+              productId: product.id,
+              productName: product.name,
+              customizationModulesCount: product.builder_data?.customizationModules?.length || 0
+            });
+            return NextResponse.json({
+              error: 'Aucun module de personnalisation dans le builder. Le preview nécessite au moins un module de personnalisation.',
+              product: {
+                id: product.id,
+                name: product.name
+              }
+            }, { status: 400 });
+          }
+
+          // Pour le preview, générer uniquement depuis builder_data (ignorer publishedSnapshot)
+          console.log('📸 Preview demandé - génération depuis builder_data uniquement (UUID):', {
             productId: product.id,
             productName: product.name,
-            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+            hasModel3DId,
+            customizationModulesCount: product.builder_data?.customizationModules?.length || 0
           });
-          return NextResponse.json({
-            ...product,
-            snapshot: publishedSnapshot,
-            builder_data: undefined
-          });
-        } else if (publishedSnapshot && forAdmin) {
-          // Pour le builder admin, retourner le produit avec builder_data ET snapshot
-          console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID):', {
-            productId: product.id,
-            productName: product.name,
-            hasBuilderData: !!product.builder_data,
-            builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
-            hasQuestions: !!(product.builder_data?.questions),
-            questionsCount: product.builder_data?.questions?.length || 0
-          });
-          return NextResponse.json(product);
+        } else {
+          // Si le produit a un snapshot publié, le retourner (sauf pour preview)
+          const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+          if (publishedSnapshot && !forAdmin) {
+            // Pour le configurateur client, retourner le snapshot sans builder_data
+            console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+              productId: product.id,
+              productName: product.name,
+              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+            });
+            return NextResponse.json({
+              ...product,
+              snapshot: publishedSnapshot,
+              builder_data: undefined
+            });
+          } else if (publishedSnapshot && forAdmin) {
+            // Pour le builder admin, retourner le produit avec builder_data ET snapshot
+            console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID):', {
+              productId: product.id,
+              productName: product.name,
+              hasBuilderData: !!product.builder_data,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              hasQuestions: !!(product.builder_data?.questions),
+              questionsCount: product.builder_data?.questions?.length || 0
+            });
+            return NextResponse.json(product);
+          }
         }
 
         // Générer un snapshot automatique depuis builder_data si disponible
@@ -311,40 +377,109 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        // Si le produit a un snapshot publié, le retourner au lieu de builder_data
-        // (pour le configurateur client)
-        // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
-        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot && !forAdmin) {
-          // Pour le configurateur client, retourner le snapshot sans builder_data
-          console.log('📸 Retour du snapshot publié pour le produit:', {
+        // Pour le preview, ignorer publishedSnapshot et générer uniquement depuis builder_data actuel
+        if (isPreview) {
+          if (!product.builder_data) {
+            console.warn('⚠️ Preview demandé mais builder_data est vide:', {
+              productId: product.id,
+              productName: product.name,
+              shopifyProductId: product.shopify_product_id
+            });
+            return NextResponse.json({
+              error: 'Aucune configuration dans le builder. Le preview nécessite au moins un modèle 3D et des modules de personnalisation.',
+              product: {
+                id: product.id,
+                name: product.name,
+                shopify_product_id: product.shopify_product_id
+              }
+            }, { status: 400 });
+          }
+
+          const hasModel3DId = !!(product.builder_data?.model3DId || 
+                                 product.builder_data?.modelId || 
+                                 product.builder_data?.selectedModel3DId || 
+                                 product.builder_data?.selectedModelId);
+          
+          const hasCustomizationModules = !!(product.builder_data?.customizationModules && 
+                                            product.builder_data.customizationModules.length > 0);
+
+          if (!hasModel3DId) {
+            console.warn('⚠️ Preview demandé mais pas de model3DId dans builder_data:', {
+              productId: product.id,
+              productName: product.name,
+              shopifyProductId: product.shopify_product_id,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+            });
+            return NextResponse.json({
+              error: 'Aucun modèle 3D sélectionné dans le builder. Le preview nécessite un modèle 3D.',
+              product: {
+                id: product.id,
+                name: product.name,
+                shopify_product_id: product.shopify_product_id
+              }
+            }, { status: 400 });
+          }
+
+          if (!hasCustomizationModules) {
+            console.warn('⚠️ Preview demandé mais pas de customizationModules dans builder_data:', {
+              productId: product.id,
+              productName: product.name,
+              shopifyProductId: product.shopify_product_id,
+              customizationModulesCount: product.builder_data?.customizationModules?.length || 0
+            });
+            return NextResponse.json({
+              error: 'Aucun module de personnalisation dans le builder. Le preview nécessite au moins un module de personnalisation.',
+              product: {
+                id: product.id,
+                name: product.name,
+                shopify_product_id: product.shopify_product_id
+              }
+            }, { status: 400 });
+          }
+
+          // Pour le preview, générer uniquement depuis builder_data (ignorer publishedSnapshot)
+          console.log('📸 Preview demandé - génération depuis builder_data uniquement:', {
             productId: product.id,
             productName: product.name,
             shopifyProductId: product.shopify_product_id,
-            fromBuilderData: !!product.builder_data?.publishedSnapshot,
-            fromColumn: !!product.published_snapshot,
-            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
-            hasModel3D: !!publishedSnapshot.model3D,
-            hasDesign2D: !!publishedSnapshot.design2D,
-            design2DUrl: publishedSnapshot.design2D?.url,
-            snapshotVersion: publishedSnapshot.version,
-            publishedAt: publishedSnapshot.publishedAt,
-            // Vérifier la structure complète du snapshot
-            snapshotKeys: Object.keys(publishedSnapshot)
+            hasModel3DId,
+            customizationModulesCount: product.builder_data?.customizationModules?.length || 0
           });
-          return NextResponse.json({
-            ...product,
-            snapshot: publishedSnapshot,
-            // Ne pas exposer builder_data au client
-            builder_data: undefined
-          });
-        } else if (publishedSnapshot && forAdmin) {
-          // Pour le builder admin, retourner le produit avec builder_data ET snapshot
-          console.log('📸 Retour du produit avec snapshot pour le builder admin:', {
-            productId: product.id,
-            productName: product.name
-          });
-          return NextResponse.json(product);
+        } else {
+          // Si le produit a un snapshot publié, le retourner (sauf pour preview)
+          // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
+          const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+          if (publishedSnapshot && !forAdmin) {
+            // Pour le configurateur client, retourner le snapshot sans builder_data
+            console.log('📸 Retour du snapshot publié pour le produit:', {
+              productId: product.id,
+              productName: product.name,
+              shopifyProductId: product.shopify_product_id,
+              fromBuilderData: !!product.builder_data?.publishedSnapshot,
+              fromColumn: !!product.published_snapshot,
+              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
+              hasModel3D: !!publishedSnapshot.model3D,
+              hasDesign2D: !!publishedSnapshot.design2D,
+              design2DUrl: publishedSnapshot.design2D?.url,
+              snapshotVersion: publishedSnapshot.version,
+              publishedAt: publishedSnapshot.publishedAt,
+              // Vérifier la structure complète du snapshot
+              snapshotKeys: Object.keys(publishedSnapshot)
+            });
+            return NextResponse.json({
+              ...product,
+              snapshot: publishedSnapshot,
+              // Ne pas exposer builder_data au client
+              builder_data: undefined
+            });
+          } else if (publishedSnapshot && forAdmin) {
+            // Pour le builder admin, retourner le produit avec builder_data ET snapshot
+            console.log('📸 Retour du produit avec snapshot pour le builder admin:', {
+              productId: product.id,
+              productName: product.name
+            });
+            return NextResponse.json(product);
+          }
         }
         
         console.log('⚠️ Aucun snapshot trouvé pour le produit, génération automatique depuis builder_data:', {
