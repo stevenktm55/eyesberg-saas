@@ -2465,13 +2465,16 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
           });
           
           if (!productData.snapshot) {
-            console.error('❌ Aucun snapshot dans la réponse de l\'API:', {
-              productId: productData.id,
-              productName: productData.name,
+            console.error('❌ Aucun snapshot dans la réponse de l\'API', {
+              productDataKeys: Object.keys(productData),
               hasBuilderData: !!productData.builder_data,
-              responseKeys: Object.keys(productData)
+              productId: productData.id,
+              shopifyProductId: productData.shopify_product_id
             });
-            // Ne pas retourner null, laisser le composant gérer l'affichage d'erreur
+            
+            // En mode preview, ne pas bloquer immédiatement
+            // L'API devrait générer automatiquement le snapshot
+            // Mais si ce n'est pas le cas, on retourne null quand même
             setConfig(null);
             setIsLoading(false);
             return;
@@ -2838,6 +2841,13 @@ export default function ConfiguratorViewer({
   // Définir finalShopDomain et finalProductId AVANT d'utiliser les hooks
   const finalShopDomain: string | null = shopDomain ?? null;
   const finalProductId: string | null = productId ?? null;
+  
+  // Vérifier si on est en mode preview
+  const isPreviewMode = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('preview') === 'true';
+  }, []);
   
   // Charger la configuration complète du produit
   const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId);
@@ -4029,18 +4039,45 @@ export default function ConfiguratorViewer({
     );
   }
   
-  // Vérifier seulement si le snapshot existe (productConfig peut être null même avec snapshot)
-  if (!snapshot) {
+  // En mode preview, permettre l'affichage même sans snapshot publié
+  // Le snapshot sera généré automatiquement par l'API si nécessaire
+  if (!snapshot || !productConfig) {
+    // Si pas en mode preview, afficher le message d'erreur
+    if (!isPreviewMode) {
+      return (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto p-6">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Configuration non disponible</h2>
+            <p className="text-gray-600 mb-4">
+              Ce produit n'a pas encore été configuré ou publié depuis le builder.
+            </p>
+            <p className="text-sm text-gray-500">
+              Veuillez configurer et publier ce produit depuis l'interface d'administration.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    // En mode preview, afficher un message d'erreur spécifique
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Configuration non disponible</h2>
+          <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Snapshot non disponible</h2>
           <p className="text-gray-600 mb-4">
-            Ce produit n'a pas encore été configuré ou publié depuis le builder.
+            Le snapshot de prévisualisation n'a pas pu être généré automatiquement.
           </p>
-          <p className="text-sm text-gray-500">
-            Veuillez configurer et publier ce produit depuis l'interface d'administration.
+          <p className="text-sm text-gray-500 mb-4">
+            Assurez-vous que :
+          </p>
+          <ul className="text-sm text-gray-500 text-left list-disc list-inside mb-4">
+            <li>Un modèle 3D est sélectionné dans le builder</li>
+            <li>Le produit a au moins un module de personnalisation configuré</li>
+          </ul>
+          <p className="text-xs text-gray-400">
+            Vérifiez les logs de la console pour plus de détails.
           </p>
         </div>
       </div>
