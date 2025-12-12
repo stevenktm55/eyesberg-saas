@@ -237,8 +237,23 @@ export async function GET(request: NextRequest) {
                 hasModel3D: !!generatedSnapshot.model3D,
                 hasDesign2D: !!generatedSnapshot.design2D,
                 modulesCount: generatedSnapshot.customizationModules?.length || 0,
-                forAdmin: forAdmin
+                forAdmin: forAdmin,
+                isPreview: isPreview
               });
+              
+              // Pour le preview, toujours retourner le snapshot généré (ignorer publishedSnapshot)
+              if (isPreview) {
+                console.log('📸 Preview - retour du snapshot généré depuis builder_data:', {
+                  productId: product.id,
+                  productName: product.name,
+                  modulesCount: generatedSnapshot.customizationModules?.length || 0
+                });
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot,
+                  builder_data: undefined // Ne pas exposer builder_data dans le preview
+                });
+              }
               
               if (forAdmin) {
                 // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
@@ -557,8 +572,24 @@ export async function GET(request: NextRequest) {
                 modulesCount: generatedSnapshot.customizationModules?.length || 0,
                 design2DUrl: generatedSnapshot.design2D?.url,
                 model3DUrl: generatedSnapshot.model3D?.url,
-                forAdmin: forAdmin
+                forAdmin: forAdmin,
+                isPreview: isPreview
               });
+              
+              // Pour le preview, toujours retourner le snapshot généré (ignorer publishedSnapshot)
+              if (isPreview) {
+                console.log('📸 Preview - retour du snapshot généré depuis builder_data:', {
+                  productId: product.id,
+                  productName: product.name,
+                  shopifyProductId: product.shopify_product_id,
+                  modulesCount: generatedSnapshot.customizationModules?.length || 0
+                });
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot,
+                  builder_data: undefined // Ne pas exposer builder_data dans le preview
+                });
+              }
               
               if (forAdmin) {
                 // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
