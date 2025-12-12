@@ -235,6 +235,21 @@ export async function GET(request: NextRequest) {
         // Utiliser exactement la même fonction que lors de la connexion du produit
         if (product.builder_data) {
           try {
+            // Vérifier que builder_data a un model3DId (requis par generateSnapshot)
+            const model3DId = product.builder_data?.model3DId || 
+                              product.builder_data?.modelId || 
+                              product.builder_data?.selectedModel3DId || 
+                              product.builder_data?.selectedModelId;
+            
+            if (!model3DId) {
+              console.warn('⚠️ Pas de model3DId dans builder_data, impossible de générer le snapshot:', {
+                productId: product.id,
+                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+              });
+              // Retourner le produit sans snapshot si pas de model3DId
+              return NextResponse.json(product);
+            }
+            
             // Utiliser le shopify_product_id si disponible, sinon utiliser l'ID du produit builder
             const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
             const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
@@ -243,7 +258,11 @@ export async function GET(request: NextRequest) {
               productId: product.id,
               shopifyProductId: shopifyProductIdForSnapshot,
               shopDomain: shopDomainForSnapshot,
-              hasBuilderData: !!product.builder_data
+              hasBuilderData: !!product.builder_data,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              model3DId: model3DId,
+              hasCustomizationModules: !!(product.builder_data?.customizationModules),
+              customizationModulesCount: product.builder_data?.customizationModules?.length || 0
             });
             
             const generatedSnapshot = await generateSnapshot(
@@ -257,7 +276,8 @@ export async function GET(request: NextRequest) {
                 hasModel3D: !!generatedSnapshot.model3D,
                 hasDesign2D: !!generatedSnapshot.design2D,
                 modulesCount: generatedSnapshot.customizationModules?.length || 0,
-                design2DUrl: generatedSnapshot.design2D?.url
+                design2DUrl: generatedSnapshot.design2D?.url,
+                model3DUrl: generatedSnapshot.model3D?.url
               });
               return NextResponse.json({
                 ...product,
@@ -265,11 +285,24 @@ export async function GET(request: NextRequest) {
                 // Ne pas exposer builder_data au client
                 builder_data: undefined
               });
+            } else {
+              console.error('❌ generateSnapshot a retourné null/undefined');
             }
-          } catch (error) {
-            console.error('❌ Erreur lors de la génération automatique du snapshot:', error);
+          } catch (error: any) {
+            console.error('❌ Erreur lors de la génération automatique du snapshot:', {
+              error: error.message,
+              stack: error.stack,
+              productId: product.id,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+            });
             // Ne pas bloquer si la génération échoue, retourner le produit sans snapshot
+            // Mais logguer l'erreur pour debug
           }
+        } else {
+          console.warn('⚠️ Pas de builder_data disponible pour générer le snapshot:', {
+            productId: product.id,
+            hasBuilderData: !!product.builder_data
+          });
         }
 
         // Sinon, retourner le produit avec builder_data (pour le builder admin)
