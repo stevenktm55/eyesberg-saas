@@ -242,11 +242,55 @@ export async function GET(request: NextRequest) {
                               product.builder_data?.selectedModelId;
             
             if (!model3DId) {
-              console.warn('⚠️ Pas de model3DId dans builder_data, impossible de générer le snapshot:', {
+              console.warn('⚠️ Pas de model3DId dans builder_data, tentative de récupération d\'un modèle par défaut:', {
                 productId: product.id,
                 builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
               });
-              // Retourner le produit sans snapshot si pas de model3DId
+              
+              // Essayer de récupérer le premier modèle actif disponible
+              const { data: defaultModels } = await supabaseAdmin
+                .from('models_3d')
+                .select('id')
+                .eq('active', true)
+                .limit(1);
+              
+              if (defaultModels && defaultModels.length > 0) {
+                const defaultModelId = defaultModels[0].id;
+                console.log('✅ Modèle par défaut trouvé, utilisation pour générer le snapshot:', defaultModelId);
+                // Ajouter le model3DId au builder_data temporairement pour la génération
+                const builderDataWithModel = {
+                  ...product.builder_data,
+                  model3DId: defaultModelId,
+                  modelId: defaultModelId,
+                  selectedModel3DId: defaultModelId
+                };
+                
+                const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+                const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+                
+                const generatedSnapshot = await generateSnapshot(
+                  builderDataWithModel,
+                  shopDomainForSnapshot,
+                  shopifyProductIdForSnapshot
+                );
+                
+                if (generatedSnapshot) {
+                  console.log('✅ Snapshot généré avec modèle par défaut:', {
+                    hasModel3D: !!generatedSnapshot.model3D,
+                    hasDesign2D: !!generatedSnapshot.design2D,
+                    modulesCount: generatedSnapshot.customizationModules?.length || 0
+                  });
+                  return NextResponse.json({
+                    ...product,
+                    snapshot: generatedSnapshot,
+                    builder_data: undefined
+                  });
+                }
+              } else {
+                console.error('❌ Aucun modèle actif disponible pour générer le snapshot');
+              }
+              
+              // Si pas de modèle par défaut, retourner le produit sans snapshot
               return NextResponse.json(product);
             }
             
