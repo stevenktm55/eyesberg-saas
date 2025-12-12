@@ -2465,7 +2465,13 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
           });
           
           if (!productData.snapshot) {
-            console.error('❌ Aucun snapshot dans la réponse de l\'API');
+            console.error('❌ Aucun snapshot dans la réponse de l\'API:', {
+              productId: productData.id,
+              productName: productData.name,
+              hasBuilderData: !!productData.builder_data,
+              responseKeys: Object.keys(productData)
+            });
+            // Ne pas retourner null, laisser le composant gérer l'affichage d'erreur
             setConfig(null);
             setIsLoading(false);
             return;
@@ -4023,7 +4029,8 @@ export default function ConfiguratorViewer({
     );
   }
   
-  if (!snapshot || !productConfig) {
+  // Vérifier seulement si le snapshot existe (productConfig peut être null même avec snapshot)
+  if (!snapshot) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
