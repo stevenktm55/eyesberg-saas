@@ -106,7 +106,11 @@ export async function GET(request: NextRequest) {
           // Pour le builder admin, retourner le produit avec builder_data ET snapshot
           console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID):', {
             productId: product.id,
-            productName: product.name
+            productName: product.name,
+            hasBuilderData: !!product.builder_data,
+            builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+            hasQuestions: !!(product.builder_data?.questions),
+            questionsCount: product.builder_data?.questions?.length || 0
           });
           return NextResponse.json(product);
         }
@@ -177,6 +181,16 @@ export async function GET(request: NextRequest) {
         }
 
         // Retourner le produit avec builder_data si pas de snapshot généré
+        console.log('📦 Retour du produit sans snapshot généré (UUID):', {
+          productId: product.id,
+          forAdmin: forAdmin,
+          hasBuilderData: !!product.builder_data,
+          builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+          hasQuestions: !!(product.builder_data?.questions),
+          questionsCount: product.builder_data?.questions?.length || 0,
+          hasCustomizationModules: !!(product.builder_data?.customizationModules),
+          customizationModulesCount: product.builder_data?.customizationModules?.length || 0
+        });
         return NextResponse.json(product);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId

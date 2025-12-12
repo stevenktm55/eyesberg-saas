@@ -984,7 +984,13 @@ export default function ProductBuilderPage() {
               id: product.id,
               name: product.name,
               hasBuilderData: !!product.builder_data,
-              hasSettings: !!product.builder_data?.settings
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              hasQuestions: !!(product.builder_data?.questions),
+              questionsCount: product.builder_data?.questions?.length || 0,
+              hasCustomizationModules: !!(product.builder_data?.customizationModules),
+              customizationModulesCount: product.builder_data?.customizationModules?.length || 0,
+              hasSettings: !!product.builder_data?.settings,
+              builderDataString: JSON.stringify(product.builder_data).substring(0, 500)
             });
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
