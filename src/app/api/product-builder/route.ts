@@ -201,16 +201,29 @@ export async function GET(request: NextRequest) {
         // Générer un snapshot automatique depuis builder_data si disponible
         // Pour le preview, on ignore publishedSnapshot et on génère uniquement depuis builder_data
         if (product.builder_data) {
+          // Pour le preview, supprimer publishedSnapshot de builder_data avant génération
+          let builderDataForSnapshot = product.builder_data;
+          if (isPreview) {
+            console.log('📸 Preview - suppression de publishedSnapshot de builder_data avant génération:', {
+              productId: product.id,
+              hadPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+              hadPublishedSnapshotColumn: !!product.published_snapshot
+            });
+            // Créer une copie de builder_data sans publishedSnapshot
+            const { publishedSnapshot, ...restBuilderData } = product.builder_data;
+            builderDataForSnapshot = restBuilderData;
+          }
+          
           try {
-            const model3DId = product.builder_data?.model3DId || 
-                              product.builder_data?.modelId || 
-                              product.builder_data?.selectedModel3DId || 
-                              product.builder_data?.selectedModelId;
+            const model3DId = builderDataForSnapshot?.model3DId || 
+                              builderDataForSnapshot?.modelId || 
+                              builderDataForSnapshot?.selectedModel3DId || 
+                              builderDataForSnapshot?.selectedModelId;
             
             if (!model3DId) {
               console.warn('⚠️ Pas de model3DId dans builder_data pour UUID:', {
                 productId: product.id,
-                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+                builderDataKeys: builderDataForSnapshot ? Object.keys(builderDataForSnapshot) : []
               });
               // Pour le preview, retourner une erreur si pas de model3DId
               if (isPreview) {
@@ -243,11 +256,15 @@ export async function GET(request: NextRequest) {
               productId: product.id,
               shopifyProductId: shopifyProductIdForSnapshot,
               shopDomain: shopDomainForSnapshot,
-              model3DId: model3DId
+              model3DId: model3DId,
+              isPreview,
+              builderDataKeys: builderDataForSnapshot ? Object.keys(builderDataForSnapshot) : [],
+              hasPublishedSnapshotInBuilderData: !!(product.builder_data?.publishedSnapshot)
             });
             
+            // Utiliser builderDataForSnapshot (sans publishedSnapshot si preview) pour générer le snapshot
             const generatedSnapshot = await generateSnapshot(
-              product.builder_data,
+              builderDataForSnapshot,
               shopDomainForSnapshot,
               shopifyProductIdForSnapshot
             );
@@ -584,17 +601,30 @@ export async function GET(request: NextRequest) {
         // Générer un snapshot automatique à partir de builder_data si disponible
         // Utiliser exactement la même fonction que lors de la connexion du produit
         if (product.builder_data) {
+          // Pour le preview, supprimer publishedSnapshot de builder_data avant génération
+          let builderDataForSnapshot = product.builder_data;
+          if (isPreview) {
+            console.log('📸 Preview - suppression de publishedSnapshot de builder_data avant génération (ID Shopify):', {
+              productId: product.id,
+              hadPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+              hadPublishedSnapshotColumn: !!product.published_snapshot
+            });
+            // Créer une copie de builder_data sans publishedSnapshot
+            const { publishedSnapshot, ...restBuilderData } = product.builder_data;
+            builderDataForSnapshot = restBuilderData;
+          }
+          
           try {
             // Vérifier que builder_data a un model3DId (requis par generateSnapshot)
-            const model3DId = product.builder_data?.model3DId || 
-                              product.builder_data?.modelId || 
-                              product.builder_data?.selectedModel3DId || 
-                              product.builder_data?.selectedModelId;
+            const model3DId = builderDataForSnapshot?.model3DId || 
+                              builderDataForSnapshot?.modelId || 
+                              builderDataForSnapshot?.selectedModel3DId || 
+                              builderDataForSnapshot?.selectedModelId;
             
             if (!model3DId) {
               console.warn('⚠️ Pas de model3DId dans builder_data, impossible de générer le snapshot:', {
                 productId: product.id,
-                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+                builderDataKeys: builderDataForSnapshot ? Object.keys(builderDataForSnapshot) : [],
                 isPreview
               });
               // Pour le preview, retourner une erreur si pas de model3DId
@@ -630,15 +660,18 @@ export async function GET(request: NextRequest) {
               productId: product.id,
               shopifyProductId: shopifyProductIdForSnapshot,
               shopDomain: shopDomainForSnapshot,
-              hasBuilderData: !!product.builder_data,
-              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              hasBuilderData: !!builderDataForSnapshot,
+              builderDataKeys: builderDataForSnapshot ? Object.keys(builderDataForSnapshot) : [],
               model3DId: model3DId,
-              hasCustomizationModules: !!(product.builder_data?.customizationModules),
-              customizationModulesCount: product.builder_data?.customizationModules?.length || 0
+              hasCustomizationModules: !!(builderDataForSnapshot?.customizationModules),
+              customizationModulesCount: builderDataForSnapshot?.customizationModules?.length || 0,
+              isPreview,
+              hasPublishedSnapshotInBuilderData: !!(product.builder_data?.publishedSnapshot)
             });
             
+            // Utiliser builderDataForSnapshot (sans publishedSnapshot si preview) pour générer le snapshot
             const generatedSnapshot = await generateSnapshot(
-              product.builder_data,
+              builderDataForSnapshot,
               shopDomainForSnapshot,
               shopifyProductIdForSnapshot
             );
