@@ -491,7 +491,9 @@ export async function GET(request: NextRequest) {
         // Sinon, retourner le produit avec builder_data (pour le builder admin)
         return NextResponse.json(product);
       }
-    } else if (shopDomain) {
+    }
+    
+    if (shopDomain && !id) {
       // Rechercher un produit existant pour ce shop
       const { data: existingProduct, error: existingError } = await supabaseAdmin
         .from('product_builder')
