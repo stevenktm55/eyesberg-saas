@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
     const shopDomain = searchParams.get('shop');
     const shopifyProductId = searchParams.get('shopifyProductId');
+    const forClient = searchParams.get('for') === 'client'; // Si for=client, retourner le snapshot, sinon builder_data pour admin
     
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
@@ -73,57 +74,83 @@ export async function GET(request: NextRequest) {
           throw error;
         }
 
-        // Vérifier si le produit a un snapshot publié
-        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot) {
-          console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
-            productId: product.id,
-            productName: product.name,
-            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
-          });
-          return NextResponse.json({
-            ...product,
-            snapshot: publishedSnapshot,
-            builder_data: undefined
-          });
-        }
+        // Si c'est pour le client (configurateur), générer/retourner le snapshot
+        // Sinon, retourner builder_data pour le builder admin
+        if (forClient || shopDomain) {
+          // Vérifier si le produit a un snapshot publié
+          const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+          if (publishedSnapshot) {
+            console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+              productId: product.id,
+              productName: product.name,
+              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+            });
+            return NextResponse.json({
+              ...product,
+              snapshot: publishedSnapshot,
+              builder_data: undefined
+            });
+          }
 
-        // Générer un snapshot automatique si pas de snapshot publié
-        if (product.builder_data) {
-          try {
-            const model3DId = product.builder_data?.model3DId || 
-                              product.builder_data?.modelId || 
-                              product.builder_data?.selectedModel3DId || 
-                              product.builder_data?.selectedModelId;
-            
-            if (!model3DId) {
-              // Essayer de récupérer un modèle par défaut
-              const { data: defaultModels } = await supabaseAdmin
-                .from('models_3d')
-                .select('id')
-                .eq('active', true)
-                .limit(1);
+          // Générer un snapshot automatique si pas de snapshot publié
+          if (product.builder_data) {
+            try {
+              const model3DId = product.builder_data?.model3DId || 
+                                product.builder_data?.modelId || 
+                                product.builder_data?.selectedModel3DId || 
+                                product.builder_data?.selectedModelId;
               
-              if (defaultModels && defaultModels.length > 0) {
-                const defaultModelId = defaultModels[0].id;
-                const builderDataWithModel = {
-                  ...product.builder_data,
-                  model3DId: defaultModelId,
-                  modelId: defaultModelId,
-                  selectedModel3DId: defaultModelId
-                };
+              if (!model3DId) {
+                // Essayer de récupérer un modèle par défaut
+                const { data: defaultModels } = await supabaseAdmin
+                  .from('models_3d')
+                  .select('id')
+                  .eq('active', true)
+                  .limit(1);
                 
+                if (defaultModels && defaultModels.length > 0) {
+                  const defaultModelId = defaultModels[0].id;
+                  const builderDataWithModel = {
+                    ...product.builder_data,
+                    model3DId: defaultModelId,
+                    modelId: defaultModelId,
+                    selectedModel3DId: defaultModelId
+                  };
+                  
+                  const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+                  const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+                  
+                  const generatedSnapshot = await generateSnapshot(
+                    builderDataWithModel,
+                    shopDomainForSnapshot,
+                    shopifyProductIdForSnapshot
+                  );
+                  
+                  if (generatedSnapshot) {
+                    console.log('✅ Snapshot généré avec modèle par défaut (UUID):', {
+                      hasModel3D: !!generatedSnapshot.model3D,
+                      modulesCount: generatedSnapshot.customizationModules?.length || 0
+                    });
+                    return NextResponse.json({
+                      ...product,
+                      snapshot: generatedSnapshot,
+                      builder_data: undefined
+                    });
+                  }
+                }
+              } else {
+                // Utiliser le model3DId existant
                 const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
                 const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
                 
                 const generatedSnapshot = await generateSnapshot(
-                  builderDataWithModel,
+                  product.builder_data,
                   shopDomainForSnapshot,
                   shopifyProductIdForSnapshot
                 );
                 
                 if (generatedSnapshot) {
-                  console.log('✅ Snapshot généré avec modèle par défaut (UUID):', {
+                  console.log('✅ Snapshot généré automatiquement (UUID):', {
                     hasModel3D: !!generatedSnapshot.model3D,
                     modulesCount: generatedSnapshot.customizationModules?.length || 0
                   });
@@ -134,38 +161,24 @@ export async function GET(request: NextRequest) {
                   });
                 }
               }
-            } else {
-              // Utiliser le model3DId existant
-              const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
-              const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
-              
-              const generatedSnapshot = await generateSnapshot(
-                product.builder_data,
-                shopDomainForSnapshot,
-                shopifyProductIdForSnapshot
-              );
-              
-              if (generatedSnapshot) {
-                console.log('✅ Snapshot généré automatiquement (UUID):', {
-                  hasModel3D: !!generatedSnapshot.model3D,
-                  modulesCount: generatedSnapshot.customizationModules?.length || 0
-                });
-                return NextResponse.json({
-                  ...product,
-                  snapshot: generatedSnapshot,
-                  builder_data: undefined
-                });
-              }
+            } catch (error: any) {
+              console.error('❌ Erreur lors de la génération du snapshot (UUID):', {
+                error: error.message,
+                productId: product.id
+              });
             }
-          } catch (error: any) {
-            console.error('❌ Erreur lors de la génération du snapshot (UUID):', {
-              error: error.message,
-              productId: product.id
-            });
           }
+
+          // Retourner le produit sans snapshot si la génération a échoué (pour le client)
+          return NextResponse.json(product);
         }
 
-        // Retourner le produit sans snapshot si la génération a échoué
+        // Pour le builder admin (pas de for=client ni shopDomain), retourner builder_data
+        console.log('📦 Retour du produit avec builder_data pour le builder admin (UUID):', {
+          productId: product.id,
+          productName: product.name,
+          hasBuilderData: !!product.builder_data
+        });
         return NextResponse.json(product);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
@@ -286,47 +299,50 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        // Si le produit a un snapshot publié, le retourner au lieu de builder_data
-        // (pour le configurateur client)
-        // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
-        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot) {
-          console.log('📸 Retour du snapshot publié pour le produit:', {
+        // Si c'est pour le client (configurateur) ou si shopDomain est fourni, générer/retourner le snapshot
+        // Sinon, retourner builder_data pour le builder admin
+        if (forClient || shopDomain) {
+          // Si le produit a un snapshot publié, le retourner au lieu de builder_data
+          // (pour le configurateur client)
+          // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
+          const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+          if (publishedSnapshot) {
+            console.log('📸 Retour du snapshot publié pour le produit:', {
+              productId: product.id,
+              productName: product.name,
+              shopifyProductId: product.shopify_product_id,
+              fromBuilderData: !!product.builder_data?.publishedSnapshot,
+              fromColumn: !!product.published_snapshot,
+              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
+              hasModel3D: !!publishedSnapshot.model3D,
+              hasDesign2D: !!publishedSnapshot.design2D,
+              design2DUrl: publishedSnapshot.design2D?.url,
+              snapshotVersion: publishedSnapshot.version,
+              publishedAt: publishedSnapshot.publishedAt,
+              // Vérifier la structure complète du snapshot
+              snapshotKeys: Object.keys(publishedSnapshot)
+            });
+            return NextResponse.json({
+              ...product,
+              snapshot: publishedSnapshot,
+              // Ne pas exposer builder_data au client
+              builder_data: undefined
+            });
+          }
+          
+          console.log('⚠️ Aucun snapshot trouvé pour le produit, génération automatique depuis builder_data:', {
             productId: product.id,
             productName: product.name,
             shopifyProductId: product.shopify_product_id,
-            fromBuilderData: !!product.builder_data?.publishedSnapshot,
-            fromColumn: !!product.published_snapshot,
-            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
-            hasModel3D: !!publishedSnapshot.model3D,
-            hasDesign2D: !!publishedSnapshot.design2D,
-            design2DUrl: publishedSnapshot.design2D?.url,
-            snapshotVersion: publishedSnapshot.version,
-            publishedAt: publishedSnapshot.publishedAt,
-            // Vérifier la structure complète du snapshot
-            snapshotKeys: Object.keys(publishedSnapshot)
+            hasBuilderData: !!product.builder_data,
+            hasPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+            hasPublishedSnapshotColumn: !!product.published_snapshot,
+            builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
           });
-          return NextResponse.json({
-            ...product,
-            snapshot: publishedSnapshot,
-            // Ne pas exposer builder_data au client
-            builder_data: undefined
-          });
-        }
-        
-        console.log('⚠️ Aucun snapshot trouvé pour le produit, génération automatique depuis builder_data:', {
-          productId: product.id,
-          productName: product.name,
-          shopifyProductId: product.shopify_product_id,
-          hasBuilderData: !!product.builder_data,
-          hasPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
-          hasPublishedSnapshotColumn: !!product.published_snapshot,
-          builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
-        });
 
-        // Générer un snapshot automatique à partir de builder_data si disponible
-        // Utiliser exactement la même fonction que lors de la connexion du produit
-        if (product.builder_data) {
+          // Générer un snapshot automatique à partir de builder_data si disponible
+          // Utiliser exactement la même fonction que lors de la connexion du produit
+          if (product.builder_data) {
           try {
             // Vérifier que builder_data a un model3DId (requis par generateSnapshot)
             const model3DId = product.builder_data?.model3DId || 
@@ -462,6 +478,16 @@ export async function GET(request: NextRequest) {
           });
         }
 
+        // Si c'est pour le client, on a déjà essayé de générer le snapshot
+        // Si c'est pour le builder admin, retourner builder_data
+        if (!forClient && !shopDomain) {
+          console.log('📦 Retour du produit avec builder_data pour le builder admin (ID Shopify):', {
+            productId: product.id,
+            productName: product.name,
+            hasBuilderData: !!product.builder_data
+          });
+        }
+        
         // Sinon, retourner le produit avec builder_data (pour le builder admin)
         return NextResponse.json(product);
       }

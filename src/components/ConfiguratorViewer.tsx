@@ -2442,7 +2442,7 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         const normalizedProductId = normalizeShopifyProductId(product);
         // Ajouter un timestamp pour éviter le cache
         const timestamp = Date.now();
-        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}&_t=${timestamp}`;
+        const url = `/api/product-builder?shop=${encodeURIComponent(shop)}&id=${encodeURIComponent(normalizedProductId || product)}&for=client&_t=${timestamp}`;
         console.log('📡 Chargement de la configuration depuis:', url);
         const response = await fetch(url, {
           cache: 'no-store',
