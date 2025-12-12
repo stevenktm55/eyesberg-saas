@@ -2434,6 +2434,15 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       const product = productId || urlParams.get('productId');
       const isPreview = urlParams.get('preview') === 'true';
       
+      console.log('🔍 ConfiguratorViewer - Détection preview:', {
+        windowLocation: window.location.href,
+        searchParams: window.location.search,
+        previewParam: urlParams.get('preview'),
+        isPreview,
+        shop,
+        product
+      });
+      
       if (!shop || !product) {
         setIsLoading(false);
         return;
@@ -2450,11 +2459,15 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         apiParams.append('_t', timestamp.toString());
         if (isPreview) {
           apiParams.append('preview', 'true');
+          console.log('✅ Preview détecté - ajout du paramètre preview=true à l\'API');
+        } else {
+          console.warn('⚠️ Preview NON détecté - le paramètre preview=true n\'est pas dans l\'URL');
         }
         const url = `/api/product-builder?${apiParams.toString()}`;
         console.log('📡 Chargement de la configuration depuis:', url, {
           isPreview,
-          previewParam: isPreview ? 'preview=true' : 'none'
+          previewParam: isPreview ? 'preview=true' : 'none',
+          fullUrl: url
         });
         const response = await fetch(url, {
           cache: 'no-store',

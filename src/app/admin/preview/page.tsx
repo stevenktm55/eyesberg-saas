@@ -40,6 +40,8 @@ export default function PreviewPage() {
         const data = await response.json();
         
         if (data.configuratorUrl) {
+          console.log('📸 URL du configurateur générée pour le preview:', data.configuratorUrl);
+          console.log('📸 Vérification preview=true dans l\'URL:', data.configuratorUrl.includes('preview=true'));
           setConfiguratorUrl(data.configuratorUrl);
         } else {
           throw new Error('No configurator URL returned');
