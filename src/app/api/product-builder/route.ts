@@ -479,6 +479,7 @@ export async function GET(request: NextRequest) {
             hasBuilderData: !!product.builder_data
           });
         }
+        } // Fermer le if (forClient)
 
         // Pour le builder admin (pas de for=client), retourner builder_data
         console.log('📦 Retour du produit avec builder_data pour le builder admin (ID Shopify):', {
