@@ -97,13 +97,28 @@ export default function PreviewPage() {
     );
   }
 
+  // Log l'URL utilisée dans l'iframe pour vérifier qu'elle contient preview=true
+  useEffect(() => {
+    if (configuratorUrl) {
+      console.log('📸 URL utilisée dans l\'iframe:', configuratorUrl);
+      console.log('📸 Vérification preview=true dans l\'URL de l\'iframe:', configuratorUrl.includes('preview=true'));
+      console.log('📸 Tous les paramètres de l\'URL:', new URLSearchParams(configuratorUrl.split('?')[1] || '').toString());
+    }
+  }, [configuratorUrl]);
+
   return (
     <div className="h-screen w-screen overflow-hidden">
       <iframe
-        src={configuratorUrl}
+        src={configuratorUrl || ''}
         className="w-full h-full border-0"
         title="Aperçu du configurateur"
         allow="fullscreen"
+        onLoad={() => {
+          console.log('📸 Iframe chargée, URL finale:', configuratorUrl);
+          if (configuratorUrl && !configuratorUrl.includes('preview=true')) {
+            console.error('❌ ERREUR: L\'URL de l\'iframe ne contient pas preview=true !', configuratorUrl);
+          }
+        }}
       />
     </div>
   );
