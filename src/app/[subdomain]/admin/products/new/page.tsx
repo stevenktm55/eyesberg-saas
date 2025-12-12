@@ -2879,6 +2879,50 @@ export default function ProductBuilderPage() {
                     Create question
                   </button>
                 </div>
+              ) : customizationModules.length === 0 && questions.length > 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '32px 16px',
+                  color: '#a0a0a0'
+                }}>
+                  <p style={{
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginBottom: '8px',
+                    color: '#ff6b6b'
+                  }}>
+                    ⚠️ Modules de personnalisation manquants
+                  </p>
+                  <p style={{
+                    fontSize: '12px',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginBottom: '24px',
+                    color: '#a0a0a0'
+                  }}>
+                    Les questions existent mais les modules de personnalisation sont vides. Cliquez sur "Create question" pour créer un nouveau module.
+                  </p>
+                  <button
+                    onClick={addQuestion}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#8eff36',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#000000',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--stepn-font-body)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      margin: '0 auto'
+                    }}
+                  >
+                    <span>+</span>
+                    Create question
+                  </button>
+                </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {/* Customization Modules */}
