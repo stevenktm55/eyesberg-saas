@@ -43,25 +43,24 @@ export async function GET(request: NextRequest) {
       subdomain = await getSubdomain(request);
     }
     
-    if (!subdomain) {
-      return NextResponse.json(
-        { error: 'Subdomain is required. Please provide shop parameter or ensure subdomain is set in headers.' },
-        { status: 400 }
-      );
-    }
-    
     if (id) {
       // Vérifier si c'est un UUID (ID Eyesberg) ou un nombre (ID Shopify)
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
       
       if (isUUID) {
         // C'est un UUID Eyesberg, récupérer directement
-        const { data: product, error } = await supabaseAdmin
+        // Pour les UUIDs, on peut récupérer le produit sans subdomain car l'UUID est unique
+        let query = supabaseAdmin
           .from('product_builder')
           .select('*')
-          .eq('id', id)
-          .eq('subdomain', subdomain)
-          .single();
+          .eq('id', id);
+        
+        // Si subdomain est fourni, l'utiliser pour filtrer (sécurité)
+        if (subdomain) {
+          query = query.eq('subdomain', subdomain);
+        }
+        
+        const { data: product, error } = await query.single();
 
         if (error) {
           if (error.code === 'PGRST116') {
@@ -73,6 +72,88 @@ export async function GET(request: NextRequest) {
           throw error;
         }
 
+        // Si le produit a été trouvé mais qu'on avait un subdomain et qu'il ne correspond pas
+        if (subdomain && product.subdomain !== subdomain) {
+          return NextResponse.json(
+            { error: 'Product not found for this subdomain' },
+            { status: 404 }
+          );
+        }
+
+        // Utiliser le subdomain du produit si on ne l'avait pas
+        if (!subdomain && product.subdomain) {
+          subdomain = product.subdomain;
+        }
+
+        // Si le produit a un snapshot publié, le retourner
+        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+        if (publishedSnapshot) {
+          console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+            productId: product.id,
+            productName: product.name,
+            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+          });
+          return NextResponse.json({
+            ...product,
+            snapshot: publishedSnapshot,
+            builder_data: undefined
+          });
+        }
+
+        // Générer un snapshot automatique depuis builder_data si disponible
+        if (product.builder_data) {
+          try {
+            const model3DId = product.builder_data?.model3DId || 
+                              product.builder_data?.modelId || 
+                              product.builder_data?.selectedModel3DId || 
+                              product.builder_data?.selectedModelId;
+            
+            if (!model3DId) {
+              console.warn('⚠️ Pas de model3DId dans builder_data pour UUID:', {
+                productId: product.id,
+                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+              });
+              // Retourner le produit sans snapshot si pas de model3DId
+              return NextResponse.json(product);
+            }
+            
+            const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+            const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+            
+            console.log('📸 Génération automatique du snapshot pour UUID (même logique que connexion):', {
+              productId: product.id,
+              shopifyProductId: shopifyProductIdForSnapshot,
+              shopDomain: shopDomainForSnapshot,
+              model3DId: model3DId
+            });
+            
+            const generatedSnapshot = await generateSnapshot(
+              product.builder_data,
+              shopDomainForSnapshot,
+              shopifyProductIdForSnapshot
+            );
+            
+            if (generatedSnapshot) {
+              console.log('✅ Snapshot généré automatiquement pour UUID:', {
+                hasModel3D: !!generatedSnapshot.model3D,
+                hasDesign2D: !!generatedSnapshot.design2D,
+                modulesCount: generatedSnapshot.customizationModules?.length || 0
+              });
+              return NextResponse.json({
+                ...product,
+                snapshot: generatedSnapshot,
+                builder_data: undefined
+              });
+            }
+          } catch (error: any) {
+            console.error('❌ Erreur lors de la génération automatique du snapshot pour UUID:', {
+              error: error.message,
+              productId: product.id
+            });
+          }
+        }
+
+        // Retourner le produit avec builder_data si pas de snapshot généré
         return NextResponse.json(product);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
