@@ -2473,8 +2473,18 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
             shopifyProductId: productData.shopify_product_id,
             snapshotKeys: productData.snapshot ? Object.keys(productData.snapshot) : [],
             hasDesign2D: !!productData.snapshot?.design2D,
-            design2DUrl: productData.snapshot?.design2D?.url
+            design2DUrl: productData.snapshot?.design2D?.url,
+            error: productData.error
           });
+          
+          // Si l'API retourne une erreur (par exemple builder_data vide pour preview)
+          if (productData.error) {
+            console.error('❌ Erreur de l\'API:', productData.error);
+            setConfig(null);
+            setIsLoading(false);
+            // En mode preview, l'erreur sera affichée par le composant d'erreur
+            return;
+          }
           
           if (!productData.snapshot) {
             console.error('❌ Aucun snapshot dans la réponse de l\'API', {
