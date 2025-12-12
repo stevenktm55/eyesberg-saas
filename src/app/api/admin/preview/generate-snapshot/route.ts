@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
     // Le ConfiguratorViewer chargera automatiquement depuis /api/product-builder
     // qui génère maintenant automatiquement le snapshot depuis builder_data
     // en utilisant exactement la même fonction que lors de la connexion
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://eyesberg.app';
+    
+    // Utiliser le domaine de la requête actuelle pour construire l'URL relative
+    // Cela évite les problèmes de domaine différent
     const urlParams = new URLSearchParams();
     
     // Utiliser productId (peut être UUID Eyesberg ou ID Shopify)
@@ -35,14 +37,18 @@ export async function POST(request: NextRequest) {
     }
     
     // Ajouter preview=true pour masquer les boutons de sauvegarde/panier
+    // IMPORTANT: Ce paramètre doit être présent pour que l'API ignore publishedSnapshot
     urlParams.append('preview', 'true');
     
-    const configuratorUrl = `${baseUrl}/configure?${urlParams.toString()}`;
+    // Utiliser une URL relative pour éviter les problèmes de domaine
+    const configuratorUrl = `/configure?${urlParams.toString()}`;
 
     console.log('📸 URL de preview générée:', {
       productId,
       shop,
-      configuratorUrl
+      configuratorUrl,
+      hasPreviewParam: configuratorUrl.includes('preview=true'),
+      urlParamsString: urlParams.toString()
     });
 
     return NextResponse.json({
