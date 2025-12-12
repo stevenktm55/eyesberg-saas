@@ -977,7 +977,7 @@ export default function ProductBuilderPage() {
         if (id) {
           // Charger un produit existant
           console.log('📸 Chargement du produit avec ID:', id);
-          const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}`);
+          const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}&for=admin`);
           if (res.ok) {
             const product = await res.json();
             console.log('📸 Produit chargé:', {
@@ -1036,7 +1036,7 @@ export default function ProductBuilderPage() {
           }
         } else if (shop) {
           // Créer un nouveau produit
-          const res = await fetch(`/api/product-builder?shop=${encodeURIComponent(shop)}`);
+          const res = await fetch(`/api/product-builder?shop=${encodeURIComponent(shop)}&for=admin`);
           if (res.ok) {
             const product = await res.json();
             setProductId(product.id);

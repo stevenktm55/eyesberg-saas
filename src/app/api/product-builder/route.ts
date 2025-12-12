@@ -16,6 +16,9 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
     const shopDomain = searchParams.get('shop');
     const shopifyProductId = searchParams.get('shopifyProductId');
+    // Si for=admin, on retourne builder_data (pour le builder admin)
+    // Sinon, on retourne snapshot (pour le configurateur client)
+    const forAdmin = searchParams.get('for') === 'admin';
     
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
@@ -87,7 +90,8 @@ export async function GET(request: NextRequest) {
 
         // Si le produit a un snapshot publié, le retourner
         const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot) {
+        if (publishedSnapshot && !forAdmin) {
+          // Pour le configurateur client, retourner le snapshot sans builder_data
           console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
             productId: product.id,
             productName: product.name,
@@ -98,6 +102,13 @@ export async function GET(request: NextRequest) {
             snapshot: publishedSnapshot,
             builder_data: undefined
           });
+        } else if (publishedSnapshot && forAdmin) {
+          // Pour le builder admin, retourner le produit avec builder_data ET snapshot
+          console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID):', {
+            productId: product.id,
+            productName: product.name
+          });
+          return NextResponse.json(product);
         }
 
         // Générer un snapshot automatique depuis builder_data si disponible
@@ -137,13 +148,25 @@ export async function GET(request: NextRequest) {
               console.log('✅ Snapshot généré automatiquement pour UUID:', {
                 hasModel3D: !!generatedSnapshot.model3D,
                 hasDesign2D: !!generatedSnapshot.design2D,
-                modulesCount: generatedSnapshot.customizationModules?.length || 0
+                modulesCount: generatedSnapshot.customizationModules?.length || 0,
+                forAdmin: forAdmin
               });
-              return NextResponse.json({
-                ...product,
-                snapshot: generatedSnapshot,
-                builder_data: undefined
-              });
+              
+              if (forAdmin) {
+                // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot
+                  // builder_data reste dans la réponse pour le builder admin
+                });
+              } else {
+                // Pour le configurateur client, retourner seulement le snapshot
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot,
+                  builder_data: undefined
+                });
+              }
             }
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot pour UUID:', {
@@ -278,7 +301,8 @@ export async function GET(request: NextRequest) {
         // (pour le configurateur client)
         // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
         const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-        if (publishedSnapshot) {
+        if (publishedSnapshot && !forAdmin) {
+          // Pour le configurateur client, retourner le snapshot sans builder_data
           console.log('📸 Retour du snapshot publié pour le produit:', {
             productId: product.id,
             productName: product.name,
@@ -300,6 +324,13 @@ export async function GET(request: NextRequest) {
             // Ne pas exposer builder_data au client
             builder_data: undefined
           });
+        } else if (publishedSnapshot && forAdmin) {
+          // Pour le builder admin, retourner le produit avec builder_data ET snapshot
+          console.log('📸 Retour du produit avec snapshot pour le builder admin:', {
+            productId: product.id,
+            productName: product.name
+          });
+          return NextResponse.json(product);
         }
         
         console.log('⚠️ Aucun snapshot trouvé pour le produit, génération automatique depuis builder_data:', {
@@ -358,14 +389,25 @@ export async function GET(request: NextRequest) {
                 hasDesign2D: !!generatedSnapshot.design2D,
                 modulesCount: generatedSnapshot.customizationModules?.length || 0,
                 design2DUrl: generatedSnapshot.design2D?.url,
-                model3DUrl: generatedSnapshot.model3D?.url
+                model3DUrl: generatedSnapshot.model3D?.url,
+                forAdmin: forAdmin
               });
-              return NextResponse.json({
-                ...product,
-                snapshot: generatedSnapshot,
-                // Ne pas exposer builder_data au client
-                builder_data: undefined
-              });
+              
+              if (forAdmin) {
+                // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot
+                  // builder_data reste dans la réponse pour le builder admin
+                });
+              } else {
+                // Pour le configurateur client, retourner seulement le snapshot
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot,
+                  builder_data: undefined
+                });
+              }
             } else {
               console.error('❌ generateSnapshot a retourné null/undefined');
             }
