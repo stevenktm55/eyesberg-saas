@@ -22,6 +22,15 @@ export async function GET(request: NextRequest) {
     // Si preview=true, on ignore publishedSnapshot et génère uniquement depuis builder_data actuel
     const isPreview = searchParams.get('preview') === 'true';
     
+    console.log('🔍 Paramètres de la requête API product-builder:', {
+      id,
+      shopDomain,
+      shopifyProductId,
+      forAdmin,
+      isPreview,
+      allParams: Object.fromEntries(searchParams.entries())
+    });
+    
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
     
@@ -92,6 +101,13 @@ export async function GET(request: NextRequest) {
 
         // Pour le preview, ignorer publishedSnapshot et générer uniquement depuis builder_data actuel
         // Pour le preview, vérifier que builder_data contient des données valides
+        console.log('🔍 Vérification isPreview pour UUID:', {
+          isPreview,
+          productId: product.id,
+          productName: product.name,
+          hasPublishedSnapshot: !!(product.builder_data?.publishedSnapshot || product.published_snapshot)
+        });
+        
         if (isPreview) {
           if (!product.builder_data) {
             console.warn('⚠️ Preview demandé mais builder_data est vide:', {
