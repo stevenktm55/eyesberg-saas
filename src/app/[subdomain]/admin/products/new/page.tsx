@@ -984,14 +984,27 @@ export default function ProductBuilderPage() {
               id: product.id,
               name: product.name,
               hasBuilderData: !!product.builder_data,
-              hasSettings: !!product.builder_data?.settings
+              hasSettings: !!product.builder_data?.settings,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              model3DId: product.builder_data?.model3DId,
+              design2DId: product.builder_data?.design2DId,
+              questionsCount: product.builder_data?.questions?.length || 0,
+              modulesCount: product.builder_data?.customizationModules?.length || 0
             });
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
             setQuestions(product.builder_data?.questions || []);
             setCustomizationModules(product.builder_data?.customizationModules || []);
-            setSelectedModel3DId(product.builder_data?.model3DId || null);
-            setSelectedDesign2DId(product.builder_data?.design2DId || null);
+            const model3DId = product.builder_data?.model3DId || 
+                              product.builder_data?.modelId || 
+                              product.builder_data?.selectedModel3DId || 
+                              product.builder_data?.selectedModelId || null;
+            const design2DId = product.builder_data?.design2DId || 
+                              product.builder_data?.designId || 
+                              product.builder_data?.selectedDesign2DId || null;
+            console.log('📸 IDs chargés:', { model3DId, design2DId });
+            setSelectedModel3DId(model3DId);
+            setSelectedDesign2DId(design2DId);
             // Charger les réglages 3D
             const settings = product.builder_data?.settings || {};
             console.log('📸 Chargement des réglages 3D depuis le produit:', settings);
