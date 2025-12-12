@@ -994,8 +994,26 @@ export default function ProductBuilderPage() {
             });
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
-            setQuestions(product.builder_data?.questions || []);
-            setCustomizationModules(product.builder_data?.customizationModules || []);
+            
+            // Charger questions et customizationModules
+            let loadedQuestions = product.builder_data?.questions || [];
+            let loadedCustomizationModules = product.builder_data?.customizationModules || [];
+            
+            // Si customizationModules est vide mais qu'on a un model3DId, 
+            // cela signifie que le produit a été configuré mais les modules n'ont pas été sauvegardés
+            // Dans ce cas, on garde les données telles quelles (le builder devrait permettre de créer des modules)
+            // Mais si les deux sont vides ET qu'on a un model3DId, c'est un produit nouveau ou réinitialisé
+            
+            console.log('📦 État des données chargées:', {
+              questionsCount: loadedQuestions.length,
+              customizationModulesCount: loadedCustomizationModules.length,
+              hasModel3DId: !!product.builder_data?.model3DId,
+              model3DId: product.builder_data?.model3DId,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+            });
+            
+            setQuestions(loadedQuestions);
+            setCustomizationModules(loadedCustomizationModules);
             setSelectedModel3DId(product.builder_data?.model3DId || null);
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
             // Charger les réglages 3D
