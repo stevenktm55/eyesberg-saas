@@ -73,6 +73,99 @@ export async function GET(request: NextRequest) {
           throw error;
         }
 
+        // Vérifier si le produit a un snapshot publié
+        const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
+        if (publishedSnapshot) {
+          console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+            productId: product.id,
+            productName: product.name,
+            snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+          });
+          return NextResponse.json({
+            ...product,
+            snapshot: publishedSnapshot,
+            builder_data: undefined
+          });
+        }
+
+        // Générer un snapshot automatique si pas de snapshot publié
+        if (product.builder_data) {
+          try {
+            const model3DId = product.builder_data?.model3DId || 
+                              product.builder_data?.modelId || 
+                              product.builder_data?.selectedModel3DId || 
+                              product.builder_data?.selectedModelId;
+            
+            if (!model3DId) {
+              // Essayer de récupérer un modèle par défaut
+              const { data: defaultModels } = await supabaseAdmin
+                .from('models_3d')
+                .select('id')
+                .eq('active', true)
+                .limit(1);
+              
+              if (defaultModels && defaultModels.length > 0) {
+                const defaultModelId = defaultModels[0].id;
+                const builderDataWithModel = {
+                  ...product.builder_data,
+                  model3DId: defaultModelId,
+                  modelId: defaultModelId,
+                  selectedModel3DId: defaultModelId
+                };
+                
+                const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+                const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+                
+                const generatedSnapshot = await generateSnapshot(
+                  builderDataWithModel,
+                  shopDomainForSnapshot,
+                  shopifyProductIdForSnapshot
+                );
+                
+                if (generatedSnapshot) {
+                  console.log('✅ Snapshot généré avec modèle par défaut (UUID):', {
+                    hasModel3D: !!generatedSnapshot.model3D,
+                    modulesCount: generatedSnapshot.customizationModules?.length || 0
+                  });
+                  return NextResponse.json({
+                    ...product,
+                    snapshot: generatedSnapshot,
+                    builder_data: undefined
+                  });
+                }
+              }
+            } else {
+              // Utiliser le model3DId existant
+              const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+              const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+              
+              const generatedSnapshot = await generateSnapshot(
+                product.builder_data,
+                shopDomainForSnapshot,
+                shopifyProductIdForSnapshot
+              );
+              
+              if (generatedSnapshot) {
+                console.log('✅ Snapshot généré automatiquement (UUID):', {
+                  hasModel3D: !!generatedSnapshot.model3D,
+                  modulesCount: generatedSnapshot.customizationModules?.length || 0
+                });
+                return NextResponse.json({
+                  ...product,
+                  snapshot: generatedSnapshot,
+                  builder_data: undefined
+                });
+              }
+            }
+          } catch (error: any) {
+            console.error('❌ Erreur lors de la génération du snapshot (UUID):', {
+              error: error.message,
+              productId: product.id
+            });
+          }
+        }
+
+        // Retourner le produit sans snapshot si la génération a échoué
         return NextResponse.json(product);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
@@ -309,11 +402,28 @@ export async function GET(request: NextRequest) {
               customizationModulesCount: product.builder_data?.customizationModules?.length || 0
             });
             
+            console.log('🚀 Appel de generateSnapshot avec:', {
+              builderDataKeys: Object.keys(product.builder_data),
+              model3DId: model3DId,
+              shopDomain: shopDomainForSnapshot,
+              shopifyProductId: shopifyProductIdForSnapshot
+            });
+            
             const generatedSnapshot = await generateSnapshot(
               product.builder_data,
               shopDomainForSnapshot,
               shopifyProductIdForSnapshot
             );
+            
+            console.log('📦 Résultat de generateSnapshot:', {
+              isNull: generatedSnapshot === null,
+              isUndefined: generatedSnapshot === undefined,
+              hasSnapshot: !!generatedSnapshot,
+              snapshotKeys: generatedSnapshot ? Object.keys(generatedSnapshot) : [],
+              hasModel3D: !!generatedSnapshot?.model3D,
+              hasDesign2D: !!generatedSnapshot?.design2D,
+              modulesCount: generatedSnapshot?.customizationModules?.length || 0
+            });
             
             if (generatedSnapshot) {
               console.log('✅ Snapshot généré automatiquement:', {
@@ -330,14 +440,17 @@ export async function GET(request: NextRequest) {
                 builder_data: undefined
               });
             } else {
-              console.error('❌ generateSnapshot a retourné null/undefined');
+              console.error('❌ generateSnapshot a retourné null/undefined - Vérifier les logs ci-dessus pour comprendre pourquoi');
+              // Ne pas retourner le produit sans snapshot, laisser le code continuer pour voir s'il y a d'autres erreurs
             }
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot:', {
               error: error.message,
-              stack: error.stack,
+              errorName: error.name,
+              stack: error.stack?.substring(0, 500), // Limiter la taille du stack
               productId: product.id,
-              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+              builderDataModel3DId: product.builder_data?.model3DId || product.builder_data?.modelId || product.builder_data?.selectedModel3DId
             });
             // Ne pas bloquer si la génération échoue, retourner le produit sans snapshot
             // Mais logguer l'erreur pour debug
