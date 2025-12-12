@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const shopDomain = searchParams.get('shop');
     const shopifyProductId = searchParams.get('shopifyProductId');
     const forClient = searchParams.get('for') === 'client'; // Si for=client, retourner le snapshot, sinon builder_data pour admin
+    // Note: shopDomain peut être présent pour le builder admin aussi, donc on ne l'utilise pas pour déterminer si c'est pour le client
     
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
@@ -74,9 +75,9 @@ export async function GET(request: NextRequest) {
           throw error;
         }
 
-        // Si c'est pour le client (configurateur), générer/retourner le snapshot
+        // Si c'est pour le client (configurateur avec for=client), générer/retourner le snapshot
         // Sinon, retourner builder_data pour le builder admin
-        if (forClient || shopDomain) {
+        if (forClient) {
           // Vérifier si le produit a un snapshot publié
           const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
           if (publishedSnapshot) {
@@ -173,11 +174,12 @@ export async function GET(request: NextRequest) {
           return NextResponse.json(product);
         }
 
-        // Pour le builder admin (pas de for=client ni shopDomain), retourner builder_data
+        // Pour le builder admin (pas de for=client), retourner builder_data
         console.log('📦 Retour du produit avec builder_data pour le builder admin (UUID):', {
           productId: product.id,
           productName: product.name,
-          hasBuilderData: !!product.builder_data
+          hasBuilderData: !!product.builder_data,
+          forClient: forClient
         });
         return NextResponse.json(product);
       } else {
@@ -299,9 +301,9 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        // Si c'est pour le client (configurateur) ou si shopDomain est fourni, générer/retourner le snapshot
+        // Si c'est pour le client (configurateur avec for=client), générer/retourner le snapshot
         // Sinon, retourner builder_data pour le builder admin
-        if (forClient || shopDomain) {
+        if (forClient) {
           // Si le produit a un snapshot publié, le retourner au lieu de builder_data
           // (pour le configurateur client)
           // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
@@ -478,17 +480,14 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        // Si c'est pour le client, on a déjà essayé de générer le snapshot
-        // Si c'est pour le builder admin, retourner builder_data
-        if (!forClient && !shopDomain) {
-          console.log('📦 Retour du produit avec builder_data pour le builder admin (ID Shopify):', {
-            productId: product.id,
-            productName: product.name,
-            hasBuilderData: !!product.builder_data
-          });
-        }
+        // Pour le builder admin (pas de for=client), retourner builder_data
+        console.log('📦 Retour du produit avec builder_data pour le builder admin (ID Shopify):', {
+          productId: product.id,
+          productName: product.name,
+          hasBuilderData: !!product.builder_data,
+          forClient: forClient
+        });
         
-        // Sinon, retourner le produit avec builder_data (pour le builder admin)
         return NextResponse.json(product);
       }
     }
