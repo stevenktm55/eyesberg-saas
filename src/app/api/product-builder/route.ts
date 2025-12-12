@@ -343,7 +343,7 @@ export async function GET(request: NextRequest) {
           // Générer un snapshot automatique à partir de builder_data si disponible
           // Utiliser exactement la même fonction que lors de la connexion du produit
           if (product.builder_data) {
-          try {
+            try {
             // Vérifier que builder_data a un model3DId (requis par generateSnapshot)
             const model3DId = product.builder_data?.model3DId || 
                               product.builder_data?.modelId || 
