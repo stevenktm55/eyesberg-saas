@@ -4,22 +4,28 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function PreviewPage() {
+  console.log('🔍 PreviewPage - Composant chargé');
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
   const shop = searchParams.get("shop");
+  console.log('🔍 PreviewPage - Paramètres URL:', { productId, shop, allParams: Array.from(searchParams.entries()) });
   const [configuratorUrl, setConfiguratorUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔍 PreviewPage - useEffect déclenché', { productId, shop });
     async function generatePreviewSnapshot() {
+      console.log('🔍 PreviewPage - generatePreviewSnapshot appelé', { productId, shop });
       if (!productId) {
+        console.error('❌ PreviewPage - Product ID manquant');
         setError("Product ID is required");
         setLoading(false);
         return;
       }
 
       try {
+        console.log('🔍 PreviewPage - Appel API /api/admin/preview/generate-snapshot', { productId, shop });
         // Générer un snapshot par défaut via l'API
         const response = await fetch('/api/admin/preview/generate-snapshot', {
           method: 'POST',
