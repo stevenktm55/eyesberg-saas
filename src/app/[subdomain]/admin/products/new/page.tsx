@@ -2850,31 +2850,42 @@ export default function ProductBuilderPage() {
                 <div style={{
                   textAlign: 'center',
                   padding: '32px 16px',
-                  color: '#a0a0a0'
+                  color: '#a0a0a0',
+                  minHeight: '200px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: '2px dashed #333',
+                  borderRadius: '8px',
+                  margin: '16px',
+                  backgroundColor: '#0a0a0a'
                 }}>
                   <p style={{
-                    fontSize: '14px',
+                    fontSize: '16px',
                     fontFamily: 'var(--stepn-font-body)',
-                    marginBottom: '8px',
-                    color: '#ffffff'
+                    marginBottom: '12px',
+                    color: '#ffffff',
+                    fontWeight: '600'
                   }}>
                     There are no questions, yet
                   </p>
                   <p style={{
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontFamily: 'var(--stepn-font-body)',
                     marginBottom: '24px',
-                    color: '#a0a0a0'
+                    color: '#a0a0a0',
+                    maxWidth: '400px'
                   }}>
                     Create your first question to start building your customizer.
                   </p>
                   <button
                     onClick={addQuestion}
                     style={{
-                      padding: '10px 20px',
+                      padding: '12px 24px',
                       backgroundColor: '#8eff36',
                       border: 'none',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
                       color: '#000000',
                       fontSize: '14px',
                       fontWeight: '600',
@@ -2883,10 +2894,20 @@ export default function ProductBuilderPage() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      margin: '0 auto'
+                      margin: '0 auto',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 8px rgba(142, 255, 54, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#a0ff50';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#8eff36';
+                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
-                    <span>+</span>
+                    <span style={{ fontSize: '18px' }}>+</span>
                     Create question
                   </button>
                 </div>
