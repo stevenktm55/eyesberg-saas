@@ -4,94 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getSubdomain } from '@/lib/get-subdomain';
-
-/**
- * Génère un snapshot à partir de builder_data pour le configurateur
- */
-async function generateSnapshotFromBuilderData(builderData: any, shopDomain?: string | null): Promise<any | null> {
-  try {
-    // Récupérer le modèle 3D par défaut
-    let modelUrl = builderData?.modelUrl || builderData?.model_url || null;
-    if (!modelUrl) {
-      // Récupérer le premier modèle actif disponible
-      const { data: models } = await supabaseAdmin
-        .from('models_3d')
-        .select('glb_url')
-        .eq('active', true)
-        .limit(1);
-      
-      if (models && models.length > 0) {
-        modelUrl = models[0].glb_url;
-      }
-    }
-
-    // Récupérer le design 2D par défaut
-    let designUrl = builderData?.designUrl || builderData?.design_url || null;
-    if (!designUrl) {
-      // Récupérer le premier design actif disponible
-      const { data: designs } = await supabaseAdmin
-        .from('designs')
-        .select('svg_url')
-        .eq('active', true)
-        .limit(1);
-      
-      if (designs && designs.length > 0) {
-        designUrl = designs[0].svg_url;
-      }
-    }
-
-    // Extraire les modules de personnalisation depuis builder_data.questions
-    const questions = builderData?.questions || [];
-    const customizationModules = questions.map((q: any, index: number) => {
-      const module: any = {
-        id: q.id || `module-${index}`,
-        type: q.type || q.contentType || 'unknown',
-        label: q.label || q.tabName || 'Module',
-        tabName: q.tabName || q.label || 'Module',
-        icon: q.icon || q.config?.icon,
-        iconUrl: q.iconUrl || q.config?.iconUrl,
-        config: q.config || {},
-        selectedItems: q.selectedItems || {},
-        allowedDesigns: q.allowedDesigns || [],
-        allowedColors: q.allowedColors || [],
-        default: q.default
-      };
-      return module;
-    });
-
-    // Créer le snapshot avec la structure attendue par ConfiguratorViewer
-    const snapshot = {
-      version: '1.0.0',
-      publishedAt: new Date().toISOString(),
-      model3D: modelUrl ? { url: modelUrl } : null,
-      design2D: designUrl ? { url: designUrl } : null,
-      customizationModules: customizationModules.length > 0 ? customizationModules : [
-        {
-          id: 'default-designs',
-          type: 'designs-2d',
-          label: 'Designs',
-          tabName: 'Designs',
-          config: {},
-          selectedItems: {},
-          allowedDesigns: [],
-          allowedColors: []
-        }
-      ],
-      defaultState: {
-        design2DId: designUrl || null,
-        colorId: builderData?.defaultColorId || null
-      },
-      cameraSettings: builderData?.cameraSettings || {},
-      textZones: builderData?.textZones || [],
-      fonts: builderData?.fonts || []
-    };
-
-    return snapshot;
-  } catch (error) {
-    console.error('Error generating snapshot from builder_data:', error);
-    return null;
-  }
-}
+import { generateSnapshot } from '@/lib/snapshot-generator';
 
 /**
  * GET /api/product-builder
@@ -319,14 +232,32 @@ export async function GET(request: NextRequest) {
         });
 
         // Générer un snapshot automatique à partir de builder_data si disponible
+        // Utiliser exactement la même fonction que lors de la connexion du produit
         if (product.builder_data) {
           try {
-            const generatedSnapshot = await generateSnapshotFromBuilderData(product.builder_data, shopDomain);
+            // Utiliser le shopify_product_id si disponible, sinon utiliser l'ID du produit builder
+            const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
+            const shopDomainForSnapshot = shopDomain || product.shop_domain || '';
+            
+            console.log('📸 Génération automatique du snapshot (même logique que connexion):', {
+              productId: product.id,
+              shopifyProductId: shopifyProductIdForSnapshot,
+              shopDomain: shopDomainForSnapshot,
+              hasBuilderData: !!product.builder_data
+            });
+            
+            const generatedSnapshot = await generateSnapshot(
+              product.builder_data,
+              shopDomainForSnapshot,
+              shopifyProductIdForSnapshot
+            );
+            
             if (generatedSnapshot) {
               console.log('✅ Snapshot généré automatiquement:', {
                 hasModel3D: !!generatedSnapshot.model3D,
                 hasDesign2D: !!generatedSnapshot.design2D,
-                modulesCount: generatedSnapshot.customizationModules?.length || 0
+                modulesCount: generatedSnapshot.customizationModules?.length || 0,
+                design2DUrl: generatedSnapshot.design2D?.url
               });
               return NextResponse.json({
                 ...product,
@@ -337,6 +268,7 @@ export async function GET(request: NextRequest) {
             }
           } catch (error) {
             console.error('❌ Erreur lors de la génération automatique du snapshot:', error);
+            // Ne pas bloquer si la génération échoue, retourner le produit sans snapshot
           }
         }
 
