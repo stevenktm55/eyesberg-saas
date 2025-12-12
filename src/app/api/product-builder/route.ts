@@ -28,8 +28,26 @@ export async function GET(request: NextRequest) {
       shopifyProductId,
       forAdmin,
       isPreview,
-      allParams: Object.fromEntries(searchParams.entries())
+      previewParamRaw: searchParams.get('preview'),
+      previewParamValue: searchParams.get('preview'),
+      allParams: Object.fromEntries(searchParams.entries()),
+      fullUrl: request.url
     });
+    
+    // Vérification explicite : si preview est présent dans l'URL (même avec une valeur différente), forcer isPreview
+    const previewParam = searchParams.get('preview');
+    if (previewParam !== null && previewParam !== undefined) {
+      const actualIsPreview = previewParam === 'true' || previewParam === '1' || previewParam === 'yes';
+      if (actualIsPreview !== isPreview) {
+        console.warn('⚠️ Incohérence détectée dans preview param:', {
+          previewParam,
+          isPreview,
+          actualIsPreview,
+          forcingIsPreview: actualIsPreview
+        });
+        // Ne pas forcer, mais logger pour debug
+      }
+    }
     
     // Si shopDomain est fourni, prioriser la récupération du subdomain depuis product_builder
     let subdomain: string | null = null;
@@ -103,12 +121,16 @@ export async function GET(request: NextRequest) {
         // Pour le preview, vérifier que builder_data contient des données valides
         console.log('🔍 Vérification isPreview pour UUID:', {
           isPreview,
+          previewParamFromUrl: searchParams.get('preview'),
           productId: product.id,
           productName: product.name,
-          hasPublishedSnapshot: !!(product.builder_data?.publishedSnapshot || product.published_snapshot)
+          hasPublishedSnapshot: !!(product.builder_data?.publishedSnapshot || product.published_snapshot),
+          willIgnorePublishedSnapshot: isPreview
         });
         
+        // CRITIQUE: En mode preview, NE JAMAIS retourner publishedSnapshot, même si la génération échoue
         if (isPreview) {
+          console.log('✅ MODE PREVIEW ACTIVÉ - publishedSnapshot sera ignoré');
           if (!product.builder_data) {
             console.warn('⚠️ Preview demandé mais builder_data est vide:', {
               productId: product.id,
@@ -171,28 +193,35 @@ export async function GET(request: NextRequest) {
           // Continuer pour générer le snapshot depuis builder_data (ne pas utiliser publishedSnapshot)
         } else {
           // Si le produit a un snapshot publié, le retourner (sauf pour preview)
+          // IMPORTANT: Ne jamais entrer ici si isPreview est true
+          if (isPreview) {
+            console.error('❌ ERREUR CRITIQUE: isPreview est true mais on entre dans le bloc else ! Ceci ne devrait jamais arriver.');
+          }
+          
           const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-          if (publishedSnapshot && !forAdmin) {
-            // Pour le configurateur client, retourner le snapshot sans builder_data
-            console.log('📸 Retour du snapshot publié pour le produit (UUID):', {
+          if (publishedSnapshot && !forAdmin && !isPreview) {
+            // Pour le configurateur client, retourner le snapshot sans builder_data (MAIS PAS EN MODE PREVIEW)
+            console.log('📸 Retour du snapshot publié pour le produit (UUID) - MODE NORMAL:', {
               productId: product.id,
               productName: product.name,
-              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0
+              snapshotModulesCount: publishedSnapshot.customizationModules?.length || 0,
+              isPreview: false
             });
             return NextResponse.json({
               ...product,
               snapshot: publishedSnapshot,
               builder_data: undefined
             });
-          } else if (publishedSnapshot && forAdmin) {
-            // Pour le builder admin, retourner le produit avec builder_data ET snapshot
-            console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID):', {
+          } else if (publishedSnapshot && forAdmin && !isPreview) {
+            // Pour le builder admin, retourner le produit avec builder_data ET snapshot (MAIS PAS EN MODE PREVIEW)
+            console.log('📸 Retour du produit avec snapshot pour le builder admin (UUID) - MODE ADMIN:', {
               productId: product.id,
               productName: product.name,
               hasBuilderData: !!product.builder_data,
               builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
               hasQuestions: !!(product.builder_data?.questions),
-              questionsCount: product.builder_data?.questions?.length || 0
+              questionsCount: product.builder_data?.questions?.length || 0,
+              isPreview: false
             });
             return NextResponse.json(product);
           }
@@ -553,11 +582,16 @@ export async function GET(request: NextRequest) {
           });
         } else {
           // Si le produit a un snapshot publié, le retourner (sauf pour preview)
+          // IMPORTANT: Ne jamais entrer ici si isPreview est true
+          if (isPreview) {
+            console.error('❌ ERREUR CRITIQUE: isPreview est true mais on entre dans le bloc else (ID Shopify) ! Ceci ne devrait jamais arriver.');
+          }
+          
           // Le snapshot est stocké dans builder_data.publishedSnapshot (priorité) ou published_snapshot (colonne, fallback)
           const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
-          if (publishedSnapshot && !forAdmin) {
-            // Pour le configurateur client, retourner le snapshot sans builder_data
-            console.log('📸 Retour du snapshot publié pour le produit:', {
+          if (publishedSnapshot && !forAdmin && !isPreview) {
+            // Pour le configurateur client, retourner le snapshot sans builder_data (MAIS PAS EN MODE PREVIEW)
+            console.log('📸 Retour du snapshot publié pour le produit - MODE NORMAL (ID Shopify):', {
               productId: product.id,
               productName: product.name,
               shopifyProductId: product.shopify_product_id,
@@ -569,6 +603,7 @@ export async function GET(request: NextRequest) {
               design2DUrl: publishedSnapshot.design2D?.url,
               snapshotVersion: publishedSnapshot.version,
               publishedAt: publishedSnapshot.publishedAt,
+              isPreview: false,
               // Vérifier la structure complète du snapshot
               snapshotKeys: Object.keys(publishedSnapshot)
             });
@@ -578,11 +613,12 @@ export async function GET(request: NextRequest) {
               // Ne pas exposer builder_data au client
               builder_data: undefined
             });
-          } else if (publishedSnapshot && forAdmin) {
-            // Pour le builder admin, retourner le produit avec builder_data ET snapshot
-            console.log('📸 Retour du produit avec snapshot pour le builder admin:', {
+          } else if (publishedSnapshot && forAdmin && !isPreview) {
+            // Pour le builder admin, retourner le produit avec builder_data ET snapshot (MAIS PAS EN MODE PREVIEW)
+            console.log('📸 Retour du produit avec snapshot pour le builder admin - MODE ADMIN (ID Shopify):', {
               productId: product.id,
-              productName: product.name
+              productName: product.name,
+              isPreview: false
             });
             return NextResponse.json(product);
           }
