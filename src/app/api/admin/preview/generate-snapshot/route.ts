@@ -25,8 +25,13 @@ export async function POST(request: NextRequest) {
     // qui génère maintenant automatiquement le snapshot depuis builder_data
     // en utilisant exactement la même fonction que lors de la connexion
     
-    // Utiliser le domaine de la requête actuelle pour construire l'URL relative
-    // Cela évite les problèmes de domaine différent
+    // Utiliser le domaine de la requête actuelle pour construire l'URL absolue
+    // Cela garantit que l'URL fonctionne correctement dans une iframe
+    const origin = request.headers.get('origin') || 
+                   request.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
+                   process.env.NEXT_PUBLIC_APP_URL || 
+                   'https://eyesberg.app';
+    
     const urlParams = new URLSearchParams();
     
     // Utiliser productId (peut être UUID Eyesberg ou ID Shopify)
@@ -40,15 +45,17 @@ export async function POST(request: NextRequest) {
     // IMPORTANT: Ce paramètre doit être présent pour que l'API ignore publishedSnapshot
     urlParams.append('preview', 'true');
     
-    // Utiliser une URL relative pour éviter les problèmes de domaine
-    const configuratorUrl = `/configure?${urlParams.toString()}`;
+    // Utiliser une URL absolue avec le domaine de la requête
+    const configuratorUrl = `${origin}/configure?${urlParams.toString()}`;
 
     console.log('📸 URL de preview générée:', {
       productId,
       shop,
+      origin,
       configuratorUrl,
       hasPreviewParam: configuratorUrl.includes('preview=true'),
-      urlParamsString: urlParams.toString()
+      urlParamsString: urlParams.toString(),
+      allParams: Array.from(urlParams.entries())
     });
 
     return NextResponse.json({
