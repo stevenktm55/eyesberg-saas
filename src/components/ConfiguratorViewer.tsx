@@ -2463,6 +2463,20 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
           }
         });
         
+        // Gérer les erreurs HTTP (400, 404, etc.)
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+          console.error('❌ Erreur HTTP de l\'API:', {
+            status: response.status,
+            error: errorData.error,
+            isPreview
+          });
+          setConfig(null);
+          setIsLoading(false);
+          // En mode preview, l'erreur sera affichée par le composant d'erreur
+          return;
+        }
+        
         if (response.ok) {
           const productData = await response.json();
           

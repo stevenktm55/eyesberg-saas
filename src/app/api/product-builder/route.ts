@@ -152,6 +152,7 @@ export async function GET(request: NextRequest) {
             hasModel3DId,
             customizationModulesCount: product.builder_data?.customizationModules?.length || 0
           });
+          // Continuer pour générer le snapshot depuis builder_data (ne pas utiliser publishedSnapshot)
         } else {
           // Si le produit a un snapshot publié, le retourner (sauf pour preview)
           const publishedSnapshot = product.builder_data?.publishedSnapshot || product.published_snapshot;
@@ -182,6 +183,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Générer un snapshot automatique depuis builder_data si disponible
+        // Pour le preview, on ignore publishedSnapshot et on génère uniquement depuis builder_data
         if (product.builder_data) {
           try {
             const model3DId = product.builder_data?.model3DId || 
