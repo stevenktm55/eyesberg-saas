@@ -179,9 +179,15 @@ export async function GET(request: NextRequest) {
           productId: product.id,
           productName: product.name,
           hasBuilderData: !!product.builder_data,
+          builderDataType: typeof product.builder_data,
+          builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
           forClient: forClient
         });
-        return NextResponse.json(product);
+        // S'assurer que builder_data est bien inclus dans la réponse
+        return NextResponse.json({
+          ...product,
+          builder_data: product.builder_data || null // S'assurer que builder_data est présent même si null
+        });
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
         // D'abord, essayer avec shop_domain si fourni
@@ -486,10 +492,16 @@ export async function GET(request: NextRequest) {
           productId: product.id,
           productName: product.name,
           hasBuilderData: !!product.builder_data,
+          builderDataType: typeof product.builder_data,
+          builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
           forClient: forClient
         });
         
-        return NextResponse.json(product);
+        // S'assurer que builder_data est bien inclus dans la réponse
+        return NextResponse.json({
+          ...product,
+          builder_data: product.builder_data || null // S'assurer que builder_data est présent même si null
+        });
       }
     }
     
