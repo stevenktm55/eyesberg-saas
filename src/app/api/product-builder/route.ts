@@ -212,8 +212,28 @@ export async function GET(request: NextRequest) {
                 productId: product.id,
                 builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
               });
-              // Retourner le produit sans snapshot si pas de model3DId
-              return NextResponse.json(product);
+              // Pour le preview, retourner une erreur si pas de model3DId
+              if (isPreview) {
+                return NextResponse.json({
+                  error: 'Aucun modèle 3D sélectionné dans le builder. Le preview nécessite un modèle 3D.',
+                  product: {
+                    id: product.id,
+                    name: product.name
+                  }
+                }, { status: 400 });
+              }
+              // Retourner le produit sans snapshot si pas de model3DId (mais sans publishedSnapshot si preview)
+              const productResponse: any = { ...product };
+              if (isPreview) {
+                // En mode preview, ne JAMAIS inclure publishedSnapshot
+                if (productResponse.builder_data?.publishedSnapshot) {
+                  delete productResponse.builder_data.publishedSnapshot;
+                }
+                if (productResponse.published_snapshot) {
+                  delete productResponse.published_snapshot;
+                }
+              }
+              return NextResponse.json(productResponse);
             }
             
             const shopifyProductIdForSnapshot = product.shopify_product_id || product.id;
@@ -274,15 +294,29 @@ export async function GET(request: NextRequest) {
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot pour UUID:', {
               error: error.message,
-              productId: product.id
+              productId: product.id,
+              isPreview
             });
+            // Pour le preview, si la génération échoue, retourner une erreur plutôt que le produit avec publishedSnapshot
+            if (isPreview) {
+              return NextResponse.json({
+                error: 'Erreur lors de la génération du snapshot depuis le builder. Veuillez vérifier votre configuration.',
+                details: error.message,
+                product: {
+                  id: product.id,
+                  name: product.name
+                }
+              }, { status: 500 });
+            }
           }
         }
 
         // Retourner le produit avec builder_data si pas de snapshot généré
+        // MAIS en mode preview, ne JAMAIS inclure publishedSnapshot
         console.log('📦 Retour du produit sans snapshot généré (UUID):', {
           productId: product.id,
           forAdmin: forAdmin,
+          isPreview: isPreview,
           hasBuilderData: !!product.builder_data,
           builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
           hasQuestions: !!(product.builder_data?.questions),
@@ -290,7 +324,29 @@ export async function GET(request: NextRequest) {
           hasCustomizationModules: !!(product.builder_data?.customizationModules),
           customizationModulesCount: product.builder_data?.customizationModules?.length || 0
         });
-        return NextResponse.json(product);
+        
+        const productResponse: any = { ...product };
+        // En mode preview, ne JAMAIS inclure publishedSnapshot dans la réponse
+        if (isPreview) {
+          console.log('📸 Preview - suppression de publishedSnapshot de la réponse:', {
+            productId: product.id,
+            hadPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+            hadPublishedSnapshotColumn: !!product.published_snapshot
+          });
+          // Supprimer publishedSnapshot de builder_data si présent
+          if (productResponse.builder_data?.publishedSnapshot) {
+            const { publishedSnapshot, ...restBuilderData } = productResponse.builder_data;
+            productResponse.builder_data = restBuilderData;
+          }
+          // Supprimer published_snapshot de la colonne si présent
+          if (productResponse.published_snapshot) {
+            delete productResponse.published_snapshot;
+          }
+          // Ne pas exposer builder_data dans le preview
+          productResponse.builder_data = undefined;
+        }
+        
+        return NextResponse.json(productResponse);
       } else {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
         // D'abord, essayer avec shop_domain si fourni
@@ -538,10 +594,32 @@ export async function GET(request: NextRequest) {
             if (!model3DId) {
               console.warn('⚠️ Pas de model3DId dans builder_data, impossible de générer le snapshot:', {
                 productId: product.id,
-                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+                builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
+                isPreview
               });
-              // Retourner le produit sans snapshot si pas de model3DId
-              return NextResponse.json(product);
+              // Pour le preview, retourner une erreur si pas de model3DId
+              if (isPreview) {
+                return NextResponse.json({
+                  error: 'Aucun modèle 3D sélectionné dans le builder. Le preview nécessite un modèle 3D.',
+                  product: {
+                    id: product.id,
+                    name: product.name,
+                    shopify_product_id: product.shopify_product_id
+                  }
+                }, { status: 400 });
+              }
+              // Retourner le produit sans snapshot si pas de model3DId (mais sans publishedSnapshot si preview)
+              const productResponse: any = { ...product };
+              if (isPreview) {
+                // En mode preview, ne JAMAIS inclure publishedSnapshot
+                if (productResponse.builder_data?.publishedSnapshot) {
+                  delete productResponse.builder_data.publishedSnapshot;
+                }
+                if (productResponse.published_snapshot) {
+                  delete productResponse.published_snapshot;
+                }
+              }
+              return NextResponse.json(productResponse);
             }
             
             // Utiliser le shopify_product_id si disponible, sinon utiliser l'ID du produit builder
@@ -607,27 +685,86 @@ export async function GET(request: NextRequest) {
                 });
               }
             } else {
-              console.error('❌ generateSnapshot a retourné null/undefined');
+              console.error('❌ generateSnapshot a retourné null/undefined', {
+                isPreview,
+                productId: product.id
+              });
+              // Pour le preview, si generateSnapshot retourne null, retourner une erreur
+              if (isPreview) {
+                return NextResponse.json({
+                  error: 'Erreur lors de la génération du snapshot depuis le builder. Veuillez vérifier votre configuration.',
+                  product: {
+                    id: product.id,
+                    name: product.name,
+                    shopify_product_id: product.shopify_product_id
+                  }
+                }, { status: 500 });
+              }
             }
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot:', {
               error: error.message,
               stack: error.stack,
               productId: product.id,
+              isPreview,
               builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
             });
-            // Ne pas bloquer si la génération échoue, retourner le produit sans snapshot
+            // Pour le preview, si la génération échoue, retourner une erreur plutôt que le produit avec publishedSnapshot
+            if (isPreview) {
+              return NextResponse.json({
+                error: 'Erreur lors de la génération du snapshot depuis le builder. Veuillez vérifier votre configuration.',
+                details: error.message,
+                product: {
+                  id: product.id,
+                  name: product.name,
+                  shopify_product_id: product.shopify_product_id
+                }
+              }, { status: 500 });
+            }
+            // Ne pas bloquer si la génération échoue pour les requêtes non-preview, retourner le produit sans snapshot
             // Mais logguer l'erreur pour debug
           }
         } else {
           console.warn('⚠️ Pas de builder_data disponible pour générer le snapshot:', {
             productId: product.id,
-            hasBuilderData: !!product.builder_data
+            hasBuilderData: !!product.builder_data,
+            isPreview
           });
+          // Pour le preview, si pas de builder_data, retourner une erreur
+          if (isPreview) {
+            return NextResponse.json({
+              error: 'Aucune configuration dans le builder. Le preview nécessite au moins un modèle 3D et des modules de personnalisation.',
+              product: {
+                id: product.id,
+                name: product.name,
+                shopify_product_id: product.shopify_product_id
+              }
+            }, { status: 400 });
+          }
         }
 
         // Sinon, retourner le produit avec builder_data (pour le builder admin)
-        return NextResponse.json(product);
+        // MAIS en mode preview, ne JAMAIS inclure publishedSnapshot
+        const productResponse: any = { ...product };
+        if (isPreview) {
+          console.log('📸 Preview - suppression de publishedSnapshot de la réponse (ID Shopify):', {
+            productId: product.id,
+            hadPublishedSnapshotInBuilderData: !!product.builder_data?.publishedSnapshot,
+            hadPublishedSnapshotColumn: !!product.published_snapshot
+          });
+          // Supprimer publishedSnapshot de builder_data si présent
+          if (productResponse.builder_data?.publishedSnapshot) {
+            const { publishedSnapshot, ...restBuilderData } = productResponse.builder_data;
+            productResponse.builder_data = restBuilderData;
+          }
+          // Supprimer published_snapshot de la colonne si présent
+          if (productResponse.published_snapshot) {
+            delete productResponse.published_snapshot;
+          }
+          // Ne pas exposer builder_data dans le preview
+          productResponse.builder_data = undefined;
+        }
+        return NextResponse.json(productResponse);
       }
     } else if (shopDomain) {
       // Rechercher un produit existant pour ce shop
