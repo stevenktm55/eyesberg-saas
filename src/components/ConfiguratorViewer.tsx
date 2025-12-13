@@ -2873,9 +2873,8 @@ function Sidebar({
               // Émettre un événement pour changer la vue de la caméra
               window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
             }}
-          onRequestLogoDelete={confirmDeleteLogo}
-        />
-        </div>
+            onRequestLogoDelete={confirmDeleteLogo}
+          />
         )}
         {activeTab === 'numero' && (
           <div className="flex-1 overflow-y-auto p-4">
