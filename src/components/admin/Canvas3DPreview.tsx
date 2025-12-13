@@ -37,6 +37,8 @@ export function Canvas3DPreview({
     }
   };
 
+  console.log('🎨 Canvas3DPreview: Component rendering', { viewportMode, modelUrl });
+
   return (
     <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
       {/* Viewport selector buttons - Centré en haut - Au-dessus de tout */}
