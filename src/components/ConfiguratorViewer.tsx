@@ -2480,46 +2480,36 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null,
         apiParams.append('id', normalizedProductId || product);
         apiParams.append('_t', timestamp.toString());
         
-        // CRITIQUE: Ajouter preview à l'API si :
-        // 1. Le paramètre isPreview est passé au hook (priorité absolue)
-        // 2. previewValue est présent dans l'URL
-        // 3. isPreviewMode est true (détecté depuis l'URL)
-        if (isPreview === true) {
-          // PRIORITÉ 1: Le paramètre isPreview est explicitement true
+        // CRITIQUE: Toujours ajouter preview à l'API si l'un de ces critères est rempli
+        // On vérifie TOUTES les sources possibles pour être sûr de ne rien manquer
+        const shouldAddPreview = isPreview === true || 
+                                 isPreviewMode === true || 
+                                 previewValue !== null && previewValue !== undefined ||
+                                 previewParamRaw === 'true' || 
+                                 previewParamRaw === '1' || 
+                                 previewParamRaw === 'yes' ||
+                                 previewFromHash === 'true';
+        
+        if (shouldAddPreview) {
           apiParams.append('preview', 'true');
-          console.log('✅ Paramètre preview=true ajouté à l\'API (depuis prop isPreview):', {
+          console.log('✅ Paramètre preview=true FORCÉ à l\'API:', {
             isPreview,
             isPreviewMode,
             previewValue,
-            reason: 'Paramètre isPreview=true passé au hook'
-          });
-        } else if (previewValue !== null && previewValue !== undefined) {
-          // PRIORITÉ 2: previewValue est présent dans l'URL
-          const previewApiValue = (previewValue === 'true' || previewValue === '1' || previewValue === 'yes') 
-            ? 'true' 
-            : previewValue;
-          apiParams.append('preview', previewApiValue);
-          console.log('✅ Paramètre preview ajouté à l\'API (depuis URL):', {
-            previewValue,
-            previewApiValue,
-            isPreview,
-            isPreviewMode,
-            reason: 'Présent dans l\'URL'
-          });
-        } else if (isPreviewMode) {
-          // PRIORITÉ 3: isPreviewMode est true (détecté depuis l'URL)
-          apiParams.append('preview', 'true');
-          console.log('✅ Paramètre preview=true ajouté à l\'API (fallback isPreviewMode):', {
-            isPreview,
-            isPreviewMode,
-            previewValue,
-            reason: 'isPreviewMode est true'
+            previewParamRaw,
+            previewFromHash,
+            shouldAddPreview,
+            reason: 'Au moins une source indique preview=true'
           });
         } else {
           console.warn('⚠️ Preview NON détecté - le paramètre preview n\'est pas dans l\'URL ni passé en prop:', {
             isPreview,
             isPreviewMode,
-            previewValue
+            previewValue,
+            previewParamRaw,
+            previewFromHash,
+            windowLocation: window.location.href,
+            windowSearch: window.location.search
           });
         }
         
