@@ -2480,29 +2480,47 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null,
         apiParams.append('id', normalizedProductId || product);
         apiParams.append('_t', timestamp.toString());
         
-        // CRITIQUE: Toujours ajouter preview à l'API si présent dans l'URL, même si isPreviewMode est false
-        // Cela garantit que le paramètre n'est jamais perdu
-        if (previewValue !== null && previewValue !== undefined) {
-          // Utiliser la valeur brute ou 'true' si c'est un indicateur positif
+        // CRITIQUE: Ajouter preview à l'API si :
+        // 1. Le paramètre isPreview est passé au hook (priorité absolue)
+        // 2. previewValue est présent dans l'URL
+        // 3. isPreviewMode est true (détecté depuis l'URL)
+        if (isPreview === true) {
+          // PRIORITÉ 1: Le paramètre isPreview est explicitement true
+          apiParams.append('preview', 'true');
+          console.log('✅ Paramètre preview=true ajouté à l\'API (depuis prop isPreview):', {
+            isPreview,
+            isPreviewMode,
+            previewValue,
+            reason: 'Paramètre isPreview=true passé au hook'
+          });
+        } else if (previewValue !== null && previewValue !== undefined) {
+          // PRIORITÉ 2: previewValue est présent dans l'URL
           const previewApiValue = (previewValue === 'true' || previewValue === '1' || previewValue === 'yes') 
             ? 'true' 
             : previewValue;
           apiParams.append('preview', previewApiValue);
-          console.log('✅ Paramètre preview ajouté à l\'API:', {
+          console.log('✅ Paramètre preview ajouté à l\'API (depuis URL):', {
             previewValue,
             previewApiValue,
+            isPreview,
             isPreviewMode,
             reason: 'Présent dans l\'URL'
           });
         } else if (isPreviewMode) {
-          // Fallback: si isPreviewMode est true mais previewValue est null, forcer quand même
+          // PRIORITÉ 3: isPreviewMode est true (détecté depuis l'URL)
           apiParams.append('preview', 'true');
-          console.log('✅ Paramètre preview=true ajouté à l\'API (fallback):', {
+          console.log('✅ Paramètre preview=true ajouté à l\'API (fallback isPreviewMode):', {
+            isPreview,
             isPreviewMode,
+            previewValue,
             reason: 'isPreviewMode est true'
           });
         } else {
-          console.warn('⚠️ Preview NON détecté - le paramètre preview n\'est pas dans l\'URL');
+          console.warn('⚠️ Preview NON détecté - le paramètre preview n\'est pas dans l\'URL ni passé en prop:', {
+            isPreview,
+            isPreviewMode,
+            previewValue
+          });
         }
         
         const apiUrl = `/api/product-builder?${apiParams.toString()}`;
