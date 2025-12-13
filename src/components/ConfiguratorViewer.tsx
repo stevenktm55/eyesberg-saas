@@ -2429,34 +2429,39 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
 
   useEffect(() => {
     async function loadConfig() {
+      // Récupération robuste des paramètres URL
       const urlParams = new URLSearchParams(window.location.search);
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
-      const isPreview = urlParams.get('preview') === 'true';
       
-      console.log('🔍 ConfiguratorViewer - Détection preview:', {
+      // Récupération robuste du paramètre preview depuis l'URL
+      // Vérifier plusieurs sources pour être sûr de le capturer
+      const previewParamRaw = urlParams.get('preview');
+      const previewFromHash = typeof window !== 'undefined' && window.location.hash 
+        ? new URLSearchParams(window.location.hash.split('?')[1] || '').get('preview')
+        : null;
+      
+      // Déterminer si on est en mode preview (tolérant aux variations)
+      const isPreviewMode = previewParamRaw === 'true' || 
+                           previewParamRaw === '1' || 
+                           previewParamRaw === 'yes' ||
+                           previewFromHash === 'true';
+      
+      // Toujours utiliser la valeur brute si présente, sinon null
+      const previewValue = previewParamRaw || previewFromHash;
+      
+      console.log('🔍 ConfiguratorViewer - Détection preview (ROBUSTE):', {
         windowLocation: window.location.href,
         searchParams: window.location.search,
-        previewParam: urlParams.get('preview'),
-        isPreview,
+        hash: window.location.hash,
+        previewParamRaw,
+        previewFromHash,
+        previewValue,
+        isPreviewMode,
         shop,
         product,
         allUrlParams: Array.from(urlParams.entries())
       });
-      
-      // Vérification explicite : si preview est dans l'URL mais pas détecté, forcer
-      const previewParamValue = urlParams.get('preview');
-      if (previewParamValue !== null && previewParamValue !== undefined) {
-        const shouldBePreview = previewParamValue === 'true' || previewParamValue === '1' || previewParamValue === 'yes';
-        if (shouldBePreview && !isPreview) {
-          console.error('❌ ERREUR: preview param présent mais isPreview est false !', {
-            previewParamValue,
-            isPreview,
-            forcingIsPreview: true
-          });
-          // Ne pas forcer ici, mais logger l'erreur
-        }
-      }
       
       if (!shop || !product) {
         setIsLoading(false);
@@ -2467,44 +2472,63 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         const normalizedProductId = normalizeShopifyProductId(product);
         // Ajouter un timestamp pour éviter le cache
         const timestamp = Date.now();
-        // Si preview=true dans l'URL, l'ajouter à l'API pour ignorer publishedSnapshot
+        
+        // Construire les paramètres de l'API
         const apiParams = new URLSearchParams();
         apiParams.append('shop', shop || '');
         apiParams.append('id', normalizedProductId || product);
         apiParams.append('_t', timestamp.toString());
-        if (isPreview) {
+        
+        // CRITIQUE: Toujours ajouter preview à l'API si présent dans l'URL, même si isPreviewMode est false
+        // Cela garantit que le paramètre n'est jamais perdu
+        if (previewValue !== null && previewValue !== undefined) {
+          // Utiliser la valeur brute ou 'true' si c'est un indicateur positif
+          const previewApiValue = (previewValue === 'true' || previewValue === '1' || previewValue === 'yes') 
+            ? 'true' 
+            : previewValue;
+          apiParams.append('preview', previewApiValue);
+          console.log('✅ Paramètre preview ajouté à l\'API:', {
+            previewValue,
+            previewApiValue,
+            isPreviewMode,
+            reason: 'Présent dans l\'URL'
+          });
+        } else if (isPreviewMode) {
+          // Fallback: si isPreviewMode est true mais previewValue est null, forcer quand même
           apiParams.append('preview', 'true');
-          console.log('✅ Preview détecté - ajout du paramètre preview=true à l\'API');
+          console.log('✅ Paramètre preview=true ajouté à l\'API (fallback):', {
+            isPreviewMode,
+            reason: 'isPreviewMode est true'
+          });
         } else {
-          console.warn('⚠️ Preview NON détecté - le paramètre preview=true n\'est pas dans l\'URL');
+          console.warn('⚠️ Preview NON détecté - le paramètre preview n\'est pas dans l\'URL');
         }
-        const url = `/api/product-builder?${apiParams.toString()}`;
-        console.log('📡 Chargement de la configuration depuis:', url, {
-          isPreview,
-          previewParam: isPreview ? 'preview=true' : 'none',
+        
+        const apiUrl = `/api/product-builder?${apiParams.toString()}`;
+        
+        console.log('📡 Chargement de la configuration depuis:', apiUrl, {
+          isPreviewMode,
+          previewValue,
           previewParamInApiUrl: apiParams.get('preview'),
-          fullUrl: url,
+          fullUrl: apiUrl,
           apiParamsString: apiParams.toString(),
-          allApiParams: Array.from(apiParams.entries())
+          allApiParams: Array.from(apiParams.entries()),
+          verification: apiParams.has('preview') ? '✅ preview présent' : '❌ preview absent'
         });
         
-        // Vérification critique : si isPreview est true, preview doit être dans l'URL de l'API
-        if (isPreview && !apiParams.has('preview')) {
-          console.error('❌ ERREUR CRITIQUE: isPreview est true mais preview n\'est pas dans apiParams !', {
-            isPreview,
-            apiParamsString: apiParams.toString(),
-            allApiParams: Array.from(apiParams.entries())
+        // Vérification finale critique : si preview était dans l'URL, il DOIT être dans l'API
+        if (previewValue !== null && !apiParams.has('preview')) {
+          console.error('❌ ERREUR CRITIQUE: preview était dans l\'URL mais absent de l\'API ! Forçage...', {
+            previewValue,
+            apiParamsString: apiParams.toString()
           });
-          // Forcer l'ajout du paramètre
           apiParams.append('preview', 'true');
-          console.log('✅ Paramètre preview=true ajouté manuellement');
+          const correctedUrl = `/api/product-builder?${apiParams.toString()}`;
+          console.log('✅ URL corrigée:', correctedUrl);
         }
         
-        const finalUrl = `/api/product-builder?${apiParams.toString()}`;
-        if (finalUrl !== url) {
-          console.log('📡 URL modifiée après vérification:', finalUrl);
-        }
-        const response = await fetch(finalUrl || url, {
+        const finalApiUrl = `/api/product-builder?${apiParams.toString()}`;
+        const response = await fetch(finalApiUrl, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
