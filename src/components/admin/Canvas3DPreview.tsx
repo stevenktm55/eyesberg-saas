@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera } from "@react-three/drei";
 import { ProductQuestion, ProductLayer } from "./ProductEditor3D";
@@ -24,6 +24,11 @@ export function Canvas3DPreview({
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
 
+  // Debug: vérifier que le composant est rendu
+  useEffect(() => {
+    console.log('🎨 Canvas3DPreview rendered, viewportMode:', viewportMode);
+  }, [viewportMode]);
+
   const handleViewChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
       setCurrentView((prev) => (prev === 1 ? totalViews : prev - 1));
@@ -36,12 +41,13 @@ export function Canvas3DPreview({
     <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
       {/* Viewport selector buttons - Centré en haut - Au-dessus de tout */}
       <div 
+        className="viewport-selector-container"
         style={{ 
-          position: 'absolute',
-          top: '16px',
+          position: 'fixed',
+          top: '80px',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 10000,
+          zIndex: 99999,
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
@@ -51,12 +57,13 @@ export function Canvas3DPreview({
         <div 
           className="flex items-center gap-1 rounded-lg p-1"
           style={{
-            backgroundColor: 'white',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-            border: '2px solid #d1d5db',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            border: '3px solid #3b82f6',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
+            padding: '4px'
           }}
         >
           <button
