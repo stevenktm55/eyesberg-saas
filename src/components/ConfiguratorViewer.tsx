@@ -2451,18 +2451,6 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null,
         ? (isPreview ? 'true' : null)
         : (previewParamRaw || previewFromHash);
       
-      console.log('🔍 ConfiguratorViewer - Détection preview (ROBUSTE):', {
-        windowLocation: window.location.href,
-        searchParams: window.location.search,
-        hash: window.location.hash,
-        previewParamRaw,
-        previewFromHash,
-        previewValue,
-        isPreviewMode,
-        shop,
-        product,
-        allUrlParams: Array.from(urlParams.entries())
-      });
       
       if (!shop || !product) {
         setIsLoading(false);
@@ -2492,74 +2480,25 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null,
         
         if (shouldAddPreview) {
           apiParams.append('preview', 'true');
-          console.log('✅ Paramètre preview=true FORCÉ à l\'API:', {
-            isPreview,
-            isPreviewMode,
-            previewValue,
-            previewParamRaw,
-            previewFromHash,
-            shouldAddPreview,
-            reason: 'Au moins une source indique preview=true'
-          });
-        } else {
-          console.warn('⚠️ Preview NON détecté - le paramètre preview n\'est pas dans l\'URL ni passé en prop:', {
-            isPreview,
-            isPreviewMode,
-            previewValue,
-            previewParamRaw,
-            previewFromHash,
-            windowLocation: window.location.href,
-            windowSearch: window.location.search
-          });
         }
         
         const apiUrl = `/api/product-builder?${apiParams.toString()}`;
         
-        console.log('📡 Chargement de la configuration depuis:', apiUrl, {
-          isPreviewMode,
-          previewValue,
-          previewParamInApiUrl: apiParams.get('preview'),
-          fullUrl: apiUrl,
-          apiParamsString: apiParams.toString(),
-          allApiParams: Array.from(apiParams.entries()),
-          verification: apiParams.has('preview') ? '✅ preview présent' : '❌ preview absent'
-        });
-        
-        // Vérification finale critique : si preview était dans l'URL, il DOIT être dans l'API
+        // Vérification finale : si preview était dans l'URL, il DOIT être dans l'API
         if (previewValue !== null && !apiParams.has('preview')) {
-          console.error('❌ ERREUR CRITIQUE: preview était dans l\'URL mais absent de l\'API ! Forçage...', {
-            previewValue,
-            apiParamsString: apiParams.toString()
-          });
           apiParams.append('preview', 'true');
         }
         
-        // Vérification supplémentaire : si l'URL de la page contient /configure et qu'on vient probablement d'un preview
-        // (détecté par referrer ou par le fait qu'on est dans une iframe)
+        // Vérification supplémentaire : si on est dans une iframe ou qu'on vient d'un preview
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
         const referrer = typeof document !== 'undefined' ? document.referrer : '';
         const isFromPreviewPage = referrer.includes('/admin/preview') || isInIframe;
         
         if (isFromPreviewPage && !apiParams.has('preview')) {
-          console.warn('⚠️ Détection contexte preview (iframe ou referrer) mais preview absent de l\'API. Forçage...', {
-            isInIframe,
-            referrer,
-            windowLocation: window.location.href
-          });
           apiParams.append('preview', 'true');
         }
         
         const finalApiUrl = `/api/product-builder?${apiParams.toString()}`;
-        
-        // Log final pour vérification
-        console.log('📡 URL API FINALE:', finalApiUrl, {
-          hasPreview: apiParams.has('preview'),
-          previewValue: apiParams.get('preview'),
-          allParams: Array.from(apiParams.entries()),
-          isInIframe,
-          referrer,
-          isFromPreviewPage
-        });
         const response = await fetch(finalApiUrl, {
           cache: 'no-store',
           headers: {
@@ -2997,12 +2936,6 @@ export default function ConfiguratorViewer({
     return previewParam === 'true' || previewParam === '1' || previewParam === 'yes';
   }, [propPreview]);
   
-  console.log('🔍 ConfiguratorViewer - Mode preview déterminé:', {
-    propPreview,
-    isPreviewMode,
-    urlParams: urlParams ? Array.from(urlParams.entries()) : null,
-    windowLocation: typeof window !== 'undefined' ? window.location.href : null
-  });
   
   // Charger la configuration complète du produit (PASSER isPreviewMode)
   const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId, isPreviewMode);
