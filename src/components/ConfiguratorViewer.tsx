@@ -2953,15 +2953,28 @@ export default function ConfiguratorViewer({
   const finalShopDomain: string | null = shopDomain ?? null;
   const finalProductId: string | null = productId ?? null;
   
-  // Vérifier si on est en mode preview
+  // Vérifier si on est en mode preview (priorité à la prop, sinon depuis l'URL)
   const isPreviewMode = useMemo(() => {
+    // PRIORITÉ 1: Utiliser la prop preview si fournie
+    if (propPreview !== undefined) {
+      return propPreview;
+    }
+    // PRIORITÉ 2: Détecter depuis l'URL
     if (typeof window === 'undefined') return false;
     const params = new URLSearchParams(window.location.search);
-    return params.get('preview') === 'true';
-  }, []);
+    const previewParam = params.get('preview');
+    return previewParam === 'true' || previewParam === '1' || previewParam === 'yes';
+  }, [propPreview]);
   
-  // Charger la configuration complète du produit
-  const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId);
+  console.log('🔍 ConfiguratorViewer - Mode preview déterminé:', {
+    propPreview,
+    isPreviewMode,
+    urlParams: urlParams ? Array.from(urlParams.entries()) : null,
+    windowLocation: typeof window !== 'undefined' ? window.location.href : null
+  });
+  
+  // Charger la configuration complète du produit (PASSER isPreviewMode)
+  const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId, isPreviewMode);
   
   // Extraire le snapshot AVANT les useEffect qui l'utilisent
   const snapshot = productConfig?.snapshot;
