@@ -7915,6 +7915,7 @@ export default function ConfiguratorViewer({
           viewerSettings={snapshot?.viewerSettings}
           cameraSettings={snapshot?.cameraSettings}
         />
+        </div>
       </div>
       
       {/* Modal de confirmation de suppression */}
