@@ -2440,8 +2440,23 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         previewParam: urlParams.get('preview'),
         isPreview,
         shop,
-        product
+        product,
+        allUrlParams: Array.from(urlParams.entries())
       });
+      
+      // Vérification explicite : si preview est dans l'URL mais pas détecté, forcer
+      const previewParamValue = urlParams.get('preview');
+      if (previewParamValue !== null && previewParamValue !== undefined) {
+        const shouldBePreview = previewParamValue === 'true' || previewParamValue === '1' || previewParamValue === 'yes';
+        if (shouldBePreview && !isPreview) {
+          console.error('❌ ERREUR: preview param présent mais isPreview est false !', {
+            previewParamValue,
+            isPreview,
+            forcingIsPreview: true
+          });
+          // Ne pas forcer ici, mais logger l'erreur
+        }
+      }
       
       if (!shop || !product) {
         setIsLoading(false);
@@ -2467,9 +2482,29 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
         console.log('📡 Chargement de la configuration depuis:', url, {
           isPreview,
           previewParam: isPreview ? 'preview=true' : 'none',
-          fullUrl: url
+          previewParamInApiUrl: apiParams.get('preview'),
+          fullUrl: url,
+          apiParamsString: apiParams.toString(),
+          allApiParams: Array.from(apiParams.entries())
         });
-        const response = await fetch(url, {
+        
+        // Vérification critique : si isPreview est true, preview doit être dans l'URL de l'API
+        if (isPreview && !apiParams.has('preview')) {
+          console.error('❌ ERREUR CRITIQUE: isPreview est true mais preview n\'est pas dans apiParams !', {
+            isPreview,
+            apiParamsString: apiParams.toString(),
+            allApiParams: Array.from(apiParams.entries())
+          });
+          // Forcer l'ajout du paramètre
+          apiParams.append('preview', 'true');
+          console.log('✅ Paramètre preview=true ajouté manuellement');
+        }
+        
+        const finalUrl = `/api/product-builder?${apiParams.toString()}`;
+        if (finalUrl !== url) {
+          console.log('📡 URL modifiée après vérification:', finalUrl);
+        }
+        const response = await fetch(finalUrl || url, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
