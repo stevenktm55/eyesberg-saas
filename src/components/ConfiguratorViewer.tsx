@@ -7822,33 +7822,33 @@ export default function ConfiguratorViewer({
       })() : null}
       
       {/* Viewer 3D au centre */}
-      <div className="flex-1 flex flex-col">
-        {/* Header avec sélecteur de viewport (desktop/mobile) */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end z-10">
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+      <div className="flex-1 flex flex-col relative">
+        {/* Header avec sélecteur de viewport (desktop/mobile) - Centré et transparent */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="flex items-center gap-1 bg-transparent rounded-lg p-1">
             <button
               onClick={() => setViewportMode('desktop')}
-              className={`p-2 rounded transition-all ${
+              className={`p-1.5 rounded transition-all ${
                 viewportMode === 'desktop'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white/80 text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 bg-white/50'
               }`}
               title="Vue ordinateur"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </button>
             <button
               onClick={() => setViewportMode('mobile')}
-              className={`p-2 rounded transition-all ${
+              className={`p-1.5 rounded transition-all ${
                 viewportMode === 'mobile'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white/80 text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 bg-white/50'
               }`}
               title="Vue téléphone"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </button>
