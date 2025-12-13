@@ -48,7 +48,18 @@ function PreviewContent() {
         if (data.configuratorUrl) {
           console.log('📸 URL du configurateur générée pour le preview:', data.configuratorUrl);
           console.log('📸 Vérification preview=true dans l\'URL:', data.configuratorUrl.includes('preview=true'));
-          setConfiguratorUrl(data.configuratorUrl);
+          
+          // CRITIQUE: S'assurer que preview=true est présent dans l'URL
+          let finalUrl = data.configuratorUrl;
+          if (!finalUrl.includes('preview=true')) {
+            console.warn('⚠️ preview=true absent de l\'URL générée, ajout forcé');
+            const urlObj = new URL(finalUrl);
+            urlObj.searchParams.set('preview', 'true');
+            finalUrl = urlObj.toString();
+            console.log('✅ URL corrigée avec preview=true:', finalUrl);
+          }
+          
+          setConfiguratorUrl(finalUrl);
         } else {
           throw new Error('No configurator URL returned');
         }
@@ -121,8 +132,27 @@ function PreviewContent() {
         allow="fullscreen"
         onLoad={() => {
           console.log('📸 Iframe chargée, URL finale:', configuratorUrl);
+          // Vérifier l'URL réelle de l'iframe après chargement
+          try {
+            const iframe = document.querySelector('iframe[title="Aperçu du configurateur"]') as HTMLIFrameElement;
+            if (iframe && iframe.contentWindow) {
+              const iframeUrl = iframe.contentWindow.location.href;
+              console.log('📸 URL réelle de l\'iframe après chargement:', iframeUrl);
+              if (!iframeUrl.includes('preview=true')) {
+                console.error('❌ ERREUR: L\'URL réelle de l\'iframe ne contient pas preview=true !', iframeUrl);
+                // Essayer de forcer la mise à jour de l'URL
+                const urlObj = new URL(iframeUrl);
+                urlObj.searchParams.set('preview', 'true');
+                console.log('🔄 Tentative de correction de l\'URL:', urlObj.toString());
+                // Note: On ne peut pas modifier l'URL d'une iframe cross-origin, donc on doit s'assurer que l'URL initiale est correcte
+              }
+            }
+          } catch (e) {
+            console.warn('⚠️ Impossible de lire l\'URL de l\'iframe (cross-origin):', e);
+          }
+          
           if (configuratorUrl && !configuratorUrl.includes('preview=true')) {
-            console.error('❌ ERREUR: L\'URL de l\'iframe ne contient pas preview=true !', configuratorUrl);
+            console.error('❌ ERREUR: L\'URL configuratorUrl ne contient pas preview=true !', configuratorUrl);
           }
         }}
       />

@@ -2532,11 +2532,34 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null,
             apiParamsString: apiParams.toString()
           });
           apiParams.append('preview', 'true');
-          const correctedUrl = `/api/product-builder?${apiParams.toString()}`;
-          console.log('✅ URL corrigée:', correctedUrl);
+        }
+        
+        // Vérification supplémentaire : si l'URL de la page contient /configure et qu'on vient probablement d'un preview
+        // (détecté par referrer ou par le fait qu'on est dans une iframe)
+        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+        const referrer = typeof document !== 'undefined' ? document.referrer : '';
+        const isFromPreviewPage = referrer.includes('/admin/preview') || isInIframe;
+        
+        if (isFromPreviewPage && !apiParams.has('preview')) {
+          console.warn('⚠️ Détection contexte preview (iframe ou referrer) mais preview absent de l\'API. Forçage...', {
+            isInIframe,
+            referrer,
+            windowLocation: window.location.href
+          });
+          apiParams.append('preview', 'true');
         }
         
         const finalApiUrl = `/api/product-builder?${apiParams.toString()}`;
+        
+        // Log final pour vérification
+        console.log('📡 URL API FINALE:', finalApiUrl, {
+          hasPreview: apiParams.has('preview'),
+          previewValue: apiParams.get('preview'),
+          allParams: Array.from(apiParams.entries()),
+          isInIframe,
+          referrer,
+          isFromPreviewPage
+        });
         const response = await fetch(finalApiUrl, {
           cache: 'no-store',
           headers: {
