@@ -2397,7 +2397,7 @@ function LogoTab({
 
 // Hook pour charger les modules de configuration depuis l'API
 // Hook pour charger toute la configuration du produit
-function useProductConfig(shopDomain?: string | null, productId?: string | null) {
+function useProductConfig(shopDomain?: string | null, productId?: string | null, isPreview?: boolean) {
   const [config, setConfig] = useState<{
     model3DId?: string | null;
     design2DId?: string | null;
@@ -2434,21 +2434,22 @@ function useProductConfig(shopDomain?: string | null, productId?: string | null)
       const shop = shopDomain || urlParams.get('shop');
       const product = productId || urlParams.get('productId');
       
-      // Récupération robuste du paramètre preview depuis l'URL
-      // Vérifier plusieurs sources pour être sûr de le capturer
+      // PRIORITÉ 1: Utiliser le paramètre preview passé en prop (le plus fiable)
+      // PRIORITÉ 2: Récupérer depuis l'URL si non fourni
       const previewParamRaw = urlParams.get('preview');
       const previewFromHash = typeof window !== 'undefined' && window.location.hash 
         ? new URLSearchParams(window.location.hash.split('?')[1] || '').get('preview')
         : null;
       
-      // Déterminer si on est en mode preview (tolérant aux variations)
-      const isPreviewMode = previewParamRaw === 'true' || 
-                           previewParamRaw === '1' || 
-                           previewParamRaw === 'yes' ||
-                           previewFromHash === 'true';
+      // Utiliser la prop isPreview en priorité, sinon détecter depuis l'URL
+      const isPreviewMode = isPreview !== undefined 
+        ? isPreview 
+        : (previewParamRaw === 'true' || previewParamRaw === '1' || previewParamRaw === 'yes' || previewFromHash === 'true');
       
-      // Toujours utiliser la valeur brute si présente, sinon null
-      const previewValue = previewParamRaw || previewFromHash;
+      // Toujours utiliser la valeur brute si présente, sinon utiliser la prop
+      const previewValue = isPreview !== undefined 
+        ? (isPreview ? 'true' : null)
+        : (previewParamRaw || previewFromHash);
       
       console.log('🔍 ConfiguratorViewer - Détection preview (ROBUSTE):', {
         windowLocation: window.location.href,
