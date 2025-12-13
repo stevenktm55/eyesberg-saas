@@ -2873,8 +2873,9 @@ function Sidebar({
               // Émettre un événement pour changer la vue de la caméra
               window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
             }}
-            onRequestLogoDelete={confirmDeleteLogo}
-          />
+          onRequestLogoDelete={confirmDeleteLogo}
+        />
+        </div>
         )}
         {activeTab === 'numero' && (
           <div className="flex-1 overflow-y-auto p-4">
@@ -2959,6 +2960,8 @@ export default function ConfiguratorViewer({
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [isReplacingLogo, setIsReplacingLogo] = useState(false);
+  // État pour le sélecteur de viewport (desktop/mobile)
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   // Gestion du sélecteur de zone pour les logos
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string, view?: 'front' | 'back' | 'left' | 'right'} | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
@@ -7820,8 +7823,53 @@ export default function ConfiguratorViewer({
       })() : null}
       
       {/* Viewer 3D au centre */}
-      <div className="flex-1">
-        <Viewer3D
+      <div className="flex-1 flex flex-col">
+        {/* Header avec sélecteur de viewport (desktop/mobile) */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-end z-10">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewportMode('desktop')}
+              className={`p-2 rounded transition-all ${
+                viewportMode === 'desktop'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Vue ordinateur"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewportMode('mobile')}
+              className={`p-2 rounded transition-all ${
+                viewportMode === 'mobile'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="Vue téléphone"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        {/* Container du viewer avec contrainte de viewport */}
+        <div 
+          className="flex-1 relative"
+          style={{
+            maxWidth: viewportMode === 'mobile' ? '375px' : '100%',
+            maxHeight: viewportMode === 'mobile' ? '667px' : '100%',
+            margin: viewportMode === 'mobile' ? '0 auto' : '0',
+            border: viewportMode === 'mobile' ? '8px solid #1f2937' : 'none',
+            borderRadius: viewportMode === 'mobile' ? '20px' : '0',
+            boxShadow: viewportMode === 'mobile' ? '0 10px 40px rgba(0,0,0,0.3)' : 'none',
+            overflow: 'hidden'
+          }}
+        >
+          <Viewer3D
           designTexture={designTexture}
           colors={colors}
           fonts={fonts}

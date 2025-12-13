@@ -48,16 +48,6 @@ export async function POST(request: NextRequest) {
     // Utiliser une URL absolue avec le domaine de la requête
     const configuratorUrl = `${origin}/configure?${urlParams.toString()}`;
 
-    console.log('📸 URL de preview générée:', {
-      productId,
-      shop,
-      origin,
-      configuratorUrl,
-      hasPreviewParam: configuratorUrl.includes('preview=true'),
-      urlParamsString: urlParams.toString(),
-      allParams: Array.from(urlParams.entries())
-    });
-
     return NextResponse.json({
       success: true,
       configuratorUrl,
