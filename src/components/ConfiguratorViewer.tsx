@@ -7858,13 +7858,18 @@ export default function ConfiguratorViewer({
         {/* Container du viewer avec contrainte de viewport */}
         <div 
           className="flex-1 relative"
-          style={{
-            maxWidth: viewportMode === 'mobile' ? '375px' : '100%',
-            maxHeight: viewportMode === 'mobile' ? '667px' : '100%',
-            margin: viewportMode === 'mobile' ? '0 auto' : '0',
-            border: viewportMode === 'mobile' ? '8px solid #1f2937' : 'none',
-            borderRadius: viewportMode === 'mobile' ? '20px' : '0',
-            boxShadow: viewportMode === 'mobile' ? '0 10px 40px rgba(0,0,0,0.3)' : 'none',
+          style={viewportMode === 'mobile' ? {
+            maxWidth: '375px',
+            maxHeight: '667px',
+            margin: '0 auto',
+            border: '8px solid #1f2937',
+            borderRadius: '20px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            overflow: 'hidden'
+          } : {
+            maxWidth: '100%',
+            maxHeight: '100%',
+            margin: '0',
             overflow: 'hidden'
           }}
         >
