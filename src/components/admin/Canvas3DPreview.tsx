@@ -21,6 +21,7 @@ export function Canvas3DPreview({
 }: Canvas3DPreviewProps) {
   const [currentView, setCurrentView] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
 
   const handleViewChange = (direction: "prev" | "next") => {
@@ -32,9 +33,63 @@ export function Canvas3DPreview({
   };
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
+      {/* Viewport selector buttons - Centré en haut - Au-dessus de tout */}
+      <div 
+        style={{ 
+          position: 'absolute',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          pointerEvents: 'auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <div 
+          className="flex items-center gap-1 rounded-lg p-1"
+          style={{
+            backgroundColor: 'white',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            border: '2px solid #d1d5db',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          <button
+            onClick={() => setViewportMode('desktop')}
+            className={`p-2 rounded transition-all ${
+              viewportMode === 'desktop'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-700 hover:bg-gray-100 bg-white'
+            }`}
+            title="Vue ordinateur"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewportMode('mobile')}
+            className={`p-2 rounded transition-all ${
+              viewportMode === 'mobile'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-700 hover:bg-gray-100 bg-white'
+            }`}
+            title="Vue téléphone"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
       {/* Controls bar */}
-      <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
           <button
             onClick={() => handleViewChange("prev")}
@@ -114,7 +169,23 @@ export function Canvas3DPreview({
       </div>
 
       {/* 3D Canvas */}
-      <div className="flex-1 relative">
+      <div 
+        className="flex-1 relative"
+        style={viewportMode === 'mobile' ? {
+          maxWidth: '375px',
+          maxHeight: '667px',
+          margin: '0 auto',
+          border: '8px solid #1f2937',
+          borderRadius: '20px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+          overflow: 'hidden'
+        } : {
+          maxWidth: '100%',
+          maxHeight: '100%',
+          margin: '0',
+          overflow: 'hidden'
+        }}
+      >
         {modelUrl ? (
           <Canvas
             gl={{ antialias: true, alpha: true }}
