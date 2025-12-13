@@ -32,6 +32,7 @@ export default function Page({
           mode="client"
           productId={productId}
           shopDomain={shopDomain}
+          preview={preview === 'true' || preview === '1' || preview === 'yes'}
         />
       </Suspense>
     </div>

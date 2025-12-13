@@ -2933,12 +2933,14 @@ export default function ConfiguratorViewer({
   mode = 'client',
   productId: propProductId,
   shopDomain: propShopDomain,
+  preview: propPreview,
   onSave,
   onAddToCart,
 }: {
   mode?: 'client' | 'admin';
   productId?: string | null;
   shopDomain?: string | null;
+  preview?: boolean;
   onSave?: () => void;
   onAddToCart?: () => void;
 }) {
