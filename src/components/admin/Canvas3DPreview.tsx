@@ -40,16 +40,16 @@ export function Canvas3DPreview({
   console.log('🎨 Canvas3DPreview: Component rendering', { viewportMode, modelUrl });
 
   return (
-    <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
+    <div className="flex flex-col h-full relative" style={{ minHeight: 0, position: 'relative', overflow: 'visible' }}>
       {/* Viewport selector buttons - Centré en haut - Au-dessus de tout */}
       <div 
         className="viewport-selector-container"
         style={{ 
-          position: 'absolute',
-          top: '20px',
+          position: 'fixed',
+          top: '100px',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 99999,
+          zIndex: 999999,
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
