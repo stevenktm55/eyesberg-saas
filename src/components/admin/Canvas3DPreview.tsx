@@ -55,7 +55,9 @@ export function Canvas3DPreview({
           alignItems: 'center',
           justifyContent: 'center',
           width: 'auto',
-          height: 'auto'
+          height: 'auto',
+          visibility: 'visible',
+          opacity: 1
         }}
       >
         <div 
@@ -69,7 +71,9 @@ export function Canvas3DPreview({
             gap: '4px',
             padding: '8px',
             minWidth: '100px',
-            minHeight: '50px'
+            minHeight: '50px',
+            visibility: 'visible',
+            opacity: 1
           }}
         >
           <button

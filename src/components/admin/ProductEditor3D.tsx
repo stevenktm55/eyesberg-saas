@@ -76,14 +76,13 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
 
   // Debug: vérifier le rendu du builder
   useEffect(() => {
-    if (activeTab === 'build') {
-      console.log('🔧 ProductEditor3D: Build tab active, rendering Canvas3DPreview', { 
-        modelUrl, 
-        questionsCount: questions.length, 
-        layersCount: layers.length,
-        activeTab 
-      });
-    }
+    console.log('🔧 ProductEditor3D: Component mounted/updated', { 
+      activeTab,
+      modelUrl, 
+      questionsCount: questions.length, 
+      layersCount: layers.length,
+      willRenderCanvas: activeTab === 'build'
+    });
   }, [activeTab, modelUrl, questions.length, layers.length]);
 
   const loadProduct = async () => {
