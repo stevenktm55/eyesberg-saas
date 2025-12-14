@@ -74,20 +74,6 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
     loadProduct();
   }, [productId, shop]);
 
-  // Debug: vérifier le rendu du builder
-  useEffect(() => {
-    console.log('🔧 ProductEditor3D: Component mounted/updated', { 
-      activeTab,
-      modelUrl, 
-      questionsCount: questions.length, 
-      layersCount: layers.length,
-      willRenderCanvas: activeTab === 'build'
-    });
-    if (activeTab === 'build') {
-      console.log('🔧 ProductEditor3D: Build tab is active, Canvas3DPreview should render');
-    }
-  }, [activeTab, modelUrl, questions.length, layers.length]);
-
   const loadProduct = async () => {
     try {
       if (shop) {

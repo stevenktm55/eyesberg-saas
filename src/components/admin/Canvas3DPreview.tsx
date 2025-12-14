@@ -24,11 +24,6 @@ export function Canvas3DPreview({
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
 
-  // Debug: vérifier que le composant est rendu
-  useEffect(() => {
-    console.log('🎨 Canvas3DPreview rendered, viewportMode:', viewportMode);
-  }, [viewportMode]);
-
   const handleViewChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
       setCurrentView((prev) => (prev === 1 ? totalViews : prev - 1));
@@ -36,8 +31,6 @@ export function Canvas3DPreview({
       setCurrentView((prev) => (prev === totalViews ? 1 : prev + 1));
     }
   };
-
-  console.log('🎨 Canvas3DPreview: Component rendering', { viewportMode, modelUrl });
 
   return (
     <div className="flex flex-col h-full relative" style={{ minHeight: 0, position: 'relative', overflow: 'visible' }}>
