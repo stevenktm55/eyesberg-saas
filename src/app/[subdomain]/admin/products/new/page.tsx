@@ -2180,16 +2180,21 @@ export default function ProductBuilderPage() {
           <div style={{
             flex: 1,
             display: 'flex',
+            flexDirection: viewportMode === 'mobile' ? 'column' : 'row',
             overflow: 'hidden'
           }}>
           {/* Left Sidebar - Questions */}
           <div style={{
-            width: '320px',
+            width: viewportMode === 'mobile' ? '100%' : '320px',
+            height: viewportMode === 'mobile' ? 'auto' : '100%',
+            maxHeight: viewportMode === 'mobile' ? '50%' : 'none',
             backgroundColor: '#0a0a0a',
-            borderRight: '1px solid #1a1a1a',
+            borderRight: viewportMode === 'mobile' ? 'none' : '1px solid #1a1a1a',
+            borderTop: viewportMode === 'mobile' ? '1px solid #1a1a1a' : 'none',
             display: 'flex',
             flexDirection: 'column',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            order: viewportMode === 'mobile' ? 2 : 1
           }}>
             {/* Sidebar Header */}
             <div style={{
@@ -3201,7 +3206,9 @@ export default function ProductBuilderPage() {
             backgroundColor: '#ffffff',
             display: 'flex',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            order: viewportMode === 'mobile' ? 1 : 2,
+            minHeight: viewportMode === 'mobile' ? '50%' : 'auto'
           }}>
             {/* Viewport selector buttons */}
             <div 
@@ -3280,7 +3287,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
             {/* Left Sidebar - Customizer Tabs (only visible when model is selected) */}
-            {selectedModel3DId && (
+            {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
                 width: '80px',
                 backgroundColor: '#ffffff',
@@ -5872,7 +5879,21 @@ export default function ProductBuilderPage() {
                           width: '100%',
                           height: '100%',
                           minHeight: '600px',
-                          backgroundColor: '#e8e8e8'
+                          backgroundColor: '#e8e8e8',
+                          ...(viewportMode === 'mobile' ? {
+                            maxWidth: '375px',
+                            maxHeight: '667px',
+                            margin: '0 auto',
+                            border: '8px solid #1f2937',
+                            borderRadius: '20px',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                            overflow: 'hidden'
+                          } : {
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            margin: '0',
+                            overflow: 'hidden'
+                          })
                         }}>
                           <Canvas
                             camera={{ position: [0, 0, initialZoom || 5], fov: 50 }}
@@ -6260,11 +6281,15 @@ export default function ProductBuilderPage() {
           {/* Right Sidebar - Module/Question Settings */}
           {showQuestionSettings && selectedModule ? (
             <div style={{
-              width: '420px',
+              width: viewportMode === 'mobile' ? '100%' : '420px',
+              height: viewportMode === 'mobile' ? 'auto' : '100%',
+              maxHeight: viewportMode === 'mobile' ? '50%' : 'none',
               backgroundColor: '#0a0a0a',
-              borderLeft: '1px solid #1a1a1a',
+              borderLeft: viewportMode === 'mobile' ? 'none' : '1px solid #1a1a1a',
+              borderTop: viewportMode === 'mobile' ? '1px solid #1a1a1a' : 'none',
               padding: '24px',
-              overflowY: 'auto'
+              overflowY: 'auto',
+              order: viewportMode === 'mobile' ? 3 : 3
             }}>
               <h3 style={{
                 fontSize: '16px',
