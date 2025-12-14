@@ -83,6 +83,9 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
       layersCount: layers.length,
       willRenderCanvas: activeTab === 'build'
     });
+    if (activeTab === 'build') {
+      console.log('🔧 ProductEditor3D: Build tab is active, Canvas3DPreview should render');
+    }
   }, [activeTab, modelUrl, questions.length, layers.length]);
 
   const loadProduct = async () => {
@@ -348,7 +351,6 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
 
           {/* Center Panel: 3D Preview */}
           <div className="flex-1 flex flex-col bg-gray-900 relative">
-            {console.log('🔧 ProductEditor3D: About to render Canvas3DPreview', { modelUrl, questionsCount: questions.length, layersCount: layers.length })}
             <Canvas3DPreview
               modelUrl={modelUrl}
               questions={questions}
