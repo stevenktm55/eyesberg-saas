@@ -45,15 +45,17 @@ export function Canvas3DPreview({
       <div 
         className="viewport-selector-container"
         style={{ 
-          position: 'fixed',
-          top: '80px',
+          position: 'absolute',
+          top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 99999,
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          width: 'auto',
+          height: 'auto'
         }}
       >
         <div 
@@ -65,7 +67,9 @@ export function Canvas3DPreview({
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            padding: '4px'
+            padding: '8px',
+            minWidth: '100px',
+            minHeight: '50px'
           }}
         >
           <button
