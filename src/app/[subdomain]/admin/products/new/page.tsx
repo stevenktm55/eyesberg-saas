@@ -3424,7 +3424,8 @@ export default function ProductBuilderPage() {
                   <div style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '16px'
+                    padding: '16px',
+                    display: viewportMode === 'mobile' ? 'none' : 'block'
                   }}>
                     {!activeModule.contentType ? (
                       <div>
