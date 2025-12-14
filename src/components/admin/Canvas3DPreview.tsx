@@ -98,104 +98,288 @@ export function Canvas3DPreview({
         </div>
       </div>
 
-      {/* Controls bar */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-          <button
-            onClick={() => handleViewChange("prev")}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            title="Previous view"
+      {/* Wrapper pour simuler le layout mobile du ConfiguratorViewer */}
+      {viewportMode === 'mobile' ? (
+        <div 
+          style={{
+            width: '375px',
+            height: '667px',
+            margin: '0 auto',
+            border: '8px solid #1f2937',
+            borderRadius: '20px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#ffffff',
+            position: 'relative'
+          }}
+        >
+          {/* Viewer 3D en haut (prend tout l'espace disponible) */}
+          <div 
+            className="flex-1 relative"
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: 0,
+              backgroundColor: '#e8e8e8'
+            }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <span className="text-sm font-medium px-2">{currentView}</span>
-          <button
-            onClick={() => handleViewChange("next")}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            title="Next view"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+            {/* Controls bar - Positionnés en haut */}
+            <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+                <button
+                  onClick={() => handleViewChange("prev")}
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                  title="Previous view"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="text-sm font-medium px-2">{currentView}</span>
+                <button
+                  onClick={() => handleViewChange("next")}
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                  title="Next view"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-          {/* View selector */}
-          <div className="flex gap-1">
-            {Array.from({ length: totalViews }).map((_, i) => (
+            {/* 3D Canvas */}
+            {modelUrl ? (
+              <Canvas
+                gl={{ antialias: true, alpha: true }}
+                camera={{ position: [0, 0, 5], fov: 50 }}
+                className="bg-gray-900"
+                style={{ width: '100%', height: '100%' }}
+              >
+                <Suspense fallback={null}>
+                  <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+                  <ambientLight intensity={0.5} />
+                  <directionalLight position={[10, 10, 5]} intensity={1} />
+                  <Simple3DViewer
+                    url={modelUrl}
+                    questions={questions}
+                    layers={layers}
+                  />
+                  <OrbitControls
+                    enablePan={true}
+                    enableZoom={true}
+                    enableRotate={true}
+                    minDistance={2}
+                    maxDistance={10}
+                  />
+                  <Environment preset="studio" />
+                </Suspense>
+              </Canvas>
+            ) : (
+              <div className="h-full flex items-center justify-center bg-gray-900">
+                <div className="text-center text-gray-400">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 opacity-50"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-sm">No 3D model loaded</p>
+                  <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Simuler la sidebar en bas (comme sur mobile) */}
+          <div 
+            style={{
+              width: '100%',
+              backgroundColor: '#ffffff',
+              borderTop: '1px solid #e5e7eb',
+              padding: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              maxHeight: '200px',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Onglets en bas (simulation) */}
+            <div 
+              style={{
+                display: 'flex',
+                gap: '8px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid #e5e7eb',
+                marginBottom: '8px'
+              }}
+            >
               <button
-                key={i}
-                onClick={() => setCurrentView(i + 1)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  currentView === i + 1 ? "bg-blue-600" : "bg-gray-300"
-                }`}
-                title={`View ${i + 1}`}
-              />
-            ))}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                🎨 Design
+              </button>
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                🎨 Couleur
+              </button>
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                ✏️ Texte
+              </button>
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#111827',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                🖼️ Logo
+              </button>
+            </div>
+            
+            {/* Contenu de la sidebar (simulation) */}
+            <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
+              Sidebar mobile - Contenu des modules ici
+            </div>
           </div>
-
-          {/* Zoom controls */}
-          <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
-            <button
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom in"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-            <button
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom out"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Share button */}
-          <button
-            className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded transition-colors"
-            title="Share"
-          >
-            Share
-          </button>
-
-          {/* Fullscreen */}
-          <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            title="Fullscreen"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Controls bar - Mode desktop */}
+          <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+              <button
+                onClick={() => handleViewChange("prev")}
+                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                title="Previous view"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <span className="text-sm font-medium px-2">{currentView}</span>
+              <button
+                onClick={() => handleViewChange("next")}
+                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                title="Next view"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
 
-      {/* 3D Canvas */}
-      <div 
-        className="flex-1 relative"
-        style={viewportMode === 'mobile' ? {
-          maxWidth: '375px',
-          maxHeight: '667px',
-          margin: '0 auto',
-          border: '8px solid #1f2937',
-          borderRadius: '20px',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-          overflow: 'hidden'
-        } : {
-          maxWidth: '100%',
-          maxHeight: '100%',
-          margin: '0',
-          overflow: 'hidden'
-        }}
-      >
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+              {/* View selector */}
+              <div className="flex gap-1">
+                {Array.from({ length: totalViews }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentView(i + 1)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      currentView === i + 1 ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                    title={`View ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Zoom controls */}
+              <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
+                <button
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                  title="Zoom in"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+                <button
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                  title="Zoom out"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Share button */}
+              <button
+                className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded transition-colors"
+                title="Share"
+              >
+                Share
+              </button>
+
+              {/* Fullscreen */}
+              <button
+                onClick={() => setIsFullscreen(!isFullscreen)}
+                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                title="Fullscreen"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* 3D Canvas - Mode desktop */}
+          <div 
+            className="flex-1 relative"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              margin: '0',
+              overflow: 'hidden'
+            }}
+          >
         {modelUrl ? (
           <Canvas
             gl={{ antialias: true, alpha: true }}
