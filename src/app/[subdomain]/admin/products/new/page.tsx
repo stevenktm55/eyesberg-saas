@@ -715,6 +715,7 @@ export default function ProductBuilderPage() {
   }>>([]);
   const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const [texts, setTexts] = useState<Array<{
     id: string;
     content: string;
@@ -3202,6 +3203,82 @@ export default function ProductBuilderPage() {
             position: 'relative',
             overflow: 'hidden'
           }}>
+            {/* Viewport selector buttons */}
+            <div 
+              style={{ 
+                position: 'fixed',
+                top: '100px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 999999,
+                pointerEvents: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'auto',
+                height: 'auto',
+                visibility: 'visible',
+                opacity: 1
+              }}
+            >
+              <div 
+                style={{
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                  border: '3px solid #3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '8px',
+                  minWidth: '100px',
+                  minHeight: '50px',
+                  visibility: 'visible',
+                  opacity: 1,
+                  borderRadius: '8px'
+                }}
+              >
+                <button
+                  onClick={() => setViewportMode('desktop')}
+                  style={{
+                    padding: '8px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    backgroundColor: viewportMode === 'desktop' ? '#3b82f6' : '#ffffff',
+                    color: viewportMode === 'desktop' ? '#ffffff' : '#374151',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Vue ordinateur"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setViewportMode('mobile')}
+                  style={{
+                    padding: '8px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    backgroundColor: viewportMode === 'mobile' ? '#3b82f6' : '#ffffff',
+                    color: viewportMode === 'mobile' ? '#ffffff' : '#374151',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Vue téléphone"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             {/* Left Sidebar - Customizer Tabs (only visible when model is selected) */}
             {selectedModel3DId && (
               <div style={{
