@@ -380,58 +380,61 @@ export function Canvas3DPreview({
               overflow: 'hidden'
             }}
           >
-        {modelUrl ? (
-          <Canvas
-            gl={{ antialias: true, alpha: true }}
-            camera={{ position: [0, 0, 5], fov: 50 }}
-            className="bg-gray-900"
-          >
-            <Suspense fallback={null}>
-              <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <Simple3DViewer
-                url={modelUrl}
-                questions={questions}
-                layers={layers}
-              />
-              <OrbitControls
-                enablePan={true}
-                enableZoom={true}
-                enableRotate={true}
-                minDistance={2}
-                maxDistance={10}
-              />
-              <Environment preset="studio" />
-            </Suspense>
-          </Canvas>
-        ) : (
-          <div className="h-full flex items-center justify-center bg-gray-900">
-            <div className="text-center text-gray-400">
-              <svg
-                className="w-16 h-16 mx-auto mb-4 opacity-50"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {modelUrl ? (
+              <Canvas
+                gl={{ antialias: true, alpha: true }}
+                camera={{ position: [0, 0, 5], fov: 50 }}
+                className="bg-gray-900"
+                style={{ width: '100%', height: '100%' }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-sm">No 3D model loaded</p>
-              <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
-            </div>
+                <Suspense fallback={null}>
+                  <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+                  <ambientLight intensity={0.5} />
+                  <directionalLight position={[10, 10, 5]} intensity={1} />
+                  <Simple3DViewer
+                    url={modelUrl}
+                    questions={questions}
+                    layers={layers}
+                  />
+                  <OrbitControls
+                    enablePan={true}
+                    enableZoom={true}
+                    enableRotate={true}
+                    minDistance={2}
+                    maxDistance={10}
+                  />
+                  <Environment preset="studio" />
+                </Suspense>
+              </Canvas>
+            ) : (
+              <div className="h-full flex items-center justify-center bg-gray-900">
+                <div className="text-center text-gray-400">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 opacity-50"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <p className="text-sm">No 3D model loaded</p>
+                  <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* View indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
-        <span className="text-sm font-medium">View {currentView}</span>
-      </div>
+          {/* View indicator - Mode desktop */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
+            <span className="text-sm font-medium">View {currentView}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
