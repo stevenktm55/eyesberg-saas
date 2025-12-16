@@ -4183,6 +4183,16 @@ export default function ConfiguratorViewer({
   // isMobileMode devient la variable de contrôle UNIQUE pour tout le layout (JS > CSS)
   const isMobileMode = forceMobileLayout === true ? true : (forceMobileLayout === false ? false : isMobile);
   
+  // Debug: vérifier les valeurs
+  useEffect(() => {
+    if (forceMobileLayout) {
+      console.log('📱 ConfiguratorViewer - forceMobileLayout:', forceMobileLayout);
+      console.log('📱 ConfiguratorViewer - isMobileMode:', isMobileMode);
+      console.log('📱 ConfiguratorViewer - customizationModules:', customizationModules);
+      console.log('📱 ConfiguratorViewer - customizationModules.length:', customizationModules?.length);
+    }
+  }, [forceMobileLayout, isMobileMode, customizationModules]);
+  
   return (
     <div 
       // Layout global contrôlé uniquement par isMobileMode (aucune classe responsive type md:hidden)
@@ -8020,7 +8030,7 @@ export default function ConfiguratorViewer({
         {/* Container du viewer avec contrainte de viewport */}
         <div 
           className={isMobileMode ? "flex-1 relative flex flex-col" : "flex-1 relative"}
-          style={viewportMode === 'mobile' ? {
+          style={isMobileMode ? {
             position: 'relative',
             width: '100%',
             height: '100%',
@@ -8097,7 +8107,7 @@ export default function ConfiguratorViewer({
           </div>
           
           {/* Barre mobile en bas du téléphone avec les modules de personnalisation */}
-          {isMobileMode && customizationModules && customizationModules.length > 0 && (
+          {isMobileMode && (
             <div
               className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
               style={{
@@ -8111,11 +8121,12 @@ export default function ConfiguratorViewer({
                 alignItems: 'center',
                 justifyContent: 'space-around',
                 padding: '12px',
-                backgroundColor: '#ffffff',
+                backgroundColor: '#fffbeb',
                 borderTop: '1px solid #e5e7eb',
               }}
             >
-              {customizationModules.map((module: any) => {
+              {customizationModules && customizationModules.length > 0 ? (
+                customizationModules.map((module: any) => {
                 const iconToShow = module.icon || module.iconUrl || module.emoji || module.iconChar || module.iconName || '🎨';
                 const isActive = activeCustomizerTab === module.id;
                 const moduleLabel = module.tabName || module.label || module.name || '';
@@ -8165,7 +8176,12 @@ export default function ConfiguratorViewer({
                     )}
                   </button>
                 );
-              })}
+              })
+              ) : (
+                <div style={{ padding: '8px', color: '#666', fontSize: '12px' }}>
+                  Aucun module disponible (debug: {customizationModules?.length || 0} modules)
+                </div>
+              )}
             </div>
           )}
         </div>
