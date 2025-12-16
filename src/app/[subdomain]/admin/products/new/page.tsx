@@ -2182,7 +2182,8 @@ export default function ProductBuilderPage() {
             display: 'flex',
             overflow: 'hidden'
           }}>
-          {/* Left Sidebar - Questions */}
+          {/* Left Sidebar - Questions - Cachée en mode mobile */}
+          {viewportMode === 'desktop' && (
           <div style={{
             width: '320px',
             backgroundColor: '#0a0a0a',
@@ -3194,6 +3195,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Center: Customizer Preview Area */}
           <div style={{
@@ -3279,8 +3281,8 @@ export default function ProductBuilderPage() {
                 </button>
               </div>
             </div>
-            {/* Left Sidebar - Customizer Tabs (only visible when model is selected) */}
-            {selectedModel3DId && (
+            {/* Left Sidebar - Customizer Tabs (only visible when model is selected AND en mode desktop) */}
+            {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
                 width: '80px',
                 backgroundColor: '#ffffff',
@@ -6271,8 +6273,8 @@ export default function ProductBuilderPage() {
             </div>
           </div>
 
-          {/* Right Sidebar - Module/Question Settings */}
-          {showQuestionSettings && selectedModule ? (
+          {/* Right Sidebar - Module/Question Settings - Cachée en mode mobile */}
+          {showQuestionSettings && selectedModule && viewportMode === 'desktop' ? (
             <div style={{
               width: '420px',
               backgroundColor: '#0a0a0a',
