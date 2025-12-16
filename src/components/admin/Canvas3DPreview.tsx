@@ -29,6 +29,14 @@ export function Canvas3DPreview({
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
 
+  // Debug: vérifier les valeurs
+  useEffect(() => {
+    console.log('🎨 Canvas3DPreview - viewportMode:', viewportMode);
+    console.log('🎨 Canvas3DPreview - productId:', productId);
+    console.log('🎨 Canvas3DPreview - shop:', shop);
+    console.log('🎨 Canvas3DPreview - viewportMode === mobile:', viewportMode === 'mobile');
+  }, [viewportMode, productId, shop]);
+
   const handleViewChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
       setCurrentView((prev) => (prev === 1 ? totalViews : prev - 1));
