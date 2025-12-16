@@ -24,6 +24,10 @@ export function Canvas3DPreview({
   productId,
   shop,
 }: Canvas3DPreviewProps) {
+  // Debug: vérifier les props IMMÉDIATEMENT
+  console.log('🎨 Canvas3DPreview RENDER - productId:', productId, 'shop:', shop);
+  console.log('🎨 Canvas3DPreview RENDER - viewportMode initial:', 'desktop');
+  
   const [currentView, setCurrentView] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -121,6 +125,25 @@ export function Canvas3DPreview({
             padding: '20px'
           }}
         >
+          {/* Debug: bannière de test */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '40px',
+            backgroundColor: '#00ff00',
+            color: '#000000',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}>
+            🚨 MODE MOBILE - productId: {productId || 'NULL'} - shop: {shop || 'NULL'}
+          </div>
+          
           {/* Rectangle téléphone - on embarque directement la page /configure en iframe */}
           <div 
             className="flex flex-col"
@@ -150,6 +173,7 @@ export function Canvas3DPreview({
                   minHeight: 0
                 }}
               >
+                {console.log('🎨 Canvas3DPreview - Rendering ConfiguratorViewer with:', { productId, shop })}
                 <ConfiguratorViewer
                   productId={productId}
                   shopDomain={shop}
@@ -162,6 +186,8 @@ export function Canvas3DPreview({
                 <div className="text-center text-gray-500 p-4">
                   <p className="text-sm">Chargement du configurateur...</p>
                   <p className="text-xs mt-2">ProductId et shop requis pour la simulation mobile</p>
+                  <p className="text-xs mt-2">productId: {String(productId)}</p>
+                  <p className="text-xs mt-2">shop: {String(shop)}</p>
                 </div>
               </div>
             )}
