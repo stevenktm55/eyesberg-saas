@@ -5,12 +5,15 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera } from "@react-three/drei";
 import { ProductQuestion, ProductLayer } from "./ProductEditor3D";
 import { Simple3DViewer } from "./Simple3DViewer";
+import ConfiguratorViewer from "@/components/ConfiguratorViewer";
 
 interface Canvas3DPreviewProps {
   modelUrl: string | null;
   questions: ProductQuestion[];
   layers: ProductLayer[];
   onModelUrlChange: (url: string | null) => void;
+  productId?: string;
+  shop?: string;
 }
 
 export function Canvas3DPreview({
@@ -18,6 +21,8 @@ export function Canvas3DPreview({
   questions,
   layers,
   onModelUrlChange,
+  productId,
+  shop,
 }: Canvas3DPreviewProps) {
   const [currentView, setCurrentView] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -98,194 +103,58 @@ export function Canvas3DPreview({
         </div>
       </div>
 
-      {/* Wrapper pour simuler le layout mobile du ConfiguratorViewer */}
+      {/* Wrapper pour simuler le layout mobile du configurateur - Rectangle téléphone centré */}
       {viewportMode === 'mobile' ? (
         <div 
+          className="flex items-center justify-center h-full w-full"
           style={{
-            width: '375px',
-            height: '667px',
-            margin: '0 auto',
-            border: '8px solid #1f2937',
-            borderRadius: '20px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: '#ffffff',
-            position: 'relative'
+            position: 'relative',
+            overflow: 'auto',
+            padding: '20px'
           }}
         >
-          {/* Viewer 3D en haut (prend tout l'espace disponible) */}
+          {/* Rectangle téléphone - on embarque directement la page /configure en iframe */}
           <div 
-            className="flex-1 relative"
+            className="flex flex-col"
             style={{
-              width: '100%',
-              height: '100%',
-              minHeight: 0,
-              backgroundColor: '#e8e8e8'
+              width: '375px',
+              height: '667px',
+              border: '8px solid #1f2937',
+              borderRadius: '20px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+              overflow: 'hidden',
+              backgroundColor: '#ffffff',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
-            {/* Controls bar - Positionnés en haut */}
-            <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
-              <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-                <button
-                  onClick={() => handleViewChange("prev")}
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  title="Previous view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <span className="text-sm font-medium px-2">{currentView}</span>
-                <button
-                  onClick={() => handleViewChange("next")}
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  title="Next view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* 3D Canvas */}
-            {modelUrl ? (
-              <Canvas
-                gl={{ antialias: true, alpha: true }}
-                camera={{ position: [0, 0, 5], fov: 50 }}
-                className="bg-gray-900"
-                style={{ width: '100%', height: '100%' }}
+            {productId && shop ? (
+              <div 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  overflow: 'hidden',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
               >
-                <Suspense fallback={null}>
-                  <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-                  <ambientLight intensity={0.5} />
-                  <directionalLight position={[10, 10, 5]} intensity={1} />
-                  <Simple3DViewer
-                    url={modelUrl}
-                    questions={questions}
-                    layers={layers}
-                  />
-                  <OrbitControls
-                    enablePan={true}
-                    enableZoom={true}
-                    enableRotate={true}
-                    minDistance={2}
-                    maxDistance={10}
-                  />
-                  <Environment preset="studio" />
-                </Suspense>
-              </Canvas>
+                <ConfiguratorViewer
+                  productId={productId}
+                  shopDomain={shop}
+                  forceMobileLayout={true}
+                  preview={true}
+                />
+              </div>
             ) : (
-              <div className="h-full flex items-center justify-center bg-gray-900">
-                <div className="text-center text-gray-400">
-                  <svg
-                    className="w-16 h-16 mx-auto mb-4 opacity-50"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-sm">No 3D model loaded</p>
-                  <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
+              <div className="h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center text-gray-500 p-4">
+                  <p className="text-sm">Chargement du configurateur...</p>
+                  <p className="text-xs mt-2">ProductId et shop requis pour la simulation mobile</p>
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Simuler la sidebar en bas (comme sur mobile) */}
-          <div 
-            style={{
-              width: '100%',
-              backgroundColor: '#ffffff',
-              borderTop: '1px solid #e5e7eb',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              maxHeight: '200px',
-              overflowY: 'auto'
-            }}
-          >
-            {/* Onglets en bas (simulation) */}
-            <div 
-              style={{
-                display: 'flex',
-                gap: '8px',
-                paddingBottom: '8px',
-                borderBottom: '1px solid #e5e7eb',
-                marginBottom: '8px'
-              }}
-            >
-              <button
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#3b82f6',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                🎨 Design
-              </button>
-              <button
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#111827',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                🎨 Couleur
-              </button>
-              <button
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#111827',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                ✏️ Texte
-              </button>
-              <button
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#111827',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  cursor: 'pointer'
-                }}
-              >
-                🖼️ Logo
-              </button>
-            </div>
-            
-            {/* Contenu de la sidebar (simulation) */}
-            <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center' }}>
-              Sidebar mobile - Contenu des modules ici
-            </div>
           </div>
         </div>
       ) : (

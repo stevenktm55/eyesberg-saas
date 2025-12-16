@@ -342,6 +342,8 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
               questions={questions}
               layers={layers}
               onModelUrlChange={setModelUrl}
+              productId={productId}
+              shop={shop}
             />
           </div>
 

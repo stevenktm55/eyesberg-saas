@@ -2907,6 +2907,7 @@ export default function ConfiguratorViewer({
   preview: propPreview,
   onSave,
   onAddToCart,
+  forceMobileLayout = false,
 }: {
   mode?: 'client' | 'admin';
   productId?: string | null;
@@ -2914,6 +2915,7 @@ export default function ConfiguratorViewer({
   preview?: boolean;
   onSave?: () => void;
   onAddToCart?: () => void;
+  forceMobileLayout?: boolean;
 }) {
   // Récupérer les paramètres de l'URL si non fournis
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -3173,8 +3175,10 @@ export default function ConfiguratorViewer({
   const { placedLogos, addLogo, updateLogo, removeLogo, toggleLogoLock, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo } = logoSelection;
   const logoModuleConfig = productConfig?.logoModuleConfig || null;
   
-  // Déterminer l'onglet actif basé sur les modules mappés depuis productConfig
-  const customizationModules = productConfig?.customizationModules || [];
+  // Déterminer les modules de personnalisation à partir du SNAPSHOT (source finale du viewer)
+  // Priorité : snapshot.customizationModules (généré depuis builder_data)
+  // Fallback : productConfig.customizationModules (ancienne source directe)
+  const customizationModules = snapshot?.customizationModules || productConfig?.customizationModules || [];
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
   
   // S'assurer que le panneau s'ouvre automatiquement sur le premier onglet quand les modules sont chargés
@@ -4174,10 +4178,25 @@ export default function ConfiguratorViewer({
     );
   }
   
+  // Utiliser forceMobileLayout ou isMobile pour déterminer le layout
+  // forceMobileLayout a la priorité absolue : si true, on force le layout mobile même si la fenêtre est large
+  // isMobileMode devient la variable de contrôle UNIQUE pour tout le layout (JS > CSS)
+  const isMobileMode = forceMobileLayout === true ? true : (forceMobileLayout === false ? false : isMobile);
+  
   return (
-    <div className="h-full flex">
-      {/* Sidebar gauche avec icônes des modules */}
-      {shouldShowLeftSidebar ? (
+    <div 
+      // Layout global contrôlé uniquement par isMobileMode (aucune classe responsive type md:hidden)
+      className={isMobileMode ? 'flex flex-col h-full w-full relative overflow-hidden' : 'flex flex-row h-full w-full'}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        flexDirection: isMobileMode ? 'column' : 'row'
+      }}
+    >
+      {/* Sidebar gauche avec icônes des modules - Cachée en mobile, remplacée par barre horizontale en bas */}
+      {!isMobileMode && shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
           {customizationModules.map((module: any) => {
             const hasIconUrl = !!module.iconUrl;
@@ -4255,24 +4274,60 @@ export default function ConfiguratorViewer({
             );
           })}
         </div>
-      ) : (
-        <div className="w-0" data-testid="left-sidebar-hidden" />
-      )}
+      ) : null}
       
       {/* Panneau de contenu qui s'ouvre depuis la sidebar gauche */}
-      {shouldShowLeftSidebar && (() => {
+      {(shouldShowLeftSidebar || isMobileMode) && (() => {
         // Toujours afficher le panneau si la sidebar est visible, même si activeCustomizerTab n'est pas encore défini
         // Utiliser le premier module par défaut si activeCustomizerTab est null
-        const tabToUse = activeCustomizerTab || (customizationModules.length > 0 ? customizationModules[0].id : null);
-        
-        if (!tabToUse) {
-          return null;
+        const hasModules = customizationModules.length > 0;
+
+        // En mode mobile dans le simulateur, si aucun module n'est encore configuré,
+        // on affiche quand même une barre mobile vide pour matérialiser le layout.
+        if (isMobileMode && !hasModules) {
+          return (
+            <div
+              className="w-full border-t border-gray-200 flex-shrink-0 bg-white flex flex-col overflow-hidden relative"
+              style={{
+                position: 'relative',
+                width: '100%',
+                borderTop: '1px solid #e5e7eb',
+                borderRight: 'none',
+                order: 2,
+                flexShrink: 0,
+                height: '40%',
+                minHeight: 0,
+                zIndex: 50,
+                display: 'flex',
+              }}
+            >
+              <div
+                className="w-full bg-white border-b border-gray-200 flex flex-row items-center justify-around px-2 py-3 gap-1 flex-shrink-0"
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  width: '100%',
+                  zIndex: 50,
+                }}
+              >
+                {/* Icônes factices pour représenter la future barre mobile */}
+                <button className="w-10 h-10 flex items-center justify-center rounded border bg-gray-50 border-gray-200 text-gray-400 text-xs">
+                  🎨
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded border bg-gray-50 border-gray-200 text-gray-400 text-xs">
+                  🔤
+                </button>
+              </div>
+              <div className="flex-1 bg-gray-50" />
+            </div>
+          );
         }
-        
+
+        const tabToUse = activeCustomizerTab || (hasModules ? customizationModules[0].id : null);
+        if (!tabToUse) return null;
+
         const activeModule = customizationModules.find((m: any) => m.id === tabToUse);
-        if (!activeModule) {
-          return null;
-        }
+        if (!activeModule) return null;
         
         // Déterminer l'onglet actif basé sur le contentType du module
         let tabToShow: 'design' | 'color' | 'numero' | 'nom' | 'logo' = 'design';
@@ -4286,7 +4341,99 @@ export default function ConfiguratorViewer({
         else if (activeModule.contentType === 'logos') tabToShow = 'logo';
         
         return (
-          <div className="w-[420px] min-w-[420px] flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-hidden relative z-20">
+          <div 
+            className={`${isMobileMode ? 'w-full border-t border-gray-200' : 'w-[420px] min-w-[420px] border-r border-gray-200'} flex-shrink-0 bg-white flex flex-col overflow-hidden relative`}
+            style={isMobileMode ? { 
+              position: 'relative',
+              width: '100%', 
+              borderTop: '1px solid #e5e7eb', 
+              borderRight: 'none', 
+              order: 2,
+              flexShrink: 0,
+              // Occupe ~40% de la hauteur du téléphone en mobile
+              height: '40%',
+              minHeight: 0,
+              zIndex: 50,
+              display: 'flex'
+            } : {
+              position: 'relative',
+              zIndex: 20
+            }}
+            >
+            {/* Barre horizontale d'icônes en bas sur mobile */}
+            {isMobileMode && (
+              <div 
+                className="w-full bg-white border-b border-gray-200 flex flex-row items-center justify-around px-2 py-3 gap-1 flex-shrink-0"
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  width: '100%',
+                  zIndex: 50
+                }}
+              >
+                {customizationModules.map((module: any) => {
+                  const hasIconUrl = !!module.iconUrl;
+                  const iconToShow = module.icon || '🎨';
+                  const isActive = activeCustomizerTab === module.id;
+                  
+                  return (
+                    <button
+                      key={module.id}
+                      onClick={() => {
+                        setActiveCustomizerTab(module.id);
+                        if (module.contentType === 'designs-2d') setActiveTab('design');
+                        else if (module.contentType === 'colors') setActiveTab('color');
+                        else if (module.contentType === 'text') {
+                          if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
+                        }
+                        else if (module.contentType === 'logos') setActiveTab('logo');
+                      }}
+                      className="flex flex-col items-center justify-center gap-1 transition-all relative"
+                      style={{ 
+                        flex: 1,
+                        minWidth: 0,
+                        padding: '8px 4px',
+                        backgroundColor: isActive ? '#000000' : 'transparent',
+                        borderRadius: '8px'
+                      }}
+                    >
+                      {hasIconUrl ? (
+                        <img
+                          src={module.iconUrl}
+                          alt={module.tabName}
+                          className="w-6 h-6 object-contain"
+                          style={{ 
+                            filter: isActive ? 'brightness(0) invert(1)' : 'none'
+                          }}
+                        />
+                      ) : (
+                        <span 
+                          className="text-xl"
+                          style={{ 
+                            color: isActive ? '#ffffff' : '#111827',
+                            fontSize: '20px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {iconToShow}
+                        </span>
+                      )}
+                      <span 
+                        style={{ 
+                          fontSize: '11px',
+                          color: isActive ? '#ffffff' : '#111827',
+                          fontWeight: isActive ? '600' : '400',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {module.tabName}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            
             {/* En-tête du panneau */}
             <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
               <div className="flex items-center gap-3">
@@ -7822,7 +7969,22 @@ export default function ConfiguratorViewer({
       })() : null}
       
       {/* Viewer 3D au centre */}
-      <div className="flex-1 flex flex-col relative">
+      <div 
+        className="flex-1 flex flex-col"
+        style={isMobileMode ? {
+          position: 'relative',
+          width: '100%',
+          flex: '1 1 0%',
+          flexShrink: 1,
+          minHeight: 0,
+          overflow: 'hidden',
+          order: 1
+        } : {
+          position: 'relative',
+          flex: '1 1 0%',
+          minWidth: 0
+        }}
+      >
         {/* Header avec sélecteur de viewport (desktop/mobile) - Centré et transparent */}
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
           <div className="flex items-center gap-1 bg-transparent rounded-lg p-1">
@@ -7859,18 +8021,28 @@ export default function ConfiguratorViewer({
         <div 
           className="flex-1 relative"
           style={viewportMode === 'mobile' ? {
+            position: 'relative',
+            width: '100%',
+            height: '100%',
             maxWidth: '375px',
             maxHeight: '667px',
             margin: '0 auto',
             border: '8px solid #1f2937',
             borderRadius: '20px',
             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            flex: '1 1 0%',
+            minHeight: 0
           } : {
+            position: 'relative',
+            width: '100%',
+            height: '100%',
             maxWidth: '100%',
             maxHeight: '100%',
             margin: '0',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            flex: '1 1 0%',
+            minHeight: 0
           }}
         >
           <Viewer3D
@@ -7921,6 +8093,79 @@ export default function ConfiguratorViewer({
         />
         </div>
       </div>
+
+      {/* Barre mobile en bas du téléphone avec les modules de personnalisation */}
+      {isMobileMode && customizationModules && customizationModules.length > 0 && (
+        <div
+          className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: 'auto',
+            minHeight: '60px',
+            zIndex: 60,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            padding: '12px',
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e5e7eb',
+          }}
+        >
+          {customizationModules.map((module: any) => {
+            const iconToShow = module.icon || module.iconUrl || module.emoji || module.iconChar || module.iconName || '🎨';
+            const isActive = activeCustomizerTab === module.id;
+            const moduleLabel = module.tabName || module.label || module.name || '';
+
+            return (
+              <button
+                key={module.id}
+                onClick={() => {
+                  setActiveCustomizerTab(module.id);
+                }}
+                className={`flex flex-col items-center justify-center rounded transition-all ${
+                  isActive
+                    ? 'bg-gray-100 border-gray-300'
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`}
+                style={{
+                  minWidth: '48px',
+                  minHeight: '48px',
+                  padding: '8px',
+                  border: `1px solid ${isActive ? '#d1d5db' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                }}
+                title={moduleLabel}
+              >
+                {module.iconUrl ? (
+                  <img
+                    src={module.iconUrl}
+                    alt={moduleLabel}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : (
+                  <span style={{ fontSize: '20px' }}>{iconToShow}</span>
+                )}
+                {moduleLabel && (
+                  <span style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>
+                    {moduleLabel}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
       
       {/* Modal de confirmation de suppression */}
       {showDeleteModal && itemToDelete && (
