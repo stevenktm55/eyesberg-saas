@@ -8071,7 +8071,7 @@ export default function ConfiguratorViewer({
             position: 'relative',
             width: '100%',
             height: '100%',
-            overflow: 'hidden',
+            overflow: 'visible',
             flex: '1 1 0%',
             minHeight: 0,
             display: 'flex',
@@ -8158,12 +8158,15 @@ export default function ConfiguratorViewer({
             <div
               className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
               style={{
-                position: 'relative',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
                 width: '100%',
-                height: 'auto',
+                height: '80px',
                 minHeight: '80px',
                 maxHeight: '80px',
-                zIndex: 100,
+                zIndex: 10000,
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
