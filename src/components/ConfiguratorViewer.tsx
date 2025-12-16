@@ -8028,9 +8028,21 @@ export default function ConfiguratorViewer({
         </div>
         
         {/* Container du viewer avec contrainte de viewport */}
+        {/* Si preview={true} et forceMobileLayout={true}, on est dans un simulateur, donc pas de double cadre */}
         <div 
           className={isMobileMode ? "flex-1 relative flex flex-col" : "flex-1 relative"}
-          style={isMobileMode ? {
+          style={isMobileMode && preview ? {
+            // Mode simulateur : utiliser tout l'espace sans créer de cadre
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            flex: '1 1 0%',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          } : isMobileMode ? {
+            // Mode mobile normal : créer le cadre du téléphone
             position: 'relative',
             width: '100%',
             height: '100%',
@@ -8114,15 +8126,17 @@ export default function ConfiguratorViewer({
                 position: 'relative',
                 width: '100%',
                 height: 'auto',
-                minHeight: '60px',
-                zIndex: 60,
+                minHeight: '80px',
+                maxHeight: '80px',
+                zIndex: 100,
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-around',
                 padding: '12px',
-                backgroundColor: '#fffbeb',
-                borderTop: '1px solid #e5e7eb',
+                backgroundColor: '#ff0000',
+                borderTop: '3px solid #000000',
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.3)',
               }}
             >
               {customizationModules && customizationModules.length > 0 ? (

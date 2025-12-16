@@ -137,7 +137,9 @@ export function Canvas3DPreview({
                   overflow: 'hidden',
                   position: 'relative',
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  flex: 1,
+                  minHeight: 0
                 }}
               >
                 <ConfiguratorViewer
