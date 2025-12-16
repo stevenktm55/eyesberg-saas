@@ -2182,8 +2182,7 @@ export default function ProductBuilderPage() {
             display: 'flex',
             overflow: 'hidden'
           }}>
-          {/* Left Sidebar - Questions - Cachée en mode mobile */}
-          {viewportMode === 'desktop' && (
+          {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
             width: '320px',
             backgroundColor: '#0a0a0a',
@@ -3195,7 +3194,6 @@ export default function ProductBuilderPage() {
               </div>
             </div>
           </div>
-          )}
 
           {/* Center: Customizer Preview Area */}
           <div style={{
