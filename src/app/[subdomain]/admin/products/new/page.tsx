@@ -6273,8 +6273,8 @@ export default function ProductBuilderPage() {
             </div>
           </div>
 
-          {/* Right Sidebar - Module/Question Settings - Cachée en mode mobile */}
-          {showQuestionSettings && selectedModule && viewportMode === 'desktop' ? (
+          {/* Right Sidebar - Module/Question Settings - visible même en mode mobile */}
+          {showQuestionSettings && selectedModule ? (
             <div style={{
               width: '420px',
               backgroundColor: '#0a0a0a',
