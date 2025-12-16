@@ -1777,27 +1777,8 @@ export default function ProductBuilderPage() {
       backgroundColor: '#000000',
       display: 'flex',
       fontFamily: 'var(--stepn-font-body), sans-serif',
-      flexDirection: 'column',
-      position: 'relative'
+      flexDirection: 'column'
     }}>
-      {/* BANNIÈRE DE TEST TRÈS VISIBLE POUR VÉRIFIER LE DÉPLOIEMENT */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 999999,
-          backgroundColor: '#ff0000',
-          color: '#ffffff',
-          textAlign: 'center',
-          padding: '12px 16px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-        }}
-      >
-        TEST EYESBERG-SAAS – SI TU VOIS CETTE BANNIÈRE, LE DÉPLOIEMENT EST BIEN PRIS EN COMPTE
-      </div>
       {/* Preview Mode - Show only configurator */}
       {previewMode && productId && (
           <div style={{

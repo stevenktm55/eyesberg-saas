@@ -8109,7 +8109,7 @@ export default function ConfiguratorViewer({
             alignItems: 'center',
             justifyContent: 'space-around',
             padding: '12px',
-            backgroundColor: '#ffffff',
+            backgroundColor: '#fffbeb',
             borderTop: '1px solid #e5e7eb',
           }}
         >
