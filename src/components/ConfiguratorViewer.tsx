@@ -8019,7 +8019,7 @@ export default function ConfiguratorViewer({
         
         {/* Container du viewer avec contrainte de viewport */}
         <div 
-          className="flex-1 relative"
+          className={isMobileMode ? "flex-1 relative flex flex-col" : "flex-1 relative"}
           style={viewportMode === 'mobile' ? {
             position: 'relative',
             width: '100%',
@@ -8032,7 +8032,9 @@ export default function ConfiguratorViewer({
             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
             overflow: 'hidden',
             flex: '1 1 0%',
-            minHeight: 0
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column'
           } : {
             position: 'relative',
             width: '100%',
@@ -8045,127 +8047,129 @@ export default function ConfiguratorViewer({
             minHeight: 0
           }}
         >
-          <Viewer3D
-          designTexture={designTexture}
-          colors={colors}
-          fonts={fonts}
-          texts={texts}
-          updateTextPosition={updateTextPosition}
-          updateTextRotation={updateTextRotation}
-          updateTextSize={updateTextSize}
-          toggleTextLock={toggleTextLock}
-          removeText={removeText}
-          selectedTextId={selectedTextId}
-          selectText={selectText}
-          isDraggingText={isDraggingText}
-          setIsDraggingText={setIsDraggingText}
-          isRotatingText={isRotatingText}
-          setIsRotatingText={setIsRotatingText}
-          isResizingText={isResizingText}
-          setIsResizingText={setIsResizingText}
-          onTextAdded={onTextAdded}
-          placedLogos={placedLogos}
-          updateLogoPosition={(id, position) => updateLogo(id, { position })}
-          updateLogoRotation={(id, rotation) => updateLogo(id, { rotation })}
-          updateLogoScale={(id, scale) => updateLogo(id, { scale })}
-          toggleLogoLock={toggleLogoLock}
-          removeLogo={removeLogo}
-          selectedLogoId={selectedLogoId}
-          selectLogo={selectLogo}
-          isDraggingLogo={isDraggingLogo}
-          setIsDraggingLogo={setIsDraggingLogo}
-          isRotatingLogo={isRotatingLogo}
-          setIsRotatingLogo={setIsRotatingLogo}
-          isResizingLogo={isResizingLogo}
-          setIsResizingLogo={setIsResizingLogo}
-          onRequestLogoDelete={onRequestLogoDelete}
-          onRequestTextDelete={onRequestTextDelete}
-          selectedDesign={selectedDesign}
-          modelUrl={modelUrl}
-          modelId={modelId}
-          textureMaps={textureMaps}
-          materialMaps={materialMaps}
-          isPlacingText={isPlacingText}
-          textZones={textZones}
-          onTextPlaced={onTextPlaced}
-          viewerSettings={snapshot?.viewerSettings}
-          cameraSettings={snapshot?.cameraSettings}
-        />
+          <div style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+            <Viewer3D
+            designTexture={designTexture}
+            colors={colors}
+            fonts={fonts}
+            texts={texts}
+            updateTextPosition={updateTextPosition}
+            updateTextRotation={updateTextRotation}
+            updateTextSize={updateTextSize}
+            toggleTextLock={toggleTextLock}
+            removeText={removeText}
+            selectedTextId={selectedTextId}
+            selectText={selectText}
+            isDraggingText={isDraggingText}
+            setIsDraggingText={setIsDraggingText}
+            isRotatingText={isRotatingText}
+            setIsRotatingText={setIsRotatingText}
+            isResizingText={isResizingText}
+            setIsResizingText={setIsResizingText}
+            onTextAdded={onTextAdded}
+            placedLogos={placedLogos}
+            updateLogoPosition={(id, position) => updateLogo(id, { position })}
+            updateLogoRotation={(id, rotation) => updateLogo(id, { rotation })}
+            updateLogoScale={(id, scale) => updateLogo(id, { scale })}
+            toggleLogoLock={toggleLogoLock}
+            removeLogo={removeLogo}
+            selectedLogoId={selectedLogoId}
+            selectLogo={selectLogo}
+            isDraggingLogo={isDraggingLogo}
+            setIsDraggingLogo={setIsDraggingLogo}
+            isRotatingLogo={isRotatingLogo}
+            setIsRotatingLogo={setIsRotatingLogo}
+            isResizingLogo={isResizingLogo}
+            setIsResizingLogo={setIsResizingLogo}
+            onRequestLogoDelete={onRequestLogoDelete}
+            onRequestTextDelete={onRequestTextDelete}
+            selectedDesign={selectedDesign}
+            modelUrl={modelUrl}
+            modelId={modelId}
+            textureMaps={textureMaps}
+            materialMaps={materialMaps}
+            isPlacingText={isPlacingText}
+            textZones={textZones}
+            onTextPlaced={onTextPlaced}
+            viewerSettings={snapshot?.viewerSettings}
+            cameraSettings={snapshot?.cameraSettings}
+          />
+          </div>
+          
+          {/* Barre mobile en bas du téléphone avec les modules de personnalisation */}
+          {isMobileMode && customizationModules && customizationModules.length > 0 && (
+            <div
+              className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
+              style={{
+                position: 'relative',
+                width: '100%',
+                height: 'auto',
+                minHeight: '60px',
+                zIndex: 60,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '12px',
+                backgroundColor: '#ffffff',
+                borderTop: '1px solid #e5e7eb',
+              }}
+            >
+              {customizationModules.map((module: any) => {
+                const iconToShow = module.icon || module.iconUrl || module.emoji || module.iconChar || module.iconName || '🎨';
+                const isActive = activeCustomizerTab === module.id;
+                const moduleLabel = module.tabName || module.label || module.name || '';
+
+                return (
+                  <button
+                    key={module.id}
+                    onClick={() => {
+                      setActiveCustomizerTab(module.id);
+                    }}
+                    className={`flex flex-col items-center justify-center rounded transition-all ${
+                      isActive
+                        ? 'bg-gray-100 border-gray-300'
+                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                    }`}
+                    style={{
+                      minWidth: '48px',
+                      minHeight: '48px',
+                      padding: '8px',
+                      border: `1px solid ${isActive ? '#d1d5db' : '#e5e7eb'}`,
+                      borderRadius: '8px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                    }}
+                    title={moduleLabel}
+                  >
+                    {module.iconUrl ? (
+                      <img
+                        src={module.iconUrl}
+                        alt={moduleLabel}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '20px' }}>{iconToShow}</span>
+                    )}
+                    {moduleLabel && (
+                      <span style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>
+                        {moduleLabel}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Barre mobile en bas du téléphone avec les modules de personnalisation */}
-      {isMobileMode && customizationModules && customizationModules.length > 0 && (
-        <div
-          className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 'auto',
-            minHeight: '60px',
-            zIndex: 60,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            padding: '12px',
-            backgroundColor: '#fffbeb',
-            borderTop: '1px solid #e5e7eb',
-          }}
-        >
-          {customizationModules.map((module: any) => {
-            const iconToShow = module.icon || module.iconUrl || module.emoji || module.iconChar || module.iconName || '🎨';
-            const isActive = activeCustomizerTab === module.id;
-            const moduleLabel = module.tabName || module.label || module.name || '';
-
-            return (
-              <button
-                key={module.id}
-                onClick={() => {
-                  setActiveCustomizerTab(module.id);
-                }}
-                className={`flex flex-col items-center justify-center rounded transition-all ${
-                  isActive
-                    ? 'bg-gray-100 border-gray-300'
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}
-                style={{
-                  minWidth: '48px',
-                  minHeight: '48px',
-                  padding: '8px',
-                  border: `1px solid ${isActive ? '#d1d5db' : '#e5e7eb'}`,
-                  borderRadius: '8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '4px',
-                }}
-                title={moduleLabel}
-              >
-                {module.iconUrl ? (
-                  <img
-                    src={module.iconUrl}
-                    alt={moduleLabel}
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      objectFit: 'contain',
-                    }}
-                  />
-                ) : (
-                  <span style={{ fontSize: '20px' }}>{iconToShow}</span>
-                )}
-                {moduleLabel && (
-                  <span style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>
-                    {moduleLabel}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
       
       {/* Modal de confirmation de suppression */}
       {showDeleteModal && itemToDelete && (
