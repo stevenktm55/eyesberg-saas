@@ -24,22 +24,10 @@ export function Canvas3DPreview({
   productId,
   shop,
 }: Canvas3DPreviewProps) {
-  // Debug: vérifier les props IMMÉDIATEMENT
-  console.log('🎨 Canvas3DPreview RENDER - productId:', productId, 'shop:', shop);
-  console.log('🎨 Canvas3DPreview RENDER - viewportMode initial:', 'desktop');
-  
   const [currentView, setCurrentView] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
-
-  // Debug: vérifier les valeurs
-  useEffect(() => {
-    console.log('🎨 Canvas3DPreview - viewportMode:', viewportMode);
-    console.log('🎨 Canvas3DPreview - productId:', productId);
-    console.log('🎨 Canvas3DPreview - shop:', shop);
-    console.log('🎨 Canvas3DPreview - viewportMode === mobile:', viewportMode === 'mobile');
-  }, [viewportMode, productId, shop]);
 
   const handleViewChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
@@ -125,26 +113,7 @@ export function Canvas3DPreview({
             padding: '20px'
           }}
         >
-          {/* Debug: bannière de test */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '40px',
-            backgroundColor: '#00ff00',
-            color: '#000000',
-            zIndex: 999999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}>
-            🚨 MODE MOBILE - productId: {productId || 'NULL'} - shop: {shop || 'NULL'}
-          </div>
-          
-          {/* Rectangle téléphone - on embarque directement la page /configure en iframe */}
+          {/* Rectangle téléphone */}
           <div 
             className="flex flex-col"
             style={{
@@ -174,8 +143,7 @@ export function Canvas3DPreview({
                     flexDirection: 'column'
                   }}
                 >
-                  {console.log('🎨 Canvas3DPreview - Rendering ConfiguratorViewer with:', { productId, shop })}
-                  <ConfiguratorViewer
+                    <ConfiguratorViewer
                     productId={productId}
                     shopDomain={shop}
                     forceMobileLayout={true}
@@ -196,8 +164,8 @@ export function Canvas3DPreview({
                     alignItems: 'center',
                     justifyContent: 'space-around',
                     padding: '8px',
-                    backgroundColor: '#ff0000',
-                    borderTop: '3px solid #000000',
+                    backgroundColor: '#ffffff',
+                    borderTop: '1px solid #e5e7eb',
                     gap: '8px'
                   }}
                 >

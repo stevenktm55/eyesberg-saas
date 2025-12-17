@@ -2917,15 +2917,6 @@ export default function ConfiguratorViewer({
   onAddToCart?: () => void;
   forceMobileLayout?: boolean;
 }) {
-  // Debug: vérifier les props reçues
-  console.log('🔍 ConfiguratorViewer - Props reçues:', {
-    productId: propProductId,
-    shopDomain: propShopDomain,
-    preview,
-    forceMobileLayout,
-    mode
-  });
-  
   // Récupérer les paramètres de l'URL si non fournis
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const productId = propProductId || urlParams?.get('productId') || null;
@@ -4192,22 +4183,6 @@ export default function ConfiguratorViewer({
   // isMobileMode devient la variable de contrôle UNIQUE pour tout le layout (JS > CSS)
   const isMobileMode = forceMobileLayout === true ? true : (forceMobileLayout === false ? false : isMobile);
   
-  // Debug: vérifier les valeurs IMMÉDIATEMENT (pas dans useEffect)
-  console.log('📱 ConfiguratorViewer - forceMobileLayout:', forceMobileLayout);
-  console.log('📱 ConfiguratorViewer - isMobileMode:', isMobileMode);
-  console.log('📱 ConfiguratorViewer - customizationModules:', customizationModules);
-  console.log('📱 ConfiguratorViewer - customizationModules.length:', customizationModules?.length);
-  
-  // Debug: vérifier les valeurs dans useEffect aussi
-  useEffect(() => {
-    console.log('📱 ConfiguratorViewer useEffect - forceMobileLayout:', forceMobileLayout);
-    console.log('📱 ConfiguratorViewer useEffect - isMobileMode:', isMobileMode);
-    console.log('📱 ConfiguratorViewer useEffect - customizationModules.length:', customizationModules?.length);
-  }, [forceMobileLayout, isMobileMode, customizationModules]);
-  
-  // Debug: log de rendu
-  console.log('🎨 ConfiguratorViewer RENDER - isMobileMode:', isMobileMode, 'forceMobileLayout:', forceMobileLayout);
-  
   return (
     <div 
       // Layout global contrôlé uniquement par isMobileMode (aucune classe responsive type md:hidden)
@@ -4220,26 +4195,6 @@ export default function ConfiguratorViewer({
         flexDirection: isMobileMode ? 'column' : 'row'
       }}
     >
-      {/* Debug: bannière de test très visible */}
-      {isMobileMode && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '50px',
-          backgroundColor: '#ff0000',
-          color: '#ffffff',
-          zIndex: 99999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '20px',
-          fontWeight: 'bold'
-        }}>
-          🚨 MODE MOBILE ACTIF - isMobileMode: {String(isMobileMode)} - Modules: {customizationModules?.length || 0}
-        </div>
-      )}
       {/* Sidebar gauche avec icônes des modules - Cachée en mobile, remplacée par barre horizontale en bas */}
       {!isMobileMode && shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
