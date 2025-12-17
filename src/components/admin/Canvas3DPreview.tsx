@@ -161,26 +161,101 @@ export function Canvas3DPreview({
             }}
           >
             {productId && shop ? (
-              <div 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  overflow: 'hidden',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flex: 1,
-                  minHeight: 0
-                }}
-              >
-                {console.log('🎨 Canvas3DPreview - Rendering ConfiguratorViewer with:', { productId, shop })}
-                <ConfiguratorViewer
-                  productId={productId}
-                  shopDomain={shop}
-                  forceMobileLayout={true}
-                  preview={true}
-                />
-              </div>
+              <>
+                {/* Viewer 3D - prend l'espace restant */}
+                <div 
+                  style={{ 
+                    width: '100%', 
+                    flex: '1 1 0%',
+                    minHeight: 0,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  {console.log('🎨 Canvas3DPreview - Rendering ConfiguratorViewer with:', { productId, shop })}
+                  <ConfiguratorViewer
+                    productId={productId}
+                    shopDomain={shop}
+                    forceMobileLayout={true}
+                    preview={true}
+                  />
+                </div>
+                
+                {/* Barre mobile en bas du téléphone - hauteur fixe */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: '70px',
+                    minHeight: '70px',
+                    maxHeight: '70px',
+                    flexShrink: 0,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-around',
+                    padding: '8px',
+                    backgroundColor: '#ffffff',
+                    borderTop: '1px solid #e5e7eb',
+                    gap: '8px'
+                  }}
+                >
+                  {/* Placeholder modules - à remplacer par les vrais modules */}
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    minWidth: '50px'
+                  }}>
+                    <span style={{ fontSize: '20px' }}>🎨</span>
+                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Design</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    minWidth: '50px'
+                  }}>
+                    <span style={{ fontSize: '20px' }}>🎨</span>
+                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Couleur</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    minWidth: '50px'
+                  }}>
+                    <span style={{ fontSize: '20px' }}>✏️</span>
+                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Texte</span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    minWidth: '50px'
+                  }}>
+                    <span style={{ fontSize: '20px' }}>🖼️</span>
+                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Logo</span>
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="h-full flex items-center justify-center bg-gray-100">
                 <div className="text-center text-gray-500 p-4">
