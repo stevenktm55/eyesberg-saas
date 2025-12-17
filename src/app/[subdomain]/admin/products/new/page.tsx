@@ -6531,13 +6531,87 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // MODULE TEXT - Style stretchmx (bouton ajouter)
+                              // MODULE TEXT - Style stretchmx (bouton ajouter + textes placés)
                               if (activeModule.contentType === 'text') {
+                                // Récupérer les zones de texte configurées
+                                const textZoneGroupIds = activeModule.config?.textZoneGroupIds || activeModule.selectedItems?.textZoneGroupIds || [];
+                                const isZoneMode = activeModule.config?.textPlacementMode === 'zones' || activeModule.textPlacementMode === 'zones';
+                                
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                                    {/* Bouton ajouter */}
+                                    <button 
+                                      className="mobile-action-btn"
+                                      onClick={() => {
+                                        if (isZoneMode) {
+                                          // Mode zones : ouvrir le modal de sélection de zones
+                                          setShowZoneSelectionModal(true);
+                                          setSelectedZoneId(null);
+                                          setTextInputValue('');
+                                          setActiveCustomizerTab(activeModule.id);
+                                        } else {
+                                          // Mode libre : activer le mode placement
+                                          if (isPlacingText) {
+                                            setIsPlacingText(null);
+                                          } else {
+                                            setIsPlacingText('nom');
+                                          }
+                                        }
+                                      }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                                    >
+                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
                                     </button>
+                                    
+                                    {/* Textes placés */}
+                                    {placedTexts && placedTexts.length > 0 && (
+                                      <div>
+                                        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Textes placés ({placedTexts.length})</h3>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                          {placedTexts.map((text: any) => (
+                                            <div 
+                                              key={text.id}
+                                              onClick={() => setSelectedTextId(text.id)}
+                                              style={{
+                                                padding: '10px 12px',
+                                                backgroundColor: selectedTextId === text.id ? '#eff6ff' : '#f9fafb',
+                                                border: selectedTextId === text.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between'
+                                              }}
+                                            >
+                                              <div>
+                                                <p style={{ fontSize: '13px', fontWeight: '500', color: '#111827', margin: 0 }}>{text.content || 'Texte vide'}</p>
+                                                <p style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 0' }}>{text.zoneName || text.category || 'Zone'}</p>
+                                              </div>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setPlacedTexts(placedTexts.filter((t: any) => t.id !== text.id));
+                                                  if (selectedTextId === text.id) setSelectedTextId(null);
+                                                }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}
+                                              >
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                              </button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* État vide */}
+                                    {(!placedTexts || placedTexts.length === 0) && (
+                                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
+                                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                        <p style={{ fontSize: '12px', marginTop: '8px' }}>Aucun texte ajouté</p>
+                                        <p style={{ fontSize: '11px' }}>Cliquez sur le bouton ci-dessus pour commencer</p>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               }
@@ -8967,7 +9041,8 @@ export default function ProductBuilderPage() {
 
       {/* Modal de sélection de zones */}
       {showZoneSelectionModal && (() => {
-        const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+        // Chercher le module actif (priorité au mobile, puis desktop)
+        const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
         if (!activeModule) return null;
         
         return (
