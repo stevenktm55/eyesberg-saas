@@ -6565,11 +6565,11 @@ export default function ProductBuilderPage() {
                                     </button>
                                     
                                     {/* Textes placés */}
-                                    {placedTexts && placedTexts.length > 0 && (
+                                    {texts && texts.length > 0 && (
                                       <div>
-                                        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Textes placés ({placedTexts.length})</h3>
+                                        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Textes placés ({texts.length})</h3>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                          {placedTexts.map((text: any) => (
+                                          {texts.map((text: any) => (
                                             <div 
                                               key={text.id}
                                               onClick={() => setSelectedTextId(text.id)}
@@ -6591,7 +6591,7 @@ export default function ProductBuilderPage() {
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation();
-                                                  setPlacedTexts(placedTexts.filter((t: any) => t.id !== text.id));
+                                                  setTexts(texts.filter((t: any) => t.id !== text.id));
                                                   if (selectedTextId === text.id) setSelectedTextId(null);
                                                 }}
                                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}
@@ -6605,7 +6605,7 @@ export default function ProductBuilderPage() {
                                     )}
                                     
                                     {/* État vide */}
-                                    {(!placedTexts || placedTexts.length === 0) && (
+                                    {(!texts || texts.length === 0) && (
                                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
                                         <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         <p style={{ fontSize: '12px', marginTop: '8px' }}>Aucun texte ajouté</p>
