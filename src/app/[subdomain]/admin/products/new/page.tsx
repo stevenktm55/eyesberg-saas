@@ -5876,6 +5876,7 @@ export default function ProductBuilderPage() {
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
+                          position: 'relative',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '375px',
                             maxHeight: '667px',
