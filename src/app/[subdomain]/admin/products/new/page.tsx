@@ -1780,6 +1780,81 @@ export default function ProductBuilderPage() {
       fontFamily: 'var(--stepn-font-body), sans-serif',
       flexDirection: 'column'
     }}>
+      {/* Animations CSS pour le mobile */}
+      <style jsx global>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideDown {
+          from {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .mobile-panel-slide-up {
+          animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+        }
+        .mobile-panel-slide-down {
+          animation: slideDown 0.2s ease-in forwards;
+        }
+        .mobile-content-fade {
+          animation: scaleIn 0.25s ease-out forwards;
+          animation-delay: 0.05s;
+          opacity: 0;
+        }
+        .mobile-tab-btn {
+          transition: all 0.2s ease;
+        }
+        .mobile-tab-btn:active {
+          transform: scale(0.95);
+        }
+        .mobile-action-btn {
+          transition: all 0.15s ease;
+        }
+        .mobile-action-btn:active {
+          transform: scale(0.97);
+        }
+        .mobile-color-btn {
+          transition: all 0.15s ease;
+        }
+        .mobile-color-btn:hover {
+          transform: scale(1.1);
+        }
+        .mobile-color-btn:active {
+          transform: scale(0.95);
+        }
+        .mobile-card {
+          transition: all 0.2s ease;
+        }
+        .mobile-card:active {
+          transform: scale(0.97);
+        }
+      `}</style>
       {/* Preview Mode - Show only configurator */}
       {previewMode && productId && (
           <div style={{
@@ -6308,6 +6383,7 @@ export default function ProductBuilderPage() {
                                                   setDesigns2D(designs2D.map(d => d.id === selectedDesign.id ? { ...d, color_mappings: { ...d.color_mappings, [selectedColorClass]: color.id } } : d));
                                                 }
                                               }}
+                                              className="mobile-color-btn"
                                               style={{ width: '44px', height: '44px', minWidth: '44px', borderRadius: '50%', backgroundColor: color.hex, border: isSelected ? '3px solid #000' : '2px solid #e5e7eb', cursor: 'pointer', position: 'relative', padding: 0 }}
                                             >
                                               {isSelected && (
@@ -6340,7 +6416,7 @@ export default function ProductBuilderPage() {
                                         });
                                       }
                                       return (
-                                        <button key={colorClass} onClick={() => setSelectedColorClass(colorClass)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '80px' }}>
+                                        <button key={colorClass} className="mobile-card" onClick={() => setSelectedColorClass(colorClass)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '80px' }}>
                                           <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: currentColorHex, border: '2px solid #d1d5db' }} />
                                           <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
                                             {activeModule.colorClassLabels?.[colorClass] || (colorClass === 'primary' ? 'Principal' : colorClass === 'secondary' ? 'Secondaire' : colorClass === 'tertiary' ? 'Tertiaire' : colorClass.charAt(0).toUpperCase() + colorClass.slice(1))}
@@ -6375,6 +6451,7 @@ export default function ProductBuilderPage() {
                                             setSelectedDesign2DId(design.id);
                                             setCustomizationModules(customizationModules.map(m => m.contentType === 'designs-2d' ? { ...m, selectedItems: { ...m.selectedItems, design2DId: design.id } } : m));
                                           }}
+                                          className="mobile-card"
                                           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px', backgroundColor: '#fff', border: isSelected ? '2px solid #000' : '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '100px', maxWidth: '120px' }}
                                         >
                                           <div style={{ width: '70px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
@@ -6470,6 +6547,7 @@ export default function ProductBuilderPage() {
                             
                             return (
                               <div
+                                className="mobile-panel-slide-up"
                                 style={{
                                   position: 'absolute',
                                   bottom: '70px',
@@ -6513,7 +6591,7 @@ export default function ProductBuilderPage() {
                                 </div>
                                 
                                 {/* Contenu du panneau */}
-                                <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+                                <div className="mobile-content-fade" style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
                                   {renderMobileModuleContent()}
                                 </div>
                               </div>
@@ -6531,6 +6609,7 @@ export default function ProductBuilderPage() {
                                     return (
                                       <button
                                         key={module.id}
+                                        className="mobile-tab-btn"
                                         onClick={() => setMobileActivePanel(isActive ? null : module.id)}
                                         style={{
                                           flex: 1,
@@ -6542,8 +6621,7 @@ export default function ProductBuilderPage() {
                                           borderRadius: '8px',
                                           backgroundColor: isActive ? '#f3f4f6' : 'transparent',
                                           border: 'none',
-                                          cursor: 'pointer',
-                                          transition: 'background-color 0.2s'
+                                          cursor: 'pointer'
                                         }}
                                       >
                                         <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
@@ -6572,11 +6650,11 @@ export default function ProductBuilderPage() {
                               </div>
                               {/* Barre d'actions */}
                               <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px' }}>
-                                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#fff', cursor: 'pointer' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#fff', cursor: 'pointer' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                   Ajouter au panier
                                 </button>
