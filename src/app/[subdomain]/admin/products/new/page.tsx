@@ -6237,7 +6237,7 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
-                          {/* Panneau de contenu mobile - s'affiche quand un module est sélectionné */}
+                          {/* Panneau de contenu mobile - Style configurator.stretchmx.com */}
                           {viewportMode === 'mobile' && mobileActivePanel && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
                             if (!activeModule) return null;
@@ -6246,81 +6246,76 @@ export default function ProductBuilderPage() {
                             const renderMobileModuleContent = () => {
                               if (!activeModule.contentType) {
                                 return (
-                                  <p style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', padding: '20px' }}>
-                                    Configurez le module dans les settings.
-                                  </p>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', color: '#9ca3af' }}>
+                                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <p style={{ fontSize: '13px', marginTop: '12px', textAlign: 'center' }}>Configurez le module dans les paramètres</p>
+                                  </div>
                                 );
                               }
                               
-                              // MODULE COLORS
+                              // MODULE COLORS - Style stretchmx
                               if (activeModule.contentType === 'colors') {
                                 const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary'];
                                 let availableColorClasses: string[] = [];
-                                let designIdToUse: string | null = null;
-                                
-                                const designModule = customizationModules.find(m => 
-                                  m.contentType === 'designs-2d' && m.selectedItems?.design2DId
-                                );
-                                if (designModule?.selectedItems?.design2DId) {
-                                  designIdToUse = designModule.selectedItems.design2DId;
-                                }
-                                if (!designIdToUse) designIdToUse = selectedDesign2DId;
-                                
+                                const designModule = customizationModules.find(m => m.contentType === 'designs-2d' && m.selectedItems?.design2DId);
+                                const designIdToUse = designModule?.selectedItems?.design2DId || selectedDesign2DId;
                                 const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+                                
                                 if (selectedDesign?.color_mappings) {
                                   availableColorClasses = Object.keys(selectedDesign.color_mappings).filter(c => ordinalColors.includes(c.toLowerCase()));
                                 }
-                                if (availableColorClasses.length === 0) {
-                                  availableColorClasses = ['primary', 'secondary', 'tertiary'];
-                                }
+                                if (availableColorClasses.length === 0) availableColorClasses = ['primary', 'secondary', 'tertiary'];
                                 
-                                // Si une classe de couleur est sélectionnée, afficher la grille
+                                // Vue sélection de couleur (après clic sur classe)
                                 if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
                                   const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
-                                  if (!palette) return <p style={{ color: '#666', fontSize: '12px' }}>Palette non trouvée</p>;
+                                  if (!palette) return null;
                                   
                                   const allColors: Array<{ id: string; name: string; hex: string }> = [];
-                                  if (palette.colors) {
-                                    palette.colors.forEach((color: any, index: number) => {
-                                      allColors.push({
-                                        id: color.id || `${palette.id}-${index}-${color.hex}`,
-                                        name: color.name || '',
-                                        hex: color.hex || '#000000'
-                                      });
-                                    });
-                                  }
+                                  palette.colors?.forEach((color: any, index: number) => {
+                                    allColors.push({ id: color.id || `${palette.id}-${index}-${color.hex}`, name: color.name || '', hex: color.hex || '#000000' });
+                                  });
+                                  
+                                  const currentColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
+                                  const currentColor = allColors.find(c => c.id === currentColorId);
                                   
                                   return (
                                     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                      <button
-                                        onClick={() => setSelectedColorClass(null)}
-                                        style={{
-                                          display: 'flex', alignItems: 'center', gap: '6px',
-                                          background: 'none', border: 'none', cursor: 'pointer',
-                                          fontSize: '12px', color: '#111827', marginBottom: '12px', padding: '4px 0'
-                                        }}
-                                      >
-                                        ← Retour
-                                      </button>
-                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+                                      {/* Sub-header avec retour et couleur actuelle */}
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb', marginBottom: '12px' }}>
+                                        <button onClick={() => setSelectedColorClass(null)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: '500' }}>
+                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                          Retour
+                                        </button>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          <span style={{ fontSize: '13px', color: '#374151' }}>{currentColor?.name || 'Sélectionner'}</span>
+                                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: currentColor?.hex || '#ccc', border: '2px solid #e5e7eb' }} />
+                                        </div>
+                                      </div>
+                                      {/* Grille de couleurs scrollable horizontalement */}
+                                      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
                                         {allColors.map((color) => {
-                                          const isSelected = color.id === (selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass]);
+                                          const isSelected = color.id === currentColorId;
                                           return (
                                             <button
                                               key={color.id}
                                               onClick={() => {
-                                                const newDesignColors = { ...designColors, [selectedColorClass]: color.id };
-                                                setDesignColors(newDesignColors);
+                                                setDesignColors({ ...designColors, [selectedColorClass]: color.id });
                                                 if (selectedDesign) {
-                                                  const updatedMappings = { ...(selectedDesign.color_mappings || {}), [selectedColorClass]: color.id };
-                                                  setDesigns2D(designs2D.map(d => d.id === selectedDesign.id ? { ...d, color_mappings: updatedMappings } : d));
+                                                  setDesigns2D(designs2D.map(d => d.id === selectedDesign.id ? { ...d, color_mappings: { ...d.color_mappings, [selectedColorClass]: color.id } } : d));
                                                 }
                                               }}
-                                              style={{
-                                                aspectRatio: '1', borderRadius: '50%', border: isSelected ? '3px solid #3b82f6' : '2px solid #e5e7eb',
-                                                backgroundColor: color.hex, cursor: 'pointer', padding: 0
-                                              }}
-                                            />
+                                              style={{ width: '44px', height: '44px', minWidth: '44px', borderRadius: '50%', backgroundColor: color.hex, border: isSelected ? '3px solid #000' : '2px solid #e5e7eb', cursor: 'pointer', position: 'relative', padding: 0 }}
+                                            >
+                                              {isSelected && (
+                                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                  <svg width="20" height="20" fill="none" stroke="#fff" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                              )}
+                                            </button>
                                           );
                                         })}
                                       </div>
@@ -6328,181 +6323,149 @@ export default function ProductBuilderPage() {
                                   );
                                 }
                                 
-                                // Afficher les classes de couleur
+                                // Vue classes de couleur
                                 if (!activeModule.selectedItems?.colorPaletteId) {
-                                  return <p style={{ color: '#666', fontSize: '12px' }}>Sélectionnez une palette dans les paramètres.</p>;
+                                  return <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Sélectionnez une palette dans les paramètres.</p>;
                                 }
                                 
                                 return (
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                                     {availableColorClasses.map((colorClass) => {
                                       const currentColorId = selectedDesign?.color_mappings?.[colorClass];
-                                      let currentColorHex = '#cccccc';
-                                      if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
+                                      let currentColorHex = '#e5e7eb';
+                                      if (currentColorId) {
                                         const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
-                                        palette?.colors?.forEach((color: any, index: number) => {
-                                          if ((color.id || `${palette.id}-${index}-${color.hex}`) === currentColorId) {
-                                            currentColorHex = color.hex || '#cccccc';
-                                          }
+                                        palette?.colors?.forEach((c: any, i: number) => {
+                                          if ((c.id || `${palette.id}-${i}-${c.hex}`) === currentColorId) currentColorHex = c.hex;
                                         });
                                       }
                                       return (
-                                        <div
-                                          key={colorClass}
-                                          onClick={() => setSelectedColorClass(colorClass)}
-                                          style={{
-                                            padding: '10px', backgroundColor: '#fff', borderRadius: '8px',
-                                            border: '1px solid #e5e7eb', cursor: 'pointer',
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'
-                                          }}
-                                        >
-                                          <div style={{ width: '28px', height: '28px', backgroundColor: currentColorHex, borderRadius: '50%', border: '2px solid #d1d5db' }} />
-                                          <span style={{ fontSize: '11px', fontWeight: '500', color: '#111827', textAlign: 'center' }}>
-                                            {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
+                                        <button key={colorClass} onClick={() => setSelectedColorClass(colorClass)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '80px' }}>
+                                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: currentColorHex, border: '2px solid #d1d5db' }} />
+                                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                                            {activeModule.colorClassLabels?.[colorClass] || (colorClass === 'primary' ? 'Principal' : colorClass === 'secondary' ? 'Secondaire' : colorClass === 'tertiary' ? 'Tertiaire' : colorClass.charAt(0).toUpperCase() + colorClass.slice(1))}
                                           </span>
-                                        </div>
+                                        </button>
                                       );
                                     })}
                                   </div>
                                 );
                               }
                               
-                              // MODULE DESIGNS-2D
+                              // MODULE DESIGNS-2D - Style stretchmx (cartes avec thumbnail + nom + pastilles)
                               if (activeModule.contentType === 'designs-2d') {
                                 const allowedDesignIds = activeModule.selectedItems?.design2DIds || [];
                                 const filteredDesigns = designs2D.filter(d => allowedDesignIds.includes(d.id));
                                 
                                 if (filteredDesigns.length === 0) {
-                                  return <p style={{ color: '#666', fontSize: '12px' }}>Aucun design configuré.</p>;
+                                  return <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Aucun design configuré.</p>;
                                 }
                                 
                                 return (
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
                                     {filteredDesigns.map((design) => {
                                       const isSelected = design.id === selectedDesign2DId;
+                                      const colorMappings = design.color_mappings || {};
+                                      const colorKeys = Object.keys(colorMappings).slice(0, 3);
+                                      
                                       return (
-                                        <div
+                                        <button
                                           key={design.id}
                                           onClick={() => {
                                             setSelectedDesign2DId(design.id);
-                                            setCustomizationModules(customizationModules.map(m =>
-                                              m.contentType === 'designs-2d'
-                                                ? { ...m, selectedItems: { ...m.selectedItems, design2DId: design.id } }
-                                                : m
-                                            ));
+                                            setCustomizationModules(customizationModules.map(m => m.contentType === 'designs-2d' ? { ...m, selectedItems: { ...m.selectedItems, design2DId: design.id } } : m));
                                           }}
-                                          style={{
-                                            padding: '8px', backgroundColor: isSelected ? '#eff6ff' : '#fff',
-                                            borderRadius: '8px', border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                                            cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px'
-                                          }}
+                                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px', backgroundColor: '#fff', border: isSelected ? '2px solid #000' : '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '100px', maxWidth: '120px' }}
                                         >
-                                          {design.svg_url ? (
-                                            <img src={design.svg_url} alt={design.label} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
-                                          ) : (
-                                            <div style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '4px' }} />
+                                          <div style={{ width: '70px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                            {design.svg_url ? (
+                                              <img src={design.svg_url} alt={design.label} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                            ) : (
+                                              <div style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px' }} />
+                                            )}
+                                          </div>
+                                          <span style={{ fontSize: '12px', fontWeight: '500', color: '#111827', marginBottom: '6px', textAlign: 'center' }}>"{design.label}"</span>
+                                          {colorKeys.length > 0 && (
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                              {colorKeys.map((key) => {
+                                                const colorModule = customizationModules.find(m => m.contentType === 'colors');
+                                                const palette = colorPalettes.find(p => p.id === colorModule?.selectedItems?.colorPaletteId);
+                                                let hex = '#ccc';
+                                                palette?.colors?.forEach((c: any, i: number) => {
+                                                  if ((c.id || `${palette.id}-${i}-${c.hex}`) === colorMappings[key]) hex = c.hex;
+                                                });
+                                                return <div key={key} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: hex, border: '1px solid #d1d5db' }} />;
+                                              })}
+                                            </div>
                                           )}
-                                          <span style={{ fontSize: '10px', color: '#111827', textAlign: 'center' }}>{design.label}</span>
-                                        </div>
+                                        </button>
                                       );
                                     })}
                                   </div>
                                 );
                               }
                               
-                              // MODULE LOGOS
+                              // MODULE LOGOS - Style stretchmx (tabs vues + bouton ajouter + logos placés)
                               if (activeModule.contentType === 'logos') {
-                                const selectedLibraryIds = activeModule.selectedItems?.logoLibraryIds || [];
-                                const selectedLibraries = logoLibraries.filter(l => selectedLibraryIds.includes(l.id));
-                                const allLogos: any[] = [];
-                                selectedLibraries.forEach(library => {
-                                  if (library.logos) allLogos.push(...library.logos);
-                                });
-                                
-                                if (allLogos.length === 0) {
-                                  return <p style={{ color: '#666', fontSize: '12px' }}>Aucun logo configuré.</p>;
-                                }
-                                
-                                // Afficher les logos placés
+                                const views = ['front', 'back', 'left', 'right'] as const;
+                                const viewLabels: Record<string, string> = { front: activeModule.logoViewFrontLabel || 'Torse', back: activeModule.logoViewBackLabel || 'Dos', left: activeModule.logoViewLeftLabel || 'Bras gauche', right: activeModule.logoViewRightLabel || 'Bras droit' };
                                 const modulePlacedLogos = placedLogos.filter(l => l.category);
                                 
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {modulePlacedLogos.length > 0 && (
-                                      <div>
-                                        <p style={{ fontSize: '11px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Logos placés</p>
+                                    {/* Tabs de vue */}
+                                    {activeModule.logoPlacementMode === 'zones' && (
+                                      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
+                                        {views.map((view) => (
+                                          <button key={view} onClick={() => setActiveLogoView(view)} style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#000' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #000' : '2px solid transparent', cursor: 'pointer' }}>
+                                            {viewLabels[view]}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {/* Bouton ajouter */}
+                                    <button
+                                      onClick={() => { setShowLogoLibrary(true); setActiveCustomizerTab(activeModule.id); }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                                    >
+                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                    </button>
+                                    {/* Logos placés */}
+                                    <div>
+                                      <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Logos placés ({modulePlacedLogos.length})</h3>
+                                      {modulePlacedLogos.length === 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
+                                          <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                          <p style={{ fontSize: '12px', marginTop: '8px' }}>Aucun logo ajouté</p>
+                                          <p style={{ fontSize: '11px', color: '#9ca3af' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
+                                        </div>
+                                      ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                           {modulePlacedLogos.map((logo) => (
-                                            <div key={logo.id} style={{
-                                              width: '50px', height: '50px', backgroundColor: '#f3f4f6',
-                                              borderRadius: '4px', border: selectedLogoId === logo.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-                                            }} onClick={() => setSelectedLogoId(logo.id)}>
-                                              <img src={logo.variantFile} alt="" style={{ maxWidth: '40px', maxHeight: '40px', objectFit: 'contain' }} />
+                                            <div key={logo.id} onClick={() => setSelectedLogoId(logo.id)} style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}>
+                                              <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                                             </div>
                                           ))}
                                         </div>
-                                      </div>
-                                    )}
-                                    <div>
-                                      <p style={{ fontSize: '11px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Bibliothèque</p>
-                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                                        {allLogos.slice(0, 9).map((logo) => (
-                                          <div
-                                            key={logo.id}
-                                            style={{
-                                              aspectRatio: '1', backgroundColor: '#f3f4f6', borderRadius: '4px',
-                                              border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center',
-                                              justifyContent: 'center', cursor: 'pointer', padding: '4px'
-                                            }}
-                                            onClick={() => {
-                                              setSelectedLogoForVariants(logo);
-                                              setShowLogoLibrary(true);
-                                              setActiveCustomizerTab(activeModule.id);
-                                            }}
-                                          >
-                                            <img src={logo.file_url} alt={logo.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                                          </div>
-                                        ))}
-                                      </div>
-                                      {allLogos.length > 9 && (
-                                        <p style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center', marginTop: '8px' }}>
-                                          +{allLogos.length - 9} autres logos
-                                        </p>
                                       )}
                                     </div>
                                   </div>
                                 );
                               }
                               
-                              // MODULE TEXT
+                              // MODULE TEXT - Style stretchmx (bouton ajouter)
                               if (activeModule.contentType === 'text') {
                                 return (
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div style={{ padding: '10px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                                      <p style={{ fontSize: '11px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Aperçu du module texte</p>
-                                      <p style={{ fontSize: '11px', color: '#6b7280' }}>
-                                        Configuration: {activeModule.config?.enableTextContent ? 'Contenu activé' : ''} 
-                                        {activeModule.config?.enableTextFont ? ', Police activée' : ''} 
-                                        {activeModule.config?.enableTextColor ? ', Couleur activée' : ''}
-                                      </p>
-                                    </div>
-                                    <div style={{ padding: '10px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                                      <input
-                                        type="text"
-                                        placeholder="Exemple de texte..."
-                                        style={{
-                                          width: '100%', padding: '8px', fontSize: '12px',
-                                          border: '1px solid #d1d5db', borderRadius: '4px', outline: 'none',
-                                          backgroundColor: '#fff'
-                                        }}
-                                      />
-                                    </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
+                                      {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
+                                    </button>
                                   </div>
                                 );
                               }
                               
-                              return <p style={{ fontSize: '12px', color: '#6b7280' }}>Type de module non supporté.</p>;
+                              return <p style={{ fontSize: '12px', color: '#9ca3af', textAlign: 'center', padding: '20px' }}>Type de module non supporté.</p>;
                             };
                             
                             return (
@@ -6512,132 +6475,112 @@ export default function ProductBuilderPage() {
                                   bottom: '70px',
                                   left: 0,
                                   right: 0,
-                                  height: '45%',
+                                  maxHeight: '50%',
                                   backgroundColor: '#ffffff',
-                                  borderTop: '1px solid #e5e7eb',
                                   borderTopLeftRadius: '16px',
                                   borderTopRightRadius: '16px',
-                                  boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+                                  boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
                                   zIndex: 100,
                                   display: 'flex',
                                   flexDirection: 'column',
                                   overflow: 'hidden'
                                 }}
                               >
-                                {/* Header du panneau */}
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  padding: '10px 14px',
-                                  borderBottom: '1px solid #e5e7eb',
-                                  backgroundColor: '#f9fafb',
-                                  flexShrink: 0
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    {activeModule.iconUrl ? (
-                                      <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px' }} />
-                                    ) : (
-                                      <span style={{ fontSize: '16px' }}>{activeModule.icon || '🎨'}</span>
-                                    )}
-                                    <span style={{ fontWeight: '600', fontSize: '13px', color: '#111827' }}>
-                                      {activeModule.tabName || 'Module'}
-                                    </span>
+                                {/* Header du panneau - Style stretchmx */}
+                                <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+                                  {/* Drag handle */}
+                                  <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
+                                    <div style={{ width: '32px', height: '4px', backgroundColor: '#d1d5db', borderRadius: '2px' }} />
                                   </div>
-                                  <button
-                                    onClick={() => setMobileActivePanel(null)}
-                                    style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      fontSize: '18px',
-                                      cursor: 'pointer',
-                                      color: '#6b7280',
-                                      padding: '4px'
-                                    }}
-                                  >
-                                    ✕
-                                  </button>
+                                  {/* Titre et bouton fermer */}
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <div style={{ width: '28px', height: '28px', backgroundColor: '#111827', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {activeModule.iconUrl ? (
+                                          <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
+                                        ) : (
+                                          <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
+                                        )}
+                                      </div>
+                                      <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827' }}>
+                                        {activeModule.tabName || 'Module'}
+                                      </span>
+                                    </div>
+                                    <button onClick={() => { setMobileActivePanel(null); setSelectedColorClass(null); }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '6px' }}>
+                                      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                  </div>
                                 </div>
                                 
                                 {/* Contenu du panneau */}
-                                <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+                                <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
                                   {renderMobileModuleContent()}
                                 </div>
                               </div>
                             );
                           })()}
                           
-                          {/* Barre mobile en bas du téléphone - visible uniquement en mode mobile */}
+                          {/* Barre mobile en bas du téléphone - Style stretchmx */}
                           {viewportMode === 'mobile' && (
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '70px',
-                                minHeight: '70px',
-                                maxHeight: '70px',
-                                flexShrink: 0,
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'space-around',
-                                padding: '8px',
-                                backgroundColor: '#ffffff',
-                                borderTop: '1px solid #e5e7eb',
-                                gap: '4px'
-                              }}
-                            >
-                              {customizationModules.length > 0 ? (
-                                customizationModules.map((module) => (
-                                  <button
-                                    key={module.id}
-                                    onClick={() => setMobileActivePanel(mobileActivePanel === module.id ? null : module.id)}
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      padding: '6px',
-                                      borderRadius: '8px',
-                                      backgroundColor: mobileActivePanel === module.id ? '#e5e7eb' : '#f9fafb',
-                                      border: mobileActivePanel === module.id ? '1px solid #d1d5db' : '1px solid #e5e7eb',
-                                      minWidth: '50px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    {module.iconUrl ? (
-                                      <img
-                                        src={module.iconUrl}
-                                        alt={module.tabName}
-                                        style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-                                      />
-                                    ) : (
-                                      <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
-                                    )}
-                                    <span style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>
-                                      {module.tabName || 'Module'}
-                                    </span>
-                                  </button>
-                                ))
-                              ) : (
-                                <>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
-                                    <span style={{ fontSize: '18px' }}>🎨</span>
-                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Design</span>
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
-                                    <span style={{ fontSize: '18px' }}>🎨</span>
-                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Couleur</span>
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
-                                    <span style={{ fontSize: '18px' }}>✏️</span>
-                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Texte</span>
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
-                                    <span style={{ fontSize: '18px' }}>🖼️</span>
-                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Logo</span>
-                                  </div>
-                                </>
-                              )}
+                            <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
+                              {/* Onglets des modules */}
+                              <div style={{ display: 'flex', padding: '8px 4px', gap: '2px' }}>
+                                {customizationModules.length > 0 ? (
+                                  customizationModules.map((module) => {
+                                    const isActive = mobileActivePanel === module.id;
+                                    return (
+                                      <button
+                                        key={module.id}
+                                        onClick={() => setMobileActivePanel(isActive ? null : module.id)}
+                                        style={{
+                                          flex: 1,
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          padding: '8px 4px',
+                                          borderRadius: '8px',
+                                          backgroundColor: isActive ? '#f3f4f6' : 'transparent',
+                                          border: 'none',
+                                          cursor: 'pointer',
+                                          transition: 'background-color 0.2s'
+                                        }}
+                                      >
+                                        <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                                          {module.iconUrl ? (
+                                            <img src={module.iconUrl} alt={module.tabName} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                                          ) : (
+                                            <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
+                                          )}
+                                        </div>
+                                        <span style={{ fontSize: '10px', color: isActive ? '#000' : '#6b7280', fontWeight: isActive ? '600' : '400' }}>
+                                          {module.tabName || 'Module'}
+                                        </span>
+                                      </button>
+                                    );
+                                  })
+                                ) : (
+                                  <>
+                                    {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
+                                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px' }}>
+                                        <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
+                                        <span style={{ fontSize: '10px', color: '#9ca3af' }}>{name}</span>
+                                      </div>
+                                    ))}
+                                  </>
+                                )}
+                              </div>
+                              {/* Barre d'actions */}
+                              <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px' }}>
+                                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer' }}>
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                                  Sauvegarder
+                                </button>
+                                <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#fff', cursor: 'pointer' }}>
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                  Ajouter au panier
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
