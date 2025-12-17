@@ -5873,6 +5873,8 @@ export default function ProductBuilderPage() {
                           height: '100%',
                           minHeight: '600px',
                           backgroundColor: '#e8e8e8',
+                          display: 'flex',
+                          flexDirection: 'column',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '375px',
                             maxHeight: '667px',
@@ -5888,6 +5890,8 @@ export default function ProductBuilderPage() {
                             overflow: 'hidden'
                           })
                         }}>
+                          {/* Canvas 3D - prend l'espace restant */}
+                          <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           <Canvas
                             camera={{ position: [0, 0, initialZoom || 5], fov: 50 }}
                             gl={{ preserveDrawingBuffer: true }}
@@ -6227,6 +6231,81 @@ export default function ProductBuilderPage() {
                                   border: '1px solid #333'
                                 }}
                               />
+                            </div>
+                          )}
+                          </div>
+                          
+                          {/* Barre mobile en bas du téléphone - visible uniquement en mode mobile */}
+                          {viewportMode === 'mobile' && (
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '70px',
+                                minHeight: '70px',
+                                maxHeight: '70px',
+                                flexShrink: 0,
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-around',
+                                padding: '8px',
+                                backgroundColor: '#ffffff',
+                                borderTop: '1px solid #e5e7eb',
+                                gap: '4px'
+                              }}
+                            >
+                              {customizationModules.length > 0 ? (
+                                customizationModules.map((module) => (
+                                  <button
+                                    key={module.id}
+                                    onClick={() => setActiveCustomizerTab(module.id)}
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: '6px',
+                                      borderRadius: '8px',
+                                      backgroundColor: activeCustomizerTab === module.id ? '#e5e7eb' : '#f9fafb',
+                                      border: activeCustomizerTab === module.id ? '1px solid #d1d5db' : '1px solid #e5e7eb',
+                                      minWidth: '50px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {module.iconUrl ? (
+                                      <img
+                                        src={module.iconUrl}
+                                        alt={module.tabName}
+                                        style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                                      />
+                                    ) : (
+                                      <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
+                                    )}
+                                    <span style={{ fontSize: '9px', color: '#6b7280', marginTop: '2px' }}>
+                                      {module.tabName || 'Module'}
+                                    </span>
+                                  </button>
+                                ))
+                              ) : (
+                                <>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
+                                    <span style={{ fontSize: '18px' }}>🎨</span>
+                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Design</span>
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
+                                    <span style={{ fontSize: '18px' }}>🎨</span>
+                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Couleur</span>
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
+                                    <span style={{ fontSize: '18px' }}>✏️</span>
+                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Texte</span>
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px', borderRadius: '8px', backgroundColor: '#f3f4f6', minWidth: '50px' }}>
+                                    <span style={{ fontSize: '18px' }}>🖼️</span>
+                                    <span style={{ fontSize: '9px', color: '#6b7280' }}>Logo</span>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
