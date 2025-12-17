@@ -6197,8 +6197,8 @@ export default function ProductBuilderPage() {
                             })()}
                           </Canvas>
                           
-                          {/* UV2 Preview Window - Outside Canvas */}
-                          {uv2Canvas && (
+                          {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
+                          {uv2Canvas && viewportMode !== 'mobile' && (
                             <div style={{
                               position: 'absolute',
                               bottom: '20px',
