@@ -652,6 +652,7 @@ export default function ProductBuilderPage() {
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
+  const [mobileActivePanel, setMobileActivePanel] = useState<string | null>(null); // Panneau actif dans la simulation mobile
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
   const [designColors, setDesignColors] = useState<Record<string, string>>({}); // Stocker les couleurs sélectionnées pour le design
@@ -6235,6 +6236,77 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
+                          {/* Panneau de contenu mobile - s'affiche quand un module est sélectionné */}
+                          {viewportMode === 'mobile' && mobileActivePanel && (() => {
+                            const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
+                            if (!activeModule) return null;
+                            
+                            return (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '70px',
+                                  left: 0,
+                                  right: 0,
+                                  height: '45%',
+                                  backgroundColor: '#ffffff',
+                                  borderTop: '1px solid #e5e7eb',
+                                  borderTopLeftRadius: '16px',
+                                  borderTopRightRadius: '16px',
+                                  boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+                                  zIndex: 100,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {/* Header du panneau */}
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '12px 16px',
+                                  borderBottom: '1px solid #e5e7eb',
+                                  backgroundColor: '#f9fafb'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {activeModule.iconUrl ? (
+                                      <img src={activeModule.iconUrl} alt="" style={{ width: '20px', height: '20px' }} />
+                                    ) : (
+                                      <span style={{ fontSize: '18px' }}>{activeModule.icon || '🎨'}</span>
+                                    )}
+                                    <span style={{ fontWeight: '600', fontSize: '14px', color: '#111827' }}>
+                                      {activeModule.tabName || 'Module'}
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => setMobileActivePanel(null)}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      fontSize: '20px',
+                                      cursor: 'pointer',
+                                      color: '#6b7280',
+                                      padding: '4px'
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                                
+                                {/* Contenu du panneau */}
+                                <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+                                  <p style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', marginTop: '20px' }}>
+                                    Aperçu du module "{activeModule.tabName}"
+                                  </p>
+                                  <p style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'center', marginTop: '8px' }}>
+                                    Type: {activeModule.contentType || 'Non défini'}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
                           {/* Barre mobile en bas du téléphone - visible uniquement en mode mobile */}
                           {viewportMode === 'mobile' && (
                             <div
@@ -6258,7 +6330,7 @@ export default function ProductBuilderPage() {
                                 customizationModules.map((module) => (
                                   <button
                                     key={module.id}
-                                    onClick={() => setActiveCustomizerTab(module.id)}
+                                    onClick={() => setMobileActivePanel(mobileActivePanel === module.id ? null : module.id)}
                                     style={{
                                       display: 'flex',
                                       flexDirection: 'column',
@@ -6266,8 +6338,8 @@ export default function ProductBuilderPage() {
                                       justifyContent: 'center',
                                       padding: '6px',
                                       borderRadius: '8px',
-                                      backgroundColor: activeCustomizerTab === module.id ? '#e5e7eb' : '#f9fafb',
-                                      border: activeCustomizerTab === module.id ? '1px solid #d1d5db' : '1px solid #e5e7eb',
+                                      backgroundColor: mobileActivePanel === module.id ? '#e5e7eb' : '#f9fafb',
+                                      border: mobileActivePanel === module.id ? '1px solid #d1d5db' : '1px solid #e5e7eb',
                                       minWidth: '50px',
                                       cursor: 'pointer'
                                     }}
