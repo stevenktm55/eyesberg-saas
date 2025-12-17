@@ -196,8 +196,8 @@ export function Canvas3DPreview({
                     alignItems: 'center',
                     justifyContent: 'space-around',
                     padding: '8px',
-                    backgroundColor: '#ffffff',
-                    borderTop: '1px solid #e5e7eb',
+                    backgroundColor: '#ff0000',
+                    borderTop: '3px solid #000000',
                     gap: '8px'
                   }}
                 >
