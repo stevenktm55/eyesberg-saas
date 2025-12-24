@@ -5971,14 +5971,20 @@ export default function ProductBuilderPage() {
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
                           <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
-                          <Canvas
-                            camera={{ 
-                              position: [0, 0, viewportMode === 'mobile' ? (initialZoom || 5) * 1.3 : (initialZoom || 5)], 
-                              fov: viewportMode === 'mobile' ? 60 : 50 
-                            }}
-                            gl={{ preserveDrawingBuffer: true }}
-                            style={{ width: '100%', height: '100%' }}
-                          >
+                          {(() => {
+                            // Ajuster les paramètres pour mobile
+                            const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
+                            const mobileFov = viewportMode === 'mobile' ? 65 : 50;
+                            
+                            return (
+                              <Canvas
+                                camera={{ 
+                                  position: [0, 0, mobileInitialZoom], 
+                                  fov: mobileFov
+                                }}
+                                gl={{ preserveDrawingBuffer: true }}
+                                style={{ width: '100%', height: '100%' }}
+                              >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
                               function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
@@ -6071,7 +6077,8 @@ export default function ProductBuilderPage() {
                                 return null;
                               }
                               // Passer le ref persistant pour savoir si une vue a été définie
-                              return <CameraInitializer initialZoom={initialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
+                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
+                              return <CameraInitializer initialZoom={mobileInitialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
                             })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
@@ -6257,15 +6264,23 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // Ajuster minZoom et maxZoom pour mobile
-                              const adjustedMinZoom = viewportMode === 'mobile' ? minZoom * 1.3 : minZoom;
-                              const adjustedMaxZoom = viewportMode === 'mobile' ? maxZoom * 1.3 : maxZoom;
+                              // Ajuster tous les paramètres pour mobile
+                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
+                              const adjustedMinZoom = viewportMode === 'mobile' ? minZoom * 1.5 : minZoom;
+                              const adjustedMaxZoom = viewportMode === 'mobile' ? maxZoom * 1.5 : maxZoom;
+                              // Ajuster viewDistance pour mobile
+                              const adjustedViewDistance = viewportMode === 'mobile' ? {
+                                'torse': viewDistance.torse * 1.5,
+                                'dos': viewDistance.dos * 1.5,
+                                'bras-gauche': viewDistance['bras-gauche'] * 1.5,
+                                'bras-droit': viewDistance['bras-droit'] * 1.5
+                              } : viewDistance;
                               
                               return (
                                 <ControlsManager
                                   targetView={targetView}
-                                  viewDistance={viewDistance}
-                                  initialZoom={initialZoom}
+                                  viewDistance={adjustedViewDistance}
+                                  initialZoom={mobileInitialZoom}
                                   initialRotation={initialRotation}
                                   zoomSpeed={zoomSpeed}
                                   rotateSpeed={rotateSpeed}
@@ -6282,6 +6297,7 @@ export default function ProductBuilderPage() {
                               );
                             })()}
                           </Canvas>
+                          )}
                           
                           {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
                           {uv2Canvas && viewportMode !== 'mobile' && (
