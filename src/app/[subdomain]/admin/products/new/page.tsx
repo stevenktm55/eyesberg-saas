@@ -5953,8 +5953,10 @@ export default function ProductBuilderPage() {
                           flexDirection: 'column',
                           position: 'relative',
                           ...(viewportMode === 'mobile' ? {
-                            maxWidth: '375px',
-                            maxHeight: '667px',
+                            maxWidth: '430px',
+                            maxHeight: '932px',
+                            width: '430px',
+                            height: '932px',
                             margin: '0 auto',
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
@@ -5970,7 +5972,10 @@ export default function ProductBuilderPage() {
                           {/* Canvas 3D - prend l'espace restant */}
                           <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           <Canvas
-                            camera={{ position: [0, 0, initialZoom || 5], fov: 50 }}
+                            camera={{ 
+                              position: [0, 0, viewportMode === 'mobile' ? (initialZoom || 5) * 1.3 : (initialZoom || 5)], 
+                              fov: viewportMode === 'mobile' ? 60 : 50 
+                            }}
                             gl={{ preserveDrawingBuffer: true }}
                             style={{ width: '100%', height: '100%' }}
                           >
@@ -6252,6 +6257,10 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
+                              // Ajuster minZoom et maxZoom pour mobile
+                              const adjustedMinZoom = viewportMode === 'mobile' ? minZoom * 1.3 : minZoom;
+                              const adjustedMaxZoom = viewportMode === 'mobile' ? maxZoom * 1.3 : maxZoom;
+                              
                               return (
                                 <ControlsManager
                                   targetView={targetView}
@@ -6260,8 +6269,8 @@ export default function ProductBuilderPage() {
                                   initialRotation={initialRotation}
                                   zoomSpeed={zoomSpeed}
                                   rotateSpeed={rotateSpeed}
-                                  minZoom={minZoom}
-                                  maxZoom={maxZoom}
+                                  minZoom={adjustedMinZoom}
+                                  maxZoom={adjustedMaxZoom}
                                   selectedTextId={selectedTextId}
                                   isPlacingText={isPlacingText}
                                   isDraggingText={isDraggingText}
