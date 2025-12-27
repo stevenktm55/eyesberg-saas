@@ -47,3 +47,7 @@ COMMENT ON COLUMN product_builder.snapshot_version IS 'Version du snapshot (pour
 
 
 
+
+
+
+
