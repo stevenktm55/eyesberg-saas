@@ -1104,6 +1104,8 @@ function Viewer3D({
   isPlacingText,
   textZones,
   onTextPlaced,
+  onCloseModal,
+  isMobileModalOpen,
 }: { 
   designTexture: string | null; 
   colors: Record<string, string>;
@@ -1176,6 +1178,7 @@ function Viewer3D({
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
   // Fermeture du modal mobile
   onCloseModal?: () => void;
+  isMobileModalOpen?: boolean;
 }) {
   const [testUVMap, setTestUVMap] = useState<string | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{uv: [number, number], svg: [number, number]} | null>(null);
@@ -1221,7 +1224,6 @@ function Viewer3D({
       };
     }
   }, [isMobile]);
-  
   const zoomOutMax = useCallback((zone?: string) => {
     const controls = controlsRef.current;
     if (!controls || !controls.object || !controls.target) return;
@@ -1413,43 +1415,14 @@ function Viewer3D({
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
 
-  // Gestionnaire de clic pour fermer le modal sur mobile
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    // Vérifier si on est sur mobile (simulation ou réel) - vérifier à chaque clic
-    const isMobileView = window.innerWidth < 768;
-    
-    console.log('🖱️ handleCanvasClick appelé:', {
-      isMobileView,
-      onCloseModal: !!onCloseModal,
-      target: (e.target as HTMLElement).tagName
-    });
-    
-    // Ne fermer que sur mobile et si on ne clique pas sur un élément interactif
-    if (isMobileView && onCloseModal) {
-      const target = e.target as HTMLElement;
-      
-      // Vérifier qu'on ne clique pas sur un élément interactif (boutons, inputs, etc.)
-      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"]');
-      
-      // Ne pas fermer si on est en train de manipuler le modèle
-      const isManipulating = isDraggingText || isRotatingText || isResizingText || isDraggingLogo || isRotatingLogo || isResizingLogo;
-      
-      // Si on clique directement sur le conteneur (pas sur le canvas ni un élément interactif)
-      // et qu'on n'est pas en train de manipuler, fermer le modal
-      if (target.tagName !== 'CANVAS' && !target.closest('canvas') && !isInteractiveElement && !isManipulating) {
-        console.log('✅ Clic sur conteneur zone 3D - fermeture du modal');
-        e.stopPropagation();
-        e.preventDefault();
-        onCloseModal();
-      } else if (target.tagName === 'CANVAS' || target.closest('canvas')) {
-        // Si on clique sur le canvas lui-même, aussi fermer
-        console.log('✅ Clic sur canvas - fermeture du modal');
-        e.stopPropagation();
-        e.preventDefault();
-        onCloseModal();
-      }
-    }
-  }, [onCloseModal, isDraggingText, isRotatingText, isResizingText, isDraggingLogo, isRotatingLogo, isResizingLogo]);
+  // Détecter si on est sur mobile
+  const isMobileView = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  }, []);
+
+  // Désactiver les interactions du Canvas quand le modal est ouvert sur mobile
+  const shouldDisableCanvasInteractions = isMobileModalOpen && isMobileView;
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -1457,7 +1430,6 @@ function Viewer3D({
       <div 
         className="flex-1 bg-gray-100 relative"
         onContextMenu={(e) => e.preventDefault()}
-        onClick={handleCanvasClick}
       >
         <Canvas 
           camera={{ position: cameraPosition, fov: 50 }}
@@ -1465,7 +1437,8 @@ function Viewer3D({
           style={{ 
             background: 'linear-gradient(to bottom, #f8fafc, #e2e8f0)',
             width: '100%',
-            height: '100%'
+            height: '100%',
+            pointerEvents: shouldDisableCanvasInteractions ? 'none' : 'auto'
           }}
         >
           {/* Éclairage professionnel type studio photo */}
@@ -1597,9 +1570,9 @@ function Viewer3D({
           <OrbitControls 
             ref={controlsRef}
             enablePan={false}
-            enableZoom={!selectedTextId && !selectedLogoId} 
-            enableRotate={!selectedTextId && !selectedLogoId}
-            enabled={!isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo}
+            enableZoom={!selectedTextId && !selectedLogoId && !shouldDisableCanvasInteractions} 
+            enableRotate={!selectedTextId && !selectedLogoId && !shouldDisableCanvasInteractions}
+            enabled={!isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo && !shouldDisableCanvasInteractions}
             target={cameraTarget}
             minDistance={minDistance}
             maxDistance={maxDistance}
@@ -7925,30 +7898,30 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
             <div className="flex gap-3">
               {/* Bouton Sauvegarder - Masqué en mode preview */}
               {!isPreviewMode && (
-                <button 
-                  onClick={() => handleSaveConfiguration(buildConfigurationData())} 
-                  disabled={isShopifyLoading} 
-                  className="flex-1 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors disabled:opacity-60"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                  </svg>
-                  Sauvegarder
-                </button>
+              <button 
+                onClick={() => handleSaveConfiguration(buildConfigurationData())} 
+                disabled={isShopifyLoading} 
+                className="flex-1 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors disabled:opacity-60"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Sauvegarder
+              </button>
               )}
               
               {/* Bouton Ajouter au panier - Masqué en mode preview */}
               {!isPreviewMode && (
-                <button 
-                  onClick={() => setIsSizeModalOpen(true)} 
-                  disabled={isShopifyLoading} 
-                  className="flex-1 bg-black text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z" />
-                  </svg>
-                  Ajouter au panier
-                </button>
+              <button 
+                onClick={() => setIsSizeModalOpen(true)} 
+                disabled={isShopifyLoading} 
+                className="flex-1 bg-black text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-60"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z" />
+                </svg>
+                Ajouter au panier
+              </button>
               )}
             </div>
           </div>
@@ -8004,6 +7977,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               textZones={textZones}
               onTextPlaced={handleTextPlaced}
               onCloseModal={() => setIsMobileModalOpen(false)}
+              isMobileModalOpen={isMobileModalOpen}
             />
           </div>
         </div>
@@ -8040,22 +8014,22 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           <div className="flex gap-2">
             {/* Bouton Sauvegarder (mobile) - Masqué en mode preview */}
             {!isPreviewMode && (
-              <button onClick={() => handleSaveConfiguration(buildConfigurationData())} disabled={isShopifyLoading} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors disabled:opacity-60">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                Sauvegarder
-              </button>
+            <button onClick={() => handleSaveConfiguration(buildConfigurationData())} disabled={isShopifyLoading} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors disabled:opacity-60">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Sauvegarder
+            </button>
             )}
             
             {/* Bouton Ajouter au panier (mobile) - Masqué en mode preview */}
             {!isPreviewMode && (
-              <button onClick={() => setIsSizeModalOpen(true)} disabled={isShopifyLoading} className="flex-1 bg-black text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-800 transition-colors disabled:opacity-60">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z" />
-                </svg>
-                Ajouter au panier
-              </button>
+            <button onClick={() => setIsSizeModalOpen(true)} disabled={isShopifyLoading} className="flex-1 bg-black text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-800 transition-colors disabled:opacity-60">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z" />
+              </svg>
+              Ajouter au panier
+            </button>
             )}
           </div>
         </div>
@@ -8064,28 +8038,40 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       {/* Overlay pour capturer les clics sur la zone 3D quand le modal est ouvert (mobile uniquement) */}
       {isMobileModalOpen && window.innerWidth < 768 && (
         <div 
-          className="md:hidden fixed inset-0 pointer-events-auto"
+          className="md:hidden fixed inset-0"
           style={{ 
             backgroundColor: 'transparent',
             top: 0,
             left: 0,
             right: 0,
             bottom: '40vh', // Laisser de l'espace pour le modal
-            zIndex: 45 // Entre le viewer 3D et le modal (z-50)
+            zIndex: 45, // Entre le viewer 3D et le modal (z-50)
+            pointerEvents: 'auto',
+            touchAction: 'auto'
           }}
           onClick={(e) => {
-            // Ne fermer que si on clique directement sur l'overlay
-            if (e.target === e.currentTarget) {
-              console.log('🖱️ Clic sur overlay zone 3D - fermeture du modal');
-              setIsMobileModalOpen(false);
-            }
+            console.log('🖱️ Clic sur overlay zone 3D', {
+              target: e.target,
+              currentTarget: e.currentTarget,
+              isSame: e.target === e.currentTarget
+            });
+            // Fermer le modal quand on clique sur l'overlay
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('✅ Fermeture du modal');
+            setIsMobileModalOpen(false);
           }}
           onTouchStart={(e) => {
-            // Gérer aussi les touches
-            if (e.target === e.currentTarget) {
-              console.log('👆 Touch sur overlay zone 3D - fermeture du modal');
-              setIsMobileModalOpen(false);
-            }
+            console.log('👆 Touch sur overlay zone 3D');
+            // Fermer le modal quand on touche l'overlay
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('✅ Fermeture du modal (touch)');
+            setIsMobileModalOpen(false);
+          }}
+          onMouseDown={(e) => {
+            console.log('🖱️ MouseDown sur overlay zone 3D');
+            e.stopPropagation();
           }}
         />
       )}
