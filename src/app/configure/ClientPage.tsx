@@ -1415,16 +1415,28 @@ function Viewer3D({
 
   // Gestionnaire de clic pour fermer le modal sur mobile
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    // Vérifier si on est sur mobile (simulation ou réel)
+    const isMobileView = window.innerWidth < 768;
+    
     // Ne fermer que sur mobile et si on ne clique pas sur un élément interactif
-    if (isMobile && onCloseModal) {
+    if (isMobileView && onCloseModal) {
       const target = e.target as HTMLElement;
+      
       // Vérifier qu'on ne clique pas sur un élément interactif (boutons, inputs, etc.)
-      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"]');
-      if (!isInteractiveElement && !isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo) {
+      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"], canvas');
+      
+      // Ne pas fermer si on est en train de manipuler le modèle
+      const isManipulating = isDraggingText || isRotatingText || isResizingText || isDraggingLogo || isRotatingLogo || isResizingLogo;
+      
+      // Si on clique directement sur le canvas ou sur le conteneur (pas sur un élément interactif)
+      // et qu'on n'est pas en train de manipuler, fermer le modal
+      if (!isInteractiveElement && !isManipulating) {
+        console.log('🖱️ Clic sur zone 3D - fermeture du modal');
+        e.stopPropagation();
         onCloseModal();
       }
     }
-  }, [isMobile, onCloseModal, isDraggingText, isRotatingText, isResizingText, isDraggingLogo, isRotatingLogo, isResizingLogo]);
+  }, [onCloseModal, isDraggingText, isRotatingText, isResizingText, isDraggingLogo, isRotatingLogo, isResizingLogo]);
 
   return (
     <div className="h-full flex flex-col bg-white">
