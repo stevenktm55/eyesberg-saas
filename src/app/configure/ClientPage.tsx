@@ -8017,6 +8017,35 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         </div>
       </div>
 
+      {/* Overlay pour capturer les clics sur la zone 3D quand le modal est ouvert (mobile uniquement) */}
+      {isMobileModalOpen && window.innerWidth < 768 && (
+        <div 
+          className="md:hidden fixed inset-0 pointer-events-auto"
+          style={{ 
+            backgroundColor: 'transparent',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: '40vh', // Laisser de l'espace pour le modal
+            zIndex: 45 // Entre le viewer 3D et le modal (z-50)
+          }}
+          onClick={(e) => {
+            // Ne fermer que si on clique directement sur l'overlay
+            if (e.target === e.currentTarget) {
+              console.log('🖱️ Clic sur overlay zone 3D - fermeture du modal');
+              setIsMobileModalOpen(false);
+            }
+          }}
+          onTouchStart={(e) => {
+            // Gérer aussi les touches
+            if (e.target === e.currentTarget) {
+              console.log('👆 Touch sur overlay zone 3D - fermeture du modal');
+              setIsMobileModalOpen(false);
+            }
+          }}
+        />
+      )}
+
       {/* Modal Mobile qui s'ouvre vers le haut */}
       {isMobileModalOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex items-end pointer-events-none">
