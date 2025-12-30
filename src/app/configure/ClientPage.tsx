@@ -1174,6 +1174,8 @@ function Viewer3D({
   isPlacingText?: 'nom' | 'numero' | null;
   textZones?: TextZone[];
   onTextPlaced?: (category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => void;
+  // Fermeture du modal mobile
+  onCloseModal?: () => void;
 }) {
   const [testUVMap, setTestUVMap] = useState<string | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{uv: [number, number], svg: [number, number]} | null>(null);
@@ -1411,12 +1413,26 @@ function Viewer3D({
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
 
+  // Gestionnaire de clic pour fermer le modal sur mobile
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    // Ne fermer que sur mobile et si on ne clique pas sur un élément interactif
+    if (isMobile && onCloseModal) {
+      const target = e.target as HTMLElement;
+      // Vérifier qu'on ne clique pas sur un élément interactif (boutons, inputs, etc.)
+      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"]');
+      if (!isInteractiveElement && !isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo) {
+        onCloseModal();
+      }
+    }
+  }, [isMobile, onCloseModal, isDraggingText, isRotatingText, isResizingText, isDraggingLogo, isRotatingLogo, isResizingLogo]);
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Canvas 3D - prend tout l'espace */}
       <div 
         className="flex-1 bg-gray-100 relative"
         onContextMenu={(e) => e.preventDefault()}
+        onClick={handleCanvasClick}
       >
         <Canvas 
           camera={{ position: cameraPosition, fov: 50 }}
@@ -7880,6 +7896,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               isPlacingText={isPlacingText}
               textZones={textZones}
               onTextPlaced={handleTextPlaced}
+              onCloseModal={() => setIsMobileModalOpen(false)}
             />
           </div>
         </div>
@@ -7940,40 +7957,60 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       {/* Modal Mobile qui s'ouvre vers le haut */}
       {isMobileModalOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex items-end pointer-events-none">
-          {/* Modal Content - 40% de l'écran. Swipe down actif UNIQUEMENT sur la poignée */}
-          <div className="relative w-full bg-white rounded-t-2xl max-h-[40vh] flex flex-col animate-slide-up pointer-events-auto transition-transform duration-200">
+          {/* Modal Content - 40% de l'écran. Swipe down actif sur la poignée et le header */}
+          <div className="mobile-sheet relative w-full bg-white rounded-t-2xl max-h-[40vh] flex flex-col animate-slide-up pointer-events-auto transition-transform duration-200">
             {/* Header du modal avec indicateur de swipe - masqué pour la bibliothèque de logo sur mobile uniquement */}
             {!(activeTab === 'logo' && isLogoLibraryOpen) && (
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                {/* Poignée (barre grise) avec swipe handler */}
+              <div 
+                className="flex items-center justify-between p-4 border-b border-gray-200 relative"
+                onTouchStart={(e) => {
+                  // Démarrer le swipe depuis n'importe où dans le header
+                  const touch = e.touches[0];
+                  (e.currentTarget as any).swipeStartY = touch.clientY;
+                  (e.currentTarget as any).swipeStartTime = Date.now();
+                }}
+                onTouchMove={(e) => {
+                  const touch = e.touches[0];
+                  const startY = (e.currentTarget as any).swipeStartY;
+                  if (startY !== undefined) {
+                    const deltaY = touch.clientY - startY;
+                    const sheet = (e.currentTarget as HTMLElement).closest('.mobile-sheet');
+                    if (sheet && deltaY > 0) {
+                      // Suivre le doigt pendant le swipe
+                      (sheet as HTMLElement).style.transform = `translateY(${deltaY}px)`;
+                      (sheet as HTMLElement).style.transition = 'none';
+                    }
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  const startY = (e.currentTarget as any).swipeStartY;
+                  const startTime = (e.currentTarget as any).swipeStartTime;
+                  if (startY !== undefined) {
+                    const touch = e.changedTouches[0];
+                    const deltaY = touch.clientY - startY;
+                    const deltaTime = Date.now() - (startTime || 0);
+                    const sheet = (e.currentTarget as HTMLElement).closest('.mobile-sheet');
+                    
+                    // Fermer si le swipe est suffisant (100px ou plus) ou si c'est rapide (vitesse > 0.5px/ms)
+                    const velocity = deltaY / deltaTime;
+                    if (deltaY > 100 || (deltaY > 50 && velocity > 0.5)) {
+                      setIsMobileModalOpen(false);
+                    }
+                    
+                    // Réinitialiser la position
+                    if (sheet) {
+                      (sheet as HTMLElement).style.transform = '';
+                      (sheet as HTMLElement).style.transition = '';
+                    }
+                    delete (e.currentTarget as any).swipeStartY;
+                    delete (e.currentTarget as any).swipeStartTime;
+                  }
+                }}
+                style={{ touchAction: 'pan-y' }}
+              >
+                {/* Poignée (barre grise) - zone de drag visible */}
                 <div
-                  className="absolute top-1 left-1/2 -translate-x-1/2 w-20 h-10 flex items-center justify-center"
-                  onTouchStart={(e) => {
-                    const touch = e.touches[0];
-                    (e.currentTarget as any).swipeStartY = touch.clientY;
-                  }}
-                  onTouchMove={(e) => {
-                    const touch = e.touches[0];
-                    const startY = (e.currentTarget as any).swipeStartY;
-                    if (startY) {
-                      const deltaY = touch.clientY - startY;
-                      const sheet = (e.currentTarget as HTMLElement).closest('.mobile-sheet');
-                      if (sheet && deltaY > 0) {
-                        (sheet as HTMLElement).style.transform = `translateY(${deltaY}px)`;
-                      }
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    const startY = (e.currentTarget as any).swipeStartY;
-                    if (startY) {
-                      const touch = e.changedTouches[0];
-                      const deltaY = touch.clientY - startY;
-                      if (deltaY > 100) setIsMobileModalOpen(false);
-                      const sheet = (e.currentTarget as HTMLElement).closest('.mobile-sheet');
-                      if (sheet) (sheet as HTMLElement).style.transform = '';
-                      delete (e.currentTarget as any).swipeStartY;
-                    }
-                  }}
+                  className="absolute top-1 left-1/2 -translate-x-1/2 w-20 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing"
                   style={{ touchAction: 'pan-y' }}
                 >
                   <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
@@ -8019,7 +8056,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
             )}
 
             {/* Contenu - scrollable pour tous les onglets SAUF logo, sans padding sur mobile */}
-            <div className={`flex-1 ${activeTab === 'logo' ? 'flex flex-col min-h-0' : 'overflow-y-auto p-0'} mobile-sheet`} style={{ touchAction: activeTab==='color' ? 'pan-x' : 'auto' }}>
+            <div className={`flex-1 ${activeTab === 'logo' ? 'flex flex-col min-h-0' : 'overflow-y-auto p-0'}`} style={{ touchAction: activeTab==='color' ? 'pan-x' : 'auto' }}>
               {activeTab === 'design' && (
                 <DesignTab
                   selectedDesign={selectedDesign}
