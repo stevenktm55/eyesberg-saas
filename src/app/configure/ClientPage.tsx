@@ -7751,52 +7751,83 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
 
   // Gestionnaire global pour fermer le modal au clic sur la zone 3D
   useEffect(() => {
-    if (!isMobileModalOpen) return;
+    if (!isMobileModalOpen) {
+      console.log('🔴 Modal fermé, gestionnaire désactivé');
+      return;
+    }
+
+    console.log('🟢 Modal ouvert, activation du gestionnaire de fermeture');
 
     const handleDocumentClick = (e: MouseEvent | TouchEvent) => {
-      // Vérifier si on est sur mobile
-      if (window.innerWidth >= 768) return;
-
       const target = e.target as HTMLElement;
+      const isMobileView = window.innerWidth < 768;
       
+      console.log('🖱️ Clic détecté:', {
+        isMobileView,
+        target: target.tagName,
+        targetClass: target.className,
+        modalOpen: isMobileModalOpen
+      });
+
+      // Vérifier si on est sur mobile
+      if (!isMobileView) {
+        console.log('⏭️ Pas mobile, ignore');
+        return;
+      }
+
       // Ne pas fermer si on clique sur le modal ou ses enfants
       const modalSheet = target.closest('.mobile-sheet');
       if (modalSheet) {
+        console.log('⏭️ Clic sur modal, ignore');
         return;
       }
 
       // Ne pas fermer si on clique sur les barres d'onglets mobile (en bas)
       const mobileTabs = target.closest('[class*="fixed"][class*="bottom-"]');
       if (mobileTabs) {
+        console.log('⏭️ Clic sur barres onglets, ignore');
         return;
       }
 
       // Ne pas fermer si on clique sur les boutons d'action mobile
       const actionButtons = target.closest('[class*="fixed"][class*="bottom-14"]');
       if (actionButtons) {
+        console.log('⏭️ Clic sur boutons action, ignore');
         return;
       }
 
       // Ne pas fermer si on clique sur un bouton ou élément interactif
       if (target.tagName === 'BUTTON' || target.closest('button, a, input, select, textarea')) {
+        console.log('⏭️ Clic sur élément interactif, ignore');
+        return;
+      }
+
+      // Ne pas fermer si on clique sur le canvas ou ses enfants (Three.js)
+      if (target.tagName === 'CANVAS' || target.closest('canvas')) {
+        console.log('✅ Clic sur canvas/zone 3D - fermeture du modal');
+        setIsMobileModalOpen(false);
         return;
       }
 
       // Fermer le modal si on clique ailleurs (zone 3D)
-      console.log('🖱️ Clic en dehors du modal sur zone 3D - fermeture');
+      console.log('✅ Clic en dehors du modal sur zone 3D - fermeture');
       setIsMobileModalOpen(false);
     };
 
     // Attendre un peu pour éviter de fermer immédiatement après l'ouverture
     const timeout = setTimeout(() => {
+      console.log('📡 Ajout des listeners de clic');
       document.addEventListener('click', handleDocumentClick, true);
       document.addEventListener('touchend', handleDocumentClick, true);
+      document.addEventListener('mousedown', handleDocumentClick, true);
     }, 100);
 
     return () => {
+      console.log('🔴 Nettoyage des listeners');
       clearTimeout(timeout);
       document.removeEventListener('click', handleDocumentClick, true);
       document.removeEventListener('touchend', handleDocumentClick, true);
+      document.removeEventListener('mousedown', handleDocumentClick, true);
     };
   }, [isMobileModalOpen]);
   return (
