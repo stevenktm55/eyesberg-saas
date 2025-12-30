@@ -7848,7 +7848,28 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         </div>
 
         {/* Viewer 3D - prend tout l'espace restant */}
-        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
+        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32 relative">
+          {/* Overlay transparent pour capturer les clics sur mobile quand le modal est ouvert */}
+          {isMobileModalOpen && window.innerWidth < 768 && (
+            <div 
+              className="md:hidden absolute inset-0 z-30 bg-transparent"
+              onClick={(e) => {
+                // Ne fermer que si on clique directement sur l'overlay (pas sur un enfant)
+                if (e.target === e.currentTarget) {
+                  console.log('🖱️ Clic sur overlay - fermeture du modal');
+                  setIsMobileModalOpen(false);
+                }
+              }}
+              onTouchStart={(e) => {
+                // Aussi gérer les touches pour mobile
+                if (e.target === e.currentTarget) {
+                  console.log('👆 Touch sur overlay - fermeture du modal');
+                  setIsMobileModalOpen(false);
+                }
+              }}
+              style={{ touchAction: 'auto', pointerEvents: 'auto' }}
+            />
+          )}
             <Viewer3D 
               key={`${modelId}-${modelUrl}`}
               designTexture={selectedDesign.svgUrl} 
