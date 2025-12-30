@@ -7748,6 +7748,57 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
     setActiveTab(tabId);
     setIsMobileModalOpen(true);
   };
+
+  // Gestionnaire global pour fermer le modal au clic sur la zone 3D
+  useEffect(() => {
+    if (!isMobileModalOpen) return;
+
+    const handleDocumentClick = (e: MouseEvent | TouchEvent) => {
+      // Vérifier si on est sur mobile
+      if (window.innerWidth >= 768) return;
+
+      const target = e.target as HTMLElement;
+      
+      // Ne pas fermer si on clique sur le modal ou ses enfants
+      const modalSheet = target.closest('.mobile-sheet');
+      if (modalSheet) {
+        return;
+      }
+
+      // Ne pas fermer si on clique sur les barres d'onglets mobile (en bas)
+      const mobileTabs = target.closest('[class*="fixed"][class*="bottom-"]');
+      if (mobileTabs) {
+        return;
+      }
+
+      // Ne pas fermer si on clique sur les boutons d'action mobile
+      const actionButtons = target.closest('[class*="fixed"][class*="bottom-14"]');
+      if (actionButtons) {
+        return;
+      }
+
+      // Ne pas fermer si on clique sur un bouton ou élément interactif
+      if (target.tagName === 'BUTTON' || target.closest('button, a, input, select, textarea')) {
+        return;
+      }
+
+      // Fermer le modal si on clique ailleurs (zone 3D)
+      console.log('🖱️ Clic en dehors du modal sur zone 3D - fermeture');
+      setIsMobileModalOpen(false);
+    };
+
+    // Attendre un peu pour éviter de fermer immédiatement après l'ouverture
+    const timeout = setTimeout(() => {
+      document.addEventListener('click', handleDocumentClick, true);
+      document.addEventListener('touchend', handleDocumentClick, true);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('click', handleDocumentClick, true);
+      document.removeEventListener('touchend', handleDocumentClick, true);
+    };
+  }, [isMobileModalOpen]);
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Loading Screen */}
@@ -7860,28 +7911,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         </div>
 
         {/* Viewer 3D - prend tout l'espace restant */}
-        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32 relative">
-          {/* Overlay transparent pour capturer les clics sur mobile quand le modal est ouvert */}
-          {isMobileModalOpen && window.innerWidth < 768 && (
-            <div 
-              className="md:hidden absolute inset-0 z-30 bg-transparent"
-              onClick={(e) => {
-                // Ne fermer que si on clique directement sur l'overlay (pas sur un enfant)
-                if (e.target === e.currentTarget) {
-                  console.log('🖱️ Clic sur overlay - fermeture du modal');
-                  setIsMobileModalOpen(false);
-                }
-              }}
-              onTouchStart={(e) => {
-                // Aussi gérer les touches pour mobile
-                if (e.target === e.currentTarget) {
-                  console.log('👆 Touch sur overlay - fermeture du modal');
-                  setIsMobileModalOpen(false);
-                }
-              }}
-              style={{ touchAction: 'auto', pointerEvents: 'auto' }}
-            />
-          )}
+        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
             <Viewer3D 
               key={`${modelId}-${modelUrl}`}
               designTexture={selectedDesign.svgUrl} 
