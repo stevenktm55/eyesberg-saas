@@ -1415,24 +1415,37 @@ function Viewer3D({
 
   // Gestionnaire de clic pour fermer le modal sur mobile
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    // Vérifier si on est sur mobile (simulation ou réel)
+    // Vérifier si on est sur mobile (simulation ou réel) - vérifier à chaque clic
     const isMobileView = window.innerWidth < 768;
+    
+    console.log('🖱️ handleCanvasClick appelé:', {
+      isMobileView,
+      onCloseModal: !!onCloseModal,
+      target: (e.target as HTMLElement).tagName
+    });
     
     // Ne fermer que sur mobile et si on ne clique pas sur un élément interactif
     if (isMobileView && onCloseModal) {
       const target = e.target as HTMLElement;
       
       // Vérifier qu'on ne clique pas sur un élément interactif (boutons, inputs, etc.)
-      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"], canvas');
+      const isInteractiveElement = target.closest('button, input, select, textarea, a, [role="button"]');
       
       // Ne pas fermer si on est en train de manipuler le modèle
       const isManipulating = isDraggingText || isRotatingText || isResizingText || isDraggingLogo || isRotatingLogo || isResizingLogo;
       
-      // Si on clique directement sur le canvas ou sur le conteneur (pas sur un élément interactif)
+      // Si on clique directement sur le conteneur (pas sur le canvas ni un élément interactif)
       // et qu'on n'est pas en train de manipuler, fermer le modal
-      if (!isInteractiveElement && !isManipulating) {
-        console.log('🖱️ Clic sur zone 3D - fermeture du modal');
+      if (target.tagName !== 'CANVAS' && !target.closest('canvas') && !isInteractiveElement && !isManipulating) {
+        console.log('✅ Clic sur conteneur zone 3D - fermeture du modal');
         e.stopPropagation();
+        e.preventDefault();
+        onCloseModal();
+      } else if (target.tagName === 'CANVAS' || target.closest('canvas')) {
+        // Si on clique sur le canvas lui-même, aussi fermer
+        console.log('✅ Clic sur canvas - fermeture du modal');
+        e.stopPropagation();
+        e.preventDefault();
         onCloseModal();
       }
     }
