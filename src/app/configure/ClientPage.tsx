@@ -1181,6 +1181,45 @@ function Viewer3D({
   const controlsRef = useRef<any>(null);
   // Timestamp de la dernière modification explicite de la caméra
   const lastCameraChangeRef = useRef<number>(0);
+
+  // Fonction de conversion pour mapper les distances de zoom entre desktop et mobile
+  // Ratio basé sur maxDistance pour maintenir la cohérence du zoom
+  const ZOOM_RATIO = 1.8; // 18/10 = 1.8 (ratio entre mobile et desktop maxDistance)
+  
+  // Valeurs de base pour desktop
+  const DESKTOP_MIN_DISTANCE = 2.5;
+  const DESKTOP_MAX_DISTANCE = 10;
+  const DESKTOP_DEFAULT_POSITION_Z = 10;
+  
+  // Conversion des distances desktop vers mobile
+  const convertDesktopToMobileDistance = (desktopDistance: number): number => {
+    return desktopDistance * ZOOM_RATIO;
+  };
+  
+  // Conversion des distances mobile vers desktop
+  const convertMobileToDesktopDistance = (mobileDistance: number): number => {
+    return mobileDistance / ZOOM_RATIO;
+  };
+  
+  // Calcul des valeurs de distance cohérentes (mémorisé pour éviter les recalculs)
+  // Le ratio de 1.8 est utilisé pour maintenir la cohérence entre desktop et mobile
+  // minDistance sur mobile est ajusté à 6 (au lieu de 4.5) pour éviter un zoom excessif
+  const cameraSettings = useMemo(() => {
+    if (isMobile) {
+      return {
+        minDistance: 6, // Ajusté pour éviter le zoom excessif (au lieu de 2.5 * 1.8 = 4.5)
+        maxDistance: convertDesktopToMobileDistance(DESKTOP_MAX_DISTANCE), // 10 * 1.8 = 18
+        defaultPositionZ: convertDesktopToMobileDistance(DESKTOP_DEFAULT_POSITION_Z), // 10 * 1.8 = 18
+      };
+    } else {
+      return {
+        minDistance: DESKTOP_MIN_DISTANCE, // 2.5
+        maxDistance: DESKTOP_MAX_DISTANCE, // 10
+        defaultPositionZ: DESKTOP_DEFAULT_POSITION_Z, // 10
+      };
+    }
+  }, [isMobile]);
+  
   const zoomOutMax = useCallback((zone?: string) => {
     const controls = controlsRef.current;
     if (!controls || !controls.object || !controls.target) return;
@@ -1205,49 +1244,30 @@ function Viewer3D({
     console.log('📷 Direction déterminée:', direction);
     
     // Positionner la caméra selon la direction avec dézoom max
-    if (isMobile) {
-      switch (direction) {
-        case 'back':
-          // Pour le dos, tourner autour et utiliser la même distance
-          camera.position.set(0, 1, -18);
-          target.set(0, 1, 0); // Regarder en avant
-          break;
-        case 'left':
-          camera.position.set(-18, 1, 0);
-          target.set(0, 1, 0);
-          break;
-        case 'right':
-          camera.position.set(18, 1, 0);
-          target.set(0, 1, 0);
-          break;
-        default: // front
-          camera.position.set(0, 1, 18);
-          target.set(0, 1, 0);
-      }
-    } else {
-      switch (direction) {
-        case 'back':
-          camera.position.set(0, 1, -10);
-          target.set(0, 1, 0);
-          break;
-        case 'left':
-          camera.position.set(-10, 1, 0);
-          target.set(0, 1, 0);
-          break;
-        case 'right':
-          camera.position.set(10, 1, 0);
-          target.set(0, 1, 0);
-          break;
-        default: // front
-          camera.position.set(0, 1, 10);
-          target.set(0, 1, 0);
-      }
+    const maxDistance = cameraSettings.maxDistance;
+    
+    switch (direction) {
+      case 'back':
+        camera.position.set(0, 1, -maxDistance);
+        target.set(0, 1, 0);
+        break;
+      case 'left':
+        camera.position.set(-maxDistance, 1, 0);
+        target.set(0, 1, 0);
+        break;
+      case 'right':
+        camera.position.set(maxDistance, 1, 0);
+        target.set(0, 1, 0);
+        break;
+      default: // front
+        camera.position.set(0, 1, maxDistance);
+        target.set(0, 1, 0);
     }
     
     controls.update();
     requestAnimationFrame(() => controls.update());
     lastCameraChangeRef.current = Date.now();
-  }, [isMobile]);
+  }, [isMobile, cameraSettings]);
 
   const setCameraView = useCallback((view: 'front' | 'back' | 'left' | 'right') => {
     const controls = controlsRef.current;
@@ -1258,20 +1278,22 @@ function Viewer3D({
     }
     const camera = controls.object;
     const target = controls.target;
+    const maxDistance = cameraSettings.maxDistance;
+    
     if (view === 'front') {
-      camera.position.set(0, 1, isMobile ? 18 : 10);
+      camera.position.set(0, 1, maxDistance);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en front');
     } else if (view === 'back') {
-      camera.position.set(0, 1, isMobile ? -18 : -10);
+      camera.position.set(0, 1, -maxDistance);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en back');
     } else if (view === 'left') {
-      camera.position.set(-10, 1, 0);
+      camera.position.set(-maxDistance, 1, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en left');
     } else if (view === 'right') {
-      camera.position.set(10, 1, 0);
+      camera.position.set(maxDistance, 1, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en right');
     }
@@ -1279,7 +1301,7 @@ function Viewer3D({
     requestAnimationFrame(() => controls.update());
     // Marquer l'heure de modification pour éviter un reset immédiat
     lastCameraChangeRef.current = Date.now();
-  }, [isMobile]);
+  }, [isMobile, cameraSettings]);
 
   // Écouter les événements de changement de vue de caméra
   useEffect(() => {
@@ -1310,14 +1332,8 @@ function Viewer3D({
       const controls = controlsRef.current;
       const applyPosition = () => {
         if (controls.object && controls.target) {
-          if (isMobile) {
-            controls.object.position.set(0, 1, 18);
-            controls.target.set(0, -1, 0);
-          } else {
-            // Desktop: zoom max comme mobile
-            controls.object.position.set(0, 1, 10);
-            controls.target.set(0, 0, 0);
-          }
+          controls.object.position.set(0, 1, cameraSettings.defaultPositionZ);
+          controls.target.set(0, isMobile ? -1 : 0, 0);
           controls.update();
           console.log('📷 Position caméra appliquée:', controls.object.position);
         }
@@ -1333,7 +1349,7 @@ function Viewer3D({
         clearTimeout(timer3);
       };
     }
-  }, [isMobile]);
+  }, [isMobile, cameraSettings]);
 
   // Listener pour reset caméra vers la vue de face (pour capture preview) - DÉSACTIVÉ
   useEffect(() => {
@@ -1389,10 +1405,11 @@ function Viewer3D({
   }, []);
 
   // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
-  const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, 10];
+  // Utilisation de la fonction de conversion pour maintenir la cohérence
+  const cameraPosition: [number, number, number] = [0, 1, cameraSettings.defaultPositionZ];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = isMobile ? 7 : 2.5;
-  const maxDistance = isMobile ? 18 : 10;
+  const minDistance = cameraSettings.minDistance;
+  const maxDistance = cameraSettings.maxDistance;
 
   return (
     <div className="h-full flex flex-col bg-white">
