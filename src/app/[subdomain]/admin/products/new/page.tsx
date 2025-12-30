@@ -6296,7 +6296,8 @@ export default function ProductBuilderPage() {
                                 />
                               );
                             })()}
-                          </Canvas>
+                            </Canvas>
+                          )}
                           
                           {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
                           {uv2Canvas && viewportMode !== 'mobile' && (
