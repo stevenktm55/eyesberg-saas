@@ -5982,7 +5982,7 @@ export default function ProductBuilderPage() {
                             
                             return (
                               <Canvas
-                                key={`canvas-${selectedModel3DId}`}
+                                key={`canvas-${selectedModel3DId}-${viewportMode}`}
                                 camera={{ 
                                   position: [0, 0, mobileInitialZoom], 
                                   fov: mobileFov
@@ -6385,7 +6385,7 @@ export default function ProductBuilderPage() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  zIndex: 200
+                                  zIndex: 300
                                 }}
                                 onClick={(e) => {
                                   if (e.target === e.currentTarget) {
@@ -6404,10 +6404,30 @@ export default function ProductBuilderPage() {
                                     maxWidth: '100%',
                                     maxHeight: '80vh',
                                     overflowY: 'auto',
-                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                    color: '#111827'
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
+                                  <style>{`
+                                    [style*="zIndex: 300"] *,
+                                    [style*="zIndex: 300"] p,
+                                    [style*="zIndex: 300"] span,
+                                    [style*="zIndex: 300"] div,
+                                    [style*="zIndex: 300"] h2,
+                                    [style*="zIndex: 300"] h3,
+                                    [style*="zIndex: 300"] label,
+                                    [style*="zIndex: 300"] input,
+                                    [style*="zIndex: 300"] button:not([style*="backgroundColor: '#000"]):not([style*="backgroundColor:'#000"]):not([style*="backgroundColor: '#000000"]):not([style*="backgroundColor:'#000000"]) {
+                                      color: #111827 !important;
+                                    }
+                                    [style*="zIndex: 300"] button[style*="backgroundColor: '#000"],
+                                    [style*="zIndex: 300"] button[style*="backgroundColor:'#000"],
+                                    [style*="zIndex: 300"] button[style*="backgroundColor: '#000000"],
+                                    [style*="zIndex: 300"] button[style*="backgroundColor:'#000000"] {
+                                      color: #ffffff !important;
+                                    }
+                                  `}</style>
                                   {/* Header */}
                                   <div style={{
                                     display: 'flex',
@@ -6725,6 +6745,7 @@ export default function ProductBuilderPage() {
                                               borderRadius: '6px',
                                               fontSize: '14px',
                                               fontFamily: 'var(--stepn-font-body)',
+                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                                               color: '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                                               fontWeight: '500'
