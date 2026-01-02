@@ -7611,7 +7611,7 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // MODULE LOGOS - Style stretchmx (scroll horizontal avec bouton importer + recherche + logos placés)
+                              // MODULE LOGOS - Style stretchmx (tabs vues + bouton ajouter + logos placés OU bibliothèque)
                               if (activeModule.contentType === 'logos') {
                                 const views = ['front', 'back', 'left', 'right'] as const;
                                 const viewLabels: Record<string, string> = { front: activeModule.logoViewFrontLabel || 'Torse', back: activeModule.logoViewBackLabel || 'Dos', left: activeModule.logoViewLeftLabel || 'Bras gauche', right: activeModule.logoViewRightLabel || 'Bras droit' };
@@ -7639,7 +7639,7 @@ export default function ProductBuilderPage() {
                                 
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {/* Tabs de vue */}
+                                    {/* Tabs de vue - Toujours affichés */}
                                     {activeModule.logoPlacementMode === 'zones' && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
                                         {views.map((view) => (
@@ -7650,8 +7650,57 @@ export default function ProductBuilderPage() {
                                       </div>
                                     )}
                                     
-                                    {/* Si un logo est sélectionné pour afficher ses variantes */}
-                                    {selectedLogoForVariants ? (
+                                    {/* Si la bibliothèque est ouverte (après clic sur "Ajouter un logo") */}
+                                    {showLogoLibrary ? (
+                                      <>
+                                        {/* Bouton Importer un logo */}
+                                        <button
+                                          onClick={() => {
+                                            // TODO: Implémenter l'import de logo
+                                            console.log('📤 Importer un logo');
+                                          }}
+                                          style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center', 
+                                            gap: '8px', 
+                                            padding: '12px', 
+                                            backgroundColor: '#000000', 
+                                            color: '#ffffff', 
+                                            border: 'none', 
+                                            borderRadius: '8px', 
+                                            fontSize: '13px', 
+                                            fontWeight: '500', 
+                                            cursor: 'pointer', 
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            width: '100%'
+                                          }}
+                                          className="mobile-action-btn-black"
+                                        >
+                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                          Importer un logo
+                                        </button>
+                                        
+                                        {/* Barre de recherche */}
+                                        <input
+                                          type="text"
+                                          placeholder="Rechercher un logo..."
+                                          value={logoSearchQuery}
+                                          onChange={(e) => setLogoSearchQuery(e.target.value)}
+                                          style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '8px',
+                                            fontSize: '13px',
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            color: '#111827',
+                                            backgroundColor: '#ffffff'
+                                          }}
+                                        />
+                                        
+                                        {/* Si un logo est sélectionné pour afficher ses variantes */}
+                                        {selectedLogoForVariants ? (
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {/* Header avec retour */}
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
@@ -7957,11 +8006,31 @@ export default function ProductBuilderPage() {
                                             </div>
                                           </div>
                                         )}
-                                        
+                                      </>
+                                    ) : (
+                                      /* Vue initiale : Bouton ajouter + logos placés */
+                                      <>
+                                        {/* Bouton ajouter */}
+                                        <button
+                                          onClick={() => {
+                                            setShowLogoLibrary(true);
+                                          }}
+                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                          className="mobile-action-btn-black"
+                                        >
+                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                          {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                        </button>
                                         {/* Logos placés */}
-                                        {modulePlacedLogos.length > 0 && (
-                                          <div>
-                                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>Logos placés ({modulePlacedLogos.length})</h3>
+                                        <div>
+                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>Logos placés ({modulePlacedLogos.length})</h3>
+                                          {modulePlacedLogos.length === 0 ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
+                                              <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                              <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo ajouté</p>
+                                              <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
+                                            </div>
+                                          ) : (
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                               {modulePlacedLogos.map((logo) => (
                                                 <div key={logo.id} onClick={() => setSelectedLogoId(logo.id)} style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}>
@@ -7969,8 +8038,8 @@ export default function ProductBuilderPage() {
                                                 </div>
                                               ))}
                                             </div>
-                                          </div>
-                                        )}
+                                          )}
+                                        </div>
                                       </>
                                     )}
                                   </div>
@@ -9303,12 +9372,13 @@ export default function ProductBuilderPage() {
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
                                           const newPanel = isActive ? null : module.id;
                                           console.log('📱 setMobileActivePanel:', newPanel);
-                                          setMobileActivePanel(newPanel);
-                                          // Réinitialiser la recherche de logos si on change d'onglet
+                                          // Réinitialiser les états des logos si on change d'onglet
                                           if (module.contentType === 'logos') {
                                             setLogoSearchQuery('');
                                             setSelectedLogoForVariants(null);
+                                            setShowLogoLibrary(false);
                                           }
+                                          setMobileActivePanel(newPanel);
                                         }}
                                         style={{
                                           flex: 1,
