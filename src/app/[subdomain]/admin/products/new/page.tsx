@@ -1350,14 +1350,19 @@ export default function ProductBuilderPage() {
       manuallyDeselectedTextIdRef.current = null;
       return;
     }
-    // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
+    // Ne pas ouvrir si le panneau est déjà ouvert ET que c'est le même module (pour éviter les conflits)
     if (mobileActivePanel) {
-      return;
+      const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
+      if (activeModule && activeModule.contentType === 'text') {
+        // Le panneau texte est déjà ouvert, ne rien faire
+        return;
+      }
     }
     if (viewportMode === 'mobile' && selectedTextId) {
       // Trouver le module texte actif
       const textModule = customizationModules.find(m => m.contentType === 'text');
       if (textModule) {
+        console.log('📱 Auto-ouverture panneau typographie - texte sélectionné:', selectedTextId);
         setMobileActivePanel(textModule.id);
       }
     }
@@ -1388,14 +1393,19 @@ export default function ProductBuilderPage() {
       manuallyDeselectedLogoIdRef.current = null;
       return;
     }
-    // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
+    // Ne pas ouvrir si le panneau est déjà ouvert ET que c'est le même module (pour éviter les conflits)
     if (mobileActivePanel) {
-      return;
+      const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
+      if (activeModule && activeModule.contentType === 'logos') {
+        // Le panneau logos est déjà ouvert, ne rien faire
+        return;
+      }
     }
     if (viewportMode === 'mobile' && selectedLogoId) {
       // Trouver le module logos actif
       const logoModule = customizationModules.find(m => m.contentType === 'logos');
       if (logoModule) {
+        console.log('📱 Auto-ouverture panneau logos - logo sélectionné:', selectedLogoId);
         setMobileActivePanel(logoModule.id);
       }
     }
