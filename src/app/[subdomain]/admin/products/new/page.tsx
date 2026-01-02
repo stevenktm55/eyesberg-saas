@@ -1350,11 +1350,12 @@ export default function ProductBuilderPage() {
       manuallyDeselectedTextIdRef.current = null;
       return;
     }
-    // Ne pas ouvrir si le panneau est déjà ouvert ET que c'est le même module (pour éviter les conflits)
-    if (mobileActivePanel) {
+    // Ne pas ouvrir automatiquement si le panneau est déjà ouvert ET que c'est le même module
+    // Mais permettre l'ouverture manuelle via les onglets
+    if (mobileActivePanel && selectedTextId) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'text') {
-        // Le panneau texte est déjà ouvert, ne rien faire
+        // Le panneau texte est déjà ouvert pour ce texte, ne rien faire
         return;
       }
     }
