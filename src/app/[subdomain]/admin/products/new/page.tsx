@@ -6749,9 +6749,9 @@ export default function ProductBuilderPage() {
                                 top: 0,
                                 left: 0,
                                 right: 0,
-                                bottom: '70px', // Laisser de l'espace pour la barre mobile
+                                bottom: '0px', // Le panneau passe maintenant au-dessus de tout
                                 backgroundColor: 'rgba(0, 0, 0, 0.01)',
-                                zIndex: 99, // En dessous du panneau (100) mais au-dessus du Canvas
+                                zIndex: 199, // En dessous du panneau (200) mais au-dessus du Canvas
                                 pointerEvents: 'auto',
                                 touchAction: 'auto',
                                 cursor: 'pointer'
@@ -7933,7 +7933,7 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                       }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
@@ -7999,15 +7999,15 @@ export default function ProductBuilderPage() {
                                 className="mobile-panel-slide-up"
                                 style={{
                                   position: 'absolute',
-                                  bottom: '70px',
+                                  bottom: '0px',
                                   left: 0,
                                   right: 0,
-                                  maxHeight: '50%',
+                                  maxHeight: '70%',
                                   backgroundColor: '#ffffff',
                                   borderTopLeftRadius: '16px',
                                   borderTopRightRadius: '16px',
                                   boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
-                                  zIndex: 100,
+                                  zIndex: 200,
                                   display: 'flex',
                                   flexDirection: 'column',
                                   overflow: 'hidden',
@@ -8048,7 +8048,11 @@ export default function ProductBuilderPage() {
                                   .mobile-panel-slide-up button[style*="color: '#ffffff'"],
                                   .mobile-panel-slide-up button[style*="color:'#ffffff'"],
                                   .mobile-panel-slide-up button[style*="color: white"],
-                                  .mobile-panel-slide-up button[style*="color:white"] {
+                                  .mobile-panel-slide-up button[style*="color:white"],
+                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor: '#000"],
+                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor:'#000"],
+                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor: '#000000"],
+                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor:'#000000"] {
                                     color: #ffffff !important;
                                   }
                                 `}</style>
@@ -8210,7 +8214,11 @@ export default function ProductBuilderPage() {
                                     .mobile-content-fade button[style*="color: '#ffffff'"],
                                     .mobile-content-fade button[style*="color:'#ffffff'"],
                                     .mobile-content-fade button[style*="color: white"],
-                                    .mobile-content-fade button[style*="color:white"] {
+                                    .mobile-content-fade button[style*="color:white"],
+                                    .mobile-content-fade button.mobile-action-btn[style*="backgroundColor: '#000"],
+                                    .mobile-content-fade button.mobile-action-btn[style*="backgroundColor:'#000"],
+                                    .mobile-content-fade button.mobile-action-btn[style*="backgroundColor: '#000000"],
+                                    .mobile-content-fade button.mobile-action-btn[style*="backgroundColor:'#000000"] {
                                       color: #ffffff !important;
                                     }
                                   `}</style>
@@ -8289,17 +8297,19 @@ export default function ProductBuilderPage() {
                                   </>
                                 )}
                               </div>
-                              {/* Barre d'actions */}
-                              <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px' }}>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer' }}>
-                                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                                  Sauvegarder
-                                </button>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#fff', cursor: 'pointer' }}>
-                                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                  Ajouter au panier
-                                </button>
-                              </div>
+                              {/* Barre d'actions - Masquée quand un panneau est ouvert */}
+                              {!mobileActivePanel && (
+                                <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px' }}>
+                                  <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                                    Sauvegarder
+                                  </button>
+                                  <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                    Ajouter au panier
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
