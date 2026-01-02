@@ -1585,6 +1585,14 @@ function Viewer3D({
   
   // Désactiver les interactions du Canvas quand le panneau mobile est ouvert
   const shouldDisableCanvasInteractions = isMobileModalOpen && isMobileView;
+  
+  useEffect(() => {
+    console.log('🔍 Viewer3D ConfiguratorViewer - État interactions:', {
+      isMobileModalOpen,
+      isMobileView,
+      shouldDisableCanvasInteractions
+    });
+  }, [isMobileModalOpen, isMobileView, shouldDisableCanvasInteractions]);
 
   // Forcer la distance maximale au chargement (desktop ET mobile)
   useEffect(() => {
