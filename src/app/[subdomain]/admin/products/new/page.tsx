@@ -6218,7 +6218,6 @@ export default function ProductBuilderPage() {
                                 const rotationInitializedRef = useRef(false);
                                 const savedCameraStateRef = useRef<{ position: [number, number, number], target: [number, number, number], distance: number } | null>(null);
                                 const isRestoringRef = useRef(false);
-                                const { camera: threeCamera } = useThree();
                                 
                                 // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
                                 
