@@ -6226,7 +6226,7 @@ export default function ProductBuilderPage() {
                                 useEffect(() => {
                                   if (controlsRef.current && viewportMode === 'mobile') {
                                     if (mobileActivePanel && !savedCameraStateRef.current) {
-                                      // Sauvegarder l'état actuel de la caméra
+                                      // Sauvegarder l'état actuel de la caméra AVANT que le panneau ne commence à s'ouvrir
                                       const camera = controlsRef.current.object;
                                       const target = controlsRef.current.target;
                                       const distance = camera.position.distanceTo(target);
@@ -6238,8 +6238,8 @@ export default function ProductBuilderPage() {
                                       // Désactiver temporairement les mises à jour automatiques
                                       isRestoringRef.current = true;
                                     } else if (!mobileActivePanel && savedCameraStateRef.current) {
-                                      // Restaurer l'état sauvegardé de la caméra après un court délai pour laisser le conteneur se redimensionner
-                                      setTimeout(() => {
+                                      // Restaurer l'état sauvegardé de la caméra après que le panneau soit complètement fermé
+                                      const restoreCamera = () => {
                                         if (controlsRef.current && savedCameraStateRef.current) {
                                           const camera = controlsRef.current.object;
                                           const target = controlsRef.current.target;
@@ -6269,7 +6269,19 @@ export default function ProductBuilderPage() {
                                           savedCameraStateRef.current = null;
                                           isRestoringRef.current = false;
                                         }
-                                      }, 100);
+                                      };
+                                      
+                                      // Restaurer immédiatement et plusieurs fois pour s'assurer que ça prend
+                                      restoreCamera();
+                                      requestAnimationFrame(() => {
+                                        restoreCamera();
+                                        requestAnimationFrame(() => {
+                                          restoreCamera();
+                                          setTimeout(restoreCamera, 50);
+                                          setTimeout(restoreCamera, 150);
+                                          setTimeout(restoreCamera, 300);
+                                        });
+                                      });
                                     }
                                   }
                                 }, [mobileActivePanel]);
@@ -6285,53 +6297,46 @@ export default function ProductBuilderPage() {
                                   }
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
-                                // Empêcher OrbitControls de recalculer la distance lors du resize du conteneur
+                                // Surveiller et corriger la distance de la caméra en continu pendant que le panneau est ouvert
                                 useEffect(() => {
-                                  if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current) {
-                                    let resizeTimeout: NodeJS.Timeout;
-                                    const handleResize = () => {
+                                  if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current && isRestoringRef.current) {
+                                    let animationFrameId: number;
+                                    let lastDistance = savedCameraStateRef.current.distance;
+                                    
+                                    const maintainDistance = () => {
                                       if (controlsRef.current && savedCameraStateRef.current && isRestoringRef.current) {
-                                        clearTimeout(resizeTimeout);
-                                        resizeTimeout = setTimeout(() => {
-                                          if (controlsRef.current && savedCameraStateRef.current) {
-                                            const camera = controlsRef.current.object;
-                                            const target = controlsRef.current.target;
-                                            
-                                            // Calculer la direction normalisée
-                                            const dx = camera.position.x - target.x;
-                                            const dy = camera.position.y - target.y;
-                                            const dz = camera.position.z - target.z;
-                                            const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                                            
-                                            // Maintenir la distance sauvegardée
-                                            if (length > 0) {
-                                              const scale = savedCameraStateRef.current.distance / length;
-                                              camera.position.set(
-                                                target.x + dx * scale,
-                                                target.y + dy * scale,
-                                                target.z + dz * scale
-                                              );
-                                            }
+                                        const camera = controlsRef.current.object;
+                                        const target = controlsRef.current.target;
+                                        const currentDistance = camera.position.distanceTo(target);
+                                        
+                                        // Si la distance a changé, la corriger
+                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.01) {
+                                          const dx = camera.position.x - target.x;
+                                          const dy = camera.position.y - target.y;
+                                          const dz = camera.position.z - target.z;
+                                          const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                                          
+                                          if (length > 0) {
+                                            const scale = savedCameraStateRef.current.distance / length;
+                                            camera.position.set(
+                                              target.x + dx * scale,
+                                              target.y + dy * scale,
+                                              target.z + dz * scale
+                                            );
                                             controlsRef.current.update();
                                           }
-                                        }, 10);
+                                        }
+                                        
+                                        animationFrameId = requestAnimationFrame(maintainDistance);
                                       }
                                     };
                                     
-                                    // Observer les changements de taille du conteneur
-                                    const resizeObserver = new ResizeObserver(() => {
-                                      handleResize();
-                                    });
+                                    animationFrameId = requestAnimationFrame(maintainDistance);
                                     
-                                    if (controlsRef.current.domElement) {
-                                      resizeObserver.observe(controlsRef.current.domElement);
-                                    }
-                                    
-                                    window.addEventListener('resize', handleResize);
                                     return () => {
-                                      clearTimeout(resizeTimeout);
-                                      resizeObserver.disconnect();
-                                      window.removeEventListener('resize', handleResize);
+                                      if (animationFrameId) {
+                                        cancelAnimationFrame(animationFrameId);
+                                      }
                                     };
                                   }
                                 }, [mobileActivePanel]);
