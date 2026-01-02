@@ -1393,11 +1393,12 @@ export default function ProductBuilderPage() {
       manuallyDeselectedLogoIdRef.current = null;
       return;
     }
-    // Ne pas ouvrir si le panneau est déjà ouvert ET que c'est le même module (pour éviter les conflits)
-    if (mobileActivePanel) {
+    // Ne pas ouvrir automatiquement si le panneau est déjà ouvert ET que c'est le même module
+    // Mais permettre l'ouverture manuelle via les onglets
+    if (mobileActivePanel && selectedLogoId) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'logos') {
-        // Le panneau logos est déjà ouvert, ne rien faire
+        // Le panneau logos est déjà ouvert pour ce logo, ne rien faire
         return;
       }
     }
@@ -7046,9 +7047,21 @@ export default function ProductBuilderPage() {
                             if (!activeModule || activeModule.contentType !== 'logos') return null;
                             
                             // Récupérer les zones des groupes sélectionnés pour les logos
+                            // Essayer plusieurs propriétés possibles pour les zoneGroupIds
+                            const logoZoneGroupIds = activeModule.config?.logoZoneGroupIds || 
+                                                     activeModule.selectedItems?.logoZoneGroupIds || 
+                                                     activeModule.zoneGroupIds ||
+                                                     activeModule.config?.zoneGroupIds ||
+                                                     activeModule.selectedItems?.zoneGroupIds ||
+                                                     [];
+                            
+                            console.log('🔍 Recherche zones logos - logoZoneGroupIds:', logoZoneGroupIds, 'zoneGroups:', zoneGroups.length);
+                            
                             const availableZones = zoneGroups
-                              .filter(group => activeModule.zoneGroupIds?.includes(group.id))
+                              .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+                            
+                            console.log('📍 Zones disponibles pour logos:', availableZones.length);
                             
                             return (
                               <div
@@ -9600,6 +9613,8 @@ export default function ProductBuilderPage() {
                                             setSelectedLogoForVariants(null);
                                             setShowLogoLibrary(false);
                                           }
+                                          // Réinitialiser le flag de fermeture manuelle pour permettre l'ouverture
+                                          isManuallyClosingRef.current = false;
                                           setMobileActivePanel(newPanel);
                                         }}
                                         style={{
