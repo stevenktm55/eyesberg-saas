@@ -1415,10 +1415,55 @@ function Viewer3D({
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
 
-  // Détecter si on est sur mobile
-  const isMobileView = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 768;
+  // Détecter si on est sur mobile (réactif avec media queries CSS pour détecter la simulation)
+  const [isMobileView, setIsMobileView] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window === 'undefined') {
+        setIsMobileView(false);
+        return;
+      }
+      
+      // Vérifier la largeur de la fenêtre
+      const isWindowMobile = window.innerWidth < 768;
+      
+      // Vérifier aussi les media queries CSS pour détecter la simulation mobile du builder
+      // Cela fonctionne même si la fenêtre est large mais qu'on simule un mobile
+      const mediaQuery = window.matchMedia('(max-width: 767px)');
+      const isMediaQueryMobile = mediaQuery.matches;
+      
+      // Considérer comme mobile si l'une des deux conditions est vraie
+      const isMobile = isWindowMobile || isMediaQueryMobile;
+      setIsMobileView(isMobile);
+      console.log('📱 Détection mobile:', { isWindowMobile, isMediaQueryMobile, isMobile, windowWidth: window.innerWidth });
+    };
+    
+    // Vérifier immédiatement
+    checkMobile();
+    
+    // Écouter les changements de taille de fenêtre
+    window.addEventListener('resize', checkMobile);
+    
+    // Écouter les changements de media queries (pour la simulation mobile)
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleMediaChange = () => checkMobile();
+    // Utiliser addListener pour compatibilité
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    } else {
+      // Fallback pour anciens navigateurs
+      mediaQuery.addListener(handleMediaChange);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      } else {
+        mediaQuery.removeListener(handleMediaChange);
+      }
+    };
   }, []);
 
   // Désactiver les interactions du Canvas quand le modal est ouvert sur mobile
@@ -5457,6 +5502,57 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'design' | 'color' | 'numero' | 'nom' | 'text' | 'logo'>('design');
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+  // Détecter si on est sur mobile (réactif avec media queries CSS pour détecter la simulation)
+  const [isMobileView, setIsMobileView] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window === 'undefined') {
+        setIsMobileView(false);
+        return;
+      }
+      
+      // Vérifier la largeur de la fenêtre
+      const isWindowMobile = window.innerWidth < 768;
+      
+      // Vérifier aussi les media queries CSS pour détecter la simulation mobile du builder
+      // Cela fonctionne même si la fenêtre est large mais qu'on simule un mobile
+      const mediaQuery = window.matchMedia('(max-width: 767px)');
+      const isMediaQueryMobile = mediaQuery.matches;
+      
+      // Considérer comme mobile si l'une des deux conditions est vraie
+      const isMobile = isWindowMobile || isMediaQueryMobile;
+      setIsMobileView(isMobile);
+      console.log('📱 ConfigurePage - Détection mobile:', { isWindowMobile, isMediaQueryMobile, isMobile, windowWidth: window.innerWidth });
+    };
+    
+    // Vérifier immédiatement
+    checkMobile();
+    
+    // Écouter les changements de taille de fenêtre
+    window.addEventListener('resize', checkMobile);
+    
+    // Écouter les changements de media queries (pour la simulation mobile)
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleMediaChange = () => checkMobile();
+    // Utiliser addListener pour compatibilité
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    } else {
+      // Fallback pour anciens navigateurs
+      mediaQuery.addListener(handleMediaChange);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      } else {
+        mediaQuery.removeListener(handleMediaChange);
+      }
+    };
+  }, []);
+  
   const [isLogoLibraryOpen, setIsLogoLibraryOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{textId: string, textContent: string} | null>(null);
   const [logoDeleteConfirmation, setLogoDeleteConfirmation] = useState<{logoId: string, logoName: string} | null>(null);
@@ -8036,7 +8132,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       </div>
 
       {/* Overlay pour capturer les clics sur la zone 3D quand le modal est ouvert (mobile uniquement) */}
-      {isMobileModalOpen && window.innerWidth < 768 && (
+      {isMobileModalOpen && isMobileView && (
         <div 
           className="md:hidden fixed inset-0"
           style={{ 
