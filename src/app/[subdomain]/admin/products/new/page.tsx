@@ -7199,6 +7199,10 @@ export default function ProductBuilderPage() {
                                                         scrollbarWidth: 'none',
                                                         msOverflowStyle: 'none'
                                                       }}
+                                                      onWheel={(e) => {
+                                                        e.currentTarget.scrollLeft += e.deltaY;
+                                                        e.preventDefault();
+                                                      }}
                                                       onScroll={(e) => {
                                                         const target = e.currentTarget;
                                                         target.style.scrollbarWidth = 'none';
@@ -7377,8 +7381,8 @@ export default function ProductBuilderPage() {
                                                         top: '50%',
                                                         transform: 'translateY(-50%)',
                                                         zIndex: 10,
-                                                        width: '32px',
-                                                        height: '32px',
+                                                        width: '36px',
+                                                        height: '36px',
                                                         borderRadius: '50%',
                                                         border: '1px solid #e5e7eb',
                                                         backgroundColor: '#ffffff',
@@ -7386,7 +7390,8 @@ export default function ProductBuilderPage() {
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
                                                         cursor: 'pointer',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        aspectRatio: '1 / 1'
                                                       }}
                                                     >
                                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7405,6 +7410,12 @@ export default function ProductBuilderPage() {
                                                         WebkitOverflowScrolling: 'touch',
                                                         scrollbarWidth: 'none',
                                                         msOverflowStyle: 'none'
+                                                      }}
+                                                      onWheel={(e) => {
+                                                        if (colorScrollRef.current) {
+                                                          colorScrollRef.current.scrollLeft += e.deltaY;
+                                                          e.preventDefault();
+                                                        }
                                                       }}
                                                     >
                                                       <style>{`
@@ -7445,8 +7456,8 @@ export default function ProductBuilderPage() {
                                                         top: '50%',
                                                         transform: 'translateY(-50%)',
                                                         zIndex: 10,
-                                                        width: '32px',
-                                                        height: '32px',
+                                                        width: '36px',
+                                                        height: '36px',
                                                         borderRadius: '50%',
                                                         border: '1px solid #e5e7eb',
                                                         backgroundColor: '#ffffff',
@@ -7454,7 +7465,8 @@ export default function ProductBuilderPage() {
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
                                                         cursor: 'pointer',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        aspectRatio: '1 / 1'
                                                       }}
                                                     >
                                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7522,8 +7534,8 @@ export default function ProductBuilderPage() {
                                                           top: '50%',
                                                           transform: 'translateY(-50%)',
                                                           zIndex: 10,
-                                                          width: '32px',
-                                                          height: '32px',
+                                                          width: '36px',
+                                                          height: '36px',
                                                           borderRadius: '50%',
                                                           border: '1px solid #e5e7eb',
                                                           backgroundColor: '#ffffff',
@@ -7531,7 +7543,8 @@ export default function ProductBuilderPage() {
                                                           alignItems: 'center',
                                                           justifyContent: 'center',
                                                           cursor: 'pointer',
-                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                          aspectRatio: '1 / 1'
                                                         }}
                                                       >
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7550,6 +7563,12 @@ export default function ProductBuilderPage() {
                                                           WebkitOverflowScrolling: 'touch',
                                                           scrollbarWidth: 'none',
                                                           msOverflowStyle: 'none'
+                                                        }}
+                                                        onWheel={(e) => {
+                                                          if (strokeScrollRef.current) {
+                                                            strokeScrollRef.current.scrollLeft += e.deltaY;
+                                                            e.preventDefault();
+                                                          }
                                                         }}
                                                       >
                                                         <style>{`
@@ -7590,8 +7609,8 @@ export default function ProductBuilderPage() {
                                                           top: '50%',
                                                           transform: 'translateY(-50%)',
                                                           zIndex: 10,
-                                                          width: '32px',
-                                                          height: '32px',
+                                                          width: '36px',
+                                                          height: '36px',
                                                           borderRadius: '50%',
                                                           border: '1px solid #e5e7eb',
                                                           backgroundColor: '#ffffff',
@@ -7599,7 +7618,8 @@ export default function ProductBuilderPage() {
                                                           alignItems: 'center',
                                                           justifyContent: 'center',
                                                           cursor: 'pointer',
-                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                          aspectRatio: '1 / 1'
                                                         }}
                                                       >
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
