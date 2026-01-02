@@ -6957,7 +6957,7 @@ export default function ProductBuilderPage() {
                                     {activeModule.logoPlacementMode === 'zones' && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
                                         {views.map((view) => (
-                                          <button key={view} onClick={() => setActiveLogoView(view)} style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#000' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #000' : '2px solid transparent', cursor: 'pointer' }}>
+                                          <button key={view} onClick={() => setActiveLogoView(view)} style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
                                             {viewLabels[view]}
                                           </button>
                                         ))}
@@ -6973,12 +6973,12 @@ export default function ProductBuilderPage() {
                                     </button>
                                     {/* Logos placés */}
                                     <div>
-                                      <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Logos placés ({modulePlacedLogos.length})</h3>
+                                      <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>Logos placés ({modulePlacedLogos.length})</h3>
                                       {modulePlacedLogos.length === 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
                                           <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                          <p style={{ fontSize: '12px', marginTop: '8px' }}>Aucun logo ajouté</p>
-                                          <p style={{ fontSize: '11px', color: '#9ca3af' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
+                                          <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo ajouté</p>
+                                          <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
                                         </div>
                                       ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
