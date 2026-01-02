@@ -1325,10 +1325,13 @@ export default function ProductBuilderPage() {
     if (viewportMode === 'mobile' && !selectedTextId && mobileActivePanel) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'text') {
+        console.log('📝 Fermeture automatique du panneau typographie - texte désélectionné');
         // Ne pas fermer si on vient de fermer manuellement (pour éviter les conflits)
         if (!isManuallyClosingRef.current) {
           setMobileActivePanel(null);
           setSelectedColorClass(null);
+        } else {
+          console.log('⏭️ Fermeture manuelle en cours, on ne ferme pas automatiquement');
         }
       }
     }
