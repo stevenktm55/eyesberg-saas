@@ -1333,7 +1333,6 @@ export default function ProductBuilderPage() {
     if (viewportMode === 'mobile' && !selectedTextId && mobileActivePanel) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'text') {
-        console.log('📝 Fermeture automatique du panneau typographie - texte désélectionné');
         // Ne pas fermer si on vient de fermer manuellement (pour éviter les conflits)
         if (!isManuallyClosingRef.current) {
           setMobileActivePanel(null);
@@ -1372,7 +1371,6 @@ export default function ProductBuilderPage() {
       // Trouver le module texte actif
       const textModule = customizationModules.find(m => m.contentType === 'text');
       if (textModule) {
-        console.log('📱 Auto-ouverture panneau typographie - texte sélectionné:', selectedTextId);
         setMobileActivePanel(textModule.id);
       }
     }
@@ -1423,7 +1421,6 @@ export default function ProductBuilderPage() {
       // Trouver le module logos actif
       const logoModule = customizationModules.find(m => m.contentType === 'logos');
       if (logoModule) {
-        console.log('📱 Auto-ouverture panneau logos - logo sélectionné:', selectedLogoId);
         setMobileActivePanel(logoModule.id);
       }
     }
@@ -7064,7 +7061,7 @@ export default function ProductBuilderPage() {
                             if (!activeModule || activeModule.contentType !== 'logos') return null;
                             
                             // Récupérer les zones des groupes sélectionnés pour les logos
-                            // Essayer plusieurs propriétés possibles pour les zoneGroupIds
+                            // Utiliser la même logique que pour les textes
                             const logoZoneGroupIds = activeModule.config?.logoZoneGroupIds || 
                                                      activeModule.selectedItems?.logoZoneGroupIds || 
                                                      activeModule.zoneGroupIds ||
@@ -7072,13 +7069,9 @@ export default function ProductBuilderPage() {
                                                      activeModule.selectedItems?.zoneGroupIds ||
                                                      [];
                             
-                            console.log('🔍 Recherche zones logos - logoZoneGroupIds:', logoZoneGroupIds, 'zoneGroups:', zoneGroups.length);
-                            
                             const availableZones = zoneGroups
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
-                            
-                            console.log('📍 Zones disponibles pour logos:', availableZones.length);
                             
                             return (
                               <div
@@ -7331,9 +7324,17 @@ export default function ProductBuilderPage() {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
                             if (!activeModule) return null;
                             
-                            // Récupérer les zones des groupes sélectionnés
+                            // Récupérer les zones des groupes sélectionnés pour les textes
+                            // Essayer plusieurs propriétés possibles pour les zoneGroupIds
+                            const textZoneGroupIds = activeModule.config?.textZoneGroupIds || 
+                                                     activeModule.selectedItems?.textZoneGroupIds || 
+                                                     activeModule.zoneGroupIds ||
+                                                     activeModule.config?.zoneGroupIds ||
+                                                     activeModule.selectedItems?.zoneGroupIds ||
+                                                     [];
+                            
                             const availableZones = zoneGroups
-                              .filter(group => activeModule.zoneGroupIds?.includes(group.id))
+                              .filter(group => textZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
                             
                             return (
@@ -7739,11 +7740,8 @@ export default function ProductBuilderPage() {
                           
                           {/* Panneau de contenu mobile - Style configurator.stretchmx.com */}
                           {viewportMode === 'mobile' && mobileActivePanel && (() => {
-                            console.log('📱 Rendu panneau mobile - mobileActivePanel:', mobileActivePanel);
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
-                            console.log('📱 activeModule trouvé:', activeModule?.tabName, activeModule?.contentType);
                             if (!activeModule) {
-                              console.log('⚠️ Aucun module trouvé pour mobileActivePanel:', mobileActivePanel);
                               return null;
                             }
                             
@@ -9625,10 +9623,8 @@ export default function ProductBuilderPage() {
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
-                                          console.log('📱 Clic sur onglet mobile:', module.tabName, 'isActive:', isActive, 'module.id:', module.id, 'mobileActivePanel actuel:', mobileActivePanel);
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
                                           const newPanel = isActive ? null : module.id;
-                                          console.log('📱 setMobileActivePanel:', newPanel);
                                           
                                           // Marquer qu'on ouvre manuellement le panneau AVANT de changer l'état
                                           isManuallyOpeningRef.current = true;
@@ -9649,7 +9645,6 @@ export default function ProductBuilderPage() {
                                           // pour s'assurer que tous les useEffect ont fini de s'exécuter
                                           setTimeout(() => {
                                             isManuallyOpeningRef.current = false;
-                                            console.log('📱 Flag ouverture manuelle réinitialisé');
                                           }, 500);
                                         }}
                                         style={{
