@@ -6386,13 +6386,14 @@ export default function ProductBuilderPage() {
                                   <OrbitControls
                                     ref={controlsRef}
                                     enablePan={false}
-                                    enableZoom={!selectedTextId && !isPlacingText}
-                                    enableRotate={!selectedTextId && !isPlacingText}
-                                    enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText}
+                                    enableZoom={!selectedTextId && !isPlacingText && !isRestoringRef.current}
+                                    enableRotate={!selectedTextId && !isPlacingText && !isRestoringRef.current}
+                                    enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText && !isRestoringRef.current}
                                     minDistance={minZoom}
                                     maxDistance={maxZoom}
                                     zoomSpeed={zoomSpeed}
                                     rotateSpeed={rotateSpeed}
+                                    makeDefault={false}
                                   />
                                 );
                               }
