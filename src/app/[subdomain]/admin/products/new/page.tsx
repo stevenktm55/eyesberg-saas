@@ -4578,6 +4578,7 @@ export default function ProductBuilderPage() {
                               borderRadius: '4px',
                               fontSize: '14px',
                               fontFamily: 'var(--stepn-font-body)',
+                              color: '#111827',
                               cursor: 'pointer'
                             }}>
                               <option value="">Sélectionner une font</option>
@@ -4721,6 +4722,7 @@ export default function ProductBuilderPage() {
                               borderRadius: '4px',
                               fontSize: '14px',
                               fontFamily: 'var(--stepn-font-body)',
+                              color: '#111827',
                               cursor: 'pointer'
                             }}>
                               <option value="">Sélectionner une taille</option>
