@@ -1415,49 +1415,88 @@ function Viewer3D({
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
 
-  // Détecter si on est sur mobile (réactif avec media queries CSS pour détecter la simulation)
+  // Détecter si on est sur mobile (réactif - mesure la largeur réelle du conteneur)
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isMobileView, setIsMobileView] = useState(false);
   
   useEffect(() => {
+    console.log('🔍 Viewer3D useEffect détection mobile - démarrage');
+    
     const checkMobile = () => {
       if (typeof window === 'undefined') {
+        console.log('⚠️ window undefined');
         setIsMobileView(false);
         return;
       }
       
+      // Mesurer la largeur réelle du conteneur (pas la fenêtre)
+      // Cela fonctionne même dans la simulation mobile du builder
+      const container = containerRef.current;
+      const containerWidth = container ? container.offsetWidth : window.innerWidth;
+      
       // Vérifier la largeur de la fenêtre
       const isWindowMobile = window.innerWidth < 768;
       
-      // Vérifier aussi les media queries CSS pour détecter la simulation mobile du builder
-      // Cela fonctionne même si la fenêtre est large mais qu'on simule un mobile
+      // Vérifier la largeur du conteneur (pour la simulation mobile)
+      const isContainerMobile = containerWidth < 768;
+      
+      // Vérifier aussi les media queries CSS
       const mediaQuery = window.matchMedia('(max-width: 767px)');
       const isMediaQueryMobile = mediaQuery.matches;
       
-      // Considérer comme mobile si l'une des deux conditions est vraie
-      const isMobile = isWindowMobile || isMediaQueryMobile;
+      // Considérer comme mobile si l'une des conditions est vraie
+      const isMobile = isWindowMobile || isContainerMobile || isMediaQueryMobile;
+      
+      console.log('📱 Viewer3D - Détection mobile:', { 
+        isWindowMobile, 
+        isContainerMobile, 
+        isMediaQueryMobile, 
+        isMobile, 
+        windowWidth: window.innerWidth,
+        containerWidth: containerWidth,
+        hasContainer: !!container
+      });
+      
       setIsMobileView(isMobile);
-      console.log('📱 Détection mobile:', { isWindowMobile, isMediaQueryMobile, isMobile, windowWidth: window.innerWidth });
     };
     
     // Vérifier immédiatement
     checkMobile();
     
+    // Attendre un peu pour que le DOM soit prêt
+    const timeoutId = setTimeout(checkMobile, 100);
+    
     // Écouter les changements de taille de fenêtre
     window.addEventListener('resize', checkMobile);
     
-    // Écouter les changements de media queries (pour la simulation mobile)
+    // Observer les changements de taille du conteneur (ResizeObserver)
+    let resizeObserver: ResizeObserver | null = null;
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        console.log('📐 ResizeObserver - conteneur redimensionné');
+        checkMobile();
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    // Écouter les changements de media queries
     const mediaQuery = window.matchMedia('(max-width: 767px)');
-    const handleMediaChange = () => checkMobile();
-    // Utiliser addListener pour compatibilité
+    const handleMediaChange = () => {
+      console.log('📱 Media query changée');
+      checkMobile();
+    };
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleMediaChange);
     } else {
-      // Fallback pour anciens navigateurs
       mediaQuery.addListener(handleMediaChange);
     }
     
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', checkMobile);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener('change', handleMediaChange);
       } else {
@@ -1470,7 +1509,7 @@ function Viewer3D({
   const shouldDisableCanvasInteractions = isMobileModalOpen && isMobileView;
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white" ref={containerRef}>
       {/* Canvas 3D - prend tout l'espace */}
       <div 
         className="flex-1 bg-gray-100 relative"
@@ -5502,49 +5541,90 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'design' | 'color' | 'numero' | 'nom' | 'text' | 'logo'>('design');
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
-  // Détecter si on est sur mobile (réactif avec media queries CSS pour détecter la simulation)
+  // Détecter si on est sur mobile (réactif - mesure la largeur réelle du conteneur)
+  const pageContainerRef = useRef<HTMLDivElement>(null);
   const [isMobileView, setIsMobileView] = useState(false);
   
   useEffect(() => {
+    console.log('🔍 ConfigurePage useEffect détection mobile - démarrage');
+    
     const checkMobile = () => {
       if (typeof window === 'undefined') {
+        console.log('⚠️ window undefined');
         setIsMobileView(false);
         return;
       }
       
+      // Mesurer la largeur réelle du conteneur principal (pas la fenêtre)
+      // Cela fonctionne même dans la simulation mobile du builder
+      const container = pageContainerRef.current;
+      const containerWidth = container ? container.offsetWidth : window.innerWidth;
+      
       // Vérifier la largeur de la fenêtre
       const isWindowMobile = window.innerWidth < 768;
       
-      // Vérifier aussi les media queries CSS pour détecter la simulation mobile du builder
-      // Cela fonctionne même si la fenêtre est large mais qu'on simule un mobile
+      // Vérifier la largeur du conteneur (pour la simulation mobile)
+      const isContainerMobile = containerWidth < 768;
+      
+      // Vérifier aussi les media queries CSS
       const mediaQuery = window.matchMedia('(max-width: 767px)');
       const isMediaQueryMobile = mediaQuery.matches;
       
-      // Considérer comme mobile si l'une des deux conditions est vraie
-      const isMobile = isWindowMobile || isMediaQueryMobile;
+      // Considérer comme mobile si l'une des conditions est vraie
+      const isMobile = isWindowMobile || isContainerMobile || isMediaQueryMobile;
+      
+      console.log('📱 ConfigurePage - Détection mobile:', { 
+        isWindowMobile, 
+        isContainerMobile, 
+        isMediaQueryMobile, 
+        isMobile, 
+        windowWidth: window.innerWidth,
+        containerWidth: containerWidth,
+        hasContainer: !!container
+      });
+      
       setIsMobileView(isMobile);
-      console.log('📱 ConfigurePage - Détection mobile:', { isWindowMobile, isMediaQueryMobile, isMobile, windowWidth: window.innerWidth });
     };
     
     // Vérifier immédiatement
     checkMobile();
     
+    // Attendre un peu pour que le DOM soit prêt
+    const timeoutId = setTimeout(checkMobile, 100);
+    const timeoutId2 = setTimeout(checkMobile, 500);
+    
     // Écouter les changements de taille de fenêtre
     window.addEventListener('resize', checkMobile);
     
-    // Écouter les changements de media queries (pour la simulation mobile)
+    // Observer les changements de taille du conteneur (ResizeObserver)
+    let resizeObserver: ResizeObserver | null = null;
+    if (pageContainerRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        console.log('📐 ConfigurePage ResizeObserver - conteneur redimensionné');
+        checkMobile();
+      });
+      resizeObserver.observe(pageContainerRef.current);
+    }
+    
+    // Écouter les changements de media queries
     const mediaQuery = window.matchMedia('(max-width: 767px)');
-    const handleMediaChange = () => checkMobile();
-    // Utiliser addListener pour compatibilité
+    const handleMediaChange = () => {
+      console.log('📱 ConfigurePage Media query changée');
+      checkMobile();
+    };
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleMediaChange);
     } else {
-      // Fallback pour anciens navigateurs
       mediaQuery.addListener(handleMediaChange);
     }
     
     return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
       window.removeEventListener('resize', checkMobile);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener('change', handleMediaChange);
       } else {
@@ -8024,7 +8104,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         </div>
 
         {/* Viewer 3D - prend tout l'espace restant */}
-        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
+        <div ref={pageContainerRef} className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
             <Viewer3D 
               key={`${modelId}-${modelUrl}`}
               designTexture={selectedDesign.svgUrl} 
