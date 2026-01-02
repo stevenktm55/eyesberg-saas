@@ -7739,8 +7739,13 @@ export default function ProductBuilderPage() {
                           
                           {/* Panneau de contenu mobile - Style configurator.stretchmx.com */}
                           {viewportMode === 'mobile' && mobileActivePanel && (() => {
+                            console.log('📱 Rendu panneau mobile - mobileActivePanel:', mobileActivePanel);
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
-                            if (!activeModule) return null;
+                            console.log('📱 activeModule trouvé:', activeModule?.tabName, activeModule?.contentType);
+                            if (!activeModule) {
+                              console.log('⚠️ Aucun module trouvé pour mobileActivePanel:', mobileActivePanel);
+                              return null;
+                            }
                             
                             // Rendu du contenu selon le type de module
                             const renderMobileModuleContent = () => {
