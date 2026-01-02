@@ -6972,12 +6972,162 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // MODULE TEXT - Style stretchmx (bouton ajouter + textes placés)
+                              // MODULE TEXT - Style stretchmx (bouton ajouter + textes placés OU bloc typographie si texte sélectionné)
                               if (activeModule.contentType === 'text') {
                                 // Récupérer les zones de texte configurées
                                 const textZoneGroupIds = activeModule.config?.textZoneGroupIds || activeModule.selectedItems?.textZoneGroupIds || [];
                                 const isZoneMode = activeModule.config?.textPlacementMode === 'zones' || activeModule.textPlacementMode === 'zones';
                                 
+                                // Si un texte est sélectionné, afficher uniquement le bloc typographie (remplace "ajouter du texte et textes placés")
+                                if (selectedTextId) {
+                                  const selectedText = texts.find((t: any) => t.id === selectedTextId);
+                                  if (!selectedText) return null;
+                                  
+                                  const tabs = [
+                                    { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
+                                    { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
+                                    { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
+                                    { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
+                                    { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
+                                  ].filter(tab => tab.enabled);
+                                  
+                                  return (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                      {/* Bloc Typographie - Style stretchmx */}
+                                      <div style={{
+                                        backgroundColor: '#ffffff',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        border: '1px solid #e5e5e5'
+                                      }}>
+                                        {/* Header avec bouton retour */}
+                                        <div style={{
+                                          padding: '12px 16px',
+                                          backgroundColor: '#ffffff',
+                                          borderBottom: '1px solid #e5e5e5',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between'
+                                        }}>
+                                          <button
+                                            onClick={() => selectText(null)}
+                                            style={{
+                                              background: 'none',
+                                              border: 'none',
+                                              fontSize: '14px',
+                                              color: '#111827',
+                                              cursor: 'pointer',
+                                              padding: '4px 8px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '4px',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}
+                                          >
+                                            <span>←</span>
+                                            <span>Retour</span>
+                                          </button>
+                                          <div style={{
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            color: '#111827',
+                                            fontFamily: 'var(--stepn-font-body)'
+                                          }}>
+                                            Typographie
+                                          </div>
+                                          <div style={{ width: '60px' }} /> {/* Spacer */}
+                                        </div>
+
+                                        {/* Onglets */}
+                                        <div style={{
+                                          display: 'flex',
+                                          borderBottom: '1px solid #e5e5e5',
+                                          backgroundColor: '#ffffff',
+                                          overflowX: 'auto'
+                                        }}>
+                                          {tabs.map((tab) => (
+                                            <button
+                                              key={tab.id}
+                                              onClick={() => setActiveTextTab(tab.id)}
+                                              style={{
+                                                flex: '1 1 0',
+                                                minWidth: '60px',
+                                                padding: '10px 8px',
+                                                background: 'none',
+                                                border: 'none',
+                                                borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
+                                                color: activeTextTab === tab.id ? '#111827' : '#6b7280',
+                                                fontSize: '11px',
+                                                fontWeight: activeTextTab === tab.id ? '600' : '400',
+                                                fontFamily: 'var(--stepn-font-body)',
+                                                cursor: 'pointer',
+                                                whiteSpace: 'nowrap'
+                                              }}
+                                            >
+                                              {tab.label}
+                                            </button>
+                                          ))}
+                                        </div>
+
+                                        {/* Contenu de l'onglet sélectionné */}
+                                        <div style={{ padding: '16px', maxHeight: '300px', overflowY: 'auto' }}>
+                                          {/* Onglet Contenu */}
+                                          {activeTextTab === 'contenu' && (
+                                            <div>
+                                              <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: '#111827',
+                                                marginBottom: '12px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Contenu du texte
+                                              </div>
+                                              <input
+                                                type="text"
+                                                value={selectedText.content}
+                                                onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
+                                                style={{
+                                                  width: '100%',
+                                                  padding: '12px',
+                                                  backgroundColor: '#ffffff',
+                                                  border: '1px solid #d1d5db',
+                                                  borderRadius: '6px',
+                                                  fontSize: '14px',
+                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  color: '#111827',
+                                                  outline: 'none',
+                                                  boxSizing: 'border-box'
+                                                }}
+                                                onFocus={(e) => {
+                                                  e.currentTarget.style.borderColor = '#3b82f6';
+                                                }}
+                                                onBlur={(e) => {
+                                                  e.currentTarget.style.borderColor = '#d1d5db';
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+                                          
+                                          {/* Les autres onglets (police, couleur, contour, déformation) seront ajoutés si nécessaire */}
+                                          {activeTextTab !== 'contenu' && (
+                                            <div style={{
+                                              fontSize: '13px',
+                                              color: '#6b7280',
+                                              textAlign: 'center',
+                                              padding: '20px',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}>
+                                              Fonctionnalité {tabs.find(t => t.id === activeTextTab)?.label} à implémenter
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                
+                                // Si aucun texte n'est sélectionné, afficher "ajouter du texte et textes placés"
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Bouton ajouter */}
@@ -6989,7 +7139,10 @@ export default function ProductBuilderPage() {
                                           setShowZoneSelectionModal(true);
                                           setSelectedZoneId(null);
                                           setTextInputValue('');
+                                          // Ne pas ouvrir la sidebar desktop en mode mobile
+                                          if (viewportMode !== 'mobile') {
                                           setActiveCustomizerTab(activeModule.id);
+                                          }
                                         } else {
                                           // Mode libre : activer le mode placement
                                           if (isPlacingText) {
@@ -7053,7 +7206,14 @@ export default function ProductBuilderPage() {
                                         <p style={{ fontSize: '11px' }}>Cliquez sur le bouton ci-dessus pour commencer</p>
                                       </div>
                                     )}
-                                    
+                                  </div>
+                                );
+                              }
+                              
+                              // MODULE TEXT - Ancien code (à supprimer si tout fonctionne)
+                              if (activeModule.contentType === 'text' && false) {
+                                return (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Interface d'édition du texte sélectionné - Bloc Typographie */}
                                     {selectedTextId && (() => {
                                       const selectedText = texts.find((t: any) => t.id === selectedTextId);
