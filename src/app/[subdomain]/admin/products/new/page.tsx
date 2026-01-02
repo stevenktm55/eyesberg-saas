@@ -647,6 +647,8 @@ export default function ProductBuilderPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const deformationsSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const colorScrollRef = useRef<HTMLDivElement>(null);
+  const strokeScrollRef = useRef<HTMLDivElement>(null);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
   const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
@@ -7354,7 +7356,6 @@ export default function ProductBuilderPage() {
                                                     </p>
                                                   );
                                                 }
-                                                const colorScrollRef = useRef<HTMLDivElement>(null);
                                                 
                                                 const scrollColors = (direction: 'left' | 'right') => {
                                                   if (colorScrollRef.current) {
@@ -7499,7 +7500,6 @@ export default function ProductBuilderPage() {
                                                     </p>
                                                   );
                                                 }
-                                                const strokeScrollRef = useRef<HTMLDivElement>(null);
                                                 
                                                 const scrollStrokeColors = (direction: 'left' | 'right') => {
                                                   if (strokeScrollRef.current) {
