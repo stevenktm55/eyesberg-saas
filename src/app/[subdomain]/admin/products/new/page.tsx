@@ -6026,7 +6026,9 @@ export default function ProductBuilderPage() {
                                   }
                                   
                                   // Si les valeurs ont changé depuis la dernière initialisation, réinitialiser
+                                  // MAIS seulement si viewHasBeenSetRef est false (pas de vue définie par l'utilisateur)
                                   if (lastZoomRef.current !== null && (lastZoomRef.current !== initialZoom || lastRotationRef.current !== initialRotation)) {
+                                    // Ne pas réinitialiser si une vue a été définie par l'utilisateur
                                     if (!viewHasBeenSetRef.current) {
                                       const distance = initialZoom || 5;
                                       camera.position.set(0, 0, distance);
@@ -6044,6 +6046,9 @@ export default function ProductBuilderPage() {
                                       lastZoomRef.current = initialZoom;
                                       lastRotationRef.current = initialRotation;
                                     }
+                                    // Même si on ne réinitialise pas, mettre à jour les refs pour éviter les réinitialisations futures
+                                    lastZoomRef.current = initialZoom;
+                                    lastRotationRef.current = initialRotation;
                                     return;
                                   }
                                   
