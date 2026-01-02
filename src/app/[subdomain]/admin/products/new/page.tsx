@@ -6472,6 +6472,8 @@ export default function ProductBuilderPage() {
                               );
                             })()}
                           </Canvas>
+                            );
+                          })()}
                           
                           {/* Overlay pour fermer le panneau mobile et désélectionner le texte en cliquant sur le 3D */}
                           {viewportMode === 'mobile' && mobileActivePanel && (
@@ -6528,8 +6530,6 @@ export default function ProductBuilderPage() {
                               }}
                             />
                           )}
-                            );
-                          })()}
                           
                           {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
                           {uv2Canvas && viewportMode !== 'mobile' && (
