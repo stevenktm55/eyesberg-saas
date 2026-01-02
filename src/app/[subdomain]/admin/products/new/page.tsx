@@ -6079,6 +6079,10 @@ export default function ProductBuilderPage() {
                                   }
                                 }, [initialZoom, initialRotation, camera, viewHasBeenSetRef]);
                                 
+                                // Ne jamais réinitialiser la caméra si une vue a été définie par l'utilisateur
+                                // Même si initialZoom ou initialRotation changent, on ne doit pas réinitialiser
+                                // si l'utilisateur a déjà positionné la caméra
+                                
                                 return null;
                               }
                               // Passer le ref persistant pour savoir si une vue a été définie
