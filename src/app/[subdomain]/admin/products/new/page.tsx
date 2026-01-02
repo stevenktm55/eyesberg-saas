@@ -7354,54 +7354,114 @@ export default function ProductBuilderPage() {
                                                     </p>
                                                   );
                                                 }
+                                                const colorScrollRef = useRef<HTMLDivElement>(null);
+                                                
+                                                const scrollColors = (direction: 'left' | 'right') => {
+                                                  if (colorScrollRef.current) {
+                                                    const scrollAmount = 100;
+                                                    colorScrollRef.current.scrollBy({
+                                                      left: direction === 'right' ? scrollAmount : -scrollAmount,
+                                                      behavior: 'smooth'
+                                                    });
+                                                  }
+                                                };
+                                                
                                                 return (
-                                                  <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(4, 1fr)',
-                                                    gap: '10px'
-                                                  }}>
-                                                    {paletteColors.map((color: any, index: number) => {
-                                                      const hex = (color?.hex || '#000000').toLowerCase();
-                                                      const isSelected = (selectedText.color || '').toLowerCase() === hex;
-                                                      return (
-                                                        <button
-                                                          key={color?.id || `${palette.id}-${index}`}
-                                                          onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
-                                                          style={{
-                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
-                                                            borderRadius: '10px',
-                                                            padding: '8px',
-                                                            backgroundColor: '#ffffff',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            cursor: 'pointer',
-                                                            transition: 'border-color 0.2s'
-                                                          }}
-                                                        >
-                                                          <span style={{
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '50%',
-                                                            border: '1px solid #d1d5db',
-                                                            backgroundColor: color?.hex || '#000000',
-                                                            display: 'inline-block'
-                                                          }} />
-                                                          <span style={{
-                                                            fontSize: '10px',
-                                                            color: '#111827',
-                                                            fontFamily: 'var(--stepn-font-body)',
-                                                            textAlign: 'center'
-                                                          }}>
-                                                            {color?.name || (color?.hex || '#000000').toUpperCase().slice(0, 6)}
-                                                          </span>
-                                                        </button>
-                                                      );
-                                                    })}
+                                                  <div style={{ position: 'relative', width: '100%' }}>
+                                                    <button
+                                                      onClick={() => scrollColors('left')}
+                                                      style={{
+                                                        position: 'absolute',
+                                                        left: 0,
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        zIndex: 10,
+                                                        width: '32px',
+                                                        height: '32px',
+                                                        borderRadius: '50%',
+                                                        border: '1px solid #e5e7eb',
+                                                        backgroundColor: '#ffffff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                      }}
+                                                    >
+                                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                                        <path d="M15 18l-6-6 6-6"/>
+                                                      </svg>
+                                                    </button>
+                                                    <div
+                                                      ref={colorScrollRef}
+                                                      style={{
+                                                        display: 'flex',
+                                                        gap: '12px',
+                                                        overflowX: 'auto',
+                                                        overflowY: 'hidden',
+                                                        padding: '8px 40px',
+                                                        scrollBehavior: 'smooth',
+                                                        WebkitOverflowScrolling: 'touch',
+                                                        scrollbarWidth: 'none',
+                                                        msOverflowStyle: 'none'
+                                                      }}
+                                                    >
+                                                      <style>{`
+                                                        div::-webkit-scrollbar {
+                                                          display: none;
+                                                        }
+                                                      `}</style>
+                                                      {paletteColors.map((color: any, index: number) => {
+                                                        const hex = (color?.hex || '#000000').toLowerCase();
+                                                        const isSelected = (selectedText.color || '').toLowerCase() === hex;
+                                                        return (
+                                                          <button
+                                                            key={color?.id || `${palette.id}-${index}`}
+                                                            onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
+                                                            style={{
+                                                              flexShrink: 0,
+                                                              width: '60px',
+                                                              height: '60px',
+                                                              borderRadius: '50%',
+                                                              border: isSelected ? '2px solid #111827' : '1px solid #d1d5db',
+                                                              backgroundColor: color?.hex || '#000000',
+                                                              cursor: 'pointer',
+                                                              transition: 'all 0.2s',
+                                                              padding: 0,
+                                                              display: 'flex',
+                                                              alignItems: 'center',
+                                                              justifyContent: 'center'
+                                                            }}
+                                                          />
+                                                        );
+                                                      })}
+                                                    </div>
+                                                    <button
+                                                      onClick={() => scrollColors('right')}
+                                                      style={{
+                                                        position: 'absolute',
+                                                        right: 0,
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        zIndex: 10,
+                                                        width: '32px',
+                                                        height: '32px',
+                                                        borderRadius: '50%',
+                                                        border: '1px solid #e5e7eb',
+                                                        backgroundColor: '#ffffff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                      }}
+                                                    >
+                                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                                        <path d="M9 18l6-6-6-6"/>
+                                                      </svg>
+                                                    </button>
                                                   </div>
                                                 );
-                                              })() : (
                                                 <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
                                                   Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                                 </p>
@@ -7438,55 +7498,116 @@ export default function ProductBuilderPage() {
                                                     </p>
                                                   );
                                                 }
+                                                const strokeScrollRef = useRef<HTMLDivElement>(null);
+                                                
+                                                const scrollStrokeColors = (direction: 'left' | 'right') => {
+                                                  if (strokeScrollRef.current) {
+                                                    const scrollAmount = 100;
+                                                    strokeScrollRef.current.scrollBy({
+                                                      left: direction === 'right' ? scrollAmount : -scrollAmount,
+                                                      behavior: 'smooth'
+                                                    });
+                                                  }
+                                                };
+                                                
                                                 return (
-                                                  <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(4, 1fr)',
-                                                    gap: '10px',
-                                                    marginBottom: '16px'
-                                                  }}>
-                                                    {paletteColors.map((color: any, index: number) => {
-                                                      const hex = (color?.hex || '#000000').toLowerCase();
-                                                      const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
-                                                      return (
-                                                        <button
-                                                          key={color?.id || `${palette.id}-${index}`}
-                                                          onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
-                                                          style={{
-                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
-                                                            borderRadius: '10px',
-                                                            padding: '8px',
-                                                            backgroundColor: '#ffffff',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            cursor: 'pointer',
-                                                            transition: 'border-color 0.2s'
-                                                          }}
-                                                        >
-                                                          <span style={{
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '50%',
-                                                            border: '1px solid #d1d5db',
-                                                            backgroundColor: color?.hex || '#000000',
-                                                            display: 'inline-block'
-                                                          }} />
-                                                          <span style={{
-                                                            fontSize: '10px',
-                                                            color: '#111827',
-                                                            fontFamily: 'var(--stepn-font-body)',
-                                                            textAlign: 'center'
-                                                          }}>
-                                                            {color?.name || (color?.hex || '#000000').toUpperCase().slice(0, 6)}
-                                                          </span>
-                                                        </button>
-                                                      );
-                                                    })}
+                                                  <div>
+                                                    <div style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
+                                                      <button
+                                                        onClick={() => scrollStrokeColors('left')}
+                                                        style={{
+                                                          position: 'absolute',
+                                                          left: 0,
+                                                          top: '50%',
+                                                          transform: 'translateY(-50%)',
+                                                          zIndex: 10,
+                                                          width: '32px',
+                                                          height: '32px',
+                                                          borderRadius: '50%',
+                                                          border: '1px solid #e5e7eb',
+                                                          backgroundColor: '#ffffff',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          cursor: 'pointer',
+                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        }}
+                                                      >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                                          <path d="M15 18l-6-6 6-6"/>
+                                                        </svg>
+                                                      </button>
+                                                      <div
+                                                        ref={strokeScrollRef}
+                                                        style={{
+                                                          display: 'flex',
+                                                          gap: '12px',
+                                                          overflowX: 'auto',
+                                                          overflowY: 'hidden',
+                                                          padding: '8px 40px',
+                                                          scrollBehavior: 'smooth',
+                                                          WebkitOverflowScrolling: 'touch',
+                                                          scrollbarWidth: 'none',
+                                                          msOverflowStyle: 'none'
+                                                        }}
+                                                      >
+                                                        <style>{`
+                                                          div::-webkit-scrollbar {
+                                                            display: none;
+                                                          }
+                                                        `}</style>
+                                                        {paletteColors.map((color: any, index: number) => {
+                                                          const hex = (color?.hex || '#000000').toLowerCase();
+                                                          const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
+                                                          return (
+                                                            <button
+                                                              key={color?.id || `${palette.id}-${index}`}
+                                                              onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
+                                                              style={{
+                                                                flexShrink: 0,
+                                                                width: '60px',
+                                                                height: '60px',
+                                                                borderRadius: '50%',
+                                                                border: isSelected ? '2px solid #111827' : '1px solid #d1d5db',
+                                                                backgroundColor: color?.hex || '#000000',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                padding: 0,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                              }}
+                                                            />
+                                                          );
+                                                        })}
+                                                      </div>
+                                                      <button
+                                                        onClick={() => scrollStrokeColors('right')}
+                                                        style={{
+                                                          position: 'absolute',
+                                                          right: 0,
+                                                          top: '50%',
+                                                          transform: 'translateY(-50%)',
+                                                          zIndex: 10,
+                                                          width: '32px',
+                                                          height: '32px',
+                                                          borderRadius: '50%',
+                                                          border: '1px solid #e5e7eb',
+                                                          backgroundColor: '#ffffff',
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          justifyContent: 'center',
+                                                          cursor: 'pointer',
+                                                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        }}
+                                                      >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                                          <path d="M9 18l6-6-6-6"/>
+                                                        </svg>
+                                                      </button>
+                                                    </div>
                                                   </div>
                                                 );
-                                              })() : (
                                                 <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
                                                   Sélectionnez une palette de contours dans les réglages du module.
                                                 </p>
