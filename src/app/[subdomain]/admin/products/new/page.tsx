@@ -7210,8 +7210,11 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // MODULE TEXT - Ancien code (à supprimer si tout fonctionne)
-                              if (activeModule.contentType === 'text' && false) {
+                              return <p style={{ fontSize: '12px', color: '#9ca3af', textAlign: 'center', padding: '20px' }}>Type de module non supporté.</p>;
+                            };
+                            
+                            // MODULE TEXT - Ancien code (à supprimer si tout fonctionne) - SUPPRIMÉ
+                            if (false && activeModule.contentType === 'text') {
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Interface d'édition du texte sélectionné - Bloc Typographie */}
