@@ -8210,20 +8210,30 @@ export default function ConfiguratorViewer({
                   left: 0,
                   right: 0,
                   bottom: '40%', // Laisser de l'espace pour le panneau
-                  backgroundColor: 'transparent',
-                  zIndex: 45,
+                  backgroundColor: 'rgba(0, 0, 0, 0.01)', // Légèrement visible pour debug
+                  zIndex: 1000, // Z-index très élevé pour être au-dessus du Canvas
                   pointerEvents: 'auto',
-                  touchAction: 'auto'
+                  touchAction: 'auto',
+                  cursor: 'pointer'
                 }}
                 onClick={(e) => {
-                  console.log('🖱️ ConfiguratorViewer - Clic sur overlay zone 3D');
+                  console.log('🖱️ ConfiguratorViewer - Clic sur overlay zone 3D', {
+                    isMobileMode,
+                    activeCustomizerTab,
+                    target: e.target,
+                    currentTarget: e.currentTarget
+                  });
                   e.stopPropagation();
                   e.preventDefault();
                   console.log('✅ Fermeture du panneau mobile');
                   setActiveCustomizerTab(null);
                 }}
                 onTouchStart={(e) => {
-                  console.log('👆 ConfiguratorViewer - Touch sur overlay zone 3D');
+                  console.log('👆 ConfiguratorViewer - Touch sur overlay zone 3D', {
+                    isMobileMode,
+                    activeCustomizerTab,
+                    touches: e.touches.length
+                  });
                   e.stopPropagation();
                   e.preventDefault();
                   console.log('✅ Fermeture du panneau mobile (touch)');
@@ -8232,6 +8242,7 @@ export default function ConfiguratorViewer({
                 onMouseDown={(e) => {
                   console.log('🖱️ ConfiguratorViewer - MouseDown sur overlay zone 3D');
                   e.stopPropagation();
+                  e.preventDefault();
                 }}
               />
             )}
