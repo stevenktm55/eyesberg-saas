@@ -5982,7 +5982,7 @@ export default function ProductBuilderPage() {
                             
                             return (
                               <Canvas
-                                key={`canvas-${selectedModel3DId}-${viewportMode}`}
+                                key={`canvas-${selectedModel3DId}`}
                                 camera={{ 
                                   position: [0, 0, mobileInitialZoom], 
                                   fov: mobileFov
@@ -6194,7 +6194,8 @@ export default function ProductBuilderPage() {
                                 isRotatingText,
                                 isResizingText,
                                 setTargetView,
-                                viewHasBeenSetRef
+                                viewHasBeenSetRef,
+                                mobileActivePanel
                               }: {
                                 targetView: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null;
                                 viewDistance: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>;
@@ -6211,11 +6212,36 @@ export default function ProductBuilderPage() {
                                 isResizingText: boolean;
                                 setTargetView: (view: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null) => void;
                                 viewHasBeenSetRef: React.MutableRefObject<boolean>;
+                                mobileActivePanel: string | null;
                               }) {
                                 const controlsRef = useRef<any>(null);
                                 const rotationInitializedRef = useRef(false);
+                                const savedCameraStateRef = useRef<{ position: [number, number, number], target: [number, number, number] } | null>(null);
                                 
                                 // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
+                                
+                                // Sauvegarder la position de la caméra avant l'ouverture du panneau et la restaurer après
+                                useEffect(() => {
+                                  if (controlsRef.current && viewportMode === 'mobile') {
+                                    if (mobileActivePanel && !savedCameraStateRef.current) {
+                                      // Sauvegarder l'état actuel de la caméra
+                                      const camera = controlsRef.current.object;
+                                      const target = controlsRef.current.target;
+                                      savedCameraStateRef.current = {
+                                        position: [camera.position.x, camera.position.y, camera.position.z] as [number, number, number],
+                                        target: [target.x, target.y, target.z] as [number, number, number]
+                                      };
+                                    } else if (!mobileActivePanel && savedCameraStateRef.current) {
+                                      // Restaurer l'état sauvegardé de la caméra
+                                      const camera = controlsRef.current.object;
+                                      const target = controlsRef.current.target;
+                                      camera.position.set(...savedCameraStateRef.current.position);
+                                      target.set(...savedCameraStateRef.current.target);
+                                      controlsRef.current.update();
+                                      savedCameraStateRef.current = null;
+                                    }
+                                  }
+                                }, [mobileActivePanel]);
                                 
                                 // Mettre à jour les réglages quand ils changent
                                 useEffect(() => {
@@ -6224,8 +6250,10 @@ export default function ProductBuilderPage() {
                                     controlsRef.current.rotateSpeed = rotateSpeed;
                                     controlsRef.current.minDistance = minZoom;
                                     controlsRef.current.maxDistance = maxZoom;
-                                    // Forcer la mise à jour des contrôles
-                                    controlsRef.current.update();
+                                    // Ne pas forcer la mise à jour si on est en train de restaurer l'état de la caméra
+                                    if (!savedCameraStateRef.current) {
+                                      controlsRef.current.update();
+                                    }
                                   }
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
@@ -6318,6 +6346,7 @@ export default function ProductBuilderPage() {
                                   isResizingText={isResizingText}
                                   setTargetView={setTargetView}
                                   viewHasBeenSetRef={viewHasBeenSetRef}
+                                  mobileActivePanel={mobileActivePanel}
                                 />
                               );
                             })()}
@@ -6396,6 +6425,7 @@ export default function ProductBuilderPage() {
                                 }}
                               >
                                 <div
+                                  className="zone-selection-modal-content"
                                   style={{
                                     backgroundColor: '#ffffff',
                                     borderRadius: '8px',
@@ -6410,21 +6440,30 @@ export default function ProductBuilderPage() {
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <style>{`
-                                    [style*="zIndex: 300"] *,
-                                    [style*="zIndex: 300"] p,
-                                    [style*="zIndex: 300"] span,
-                                    [style*="zIndex: 300"] div,
-                                    [style*="zIndex: 300"] h2,
-                                    [style*="zIndex: 300"] h3,
-                                    [style*="zIndex: 300"] label,
-                                    [style*="zIndex: 300"] input,
-                                    [style*="zIndex: 300"] button:not([style*="backgroundColor: '#000"]):not([style*="backgroundColor:'#000"]):not([style*="backgroundColor: '#000000"]):not([style*="backgroundColor:'#000000"]) {
+                                    .zone-selection-modal-content,
+                                    .zone-selection-modal-content *,
+                                    .zone-selection-modal-content p,
+                                    .zone-selection-modal-content span,
+                                    .zone-selection-modal-content div,
+                                    .zone-selection-modal-content h2,
+                                    .zone-selection-modal-content h3,
+                                    .zone-selection-modal-content h4,
+                                    .zone-selection-modal-content label,
+                                    .zone-selection-modal-content input,
+                                    .zone-selection-modal-content textarea {
                                       color: #111827 !important;
                                     }
-                                    [style*="zIndex: 300"] button[style*="backgroundColor: '#000"],
-                                    [style*="zIndex: 300"] button[style*="backgroundColor:'#000"],
-                                    [style*="zIndex: 300"] button[style*="backgroundColor: '#000000"],
-                                    [style*="zIndex: 300"] button[style*="backgroundColor:'#000000"] {
+                                    .zone-selection-modal-content button:not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background-color: '#000"]):not([style*="background-color:'#000"]):not([style*="background-color: '#000000"]):not([style*="background-color:'#000000"]):not([style*="background-color: black"]):not([style*="background-color:black"]) {
+                                      color: #111827 !important;
+                                    }
+                                    .zone-selection-modal-content button[style*="background-color: #000"],
+                                    .zone-selection-modal-content button[style*="background-color:#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000000"],
+                                    .zone-selection-modal-content button[style*="background-color: black"],
+                                    .zone-selection-modal-content button[style*="background-color:black"] {
                                       color: #ffffff !important;
                                     }
                                   `}</style>
