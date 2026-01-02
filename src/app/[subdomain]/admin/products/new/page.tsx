@@ -6491,7 +6491,9 @@ export default function ProductBuilderPage() {
                           {viewportMode === 'mobile' && mobileActivePanel && (
                             <div
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
+                                console.log('🖱️ Overlay onClick - Fermeture panneau et désélection texte');
                                 // Marquer qu'on ferme manuellement le panneau
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
@@ -6500,10 +6502,12 @@ export default function ProductBuilderPage() {
                                 }
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
+                                  console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
                                 // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
+                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
                                 setMobileActivePanel(null);
@@ -6514,7 +6518,9 @@ export default function ProductBuilderPage() {
                                 }, 500);
                               }}
                               onTouchStart={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
+                                console.log('👆 Overlay onTouchStart - Fermeture panneau et désélection texte');
                                 // Marquer qu'on ferme manuellement le panneau
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
@@ -6523,10 +6529,12 @@ export default function ProductBuilderPage() {
                                 }
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
+                                  console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
                                 // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
+                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
                                 setMobileActivePanel(null);
@@ -6537,7 +6545,9 @@ export default function ProductBuilderPage() {
                                 }, 500);
                               }}
                               onMouseDown={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
+                                console.log('🖱️ Overlay onMouseDown - Fermeture panneau et désélection texte');
                                 // Marquer qu'on ferme manuellement le panneau
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
@@ -6546,10 +6556,12 @@ export default function ProductBuilderPage() {
                                 }
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
+                                  console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
                                 // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
+                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
                                 setMobileActivePanel(null);
@@ -6565,10 +6577,11 @@ export default function ProductBuilderPage() {
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                zIndex: 150,
-                                backgroundColor: 'transparent',
+                                zIndex: 199,
+                                backgroundColor: 'rgba(0, 0, 0, 0.01)',
                                 cursor: 'pointer',
-                                pointerEvents: 'auto'
+                                pointerEvents: 'auto',
+                                touchAction: 'none'
                               }}
                             />
                           )}
@@ -8732,29 +8745,23 @@ export default function ProductBuilderPage() {
                                   .mobile-action-btn-black {
                                     color: #ffffff !important;
                                   }
-                                  /* Forcer la croix de fermeture en noir - règles très spécifiques */
+                                  /* Forcer la croix de fermeture en noir - règles très spécifiques avec !important */
                                   .mobile-panel-slide-up button.mobile-panel-close-btn {
                                     color: #111827 !important;
                                   }
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn * {
-                                    color: #111827 !important;
-                                  }
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg {
-                                    color: #111827 !important;
-                                    stroke: #111827 !important;
-                                    fill: none !important;
-                                  }
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn *,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg *,
                                   .mobile-panel-slide-up button.mobile-panel-close-btn svg path {
-                                    stroke: #111827 !important;
-                                    fill: none !important;
-                                  }
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg * {
-                                    stroke: #111827 !important;
-                                    fill: none !important;
-                                  }
-                                  /* Exclure le bouton de fermeture des règles globales */
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]) {
                                     color: #111827 !important;
+                                    stroke: #111827 !important;
+                                    fill: none !important;
+                                  }
+                                  /* Exclure le bouton de fermeture des règles globales qui forcent la couleur */
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn {
+                                    color: #111827 !important;
+                                    background-color: transparent !important;
                                   }
                                 `}</style>
                                 {/* Header du panneau - Style stretchmx */}
@@ -8940,7 +8947,6 @@ export default function ProductBuilderPage() {
                                         background: 'none', 
                                         border: 'none', 
                                         cursor: 'pointer', 
-                                        color: '#111827 !important', 
                                         borderRadius: '6px'
                                       }}
                                     >
@@ -8948,12 +8954,24 @@ export default function ProductBuilderPage() {
                                         width="20" 
                                         height="20" 
                                         fill="none" 
-                                        stroke="#111827" 
-                                        strokeWidth={2} 
                                         viewBox="0 0 24 24"
-                                        style={{ color: '#111827', stroke: '#111827' }}
+                                        style={{ 
+                                          color: '#111827', 
+                                          stroke: '#111827',
+                                          fill: 'none'
+                                        }}
                                       >
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" style={{ stroke: '#111827' }} />
+                                        <path 
+                                          d="M6 18L18 6M6 6l12 12" 
+                                          stroke="#111827" 
+                                          strokeWidth={2}
+                                          strokeLinecap="round" 
+                                          strokeLinejoin="round"
+                                          style={{ 
+                                            stroke: '#111827',
+                                            fill: 'none'
+                                          }} 
+                                        />
                                       </svg>
                                     </button>
                                   </div>
