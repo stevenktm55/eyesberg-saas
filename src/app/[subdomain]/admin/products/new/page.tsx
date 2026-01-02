@@ -1316,11 +1316,19 @@ export default function ProductBuilderPage() {
   // Ref pour empêcher la réouverture automatique du panneau après fermeture manuelle
   const isManuallyClosingRef = useRef(false);
   const manualCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref pour suivre le texte qui vient d'être désélectionné manuellement
+  const manuallyDeselectedTextIdRef = useRef<string | null>(null);
+  const manuallyDeselectedLogoIdRef = useRef<string | null>(null);
 
   // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
   useEffect(() => {
     // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
+      return;
+    }
+    // Ne pas ouvrir si le texte sélectionné est celui qu'on vient de désélectionner manuellement
+    if (selectedTextId && manuallyDeselectedTextIdRef.current === selectedTextId) {
+      manuallyDeselectedTextIdRef.current = null;
       return;
     }
     // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
@@ -1340,6 +1348,11 @@ export default function ProductBuilderPage() {
   useEffect(() => {
     // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
+      return;
+    }
+    // Ne pas ouvrir si le logo sélectionné est celui qu'on vient de désélectionner manuellement
+    if (selectedLogoId && manuallyDeselectedLogoIdRef.current === selectedLogoId) {
+      manuallyDeselectedLogoIdRef.current = null;
       return;
     }
     // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
@@ -6508,13 +6521,15 @@ export default function ProductBuilderPage() {
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte et le logo IMMÉDIATEMENT
+                                // Stocker les IDs avant désélection pour empêcher la réouverture
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
+                                  manuallyDeselectedTextIdRef.current = selectedTextId;
                                   setSelectedTextId(null);
                                 }
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
+                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
                                   setSelectedLogoId(null);
                                 }
                                 // Fermer le panneau
@@ -6523,6 +6538,8 @@ export default function ProductBuilderPage() {
                                 // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
+                                  manuallyDeselectedTextIdRef.current = null;
+                                  manuallyDeselectedLogoIdRef.current = null;
                                   console.log('✅ Flag de fermeture manuelle réinitialisé');
                                 }, 1000);
                               }}
@@ -6536,13 +6553,15 @@ export default function ProductBuilderPage() {
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte et le logo IMMÉDIATEMENT
+                                // Stocker les IDs avant désélection pour empêcher la réouverture
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
+                                  manuallyDeselectedTextIdRef.current = selectedTextId;
                                   setSelectedTextId(null);
                                 }
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
+                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
                                   setSelectedLogoId(null);
                                 }
                                 // Fermer le panneau
@@ -6551,6 +6570,8 @@ export default function ProductBuilderPage() {
                                 // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
+                                  manuallyDeselectedTextIdRef.current = null;
+                                  manuallyDeselectedLogoIdRef.current = null;
                                   console.log('✅ Flag de fermeture manuelle réinitialisé');
                                 }, 1000);
                               }}
@@ -6564,13 +6585,15 @@ export default function ProductBuilderPage() {
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte et le logo IMMÉDIATEMENT
+                                // Stocker les IDs avant désélection pour empêcher la réouverture
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
+                                  manuallyDeselectedTextIdRef.current = selectedTextId;
                                   setSelectedTextId(null);
                                 }
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
+                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
                                   setSelectedLogoId(null);
                                 }
                                 // Fermer le panneau
@@ -6579,6 +6602,8 @@ export default function ProductBuilderPage() {
                                 // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
+                                  manuallyDeselectedTextIdRef.current = null;
+                                  manuallyDeselectedLogoIdRef.current = null;
                                   console.log('✅ Flag de fermeture manuelle réinitialisé');
                                 }, 1000);
                               }}
@@ -8926,11 +8951,13 @@ export default function ProductBuilderPage() {
                                         if (manualCloseTimeoutRef.current) {
                                           clearTimeout(manualCloseTimeoutRef.current);
                                         }
-                                        // Désélectionner le texte et le logo IMMÉDIATEMENT
+                                        // Stocker les IDs avant désélection pour empêcher la réouverture
                                         if (selectedTextId) {
+                                          manuallyDeselectedTextIdRef.current = selectedTextId;
                                           setSelectedTextId(null);
                                         }
                                         if (selectedLogoId) {
+                                          manuallyDeselectedLogoIdRef.current = selectedLogoId;
                                           setSelectedLogoId(null);
                                         }
                                         setMobileActivePanel(null); 
@@ -8938,6 +8965,8 @@ export default function ProductBuilderPage() {
                                         // Garder le flag actif plus longtemps pour éviter la réouverture
                                         manualCloseTimeoutRef.current = setTimeout(() => {
                                           isManuallyClosingRef.current = false;
+                                          manuallyDeselectedTextIdRef.current = null;
+                                          manuallyDeselectedLogoIdRef.current = null;
                                         }, 1000);
                                       }} 
                                       className="mobile-panel-close-btn"
