@@ -6472,51 +6472,12 @@ export default function ProductBuilderPage() {
                               );
                             })()}
                           </Canvas>
-                            );
-                          })()}
                           
-                          {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
-                          {uv2Canvas && viewportMode !== 'mobile' && (
-                            <div style={{
-                              position: 'absolute',
-                              bottom: '20px',
-                              right: '20px',
-                              width: '200px',
-                              height: '200px',
-                              backgroundColor: '#1a1a1a',
-                              border: '2px solid #333',
-                              borderRadius: '8px',
-                              padding: '8px',
-                              zIndex: 1000,
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                            }}>
-                              <div style={{
-                                fontSize: '11px',
-                                color: '#999',
-                                marginBottom: '4px',
-                                fontFamily: 'var(--stepn-font-body)'
-                              }}>
-                                UV2 Preview
-                              </div>
-                              <img
-                                src={uv2PreviewUrl || ''}
-                                alt="UV2 Preview"
-                                style={{
-                                  width: '100%',
-                                  height: 'calc(100% - 20px)',
-                                  objectFit: 'contain',
-                                  imageRendering: 'pixelated',
-                                  border: '1px solid #333'
-                                }}
-                              />
-                            </div>
-                          )}
-                          </div>
-                          
-                          {/* Overlay pour fermer le panneau mobile en cliquant sur le 3D */}
+                          {/* Overlay pour fermer le panneau mobile et désélectionner le texte en cliquant sur le 3D */}
                           {viewportMode === 'mobile' && mobileActivePanel && (
                             <div
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
@@ -6560,12 +6521,53 @@ export default function ProductBuilderPage() {
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                zIndex: 100,
+                                zIndex: 150,
                                 backgroundColor: 'transparent',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                pointerEvents: 'auto'
                               }}
                             />
                           )}
+                            );
+                          })()}
+                          
+                          {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
+                          {uv2Canvas && viewportMode !== 'mobile' && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: '20px',
+                              right: '20px',
+                              width: '200px',
+                              height: '200px',
+                              backgroundColor: '#1a1a1a',
+                              border: '2px solid #333',
+                              borderRadius: '8px',
+                              padding: '8px',
+                              zIndex: 1000,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                            }}>
+                              <div style={{
+                                fontSize: '11px',
+                                color: '#999',
+                                marginBottom: '4px',
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}>
+                                UV2 Preview
+                              </div>
+                              <img
+                                src={uv2PreviewUrl || ''}
+                                alt="UV2 Preview"
+                                style={{
+                                  width: '100%',
+                                  height: 'calc(100% - 20px)',
+                                  objectFit: 'contain',
+                                  imageRendering: 'pixelated',
+                                  border: '1px solid #333'
+                                }}
+                              />
+                            </div>
+                          )}
+                          </div>
                           
                           {/* Modal de bibliothèque de logos - Mobile uniquement */}
                           {showLogoLibrary && viewportMode === 'mobile' && (() => {
