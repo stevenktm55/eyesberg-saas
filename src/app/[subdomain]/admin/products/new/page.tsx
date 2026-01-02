@@ -6838,7 +6838,10 @@ export default function ProductBuilderPage() {
                                       <button
                                         key={module.id}
                                         className="mobile-tab-btn"
-                                        onClick={() => setMobileActivePanel(isActive ? null : module.id)}
+                                        onClick={() => {
+                                          // Ne pas réinitialiser la caméra quand on change d'onglet mobile
+                                          setMobileActivePanel(isActive ? null : module.id);
+                                        }}
                                         style={{
                                           flex: 1,
                                           display: 'flex',
@@ -9193,8 +9196,8 @@ export default function ProductBuilderPage() {
         </div>
       )}
 
-      {/* Modal de sélection de zones */}
-      {showZoneSelectionModal && (() => {
+      {/* Modal de sélection de zones - Desktop uniquement (mobile est rendu dans le conteneur mobile) */}
+      {showZoneSelectionModal && viewportMode !== 'mobile' && (() => {
         // Chercher le module actif (priorité au mobile, puis desktop)
         const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
         if (!activeModule) return null;
