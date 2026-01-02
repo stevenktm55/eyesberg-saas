@@ -7040,6 +7040,262 @@ export default function ProductBuilderPage() {
                             );
                           })()}
                           
+                          {/* Modal de sélection de zones de logos - Mobile uniquement */}
+                          {showLogoZoneModal && viewportMode === 'mobile' && selectedLogoForZone && (() => {
+                            const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
+                            if (!activeModule || activeModule.contentType !== 'logos') return null;
+                            
+                            // Récupérer les zones des groupes sélectionnés pour les logos
+                            const availableZones = zoneGroups
+                              .filter(group => activeModule.zoneGroupIds?.includes(group.id))
+                              .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+                            
+                            return (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  zIndex: 300
+                                }}
+                                onClick={(e) => {
+                                  if (e.target === e.currentTarget) {
+                                    setShowLogoZoneModal(false);
+                                    setSelectedLogoForZone(null);
+                                  }
+                                }}
+                              >
+                                <div
+                                  className="zone-selection-modal-content"
+                                  style={{
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '8px',
+                                    padding: '20px',
+                                    width: '90%',
+                                    maxWidth: '100%',
+                                    maxHeight: '80vh',
+                                    overflowY: 'auto',
+                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                    color: '#111827'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <style>{`
+                                    .zone-selection-modal-content,
+                                    .zone-selection-modal-content *,
+                                    .zone-selection-modal-content p,
+                                    .zone-selection-modal-content span,
+                                    .zone-selection-modal-content div,
+                                    .zone-selection-modal-content h2,
+                                    .zone-selection-modal-content h3,
+                                    .zone-selection-modal-content h4,
+                                    .zone-selection-modal-content label,
+                                    .zone-selection-modal-content input,
+                                    .zone-selection-modal-content textarea {
+                                      color: #111827 !important;
+                                    }
+                                    .zone-selection-modal-content button:not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background-color: '#000"]):not([style*="background-color:'#000"]):not([style*="background-color: '#000000"]):not([style*="background-color:'#000000"]):not([style*="background-color: black"]):not([style*="background-color:black"]) {
+                                      color: #111827 !important;
+                                    }
+                                    .zone-selection-modal-content button[style*="background-color: #000"],
+                                    .zone-selection-modal-content button[style*="background-color:#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000000"],
+                                    .zone-selection-modal-content button[style*="background-color: black"],
+                                    .zone-selection-modal-content button[style*="background-color:black"] {
+                                      color: #ffffff !important;
+                                    }
+                                  `}</style>
+                                  {/* Header */}
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '20px'
+                                  }}>
+                                    <h2 style={{
+                                      fontSize: '18px',
+                                      fontWeight: '600',
+                                      color: '#000000',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      margin: 0
+                                    }}>
+                                      {activeModule.addLogoButtonLabel || 'Placer un logo'}
+                                    </h2>
+                                    <button
+                                      onClick={() => {
+                                        setShowLogoZoneModal(false);
+                                        setSelectedLogoForZone(null);
+                                      }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#666666',
+                                        fontSize: '24px',
+                                        cursor: 'pointer',
+                                        padding: '0',
+                                        width: '32px',
+                                        height: '32px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        lineHeight: '1'
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                  
+                                  {availableZones.length === 0 ? (
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                      Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
+                                    </p>
+                                  ) : (
+                                    <div>
+                                      <h3 style={{
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        color: '#000000',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        marginBottom: '12px'
+                                      }}>
+                                        Choisissez une position standard
+                                      </h3>
+                                      <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(2, 1fr)',
+                                        gap: '12px',
+                                        marginBottom: '20px'
+                                      }}>
+                                        {availableZones.map((zone) => {
+                                          const isSelected = selectedLogoZoneId === zone.id;
+                                          return (
+                                            <div
+                                              key={zone.id}
+                                              onClick={() => {
+                                                setSelectedLogoZoneId(zone.id);
+                                              }}
+                                              style={{
+                                                position: 'relative',
+                                                cursor: 'pointer',
+                                                border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                backgroundColor: '#ffffff',
+                                                transition: 'all 0.2s'
+                                              }}
+                                            >
+                                              {zone.thumbnailUrl ? (
+                                                <img
+                                                  src={zone.thumbnailUrl}
+                                                  alt={zone.name}
+                                                  style={{
+                                                    width: '100%',
+                                                    height: '120px',
+                                                    objectFit: 'cover'
+                                                  }}
+                                                />
+                                              ) : (
+                                                <div style={{
+                                                  width: '100%',
+                                                  height: '120px',
+                                                  backgroundColor: '#e0e0e0',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  fontSize: '11px',
+                                                  color: '#666',
+                                                  textAlign: 'center',
+                                                  padding: '8px'
+                                                }}>
+                                                  {zone.name}
+                                                </div>
+                                              )}
+                                              
+                                              <div style={{
+                                                padding: '10px',
+                                                textAlign: 'center',
+                                                backgroundColor: '#ffffff'
+                                              }}>
+                                                <p style={{
+                                                  margin: 0,
+                                                  fontSize: '11px',
+                                                  fontWeight: '500',
+                                                  color: '#111827',
+                                                  fontFamily: 'var(--stepn-font-body)'
+                                                }}>
+                                                  {zone.name}
+                                                  {zone.view && ` (${zone.view})`}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                      
+                                      {/* Bouton de confirmation */}
+                                      {selectedLogoZoneId && (
+                                        <button
+                                          onClick={async () => {
+                                            const selectedZone = availableZones.find(z => z.id === selectedLogoZoneId);
+                                            if (selectedZone && selectedLogoForZone) {
+                                              const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                                'Face': 'torse',
+                                                'Dos': 'dos',
+                                                'Gauche': 'bras-gauche',
+                                                'Droite': 'bras-droit'
+                                              };
+                                              const zoneCategory = selectedZone.view ? viewToCategory[selectedZone.view] : undefined;
+                                              const zonePosition: [number, number, number] = [
+                                                selectedZone.position[0],
+                                                1 - selectedZone.position[1],
+                                                selectedZone.position[2] || 0
+                                              ];
+                                              
+                                              await addLogo(
+                                                selectedLogoForZone.logoId,
+                                                selectedLogoForZone.variantId,
+                                                selectedLogoForZone.variantFile || '',
+                                                zonePosition,
+                                                zoneCategory
+                                              );
+                                              
+                                              setShowLogoZoneModal(false);
+                                              setSelectedLogoForZone(null);
+                                              setSelectedLogoZoneId('');
+                                            }
+                                          }}
+                                          style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            backgroundColor: '#000000',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            fontFamily: 'var(--stepn-font-body)'
+                                          }}
+                                        >
+                                          Placer le logo
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
                           {/* Modal de sélection de zones - Mobile uniquement (rendu dans le conteneur mobile) */}
                           {showZoneSelectionModal && viewportMode === 'mobile' && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
