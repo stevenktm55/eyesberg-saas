@@ -8008,7 +8008,7 @@ export default function ProductBuilderPage() {
                                         )}
                                       </>
                                     ) : (
-                                      /* Vue initiale : Bouton ajouter + logos placés */
+                                      // Vue initiale : Bouton ajouter + logos placés
                                       <>
                                         {/* Bouton ajouter */}
                                         <button
