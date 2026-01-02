@@ -6513,6 +6513,60 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
+                          {/* Overlay pour fermer le panneau mobile en cliquant sur le 3D */}
+                          {viewportMode === 'mobile' && mobileActivePanel && (
+                            <div
+                              onClick={() => {
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
+                                // Désélectionner le texte si un texte est sélectionné
+                                if (selectedTextId) {
+                                  setSelectedTextId(null);
+                                }
+                                // Désélectionner le logo si un logo est sélectionné
+                                if (selectedLogoId) {
+                                  setSelectedLogoId(null);
+                                }
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
+                                // Désélectionner le texte si un texte est sélectionné
+                                if (selectedTextId) {
+                                  setSelectedTextId(null);
+                                }
+                                // Désélectionner le logo si un logo est sélectionné
+                                if (selectedLogoId) {
+                                  setSelectedLogoId(null);
+                                }
+                              }}
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
+                                // Désélectionner le texte si un texte est sélectionné
+                                if (selectedTextId) {
+                                  setSelectedTextId(null);
+                                }
+                                // Désélectionner le logo si un logo est sélectionné
+                                if (selectedLogoId) {
+                                  setSelectedLogoId(null);
+                                }
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                zIndex: 100,
+                                backgroundColor: 'transparent',
+                                cursor: 'pointer'
+                              }}
+                            />
+                          )}
+                          
                           {/* Modal de bibliothèque de logos - Mobile uniquement */}
                           {showLogoLibrary && viewportMode === 'mobile' && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
@@ -7636,44 +7690,6 @@ export default function ProductBuilderPage() {
                                         overflow: 'hidden',
                                         border: '1px solid #e5e5e5'
                                       }}>
-                                        {/* Header avec bouton retour */}
-                                        <div style={{
-                                          padding: '12px 16px',
-                                          backgroundColor: '#ffffff',
-                                          borderBottom: '1px solid #e5e5e5',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between'
-                                        }}>
-                                          <button
-                                            onClick={() => selectText(null)}
-                                            style={{
-                                              background: 'none',
-                                              border: 'none',
-                                              fontSize: '14px',
-                                              color: '#111827',
-                                              cursor: 'pointer',
-                                              padding: '4px 8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: '4px',
-                                              fontFamily: 'var(--stepn-font-body)'
-                                            }}
-                                          >
-                                            <span>←</span>
-                                            <span>Retour</span>
-                                          </button>
-                                          <div style={{
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#111827',
-                                            fontFamily: 'var(--stepn-font-body)'
-                                          }}>
-                                            Typographie
-                                          </div>
-                                          <div style={{ width: '60px' }} /> {/* Spacer */}
-                                        </div>
-
                                         {/* Onglets */}
                                         <div style={{
                                           display: 'flex',
@@ -8714,6 +8730,14 @@ export default function ProductBuilderPage() {
                                           setTimeout(() => {
                                             setMobileActivePanel(null);
                                             setSelectedColorClass(null);
+                                            // Désélectionner le texte si un texte est sélectionné
+                                            if (selectedTextId) {
+                                              setSelectedTextId(null);
+                                            }
+                                            // Désélectionner le logo si un logo est sélectionné
+                                            if (selectedLogoId) {
+                                              setSelectedLogoId(null);
+                                            }
                                           }, 300);
                                         } else {
                                           (panel as HTMLElement).style.transform = 'translateY(0)';
@@ -8763,6 +8787,14 @@ export default function ProductBuilderPage() {
                                             setTimeout(() => {
                                               setMobileActivePanel(null);
                                               setSelectedColorClass(null);
+                                              // Désélectionner le texte si un texte est sélectionné
+                                              if (selectedTextId) {
+                                                setSelectedTextId(null);
+                                              }
+                                              // Désélectionner le logo si un logo est sélectionné
+                                              if (selectedLogoId) {
+                                                setSelectedLogoId(null);
+                                              }
                                             }, 300);
                                           } else {
                                             (panel as HTMLElement).style.transform = 'translateY(0)';
@@ -8787,7 +8819,18 @@ export default function ProductBuilderPage() {
                                         {activeModule.tabName || 'Module'}
                                       </span>
                                     </div>
-                                    <button onClick={() => { setMobileActivePanel(null); setSelectedColorClass(null); }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', borderRadius: '6px' }}>
+                                    <button onClick={() => { 
+                                      setMobileActivePanel(null); 
+                                      setSelectedColorClass(null);
+                                      // Désélectionner le texte si un texte est sélectionné
+                                      if (selectedTextId) {
+                                        setSelectedTextId(null);
+                                      }
+                                      // Désélectionner le logo si un logo est sélectionné
+                                      if (selectedLogoId) {
+                                        setSelectedLogoId(null);
+                                      }
+                                    }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#111827', borderRadius: '6px' }}>
                                       <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                   </div>
