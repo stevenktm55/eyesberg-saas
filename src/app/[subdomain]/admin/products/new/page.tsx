@@ -1885,7 +1885,7 @@ export default function ProductBuilderPage() {
                 gap: '12px'
               }}>
                 <span style={{
-                  color: '#ffffff',
+                  color: '#111827',
                   fontSize: '14px',
                   fontFamily: 'var(--stepn-font-body)',
                   fontWeight: '600'
@@ -1975,7 +1975,7 @@ export default function ProductBuilderPage() {
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
-                color: '#ffffff',
+                color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
                 fontFamily: 'var(--stepn-font-body)',
@@ -7383,6 +7383,10 @@ export default function ProductBuilderPage() {
                                                         zIndex: 10,
                                                         width: '36px',
                                                         height: '36px',
+                                                        minWidth: '36px',
+                                                        minHeight: '36px',
+                                                        maxWidth: '36px',
+                                                        maxHeight: '36px',
                                                         borderRadius: '50%',
                                                         border: '1px solid #e5e7eb',
                                                         backgroundColor: '#ffffff',
@@ -7391,7 +7395,7 @@ export default function ProductBuilderPage() {
                                                         justifyContent: 'center',
                                                         cursor: 'pointer',
                                                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                        aspectRatio: '1 / 1'
+                                                        padding: 0
                                                       }}
                                                     >
                                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7458,6 +7462,10 @@ export default function ProductBuilderPage() {
                                                         zIndex: 10,
                                                         width: '36px',
                                                         height: '36px',
+                                                        minWidth: '36px',
+                                                        minHeight: '36px',
+                                                        maxWidth: '36px',
+                                                        maxHeight: '36px',
                                                         borderRadius: '50%',
                                                         border: '1px solid #e5e7eb',
                                                         backgroundColor: '#ffffff',
@@ -7466,7 +7474,7 @@ export default function ProductBuilderPage() {
                                                         justifyContent: 'center',
                                                         cursor: 'pointer',
                                                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                        aspectRatio: '1 / 1'
+                                                        padding: 0
                                                       }}
                                                     >
                                                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7536,6 +7544,10 @@ export default function ProductBuilderPage() {
                                                           zIndex: 10,
                                                           width: '36px',
                                                           height: '36px',
+                                                          minWidth: '36px',
+                                                          minHeight: '36px',
+                                                          maxWidth: '36px',
+                                                          maxHeight: '36px',
                                                           borderRadius: '50%',
                                                           border: '1px solid #e5e7eb',
                                                           backgroundColor: '#ffffff',
@@ -7544,7 +7556,7 @@ export default function ProductBuilderPage() {
                                                           justifyContent: 'center',
                                                           cursor: 'pointer',
                                                           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                          aspectRatio: '1 / 1'
+                                                          padding: 0
                                                         }}
                                                       >
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
@@ -7611,6 +7623,10 @@ export default function ProductBuilderPage() {
                                                           zIndex: 10,
                                                           width: '36px',
                                                           height: '36px',
+                                                          minWidth: '36px',
+                                                          minHeight: '36px',
+                                                          maxWidth: '36px',
+                                                          maxHeight: '36px',
                                                           borderRadius: '50%',
                                                           border: '1px solid #e5e7eb',
                                                           backgroundColor: '#ffffff',
@@ -7619,7 +7635,7 @@ export default function ProductBuilderPage() {
                                                           justifyContent: 'center',
                                                           cursor: 'pointer',
                                                           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                          aspectRatio: '1 / 1'
+                                                          padding: 0
                                                         }}
                                                       >
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
