@@ -8015,7 +8015,7 @@ export default function ProductBuilderPage() {
                               >
                                 {/* Header du panneau - Style stretchmx */}
                                 <div 
-                                  style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}
+                                  style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0, color: '#111827' }}
                                   onTouchStart={(e) => {
                                     console.log('👆 page.tsx - TouchStart sur header panneau mobile');
                                     const touch = e.touches[0];
@@ -8136,16 +8136,26 @@ export default function ProductBuilderPage() {
                                 {/* Contenu du panneau */}
                                 <div className="mobile-content-fade" style={{ flex: 1, overflow: 'auto', padding: '16px', color: '#111827' }}>
                                   <style>{`
+                                    .mobile-content-fade,
                                     .mobile-content-fade * {
-                                      color: inherit !important;
+                                      color: #111827 !important;
                                     }
                                     .mobile-content-fade p,
                                     .mobile-content-fade span,
-                                    .mobile-content-fade div,
+                                    .mobile-content-fade div:not([style*="background"]):not([style*="backgroundColor"]),
+                                    .mobile-content-fade h1,
+                                    .mobile-content-fade h2,
                                     .mobile-content-fade h3,
                                     .mobile-content-fade h4,
+                                    .mobile-content-fade h5,
+                                    .mobile-content-fade h6,
                                     .mobile-content-fade label,
-                                    .mobile-content-fade button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]) {
+                                    .mobile-content-fade button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]) {
+                                      color: #111827 !important;
+                                    }
+                                    .mobile-content-fade input,
+                                    .mobile-content-fade textarea,
+                                    .mobile-content-fade select {
                                       color: #111827 !important;
                                     }
                                   `}</style>
@@ -8161,7 +8171,11 @@ export default function ProductBuilderPage() {
                               {/* Onglets des modules */}
                               <div style={{ display: 'flex', padding: '8px 4px', gap: '2px', color: '#111827' }}>
                                 <style>{`
+                                  .mobile-tab-btn,
                                   .mobile-tab-btn span {
+                                    color: inherit !important;
+                                  }
+                                  .mobile-tab-btn[style*="color"] span {
                                     color: inherit !important;
                                   }
                                 `}</style>
