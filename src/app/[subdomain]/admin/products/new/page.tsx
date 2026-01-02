@@ -7462,6 +7462,7 @@ export default function ProductBuilderPage() {
                                                     </button>
                                                   </div>
                                                 );
+                                              })() : (
                                                 <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
                                                   Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                                 </p>
