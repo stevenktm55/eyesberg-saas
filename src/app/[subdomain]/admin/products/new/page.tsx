@@ -3419,8 +3419,8 @@ export default function ProductBuilderPage() {
               </div>
             )}
 
-            {/* Customizer Tab Panel (slides in from left) */}
-            {selectedModel3DId && activeCustomizerTab && (() => {
+            {/* Customizer Tab Panel (slides in from left) - Desktop uniquement */}
+            {selectedModel3DId && activeCustomizerTab && viewportMode === 'desktop' && (() => {
               const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
               if (!activeModule) return null;
               
@@ -6610,7 +6610,8 @@ export default function ProductBuilderPage() {
                                                     zoneRotation
                                                   );
                                                   
-                                                  if (zoneCategory) {
+                                                  // Ne pas réinitialiser la caméra en mode mobile
+                                                  if (zoneCategory && viewportMode !== 'mobile') {
                                                     setTargetView(zoneCategory);
                                                   }
                                                   
@@ -6678,7 +6679,8 @@ export default function ProductBuilderPage() {
                                                   zoneRotation
                                                 );
                                                 
-                                                if (zoneCategory) {
+                                                // Ne pas réinitialiser la caméra en mode mobile
+                                                if (zoneCategory && viewportMode !== 'mobile') {
                                                   setTargetView(zoneCategory);
                                                 }
                                                 
@@ -7046,6 +7048,153 @@ export default function ProductBuilderPage() {
                                         <p style={{ fontSize: '11px' }}>Cliquez sur le bouton ci-dessus pour commencer</p>
                                       </div>
                                     )}
+                                    
+                                    {/* Interface d'édition du texte sélectionné - Bloc Typographie */}
+                                    {selectedTextId && (() => {
+                                      const selectedText = texts.find((t: any) => t.id === selectedTextId);
+                                      if (!selectedText) return null;
+                                      
+                                      const tabs = [
+                                        { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
+                                        { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
+                                        { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
+                                        { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
+                                        { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
+                                      ].filter(tab => tab.enabled);
+                                      
+                                      return (
+                                        <div style={{
+                                          marginTop: '20px',
+                                          backgroundColor: '#ffffff',
+                                          borderRadius: '8px',
+                                          overflow: 'hidden',
+                                          border: '1px solid #e5e5e5'
+                                        }}>
+                                          {/* Header */}
+                                          <div style={{
+                                            padding: '12px 16px',
+                                            backgroundColor: '#ffffff',
+                                            borderBottom: '1px solid #e5e5e5',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between'
+                                          }}>
+                                            <button
+                                              onClick={() => selectText(null)}
+                                              style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                fontSize: '14px',
+                                                color: '#111827',
+                                                cursor: 'pointer',
+                                                padding: '4px 8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}
+                                            >
+                                              <span>←</span>
+                                              <span>Retour</span>
+                                            </button>
+                                            <div style={{
+                                              fontSize: '14px',
+                                              fontWeight: '600',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}>
+                                              Typographie
+                                            </div>
+                                            <div style={{ width: '60px' }} /> {/* Spacer */}
+                                          </div>
+
+                                          {/* Onglets */}
+                                          <div style={{
+                                            display: 'flex',
+                                            borderBottom: '1px solid #e5e5e5',
+                                            backgroundColor: '#ffffff',
+                                            overflowX: 'auto'
+                                          }}>
+                                            {tabs.map((tab) => (
+                                              <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTextTab(tab.id)}
+                                                style={{
+                                                  flex: '1 1 0',
+                                                  minWidth: '60px',
+                                                  padding: '10px 8px',
+                                                  background: 'none',
+                                                  border: 'none',
+                                                  borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
+                                                  color: activeTextTab === tab.id ? '#111827' : '#6b7280',
+                                                  fontSize: '11px',
+                                                  fontWeight: activeTextTab === tab.id ? '600' : '400',
+                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  cursor: 'pointer',
+                                                  whiteSpace: 'nowrap'
+                                                }}
+                                              >
+                                                {tab.label}
+                                              </button>
+                                            ))}
+                                          </div>
+
+                                          {/* Contenu de l'onglet sélectionné - Version simplifiée pour mobile */}
+                                          <div style={{ padding: '16px', maxHeight: '300px', overflowY: 'auto' }}>
+                                            {/* Onglet Contenu */}
+                                            {activeTextTab === 'contenu' && (
+                                              <div>
+                                                <div style={{
+                                                  fontSize: '13px',
+                                                  fontWeight: '500',
+                                                  color: '#111827',
+                                                  marginBottom: '12px',
+                                                  fontFamily: 'var(--stepn-font-body)'
+                                                }}>
+                                                  Contenu du texte
+                                                </div>
+                                                <input
+                                                  type="text"
+                                                  value={selectedText.content}
+                                                  onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '12px',
+                                                    backgroundColor: '#ffffff',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    color: '#111827',
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box'
+                                                  }}
+                                                  onFocus={(e) => {
+                                                    e.currentTarget.style.borderColor = '#3b82f6';
+                                                  }}
+                                                  onBlur={(e) => {
+                                                    e.currentTarget.style.borderColor = '#d1d5db';
+                                                  }}
+                                                />
+                                              </div>
+                                            )}
+                                            
+                                            {/* Les autres onglets (police, couleur, contour, déformation) seront ajoutés si nécessaire */}
+                                            {activeTextTab !== 'contenu' && (
+                                              <div style={{
+                                                fontSize: '13px',
+                                                color: '#6b7280',
+                                                textAlign: 'center',
+                                                padding: '20px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Fonctionnalité {tabs.find(t => t.id === activeTextTab)?.label} à implémenter
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
                                 );
                               }
@@ -9910,8 +10059,8 @@ export default function ProductBuilderPage() {
                                 zoneRotation
                               );
                               
-                              // Positionner la caméra sur la vue de la zone
-                              if (zoneCategory) {
+                              // Ne pas réinitialiser la caméra en mode mobile
+                              if (zoneCategory && viewportMode !== 'mobile') {
                                 setTargetView(zoneCategory);
                               }
                               
@@ -10040,8 +10189,8 @@ export default function ProductBuilderPage() {
                               zoneRotation
                             );
                             
-                            // Positionner la caméra sur la vue de la zone
-                            if (zoneCategory) {
+                            // Ne pas réinitialiser la caméra en mode mobile
+                            if (zoneCategory && viewportMode !== 'mobile') {
                               setTargetView(zoneCategory);
                             }
                             
