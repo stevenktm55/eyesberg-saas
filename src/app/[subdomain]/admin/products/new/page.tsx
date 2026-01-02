@@ -7069,22 +7069,23 @@ export default function ProductBuilderPage() {
                                                      activeModule.selectedItems?.zoneGroupIds ||
                                                      [];
                             
-                            // Debug temporaire
-                            console.log('🔍 Zones logos - activeModule:', {
-                              id: activeModule.id,
-                              contentType: activeModule.contentType,
-                              config: activeModule.config,
-                              selectedItems: activeModule.selectedItems,
-                              logoZoneGroupIds,
-                              zoneGroupsCount: zoneGroups.length,
-                              zoneGroupsIds: zoneGroups.map(g => g.id)
-                            });
+                            // Debug temporaire - afficher toutes les propriétés
+                            console.log('🔍 Zones logos - activeModule complet:', JSON.stringify(activeModule, null, 2));
+                            console.log('🔍 Zones logos - zoneGroups:', zoneGroups.map(g => ({ id: g.id, name: g.name, zonesCount: g.zones?.length || 0 })));
+                            console.log('🔍 Zones logos - logoZoneGroupIds trouvés:', logoZoneGroupIds);
                             
                             const availableZones = zoneGroups
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
                             
-                            console.log('📍 Zones disponibles pour logos:', availableZones.length, availableZones);
+                            console.log('📍 Zones disponibles pour logos:', availableZones.length);
+                            if (availableZones.length === 0 && zoneGroups.length > 0) {
+                              console.log('⚠️ Aucune zone trouvée mais zoneGroups existe. Vérifiez les IDs:', {
+                                logoZoneGroupIds,
+                                zoneGroupsIds: zoneGroups.map(g => g.id),
+                                match: zoneGroups.filter(g => logoZoneGroupIds.includes(g.id))
+                              });
+                            }
                             
                             return (
                               <div
