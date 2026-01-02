@@ -6490,8 +6490,16 @@ export default function ProductBuilderPage() {
                                     // Permettre le zoom et la rotation même quand un texte est sélectionné (pour permettre le déplacement du texte)
                                     enableZoom={!isPlacingText && !isRestoringRef.current}
                                     enableRotate={!isPlacingText && !isRestoringRef.current}
-                                    // OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
-                                    enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText && !isRestoringRef.current}
+                                    // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
+                                    // Sinon, OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
+                                    enabled={
+                                      !isDraggingText && 
+                                      !isRotatingText && 
+                                      !isResizingText && 
+                                      !isPlacingText && 
+                                      !isRestoringRef.current &&
+                                      !(viewportMode === 'mobile' && selectedTextId && mobileActivePanel)
+                                    }
                                     minDistance={minZoom}
                                     maxDistance={maxZoom}
                                     zoomSpeed={zoomSpeed}
