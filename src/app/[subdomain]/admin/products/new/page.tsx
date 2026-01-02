@@ -7701,96 +7701,196 @@ export default function ProductBuilderPage() {
                                         
                                         {/* Si un logo est sélectionné pour afficher ses variantes */}
                                         {selectedLogoForVariants ? (
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {/* Header avec retour */}
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                                          <button 
-                                            onClick={() => setSelectedLogoForVariants(null)} 
-                                            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: '500' }}
-                                          >
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                                            Retour
-                                          </button>
-                                          <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)' }}>
-                                            {selectedLogoForVariants.name}
-                                          </h3>
-                                          <div style={{ width: '60px' }} /> {/* Spacer pour centrer */}
-                                        </div>
-                                        
-                                        {/* Liste des variantes en scroll horizontal */}
-                                        {(() => {
-                                          const baseVariant = {
-                                            id: 'base',
-                                            file_url: selectedLogoForVariants.file_url || '',
-                                            name: selectedLogoForVariants.name || 'Logo de base'
-                                          };
-                                          const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
-                                          
-                                          return (
-                                            <div style={{ position: 'relative' }}>
-                                              {/* Scroll horizontal des variantes */}
-                                              <div
-                                                ref={logoScrollRef}
-                                                className="logo-variants-scroll"
-                                                onWheel={(e) => {
-                                                  if (logoScrollRef.current) {
-                                                    e.preventDefault();
-                                                    logoScrollRef.current.scrollLeft += e.deltaY;
-                                                  }
-                                                }}
-                                                style={{
-                                                  display: 'flex',
-                                                  gap: '12px',
-                                                  overflowX: 'auto',
-                                                  overflowY: 'hidden',
-                                                  padding: '8px 0',
-                                                  scrollBehavior: 'smooth',
-                                                  WebkitOverflowScrolling: 'touch',
-                                                  scrollbarWidth: 'none',
-                                                  msOverflowStyle: 'none'
-                                                }}
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {/* Header avec retour */}
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
+                                              <button 
+                                                onClick={() => setSelectedLogoForVariants(null)} 
+                                                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: '500' }}
                                               >
-                                                <style>{`
-                                                  .logo-variants-scroll::-webkit-scrollbar {
-                                                    display: none;
-                                                  }
-                                                `}</style>
-                                                {allVariants.map((variant: any, index: number) => {
-                                                  const fileToUse = variant.id === 'base' 
-                                                    ? selectedLogoForVariants.file_url 
-                                                    : (variant.file_url || selectedLogoForVariants.file_url);
-                                                  
-                                                  return (
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                                                Retour
+                                              </button>
+                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)' }}>
+                                                {selectedLogoForVariants.name}
+                                              </h3>
+                                              <div style={{ width: '60px' }} /> {/* Spacer pour centrer */}
+                                            </div>
+                                            
+                                            {/* Liste des variantes en scroll horizontal */}
+                                            {(() => {
+                                              const baseVariant = {
+                                                id: 'base',
+                                                file_url: selectedLogoForVariants.file_url || '',
+                                                name: selectedLogoForVariants.name || 'Logo de base'
+                                              };
+                                              const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
+                                              
+                                              return (
+                                                <div style={{ position: 'relative' }}>
+                                                  {/* Scroll horizontal des variantes */}
+                                                  <div
+                                                    ref={logoScrollRef}
+                                                    className="logo-variants-scroll"
+                                                    onWheel={(e) => {
+                                                      if (logoScrollRef.current) {
+                                                        e.preventDefault();
+                                                        logoScrollRef.current.scrollLeft += e.deltaY;
+                                                      }
+                                                    }}
+                                                    style={{
+                                                      display: 'flex',
+                                                      gap: '12px',
+                                                      overflowX: 'auto',
+                                                      overflowY: 'hidden',
+                                                      padding: '8px 0',
+                                                      scrollBehavior: 'smooth',
+                                                      WebkitOverflowScrolling: 'touch',
+                                                      scrollbarWidth: 'none',
+                                                      msOverflowStyle: 'none'
+                                                    }}
+                                                  >
+                                                    <style>{`
+                                                      .logo-variants-scroll::-webkit-scrollbar {
+                                                        display: none;
+                                                      }
+                                                    `}</style>
+                                                    {allVariants.map((variant: any, index: number) => {
+                                                      const fileToUse = variant.id === 'base' 
+                                                        ? selectedLogoForVariants.file_url 
+                                                        : (variant.file_url || selectedLogoForVariants.file_url);
+                                                      
+                                                      return (
+                                                        <div
+                                                          key={variant.id || `base-${index}`}
+                                                          onClick={async () => {
+                                                            // Si mode zones, ouvrir le modal de sélection de zone
+                                                            if (activeModule.logoPlacementMode === 'zones') {
+                                                              setSelectedLogoForZone({
+                                                                logoId: selectedLogoForVariants.id,
+                                                                variantId: variant.id === 'base' ? undefined : variant.id,
+                                                                variantFile: fileToUse
+                                                              });
+                                                              setShowLogoZoneModal(true);
+                                                              setSelectedLogoForVariants(null);
+                                                            } else {
+                                                              // Mode libre : ajouter directement au centre
+                                                              const categoryToView: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                                                'front': 'torse',
+                                                                'back': 'dos',
+                                                                'left': 'bras-gauche',
+                                                                'right': 'bras-droit'
+                                                              };
+                                                              const category = categoryToView[activeLogoView] || 'torse';
+                                                              await addLogo(
+                                                                selectedLogoForVariants.id,
+                                                                variant.id === 'base' ? undefined : variant.id,
+                                                                fileToUse,
+                                                                [0.5, 0.5, 0],
+                                                                category
+                                                              );
+                                                              setSelectedLogoForVariants(null);
+                                                            }
+                                                          }}
+                                                          style={{
+                                                            minWidth: '100px',
+                                                            width: '100px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            cursor: 'pointer',
+                                                            padding: '8px',
+                                                            borderRadius: '8px',
+                                                            border: '1px solid #e5e7eb',
+                                                            backgroundColor: '#ffffff',
+                                                            transition: 'all 0.2s'
+                                                          }}
+                                                        >
+                                                          <div style={{
+                                                            width: '80px',
+                                                            height: '80px',
+                                                            backgroundColor: '#f5f5f5',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            overflow: 'hidden',
+                                                            borderRadius: '6px',
+                                                            padding: '4px'
+                                                          }}>
+                                                            <img
+                                                              src={fileToUse}
+                                                              alt={variant.name || selectedLogoForVariants.name}
+                                                              style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                objectFit: 'contain'
+                                                              }}
+                                                            />
+                                                          </div>
+                                                          <p style={{
+                                                            margin: 0,
+                                                            fontSize: '10px',
+                                                            fontWeight: '500',
+                                                            color: '#111827',
+                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            textAlign: 'center'
+                                                          }}>
+                                                            {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
+                                                          </p>
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                </div>
+                                              );
+                                            })()}
+                                          </div>
+                                        ) : (
+                                          <>
+                                            {/* Bibliothèque de logos en scroll horizontal */}
+                                            {allLogos.length === 0 ? (
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
+                                              </p>
+                                            ) : filteredLogos.length === 0 ? (
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                Aucun logo trouvé pour "{logoSearchQuery}"
+                                              </p>
+                                            ) : (
+                                              <div style={{ position: 'relative' }}>
+                                                {/* Scroll horizontal des logos */}
+                                                <div
+                                                  ref={logoScrollRef}
+                                                  className="logo-library-scroll"
+                                                  onWheel={(e) => {
+                                                    if (logoScrollRef.current) {
+                                                      e.preventDefault();
+                                                      logoScrollRef.current.scrollLeft += e.deltaY;
+                                                    }
+                                                  }}
+                                                  style={{
+                                                    display: 'flex',
+                                                    gap: '12px',
+                                                    overflowX: 'auto',
+                                                    overflowY: 'hidden',
+                                                    padding: '8px 0',
+                                                    scrollBehavior: 'smooth',
+                                                    WebkitOverflowScrolling: 'touch',
+                                                    scrollbarWidth: 'none',
+                                                    msOverflowStyle: 'none'
+                                                  }}
+                                                >
+                                                  <style>{`
+                                                    .logo-library-scroll::-webkit-scrollbar {
+                                                      display: none;
+                                                    }
+                                                  `}</style>
+                                                  {filteredLogos.map((logo: any) => (
                                                     <div
-                                                      key={variant.id || `base-${index}`}
-                                                      onClick={async () => {
-                                                        // Si mode zones, ouvrir le modal de sélection de zone
-                                                        if (activeModule.logoPlacementMode === 'zones') {
-                                                          setSelectedLogoForZone({
-                                                            logoId: selectedLogoForVariants.id,
-                                                            variantId: variant.id === 'base' ? undefined : variant.id,
-                                                            variantFile: fileToUse
-                                                          });
-                                                          setShowLogoZoneModal(true);
-                                                          setSelectedLogoForVariants(null);
-                                                        } else {
-                                                          // Mode libre : ajouter directement au centre
-                                                          const categoryToView: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                                            'front': 'torse',
-                                                            'back': 'dos',
-                                                            'left': 'bras-gauche',
-                                                            'right': 'bras-droit'
-                                                          };
-                                                          const category = categoryToView[activeLogoView] || 'torse';
-                                                          await addLogo(
-                                                            selectedLogoForVariants.id,
-                                                            variant.id === 'base' ? undefined : variant.id,
-                                                            fileToUse,
-                                                            [0.5, 0.5, 0],
-                                                            category
-                                                          );
-                                                          setSelectedLogoForVariants(null);
-                                                        }
+                                                      key={logo.id}
+                                                      onClick={() => {
+                                                        setSelectedLogoForVariants(logo);
                                                       }}
                                                       style={{
                                                         minWidth: '100px',
@@ -7818,15 +7918,32 @@ export default function ProductBuilderPage() {
                                                         borderRadius: '6px',
                                                         padding: '4px'
                                                       }}>
-                                                        <img
-                                                          src={fileToUse}
-                                                          alt={variant.name || selectedLogoForVariants.name}
-                                                          style={{
-                                                            maxWidth: '100%',
-                                                            maxHeight: '100%',
-                                                            objectFit: 'contain'
-                                                          }}
-                                                        />
+                                                        {logo.file_url ? (
+                                                          <img
+                                                            src={logo.file_url}
+                                                            alt={logo.name}
+                                                            style={{
+                                                              maxWidth: '100%',
+                                                              maxHeight: '100%',
+                                                              objectFit: 'contain'
+                                                            }}
+                                                          />
+                                                        ) : (
+                                                          <div style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            backgroundColor: '#e0e0e0',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '10px',
+                                                            color: '#666',
+                                                            textAlign: 'center',
+                                                            padding: '4px'
+                                                          }}>
+                                                            {logo.name}
+                                                          </div>
+                                                        )}
                                                       </div>
                                                       <p style={{
                                                         margin: 0,
@@ -7836,175 +7953,14 @@ export default function ProductBuilderPage() {
                                                         fontFamily: 'var(--stepn-font-body)',
                                                         textAlign: 'center'
                                                       }}>
-                                                        {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
+                                                        {logo.name}
                                                       </p>
                                                     </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          );
-                                        })()}
-                                      </div>
-                                    ) : (
-                                      <>
-                                        {/* Bouton Importer un logo */}
-                                        <button
-                                          onClick={() => {
-                                            // TODO: Implémenter l'import de logo
-                                            console.log('📤 Importer un logo');
-                                          }}
-                                          style={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center', 
-                                            gap: '8px', 
-                                            padding: '12px', 
-                                            backgroundColor: '#000000', 
-                                            color: '#ffffff', 
-                                            border: 'none', 
-                                            borderRadius: '8px', 
-                                            fontSize: '13px', 
-                                            fontWeight: '500', 
-                                            cursor: 'pointer', 
-                                            fontFamily: 'var(--stepn-font-body)',
-                                            width: '100%'
-                                          }}
-                                          className="mobile-action-btn-black"
-                                        >
-                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                          Importer un logo
-                                        </button>
-                                        
-                                        {/* Barre de recherche */}
-                                        <input
-                                          type="text"
-                                          placeholder="Rechercher un logo..."
-                                          value={logoSearchQuery}
-                                          onChange={(e) => setLogoSearchQuery(e.target.value)}
-                                          style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: '8px',
-                                            fontSize: '13px',
-                                            fontFamily: 'var(--stepn-font-body)',
-                                            color: '#111827',
-                                            backgroundColor: '#ffffff'
-                                          }}
-                                        />
-                                        
-                                        {/* Bibliothèque de logos en scroll horizontal */}
-                                        {allLogos.length === 0 ? (
-                                          <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
-                                            Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
-                                          </p>
-                                        ) : filteredLogos.length === 0 ? (
-                                          <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
-                                            Aucun logo trouvé pour "{logoSearchQuery}"
-                                          </p>
-                                        ) : (
-                                          <div style={{ position: 'relative' }}>
-                                            {/* Scroll horizontal des logos */}
-                                            <div
-                                              ref={logoScrollRef}
-                                              className="logo-library-scroll"
-                                              onWheel={(e) => {
-                                                if (logoScrollRef.current) {
-                                                  e.preventDefault();
-                                                  logoScrollRef.current.scrollLeft += e.deltaY;
-                                                }
-                                              }}
-                                              style={{
-                                                display: 'flex',
-                                                gap: '12px',
-                                                overflowX: 'auto',
-                                                overflowY: 'hidden',
-                                                padding: '8px 0',
-                                                scrollBehavior: 'smooth',
-                                                WebkitOverflowScrolling: 'touch',
-                                                scrollbarWidth: 'none',
-                                                msOverflowStyle: 'none'
-                                              }}
-                                            >
-                                              <style>{`
-                                                .logo-library-scroll::-webkit-scrollbar {
-                                                  display: none;
-                                                }
-                                              `}</style>
-                                              {filteredLogos.map((logo: any) => (
-                                                <div
-                                                  key={logo.id}
-                                                  onClick={() => {
-                                                    setSelectedLogoForVariants(logo);
-                                                  }}
-                                                  style={{
-                                                    minWidth: '100px',
-                                                    width: '100px',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    alignItems: 'center',
-                                                    gap: '8px',
-                                                    cursor: 'pointer',
-                                                    padding: '8px',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid #e5e7eb',
-                                                    backgroundColor: '#ffffff',
-                                                    transition: 'all 0.2s'
-                                                  }}
-                                                >
-                                                  <div style={{
-                                                    width: '80px',
-                                                    height: '80px',
-                                                    backgroundColor: '#f5f5f5',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    overflow: 'hidden',
-                                                    borderRadius: '6px',
-                                                    padding: '4px'
-                                                  }}>
-                                                    {logo.file_url ? (
-                                                      <img
-                                                        src={logo.file_url}
-                                                        alt={logo.name}
-                                                        style={{
-                                                          maxWidth: '100%',
-                                                          maxHeight: '100%',
-                                                          objectFit: 'contain'
-                                                        }}
-                                                      />
-                                                    ) : (
-                                                      <div style={{
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        backgroundColor: '#e0e0e0',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: '10px',
-                                                        color: '#666',
-                                                        textAlign: 'center',
-                                                        padding: '4px'
-                                                      }}>
-                                                        {logo.name}
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                  <p style={{
-                                                    margin: 0,
-                                                    fontSize: '10px',
-                                                    fontWeight: '500',
-                                                    color: '#111827',
-                                                    fontFamily: 'var(--stepn-font-body)',
-                                                    textAlign: 'center'
-                                                  }}>
-                                                    {logo.name}
-                                                  </p>
+                                                  ))}
                                                 </div>
-                                              ))}
-                                            </div>
-                                          </div>
+                                              </div>
+                                            )}
+                                          </>
                                         )}
                                       </>
                                     ) : (
