@@ -8295,7 +8295,15 @@ export default function ConfiguratorViewer({
               console.log('✅ Viewer3D - Fermeture du panneau mobile via onCloseModal');
               setActiveCustomizerTab(null);
             }}
-            isMobileModalOpen={!!(isMobileMode && activeCustomizerTab)}
+            isMobileModalOpen={(() => {
+              const isOpen = !!(isMobileMode && activeCustomizerTab);
+              console.log('🔍 ConfiguratorViewer - isMobileModalOpen calculé:', {
+                isMobileMode,
+                activeCustomizerTab,
+                isOpen
+              });
+              return isOpen;
+            })()}
           />
           </div>
           
