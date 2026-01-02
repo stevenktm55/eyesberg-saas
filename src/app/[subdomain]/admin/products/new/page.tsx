@@ -6651,9 +6651,11 @@ export default function ProductBuilderPage() {
                                               borderRadius: '6px',
                                               fontSize: '14px',
                                               fontFamily: 'var(--stepn-font-body)',
+                                              color: '#111827',
                                               outline: 'none',
                                               boxSizing: 'border-box',
-                                              marginBottom: '12px'
+                                              marginBottom: '12px',
+                                              backgroundColor: '#ffffff'
                                             }}
                                             autoFocus
                                           />
@@ -7436,8 +7438,8 @@ export default function ProductBuilderPage() {
                                                             onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
                                                             style={{
                                                               flexShrink: 0,
-                                                              width: '60px',
-                                                              height: '60px',
+                                                              width: '48px',
+                                                              height: '48px',
                                                               borderRadius: '50%',
                                                               border: isSelected ? '2px solid #111827' : '1px solid #d1d5db',
                                                               backgroundColor: color?.hex || '#000000',
@@ -7597,8 +7599,8 @@ export default function ProductBuilderPage() {
                                                               onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
                                                               style={{
                                                                 flexShrink: 0,
-                                                                width: '60px',
-                                                                height: '60px',
+                                                                width: '48px',
+                                                                height: '48px',
                                                                 borderRadius: '50%',
                                                                 border: isSelected ? '2px solid #111827' : '1px solid #d1d5db',
                                                                 backgroundColor: color?.hex || '#000000',
