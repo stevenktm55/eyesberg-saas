@@ -6670,7 +6670,7 @@ export default function ProductBuilderPage() {
                                                 const category = categoryToView[activeLogoView] || 'torse';
                                                 await addLogo(
                                                   selectedLogoForVariants.id,
-                                                  variant.id === 'base' ? selectedLogoForVariants.id : variant.id,
+                                                  variant.id === 'base' ? undefined : variant.id,
                                                   fileToUse,
                                                   [0.5, 0.5, 0],
                                                   category
