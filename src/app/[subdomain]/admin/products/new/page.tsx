@@ -6338,6 +6338,40 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
+                          {/* Overlay pour fermer le panneau mobile en cliquant sur la zone 3D */}
+                          {viewportMode === 'mobile' && mobileActivePanel && (
+                            <div 
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: '70px', // Laisser de l'espace pour la barre mobile
+                                backgroundColor: 'rgba(0, 0, 0, 0.01)',
+                                zIndex: 99, // En dessous du panneau (100) mais au-dessus du Canvas
+                                pointerEvents: 'auto',
+                                touchAction: 'auto',
+                                cursor: 'pointer'
+                              }}
+                              onClick={(e) => {
+                                console.log('🖱️ page.tsx - Clic sur overlay zone 3D');
+                                e.stopPropagation();
+                                e.preventDefault();
+                                console.log('✅ page.tsx - Fermeture du panneau mobile');
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
+                              }}
+                              onTouchStart={(e) => {
+                                console.log('👆 page.tsx - Touch sur overlay zone 3D');
+                                e.stopPropagation();
+                                e.preventDefault();
+                                console.log('✅ page.tsx - Fermeture du panneau mobile (touch)');
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
+                              }}
+                            />
+                          )}
+                          
                           {/* Panneau de contenu mobile - Style configurator.stretchmx.com */}
                           {viewportMode === 'mobile' && mobileActivePanel && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
