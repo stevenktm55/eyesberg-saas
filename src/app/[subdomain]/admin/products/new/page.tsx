@@ -5978,6 +5978,7 @@ export default function ProductBuilderPage() {
                             
                             return (
                               <Canvas
+                                key={`canvas-${selectedModel3DId}`}
                                 camera={{ 
                                   position: [0, 0, mobileInitialZoom], 
                                   fov: mobileFov
