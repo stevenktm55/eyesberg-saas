@@ -7181,80 +7181,104 @@ export default function ProductBuilderPage() {
                                                   </p>
                                                 ) : (
                                                   <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(2, 1fr)',
-                                                    gap: '10px',
-                                                    padding: '4px'
+                                                    position: 'relative',
+                                                    width: '100%',
+                                                    overflow: 'hidden'
                                                   }}>
-                                                    {visibleFonts.map((font) => {
-                                                      const isSelected = selectedText.fontFamily === font.id;
-                                                      const fontFamilyValue = font.display_name || font.name;
-                                                      
-                                                      return (
-                                                        <div
-                                                          key={font.id}
-                                                          onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
-                                                          style={{
-                                                            padding: '10px',
-                                                            backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
-                                                            borderRadius: '8px',
-                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s',
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            alignItems: 'center',
-                                                            gap: '6px',
-                                                            minHeight: '80px',
-                                                            position: 'relative'
-                                                          }}
-                                                        >
-                                                          <div style={{
-                                                            width: '100%',
-                                                            padding: '6px',
-                                                            backgroundColor: '#f5f5f5',
-                                                            borderRadius: '4px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            minHeight: '50px',
-                                                            fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
-                                                            fontSize: '16px',
-                                                            fontWeight: 'bold',
-                                                            color: '#111827'
-                                                          }}>
-                                                            {previewText}
-                                                          </div>
-                                                          <span style={{
-                                                            fontSize: '10px',
-                                                            color: '#111827',
-                                                            fontFamily: 'var(--stepn-font-body)',
-                                                            textAlign: 'center',
-                                                            fontWeight: '500'
-                                                          }}>
-                                                            {font.display_name || font.name}
-                                                          </span>
-                                                          {isSelected && (
+                                                    <div
+                                                      style={{
+                                                        display: 'flex',
+                                                        gap: '12px',
+                                                        overflowX: 'auto',
+                                                        overflowY: 'hidden',
+                                                        padding: '4px 0',
+                                                        scrollBehavior: 'smooth',
+                                                        WebkitOverflowScrolling: 'touch',
+                                                        scrollbarWidth: 'none',
+                                                        msOverflowStyle: 'none'
+                                                      }}
+                                                      onScroll={(e) => {
+                                                        const target = e.currentTarget;
+                                                        target.style.scrollbarWidth = 'none';
+                                                      }}
+                                                    >
+                                                      <style>{`
+                                                        div::-webkit-scrollbar {
+                                                          display: none;
+                                                        }
+                                                      `}</style>
+                                                      {visibleFonts.map((font) => {
+                                                        const isSelected = selectedText.fontFamily === font.id;
+                                                        const fontFamilyValue = font.display_name || font.name;
+                                                        
+                                                        return (
+                                                          <div
+                                                            key={font.id}
+                                                            onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
+                                                            style={{
+                                                              flexShrink: 0,
+                                                              width: '120px',
+                                                              padding: '12px',
+                                                              backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                                              borderRadius: '8px',
+                                                              border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
+                                                              cursor: 'pointer',
+                                                              transition: 'all 0.2s',
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              alignItems: 'center',
+                                                              gap: '8px',
+                                                              minHeight: '100px',
+                                                              position: 'relative'
+                                                            }}
+                                                          >
                                                             <div style={{
-                                                              position: 'absolute',
-                                                              bottom: '6px',
-                                                              right: '6px',
-                                                              width: '18px',
-                                                              height: '18px',
-                                                              borderRadius: '50%',
-                                                              backgroundColor: '#111827',
+                                                              width: '100%',
+                                                              padding: '8px',
+                                                              backgroundColor: '#f5f5f5',
+                                                              borderRadius: '4px',
                                                               display: 'flex',
                                                               alignItems: 'center',
-                                                              justifyContent: 'center'
+                                                              justifyContent: 'center',
+                                                              minHeight: '60px',
+                                                              fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                              fontSize: '18px',
+                                                              fontWeight: 'bold',
+                                                              color: '#111827'
                                                             }}>
-                                                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                                                <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                              </svg>
+                                                              {previewText}
                                                             </div>
-                                                          )}
-                                                        </div>
-                                                      );
-                                                    })}
+                                                            <span style={{
+                                                              fontSize: '11px',
+                                                              color: '#111827',
+                                                              fontFamily: 'var(--stepn-font-body)',
+                                                              textAlign: 'center',
+                                                              fontWeight: '500'
+                                                            }}>
+                                                              {font.display_name || font.name}
+                                                            </span>
+                                                            {isSelected && (
+                                                              <div style={{
+                                                                position: 'absolute',
+                                                                bottom: '8px',
+                                                                right: '8px',
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: '#111827',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                              }}>
+                                                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                                                  <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                                </svg>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        );
+                                                      })}
+                                                    </div>
                                                   </div>
                                                 )}
                                                 <div style={{ marginTop: '16px' }}>
