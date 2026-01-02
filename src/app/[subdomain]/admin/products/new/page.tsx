@@ -6486,23 +6486,38 @@ export default function ProductBuilderPage() {
                                   }
                                 }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
                                 
+                                // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
+                                const shouldDisableOrbitControls = viewportMode === 'mobile' && selectedTextId && mobileActivePanel;
+                                const orbitControlsEnabled = !isDraggingText && 
+                                  !isRotatingText && 
+                                  !isResizingText && 
+                                  !isPlacingText && 
+                                  !isRestoringRef.current &&
+                                  !shouldDisableOrbitControls;
+                                
+                                console.log('🎮 OrbitControls enabled check:', {
+                                  viewportMode,
+                                  selectedTextId,
+                                  mobileActivePanel,
+                                  shouldDisableOrbitControls,
+                                  isDraggingText,
+                                  isRotatingText,
+                                  isResizingText,
+                                  isPlacingText,
+                                  isRestoringRef: isRestoringRef.current,
+                                  orbitControlsEnabled
+                                });
+                                
                                 return (
                                   <OrbitControls
                                     ref={controlsRef}
                                     enablePan={false}
                                     // Permettre le zoom et la rotation même quand un texte est sélectionné (pour permettre le déplacement du texte)
-                                    enableZoom={!isPlacingText && !isRestoringRef.current}
-                                    enableRotate={!isPlacingText && !isRestoringRef.current}
+                                    enableZoom={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
+                                    enableRotate={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
                                     // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
                                     // Sinon, OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
-                                    enabled={
-                                      !isDraggingText && 
-                                      !isRotatingText && 
-                                      !isResizingText && 
-                                      !isPlacingText && 
-                                      !isRestoringRef.current &&
-                                      !(viewportMode === 'mobile' && selectedTextId && mobileActivePanel)
-                                    }
+                                    enabled={orbitControlsEnabled}
                                     minDistance={minZoom}
                                     maxDistance={maxZoom}
                                     zoomSpeed={zoomSpeed}
