@@ -8029,11 +8029,27 @@ export default function ProductBuilderPage() {
                                   .mobile-panel-slide-up h5,
                                   .mobile-panel-slide-up h6,
                                   .mobile-panel-slide-up label,
-                                  .mobile-panel-slide-up button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]),
+                                  .mobile-panel-slide-up button:not([style*="backgroundColor: '#000"]):not([style*="backgroundColor:'#000"]):not([style*="backgroundColor: '#000000"]):not([style*="backgroundColor:'#000000"]):not([style*="backgroundColor: black"]):not([style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]),
                                   .mobile-panel-slide-up input,
                                   .mobile-panel-slide-up textarea,
                                   .mobile-panel-slide-up select {
                                     color: #111827 !important;
+                                  }
+                                  .mobile-panel-slide-up button[style*="backgroundColor: '#000"],
+                                  .mobile-panel-slide-up button[style*="backgroundColor:'#000"],
+                                  .mobile-panel-slide-up button[style*="backgroundColor: '#000000"],
+                                  .mobile-panel-slide-up button[style*="backgroundColor:'#000000"],
+                                  .mobile-panel-slide-up button[style*="backgroundColor: black"],
+                                  .mobile-panel-slide-up button[style*="backgroundColor:black"],
+                                  .mobile-panel-slide-up button[style*="color: #fff"],
+                                  .mobile-panel-slide-up button[style*="color:#fff"],
+                                  .mobile-panel-slide-up button[style*="color: '#fff'"],
+                                  .mobile-panel-slide-up button[style*="color:'#fff'"],
+                                  .mobile-panel-slide-up button[style*="color: '#ffffff'"],
+                                  .mobile-panel-slide-up button[style*="color:'#ffffff'"],
+                                  .mobile-panel-slide-up button[style*="color: white"],
+                                  .mobile-panel-slide-up button[style*="color:white"] {
+                                    color: #ffffff !important;
                                   }
                                 `}</style>
                                 {/* Header du panneau - Style stretchmx */}
@@ -8173,13 +8189,29 @@ export default function ProductBuilderPage() {
                                     .mobile-content-fade h5,
                                     .mobile-content-fade h6,
                                     .mobile-content-fade label,
-                                    .mobile-content-fade button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]) {
+                                    .mobile-content-fade button:not([style*="backgroundColor: '#000"]):not([style*="backgroundColor:'#000"]):not([style*="backgroundColor: '#000000"]):not([style*="backgroundColor:'#000000"]):not([style*="backgroundColor: black"]):not([style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]) {
                                       color: #111827 !important;
                                     }
                                     .mobile-content-fade input,
                                     .mobile-content-fade textarea,
                                     .mobile-content-fade select {
                                       color: #111827 !important;
+                                    }
+                                    .mobile-content-fade button[style*="backgroundColor: '#000"],
+                                    .mobile-content-fade button[style*="backgroundColor:'#000"],
+                                    .mobile-content-fade button[style*="backgroundColor: '#000000"],
+                                    .mobile-content-fade button[style*="backgroundColor:'#000000"],
+                                    .mobile-content-fade button[style*="backgroundColor: black"],
+                                    .mobile-content-fade button[style*="backgroundColor:black"],
+                                    .mobile-content-fade button[style*="color: #fff"],
+                                    .mobile-content-fade button[style*="color:#fff"],
+                                    .mobile-content-fade button[style*="color: '#fff'"],
+                                    .mobile-content-fade button[style*="color:'#fff'"],
+                                    .mobile-content-fade button[style*="color: '#ffffff'"],
+                                    .mobile-content-fade button[style*="color:'#ffffff'"],
+                                    .mobile-content-fade button[style*="color: white"],
+                                    .mobile-content-fade button[style*="color:white"] {
+                                      color: #ffffff !important;
                                     }
                                   `}</style>
                                   {renderMobileModuleContent()}
