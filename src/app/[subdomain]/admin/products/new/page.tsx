@@ -1313,6 +1313,28 @@ export default function ProductBuilderPage() {
     };
   }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, autoSave]);
 
+  // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
+  useEffect(() => {
+    if (viewportMode === 'mobile' && selectedTextId) {
+      // Trouver le module texte actif
+      const textModule = customizationModules.find(m => m.contentType === 'text');
+      if (textModule && mobileActivePanel !== textModule.id) {
+        setMobileActivePanel(textModule.id);
+      }
+    }
+  }, [selectedTextId, viewportMode, customizationModules, mobileActivePanel]);
+
+  // Ouvrir automatiquement le panneau mobile logos quand un logo est sélectionné
+  useEffect(() => {
+    if (viewportMode === 'mobile' && selectedLogoId) {
+      // Trouver le module logos actif
+      const logoModule = customizationModules.find(m => m.contentType === 'logos');
+      if (logoModule && mobileActivePanel !== logoModule.id) {
+        setMobileActivePanel(logoModule.id);
+      }
+    }
+  }, [selectedLogoId, viewportMode, customizationModules, mobileActivePanel]);
+
   function addQuestion() {
     // Ouvrir le modal de création de module
     setNewModule({
@@ -6491,6 +6513,429 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
+                          {/* Modal de bibliothèque de logos - Mobile uniquement */}
+                          {showLogoLibrary && viewportMode === 'mobile' && (() => {
+                            const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
+                            if (!activeModule || activeModule.contentType !== 'logos') return null;
+                            
+                            // Si un logo est sélectionné pour afficher ses variantes
+                            if (selectedLogoForVariants) {
+                              const baseVariant = {
+                                id: 'base',
+                                file_url: selectedLogoForVariants.file_url || '',
+                                name: selectedLogoForVariants.name || 'Logo de base'
+                              };
+                              const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
+                              
+                              return (
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    zIndex: 300
+                                  }}
+                                  onClick={(e) => {
+                                    if (e.target === e.currentTarget) {
+                                      setShowLogoLibrary(false);
+                                      setSelectedLogoForVariants(null);
+                                    }
+                                  }}
+                                >
+                                  <div
+                                    className="zone-selection-modal-content"
+                                    style={{
+                                      backgroundColor: '#ffffff',
+                                      borderRadius: '8px',
+                                      padding: '20px',
+                                      width: '90%',
+                                      maxWidth: '100%',
+                                      maxHeight: '80vh',
+                                      overflowY: 'auto',
+                                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                      color: '#111827'
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <style>{`
+                                      .zone-selection-modal-content,
+                                      .zone-selection-modal-content *,
+                                      .zone-selection-modal-content p,
+                                      .zone-selection-modal-content span,
+                                      .zone-selection-modal-content div,
+                                      .zone-selection-modal-content h2,
+                                      .zone-selection-modal-content h3,
+                                      .zone-selection-modal-content h4,
+                                      .zone-selection-modal-content label,
+                                      .zone-selection-modal-content input,
+                                      .zone-selection-modal-content textarea {
+                                        color: #111827 !important;
+                                      }
+                                      .zone-selection-modal-content button:not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background-color: '#000"]):not([style*="background-color:'#000"]):not([style*="background-color: '#000000"]):not([style*="background-color:'#000000"]):not([style*="background-color: black"]):not([style*="background-color:black"]) {
+                                        color: #111827 !important;
+                                      }
+                                      .zone-selection-modal-content button[style*="background-color: #000"],
+                                      .zone-selection-modal-content button[style*="background-color:#000"],
+                                      .zone-selection-modal-content button[style*="background-color: '#000"],
+                                      .zone-selection-modal-content button[style*="background-color:'#000"],
+                                      .zone-selection-modal-content button[style*="background-color: '#000000"],
+                                      .zone-selection-modal-content button[style*="background-color:'#000000"],
+                                      .zone-selection-modal-content button[style*="background-color: black"],
+                                      .zone-selection-modal-content button[style*="background-color:black"] {
+                                        color: #ffffff !important;
+                                      }
+                                    `}</style>
+                                    {/* Header */}
+                                    <div style={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      marginBottom: '20px'
+                                    }}>
+                                      <h2 style={{
+                                        fontSize: '18px',
+                                        fontWeight: '600',
+                                        color: '#000000',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        margin: 0
+                                      }}>
+                                        {selectedLogoForVariants.name}
+                                      </h2>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedLogoForVariants(null);
+                                        }}
+                                        style={{
+                                          background: 'none',
+                                          border: 'none',
+                                          color: '#666666',
+                                          fontSize: '24px',
+                                          cursor: 'pointer',
+                                          padding: '0',
+                                          width: '32px',
+                                          height: '32px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          lineHeight: '1'
+                                        }}
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                    
+                                    {/* Liste des variantes */}
+                                    {allVariants.length === 0 ? (
+                                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                        Aucune variante disponible
+                                      </p>
+                                    ) : (
+                                      <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(2, 1fr)',
+                                        gap: '12px'
+                                      }}>
+                                        {allVariants.map((variant: any, index: number) => (
+                                          <div
+                                            key={variant.id || `base-${index}`}
+                                            onClick={async () => {
+                                              const fileToUse = variant.id === 'base' 
+                                                ? selectedLogoForVariants.file_url 
+                                                : (variant.file_url || selectedLogoForVariants.file_url);
+                                              
+                                              // Si mode zones, ouvrir le modal de sélection de zone
+                                              if (activeModule.logoPlacementMode === 'zones') {
+                                                setSelectedLogoForZone({
+                                                  logoId: selectedLogoForVariants.id,
+                                                  variantId: variant.id === 'base' ? undefined : variant.id,
+                                                  variantFile: fileToUse
+                                                });
+                                                setShowLogoZoneModal(true);
+                                                setSelectedLogoForVariants(null);
+                                                setShowLogoLibrary(false);
+                                              } else {
+                                                // Mode libre : ajouter directement au centre
+                                                const categoryToView: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                                  'front': 'torse',
+                                                  'back': 'dos',
+                                                  'left': 'bras-gauche',
+                                                  'right': 'bras-droit'
+                                                };
+                                                const category = categoryToView[activeLogoView] || 'torse';
+                                                await addLogo(
+                                                  selectedLogoForVariants.id,
+                                                  variant.id === 'base' ? selectedLogoForVariants.id : variant.id,
+                                                  fileToUse,
+                                                  [0.5, 0.5, 0],
+                                                  category
+                                                );
+                                                setShowLogoLibrary(false);
+                                                setSelectedLogoForVariants(null);
+                                              }
+                                            }}
+                                            style={{
+                                              cursor: 'pointer',
+                                              border: '1px solid #e0e0e0',
+                                              borderRadius: '8px',
+                                              overflow: 'hidden',
+                                              backgroundColor: '#ffffff',
+                                              transition: 'all 0.2s',
+                                              padding: '12px',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              gap: '8px'
+                                            }}
+                                          >
+                                            <div style={{
+                                              width: '100%',
+                                              height: '100px',
+                                              backgroundColor: '#f5f5f5',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              overflow: 'hidden',
+                                              padding: '8px'
+                                            }}>
+                                              <img
+                                                src={fileToUse}
+                                                alt={variant.name || selectedLogoForVariants.name}
+                                                style={{
+                                                  maxWidth: '100%',
+                                                  maxHeight: '100%',
+                                                  objectFit: 'contain'
+                                                }}
+                                              />
+                                            </div>
+                                            <p style={{
+                                              margin: 0,
+                                              fontSize: '11px',
+                                              fontWeight: '500',
+                                              color: '#111827',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              textAlign: 'center'
+                                            }}>
+                                              {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            
+                            // Vue principale de la bibliothèque
+                            // Récupérer toutes les bibliothèques sélectionnées
+                            const selectedLibraries = logoLibraries.filter(l => 
+                              activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
+                            );
+                            
+                            // Récupérer tous les logos de toutes les bibliothèques sélectionnées
+                            const allLogos: any[] = [];
+                            selectedLibraries.forEach(library => {
+                              if (library.logos && Array.isArray(library.logos)) {
+                                allLogos.push(...library.logos);
+                              }
+                            });
+                            
+                            return (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  zIndex: 300
+                                }}
+                                onClick={(e) => {
+                                  if (e.target === e.currentTarget) {
+                                    setShowLogoLibrary(false);
+                                    setSelectedLogoForVariants(null);
+                                  }
+                                }}
+                              >
+                                <div
+                                  className="zone-selection-modal-content"
+                                  style={{
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '8px',
+                                    padding: '20px',
+                                    width: '90%',
+                                    maxWidth: '100%',
+                                    maxHeight: '80vh',
+                                    overflowY: 'auto',
+                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                    color: '#111827'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <style>{`
+                                    .zone-selection-modal-content,
+                                    .zone-selection-modal-content *,
+                                    .zone-selection-modal-content p,
+                                    .zone-selection-modal-content span,
+                                    .zone-selection-modal-content div,
+                                    .zone-selection-modal-content h2,
+                                    .zone-selection-modal-content h3,
+                                    .zone-selection-modal-content h4,
+                                    .zone-selection-modal-content label,
+                                    .zone-selection-modal-content input,
+                                    .zone-selection-modal-content textarea {
+                                      color: #111827 !important;
+                                    }
+                                    .zone-selection-modal-content button:not([style*="background-color: #000"]):not([style*="background-color:#000"]):not([style*="background-color: '#000"]):not([style*="background-color:'#000"]):not([style*="background-color: '#000000"]):not([style*="background-color:'#000000"]):not([style*="background-color: black"]):not([style*="background-color:black"]) {
+                                      color: #111827 !important;
+                                    }
+                                    .zone-selection-modal-content button[style*="background-color: #000"],
+                                    .zone-selection-modal-content button[style*="background-color:#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000"],
+                                    .zone-selection-modal-content button[style*="background-color: '#000000"],
+                                    .zone-selection-modal-content button[style*="background-color:'#000000"],
+                                    .zone-selection-modal-content button[style*="background-color: black"],
+                                    .zone-selection-modal-content button[style*="background-color:black"] {
+                                      color: #ffffff !important;
+                                    }
+                                  `}</style>
+                                  {/* Header */}
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '20px'
+                                  }}>
+                                    <h2 style={{
+                                      fontSize: '18px',
+                                      fontWeight: '600',
+                                      color: '#000000',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      margin: 0
+                                    }}>
+                                      {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                    </h2>
+                                    <button
+                                      onClick={() => {
+                                        setShowLogoLibrary(false);
+                                        setSelectedLogoForVariants(null);
+                                      }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#666666',
+                                        fontSize: '24px',
+                                        cursor: 'pointer',
+                                        padding: '0',
+                                        width: '32px',
+                                        height: '32px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        lineHeight: '1'
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                  
+                                  {allLogos.length === 0 ? (
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                      Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
+                                    </p>
+                                  ) : (
+                                    <div style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: 'repeat(2, 1fr)',
+                                      gap: '12px'
+                                    }}>
+                                      {allLogos.map((logo: any) => (
+                                        <div
+                                          key={logo.id}
+                                          onClick={() => {
+                                            setSelectedLogoForVariants(logo);
+                                          }}
+                                          style={{
+                                            cursor: 'pointer',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                            backgroundColor: '#ffffff',
+                                            transition: 'all 0.2s',
+                                            padding: '12px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                          }}
+                                        >
+                                          <div style={{
+                                            width: '100%',
+                                            height: '100px',
+                                            backgroundColor: '#f5f5f5',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            overflow: 'hidden',
+                                            padding: '8px'
+                                          }}>
+                                            {logo.file_url ? (
+                                              <img
+                                                src={logo.file_url}
+                                                alt={logo.name}
+                                                style={{
+                                                  maxWidth: '100%',
+                                                  maxHeight: '100%',
+                                                  objectFit: 'contain'
+                                                }}
+                                              />
+                                            ) : (
+                                              <div style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: '#e0e0e0',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '11px',
+                                                color: '#666',
+                                                textAlign: 'center',
+                                                padding: '8px'
+                                              }}>
+                                                {logo.name}
+                                              </div>
+                                            )}
+                                          </div>
+                                          <p style={{
+                                            margin: 0,
+                                            fontSize: '11px',
+                                            fontWeight: '500',
+                                            color: '#111827',
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            textAlign: 'center'
+                                          }}>
+                                            {logo.name}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
                           {/* Modal de sélection de zones - Mobile uniquement (rendu dans le conteneur mobile) */}
                           {showZoneSelectionModal && viewportMode === 'mobile' && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
@@ -7124,8 +7569,18 @@ export default function ProductBuilderPage() {
                                     )}
                                     {/* Bouton ajouter */}
                                     <button
-                                      onClick={() => { setShowLogoLibrary(true); setActiveCustomizerTab(activeModule.id); }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}
+                                      onClick={() => {
+                                        if (viewportMode === 'mobile') {
+                                          // En mobile, ouvrir la bibliothèque de logos dans un modal
+                                          setShowLogoLibrary(true);
+                                        } else {
+                                          // En desktop, ouvrir dans la sidebar
+                                          setShowLogoLibrary(true);
+                                          setActiveCustomizerTab(activeModule.id);
+                                        }
+                                      }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                      className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
@@ -8093,6 +8548,7 @@ export default function ProductBuilderPage() {
                                         }
                                       }}
                                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                      className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
@@ -8211,7 +8667,9 @@ export default function ProductBuilderPage() {
                                   .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor: '#000"],
                                   .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor:'#000"],
                                   .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor: '#000000"],
-                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor:'#000000"] {
+                                  .mobile-panel-slide-up button.mobile-action-btn[style*="backgroundColor:'#000000"],
+                                  .mobile-panel-slide-up button.mobile-action-btn-black,
+                                  .mobile-action-btn-black {
                                     color: #ffffff !important;
                                   }
                                 `}</style>
