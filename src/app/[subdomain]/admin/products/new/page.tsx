@@ -8010,9 +8010,32 @@ export default function ProductBuilderPage() {
                                   zIndex: 100,
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  overflow: 'hidden'
+                                  overflow: 'hidden',
+                                  color: '#111827'
                                 }}
                               >
+                                <style>{`
+                                  .mobile-panel-slide-up,
+                                  .mobile-panel-slide-up * {
+                                    color: #111827 !important;
+                                  }
+                                  .mobile-panel-slide-up p,
+                                  .mobile-panel-slide-up span:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]),
+                                  .mobile-panel-slide-up div:not([style*="background"]):not([style*="backgroundColor"]),
+                                  .mobile-panel-slide-up h1,
+                                  .mobile-panel-slide-up h2,
+                                  .mobile-panel-slide-up h3,
+                                  .mobile-panel-slide-up h4,
+                                  .mobile-panel-slide-up h5,
+                                  .mobile-panel-slide-up h6,
+                                  .mobile-panel-slide-up label,
+                                  .mobile-panel-slide-up button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]),
+                                  .mobile-panel-slide-up input,
+                                  .mobile-panel-slide-up textarea,
+                                  .mobile-panel-slide-up select {
+                                    color: #111827 !important;
+                                  }
+                                `}</style>
                                 {/* Header du panneau - Style stretchmx */}
                                 <div 
                                   style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0, color: '#111827' }}
@@ -8167,7 +8190,13 @@ export default function ProductBuilderPage() {
                           
                           {/* Barre mobile en bas du téléphone - Style stretchmx */}
                           {viewportMode === 'mobile' && (
-                            <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
+                            <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb', color: '#111827' }}>
+                              <style>{`
+                                [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] *,
+                                [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] span {
+                                  color: #111827 !important;
+                                }
+                              `}</style>
                               {/* Onglets des modules */}
                               <div style={{ display: 'flex', padding: '8px 4px', gap: '2px', color: '#111827' }}>
                                 <style>{`
