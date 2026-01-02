@@ -8134,7 +8134,21 @@ export default function ProductBuilderPage() {
                                 </div>
                                 
                                 {/* Contenu du panneau */}
-                                <div className="mobile-content-fade" style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+                                <div className="mobile-content-fade" style={{ flex: 1, overflow: 'auto', padding: '16px', color: '#111827' }}>
+                                  <style>{`
+                                    .mobile-content-fade * {
+                                      color: inherit !important;
+                                    }
+                                    .mobile-content-fade p,
+                                    .mobile-content-fade span,
+                                    .mobile-content-fade div,
+                                    .mobile-content-fade h3,
+                                    .mobile-content-fade h4,
+                                    .mobile-content-fade label,
+                                    .mobile-content-fade button:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]) {
+                                      color: #111827 !important;
+                                    }
+                                  `}</style>
                                   {renderMobileModuleContent()}
                                 </div>
                               </div>
@@ -8145,7 +8159,12 @@ export default function ProductBuilderPage() {
                           {viewportMode === 'mobile' && (
                             <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb' }}>
                               {/* Onglets des modules */}
-                              <div style={{ display: 'flex', padding: '8px 4px', gap: '2px' }}>
+                              <div style={{ display: 'flex', padding: '8px 4px', gap: '2px', color: '#111827' }}>
+                                <style>{`
+                                  .mobile-tab-btn span {
+                                    color: inherit !important;
+                                  }
+                                `}</style>
                                 {customizationModules.length > 0 ? (
                                   customizationModules.map((module) => {
                                     const isActive = mobileActivePanel === module.id;
@@ -8167,7 +8186,8 @@ export default function ProductBuilderPage() {
                                           borderRadius: '8px',
                                           backgroundColor: isActive ? '#f3f4f6' : 'transparent',
                                           border: 'none',
-                                          cursor: 'pointer'
+                                          cursor: 'pointer',
+                                          color: isActive ? '#111827' : '#6b7280'
                                         }}
                                       >
                                         <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
@@ -8186,9 +8206,9 @@ export default function ProductBuilderPage() {
                                 ) : (
                                   <>
                                     {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
-                                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px' }}>
+                                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px', color: '#111827' }}>
                                         <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
-                                        <span style={{ fontSize: '10px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>{name}</span>
+                                        <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'var(--stepn-font-body)' }}>{name}</span>
                                       </div>
                                     ))}
                                   </>
