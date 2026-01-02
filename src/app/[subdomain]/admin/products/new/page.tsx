@@ -7069,9 +7069,22 @@ export default function ProductBuilderPage() {
                                                      activeModule.selectedItems?.zoneGroupIds ||
                                                      [];
                             
+                            // Debug temporaire
+                            console.log('🔍 Zones logos - activeModule:', {
+                              id: activeModule.id,
+                              contentType: activeModule.contentType,
+                              config: activeModule.config,
+                              selectedItems: activeModule.selectedItems,
+                              logoZoneGroupIds,
+                              zoneGroupsCount: zoneGroups.length,
+                              zoneGroupsIds: zoneGroups.map(g => g.id)
+                            });
+                            
                             const availableZones = zoneGroups
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+                            
+                            console.log('📍 Zones disponibles pour logos:', availableZones.length, availableZones);
                             
                             return (
                               <div
