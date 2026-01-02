@@ -6087,6 +6087,12 @@ export default function ProductBuilderPage() {
                                 // Ne jamais réinitialiser la caméra si une vue a été définie par l'utilisateur
                                 // Même si initialZoom ou initialRotation changent, on ne doit pas réinitialiser
                                 // si l'utilisateur a déjà positionné la caméra
+                                // Protection supplémentaire : si viewHasBeenSetRef est true, ne jamais toucher à la caméra
+                                useEffect(() => {
+                                  if (viewHasBeenSetRef.current) {
+                                    initializedRef.current = true;
+                                  }
+                                }, [viewHasBeenSetRef]);
                                 
                                 return null;
                               }
@@ -6624,8 +6630,8 @@ export default function ProductBuilderPage() {
                                                     zoneRotation
                                                   );
                                                   
-                                                  // Ne pas réinitialiser la caméra en mode mobile
-                                                  if (zoneCategory && viewportMode !== 'mobile') {
+                                                  // Pivoter la caméra vers l'emplacement du texte (même en mobile)
+                                                  if (zoneCategory) {
                                                     setTargetView(zoneCategory);
                                                   }
                                                   
@@ -6693,8 +6699,8 @@ export default function ProductBuilderPage() {
                                                   zoneRotation
                                                 );
                                                 
-                                                // Ne pas réinitialiser la caméra en mode mobile
-                                                if (zoneCategory && viewportMode !== 'mobile') {
+                                                // Pivoter la caméra vers l'emplacement du texte (même en mobile)
+                                                if (zoneCategory) {
                                                   setTargetView(zoneCategory);
                                                 }
                                                 
@@ -10657,8 +10663,8 @@ export default function ProductBuilderPage() {
                                 zoneRotation
                               );
                               
-                              // Ne pas réinitialiser la caméra en mode mobile
-                              if (zoneCategory && viewportMode !== 'mobile') {
+                              // Pivoter la caméra vers l'emplacement du texte (même en mobile)
+                              if (zoneCategory) {
                                 setTargetView(zoneCategory);
                               }
                               
