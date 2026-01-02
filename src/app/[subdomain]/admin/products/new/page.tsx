@@ -9017,8 +9017,11 @@ export default function ProductBuilderPage() {
                                         key={module.id}
                                         className="mobile-tab-btn"
                                         onClick={() => {
+                                          console.log('📱 Clic sur onglet mobile:', module.tabName, 'isActive:', isActive, 'module.id:', module.id);
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
-                                          setMobileActivePanel(isActive ? null : module.id);
+                                          const newPanel = isActive ? null : module.id;
+                                          console.log('📱 setMobileActivePanel:', newPanel);
+                                          setMobileActivePanel(newPanel);
                                         }}
                                         style={{
                                           flex: 1,
