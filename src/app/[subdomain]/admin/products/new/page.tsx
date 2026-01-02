@@ -1654,10 +1654,24 @@ export default function ProductBuilderPage() {
     updateText(id, { fontSize });
   };
 
-  const selectText = (id: string | null) => {
+  const selectText = (id: string | null, autoOpenTypography?: boolean) => {
+    console.log('📝 selectText called:', id, 'autoOpenTypography:', autoOpenTypography);
     setSelectedTextId(id);
     if (id) {
       setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+    } else {
+      // Si on désélectionne, marquer comme désélection manuelle pour éviter la réouverture
+      if (viewportMode === 'mobile') {
+        manuallyDeselectedTextIdRef.current = id === null ? selectedTextId : null;
+        isManuallyClosingRef.current = true;
+        if (manualCloseTimeoutRef.current) {
+          clearTimeout(manualCloseTimeoutRef.current);
+        }
+        manualCloseTimeoutRef.current = setTimeout(() => {
+          isManuallyClosingRef.current = false;
+          manuallyDeselectedTextIdRef.current = null;
+        }, 1000);
+      }
     }
   };
 
@@ -6305,7 +6319,7 @@ export default function ProductBuilderPage() {
                                 // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
                                 
                                 // Sauvegarder la position de la caméra avant l'ouverture du panneau et la restaurer après
-                                // Empêcher OrbitControls de recalculer la distance lors du changement de taille du conteneur
+                                // NE PAS désactiver OrbitControls pour permettre le déplacement du texte
                                 useEffect(() => {
                                   if (controlsRef.current && viewportMode === 'mobile') {
                                     if (mobileActivePanel && !savedCameraStateRef.current) {
@@ -6318,18 +6332,9 @@ export default function ProductBuilderPage() {
                                         target: [target.x, target.y, target.z] as [number, number, number],
                                         distance: distance
                                       };
-                                      // Désactiver complètement OrbitControls pendant la transition
-                                      isRestoringRef.current = true;
-                                      if (controlsRef.current) {
-                                        controlsRef.current.enabled = false;
-                                      }
+                                      // NE PAS désactiver OrbitControls - permettre le déplacement du texte
+                                      // isRestoringRef reste false pour permettre les interactions
                                     } else if (!mobileActivePanel && savedCameraStateRef.current) {
-                                      // Réactiver OrbitControls après la fermeture
-                                      isRestoringRef.current = false;
-                                      if (controlsRef.current) {
-                                        controlsRef.current.enabled = true;
-                                      }
-                                      
                                       // Restaurer l'état sauvegardé de la caméra après que le panneau soit complètement fermé
                                       const restoreCamera = () => {
                                         if (controlsRef.current && savedCameraStateRef.current) {
@@ -6389,24 +6394,20 @@ export default function ProductBuilderPage() {
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
                                 // Surveiller et corriger la distance de la caméra en continu pendant que le panneau est ouvert
-                                // ET désactiver complètement OrbitControls pour empêcher tout recalcul
+                                // MAIS permettre OrbitControls pour le déplacement du texte
                                 useEffect(() => {
-                                  if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current && isRestoringRef.current) {
+                                  if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current && mobileActivePanel) {
                                     let animationFrameId: number;
                                     
                                     const maintainDistance = () => {
-                                      if (controlsRef.current && savedCameraStateRef.current && isRestoringRef.current) {
-                                        // S'assurer qu'OrbitControls est désactivé
-                                        if (controlsRef.current.enabled) {
-                                          controlsRef.current.enabled = false;
-                                        }
-                                        
+                                      if (controlsRef.current && savedCameraStateRef.current && mobileActivePanel) {
                                         const camera = controlsRef.current.object;
                                         const target = controlsRef.current.target;
                                         const currentDistance = camera.position.distanceTo(target);
                                         
-                                        // Si la distance a changé, la corriger immédiatement
-                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.001) {
+                                        // Si la distance a changé de manière significative (zoom/dezoom), la corriger
+                                        // Mais seulement si ce n'est pas un déplacement de texte (isDraggingText)
+                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.1 && !isDraggingText) {
                                           const dx = camera.position.x - target.x;
                                           const dy = camera.position.y - target.y;
                                           const dz = camera.position.z - target.z;
@@ -6419,7 +6420,6 @@ export default function ProductBuilderPage() {
                                               target.y + dy * scale,
                                               target.z + dz * scale
                                             );
-                                            // Ne pas appeler update() pour éviter qu'OrbitControls ne recalcule
                                             camera.updateProjectionMatrix();
                                           }
                                         }
@@ -6436,7 +6436,7 @@ export default function ProductBuilderPage() {
                                       }
                                     };
                                   }
-                                }, [mobileActivePanel]);
+                                }, [mobileActivePanel, isDraggingText]);
                                 
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
