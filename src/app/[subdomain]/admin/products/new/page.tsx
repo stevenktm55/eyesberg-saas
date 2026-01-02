@@ -8123,7 +8123,7 @@ export default function ProductBuilderPage() {
                                           <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
                                         )}
                                       </div>
-                                      <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827' }}>
+                                      <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
                                         {activeModule.tabName || 'Module'}
                                       </span>
                                     </div>
@@ -8177,7 +8177,7 @@ export default function ProductBuilderPage() {
                                             <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
                                           )}
                                         </div>
-                                        <span style={{ fontSize: '10px', color: isActive ? '#000' : '#6b7280', fontWeight: isActive ? '600' : '400' }}>
+                                        <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: 'var(--stepn-font-body)' }}>
                                           {module.tabName || 'Module'}
                                         </span>
                                       </button>
@@ -8188,7 +8188,7 @@ export default function ProductBuilderPage() {
                                     {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
                                       <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px' }}>
                                         <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
-                                        <span style={{ fontSize: '10px', color: '#9ca3af' }}>{name}</span>
+                                        <span style={{ fontSize: '10px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>{name}</span>
                                       </div>
                                     ))}
                                   </>
