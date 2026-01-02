@@ -1598,7 +1598,7 @@ function Viewer3D({
   const maxDistance = cameraSettings?.maxZoom ?? (isMobile ? 18 : 10);
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white" ref={containerRef}>
       {/* Canvas 3D - prend tout l'espace */}
       <div 
         className="flex-1 bg-gray-50 relative"
@@ -1615,6 +1615,7 @@ function Viewer3D({
             background: '#f5f5f5',
             width: '100%',
             height: '100%',
+            pointerEvents: shouldDisableCanvasInteractions ? 'none' : 'auto'
           }}
         >
           {/* Éclairage depuis le snapshot ou valeurs par défaut */}
@@ -1692,9 +1693,9 @@ function Viewer3D({
           <OrbitControls 
             ref={controlsRef}
             enablePan={false}
-            enableZoom={!selectedTextId && !selectedLogoId} 
-            enableRotate={!selectedTextId && !selectedLogoId}
-            enabled={!isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo}
+            enableZoom={!selectedTextId && !selectedLogoId && !shouldDisableCanvasInteractions} 
+            enableRotate={!selectedTextId && !selectedLogoId && !shouldDisableCanvasInteractions}
+            enabled={!isDraggingText && !isRotatingText && !isResizingText && !isDraggingLogo && !isRotatingLogo && !isResizingLogo && !shouldDisableCanvasInteractions}
             target={cameraTarget}
             minDistance={minDistance}
             maxDistance={maxDistance}
