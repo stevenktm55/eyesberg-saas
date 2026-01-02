@@ -1313,8 +1313,16 @@ export default function ProductBuilderPage() {
     };
   }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, autoSave]);
 
+  // Ref pour empêcher la réouverture automatique du panneau après fermeture manuelle
+  const isManuallyClosingRef = useRef(false);
+
   // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
   useEffect(() => {
+    // Ne pas ouvrir si on vient de fermer manuellement le panneau
+    if (isManuallyClosingRef.current) {
+      isManuallyClosingRef.current = false;
+      return;
+    }
     if (viewportMode === 'mobile' && selectedTextId) {
       // Trouver le module texte actif
       const textModule = customizationModules.find(m => m.contentType === 'text');
@@ -1326,6 +1334,11 @@ export default function ProductBuilderPage() {
 
   // Ouvrir automatiquement le panneau mobile logos quand un logo est sélectionné
   useEffect(() => {
+    // Ne pas ouvrir si on vient de fermer manuellement le panneau
+    if (isManuallyClosingRef.current) {
+      isManuallyClosingRef.current = false;
+      return;
+    }
     if (viewportMode === 'mobile' && selectedLogoId) {
       // Trouver le module logos actif
       const logoModule = customizationModules.find(m => m.contentType === 'logos');
@@ -6480,6 +6493,8 @@ export default function ProductBuilderPage() {
                             <div
                               onClick={(e) => {
                                 e.stopPropagation();
+                                // Marquer qu'on ferme manuellement le panneau
+                                isManuallyClosingRef.current = true;
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
@@ -6493,6 +6508,8 @@ export default function ProductBuilderPage() {
                               }}
                               onTouchStart={(e) => {
                                 e.stopPropagation();
+                                // Marquer qu'on ferme manuellement le panneau
+                                isManuallyClosingRef.current = true;
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
@@ -6506,6 +6523,8 @@ export default function ProductBuilderPage() {
                               }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
+                                // Marquer qu'on ferme manuellement le panneau
+                                isManuallyClosingRef.current = true;
                                 // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
@@ -8691,6 +8710,14 @@ export default function ProductBuilderPage() {
                                     color: #ffffff !important;
                                   }
                                   /* Forcer la croix de fermeture en noir */
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn *,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg,
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg path {
+                                    color: #111827 !important;
+                                    stroke: #111827 !important;
+                                    fill: none !important;
+                                  }
                                   .mobile-panel-slide-up button:has(svg[stroke="#111827"]) {
                                     color: #111827 !important;
                                   }
@@ -8735,6 +8762,8 @@ export default function ProductBuilderPage() {
                                         
                                         if (deltaY > 50 || velocity > 0.3) {
                                           console.log('✅ page.tsx - Fermeture panneau mobile par swipe down');
+                                          // Marquer qu'on ferme manuellement le panneau
+                                          isManuallyClosingRef.current = true;
                                           // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                           if (selectedTextId) {
                                             setSelectedTextId(null);
@@ -8792,6 +8821,8 @@ export default function ProductBuilderPage() {
                                           
                                           if (deltaY > 50 || velocity > 0.3) {
                                             console.log('✅ page.tsx - Fermeture panneau mobile par swipe down (drag handle)');
+                                            // Marquer qu'on ferme manuellement le panneau
+                                            isManuallyClosingRef.current = true;
                                             // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                             if (selectedTextId) {
                                               setSelectedTextId(null);
@@ -8828,18 +8859,24 @@ export default function ProductBuilderPage() {
                                         {activeModule.tabName || 'Module'}
                                       </span>
                                     </div>
-                                    <button onClick={() => { 
-                                      // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
-                                      if (selectedTextId) {
-                                        setSelectedTextId(null);
-                                      }
-                                      // Désélectionner le logo AVANT de fermer le panneau
-                                      if (selectedLogoId) {
-                                        setSelectedLogoId(null);
-                                      }
-                                      setMobileActivePanel(null); 
-                                      setSelectedColorClass(null);
-                                    }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#111827 !important', borderRadius: '6px' }}>
+                                    <button 
+                                      onClick={() => { 
+                                        // Marquer qu'on ferme manuellement le panneau
+                                        isManuallyClosingRef.current = true;
+                                        // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                        if (selectedTextId) {
+                                          setSelectedTextId(null);
+                                        }
+                                        // Désélectionner le logo AVANT de fermer le panneau
+                                        if (selectedLogoId) {
+                                          setSelectedLogoId(null);
+                                        }
+                                        setMobileActivePanel(null); 
+                                        setSelectedColorClass(null);
+                                      }} 
+                                      className="mobile-panel-close-btn"
+                                      style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#111827', borderRadius: '6px' }}
+                                    >
                                       <svg width="20" height="20" fill="none" stroke="#111827" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                   </div>
