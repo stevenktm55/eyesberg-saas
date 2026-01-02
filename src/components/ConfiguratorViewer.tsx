@@ -1492,15 +1492,99 @@ function Viewer3D({
     return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
   }, [setCameraView]);
 
-  // Détecter si on est sur mobile
+  // Détecter si on est sur mobile (réactif avec media queries et mesure conteneur)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isMobileView, setIsMobileView] = useState(false);
+  
   useEffect(() => {
+    console.log('🔍 ConfiguratorViewer Viewer3D useEffect détection mobile - démarrage');
+    
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      if (typeof window === 'undefined') {
+        setIsMobileView(false);
+        return;
+      }
+      
+      // Mesurer la largeur réelle du conteneur (pour la simulation mobile)
+      const container = containerRef.current;
+      const containerWidth = container ? container.offsetWidth : window.innerWidth;
+      
+      // Vérifier la largeur de la fenêtre
+      const isWindowMobile = window.innerWidth < 768;
+      
+      // Vérifier la largeur du conteneur
+      const isContainerMobile = containerWidth < 768;
+      
+      // Vérifier les media queries CSS
+      const mediaQuery = window.matchMedia('(max-width: 767px)');
+      const isMediaQueryMobile = mediaQuery.matches;
+      
+      // Considérer comme mobile si l'une des conditions est vraie
+      const isMobile = isWindowMobile || isContainerMobile || isMediaQueryMobile;
+      
+      console.log('📱 ConfiguratorViewer Viewer3D - Détection mobile:', { 
+        isWindowMobile, 
+        isContainerMobile, 
+        isMediaQueryMobile, 
+        isMobile, 
+        windowWidth: window.innerWidth,
+        containerWidth: containerWidth,
+        hasContainer: !!container
+      });
+      
+      setIsMobileView(isMobile);
+      setIsMobile(isMobile); // Mettre à jour aussi isMobile pour la compatibilité
     };
+    
+    // Vérifier immédiatement
     checkMobile();
+    
+    // Attendre un peu pour que le DOM soit prêt
+    const timeoutId = setTimeout(checkMobile, 100);
+    const timeoutId2 = setTimeout(checkMobile, 500);
+    
+    // Écouter les changements de taille de fenêtre
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    // Observer les changements de taille du conteneur (ResizeObserver)
+    let resizeObserver: ResizeObserver | null = null;
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        console.log('📐 ConfiguratorViewer Viewer3D ResizeObserver - conteneur redimensionné');
+        checkMobile();
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    // Écouter les changements de media queries
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleMediaChange = () => {
+      console.log('📱 ConfiguratorViewer Viewer3D Media query changée');
+      checkMobile();
+    };
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleMediaChange);
+    } else {
+      mediaQuery.addListener(handleMediaChange);
+    }
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      window.removeEventListener('resize', checkMobile);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleMediaChange);
+      } else {
+        mediaQuery.removeListener(handleMediaChange);
+      }
+    };
   }, []);
+  
+  // Désactiver les interactions du Canvas quand le panneau mobile est ouvert
+  const shouldDisableCanvasInteractions = isMobileModalOpen && isMobileView;
 
   // Forcer la distance maximale au chargement (desktop ET mobile)
   useEffect(() => {
