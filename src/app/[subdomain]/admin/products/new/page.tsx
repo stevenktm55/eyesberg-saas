@@ -6517,42 +6517,42 @@ export default function ProductBuilderPage() {
                           {viewportMode === 'mobile' && mobileActivePanel && (
                             <div
                               onClick={() => {
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Désélectionner le texte si un texte est sélectionné
+                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo si un logo est sélectionné
+                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   setSelectedLogoId(null);
                                 }
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
                               }}
                               onTouchStart={(e) => {
                                 e.stopPropagation();
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Désélectionner le texte si un texte est sélectionné
+                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo si un logo est sélectionné
+                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   setSelectedLogoId(null);
                                 }
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
                               }}
                               onMouseDown={(e) => {
                                 e.stopPropagation();
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Désélectionner le texte si un texte est sélectionné
+                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                 if (selectedTextId) {
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo si un logo est sélectionné
+                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   setSelectedLogoId(null);
                                 }
+                                setMobileActivePanel(null);
+                                setSelectedColorClass(null);
                               }}
                               style={{
                                 position: 'absolute',
@@ -8726,18 +8726,18 @@ export default function ProductBuilderPage() {
                                         
                                         if (deltaY > 50 || velocity > 0.3) {
                                           console.log('✅ page.tsx - Fermeture panneau mobile par swipe down');
+                                          // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                          if (selectedTextId) {
+                                            setSelectedTextId(null);
+                                          }
+                                          // Désélectionner le logo AVANT de fermer le panneau
+                                          if (selectedLogoId) {
+                                            setSelectedLogoId(null);
+                                          }
                                           (panel as HTMLElement).style.transform = 'translateY(100%)';
                                           setTimeout(() => {
                                             setMobileActivePanel(null);
                                             setSelectedColorClass(null);
-                                            // Désélectionner le texte si un texte est sélectionné
-                                            if (selectedTextId) {
-                                              setSelectedTextId(null);
-                                            }
-                                            // Désélectionner le logo si un logo est sélectionné
-                                            if (selectedLogoId) {
-                                              setSelectedLogoId(null);
-                                            }
                                           }, 300);
                                         } else {
                                           (panel as HTMLElement).style.transform = 'translateY(0)';
@@ -8783,18 +8783,18 @@ export default function ProductBuilderPage() {
                                           
                                           if (deltaY > 50 || velocity > 0.3) {
                                             console.log('✅ page.tsx - Fermeture panneau mobile par swipe down (drag handle)');
+                                            // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                            if (selectedTextId) {
+                                              setSelectedTextId(null);
+                                            }
+                                            // Désélectionner le logo AVANT de fermer le panneau
+                                            if (selectedLogoId) {
+                                              setSelectedLogoId(null);
+                                            }
                                             (panel as HTMLElement).style.transform = 'translateY(100%)';
                                             setTimeout(() => {
                                               setMobileActivePanel(null);
                                               setSelectedColorClass(null);
-                                              // Désélectionner le texte si un texte est sélectionné
-                                              if (selectedTextId) {
-                                                setSelectedTextId(null);
-                                              }
-                                              // Désélectionner le logo si un logo est sélectionné
-                                              if (selectedLogoId) {
-                                                setSelectedLogoId(null);
-                                              }
                                             }, 300);
                                           } else {
                                             (panel as HTMLElement).style.transform = 'translateY(0)';
@@ -8820,18 +8820,18 @@ export default function ProductBuilderPage() {
                                       </span>
                                     </div>
                                     <button onClick={() => { 
-                                      setMobileActivePanel(null); 
-                                      setSelectedColorClass(null);
-                                      // Désélectionner le texte si un texte est sélectionné
+                                      // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
                                       if (selectedTextId) {
                                         setSelectedTextId(null);
                                       }
-                                      // Désélectionner le logo si un logo est sélectionné
+                                      // Désélectionner le logo AVANT de fermer le panneau
                                       if (selectedLogoId) {
                                         setSelectedLogoId(null);
                                       }
-                                    }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#111827', borderRadius: '6px' }}>
-                                      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                      setMobileActivePanel(null); 
+                                      setSelectedColorClass(null);
+                                    }} style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#111827 !important', borderRadius: '6px' }}>
+                                      <svg width="20" height="20" fill="none" stroke="#111827" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                   </div>
                                 </div>
