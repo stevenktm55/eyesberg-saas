@@ -1326,6 +1326,10 @@ export default function ProductBuilderPage() {
 
   // Fermer le panneau mobile typographie quand le texte est désélectionné
   useEffect(() => {
+    // Ne pas fermer si on ouvre manuellement
+    if (isManuallyOpeningRef.current) {
+      return;
+    }
     if (viewportMode === 'mobile' && !selectedTextId && mobileActivePanel) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'text') {
@@ -1376,6 +1380,10 @@ export default function ProductBuilderPage() {
 
   // Fermer le panneau mobile logos quand le logo est désélectionné
   useEffect(() => {
+    // Ne pas fermer si on ouvre manuellement
+    if (isManuallyOpeningRef.current) {
+      return;
+    }
     if (viewportMode === 'mobile' && !selectedLogoId && mobileActivePanel) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'logos') {
@@ -9617,7 +9625,7 @@ export default function ProductBuilderPage() {
                                           const newPanel = isActive ? null : module.id;
                                           console.log('📱 setMobileActivePanel:', newPanel);
                                           
-                                          // Marquer qu'on ouvre manuellement le panneau
+                                          // Marquer qu'on ouvre manuellement le panneau AVANT de changer l'état
                                           isManuallyOpeningRef.current = true;
                                           // Réinitialiser le flag de fermeture manuelle
                                           isManuallyClosingRef.current = false;
@@ -9629,12 +9637,15 @@ export default function ProductBuilderPage() {
                                             setShowLogoLibrary(false);
                                           }
                                           
+                                          // Changer l'état du panneau
                                           setMobileActivePanel(newPanel);
                                           
-                                          // Réinitialiser le flag d'ouverture manuelle après un court délai
+                                          // Réinitialiser le flag d'ouverture manuelle après un délai plus long
+                                          // pour s'assurer que tous les useEffect ont fini de s'exécuter
                                           setTimeout(() => {
                                             isManuallyOpeningRef.current = false;
-                                          }, 100);
+                                            console.log('📱 Flag ouverture manuelle réinitialisé');
+                                          }, 500);
                                         }}
                                         style={{
                                           flex: 1,
