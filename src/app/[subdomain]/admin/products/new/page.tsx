@@ -1319,11 +1319,15 @@ export default function ProductBuilderPage() {
 
   // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
   useEffect(() => {
-    // Ne pas ouvrir si on vient de fermer manuellement le panneau (avec un délai de sécurité)
+    // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
       return;
     }
-    if (viewportMode === 'mobile' && selectedTextId && !mobileActivePanel) {
+    // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
+    if (mobileActivePanel) {
+      return;
+    }
+    if (viewportMode === 'mobile' && selectedTextId) {
       // Trouver le module texte actif
       const textModule = customizationModules.find(m => m.contentType === 'text');
       if (textModule) {
@@ -1334,11 +1338,15 @@ export default function ProductBuilderPage() {
 
   // Ouvrir automatiquement le panneau mobile logos quand un logo est sélectionné
   useEffect(() => {
-    // Ne pas ouvrir si on vient de fermer manuellement le panneau (avec un délai de sécurité)
+    // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
       return;
     }
-    if (viewportMode === 'mobile' && selectedLogoId && !mobileActivePanel) {
+    // Ne pas ouvrir si le panneau est déjà ouvert (pour éviter les conflits)
+    if (mobileActivePanel) {
+      return;
+    }
+    if (viewportMode === 'mobile' && selectedLogoId) {
       // Trouver le module logos actif
       const logoModule = customizationModules.find(m => m.contentType === 'logos');
       if (logoModule) {
@@ -6494,82 +6502,85 @@ export default function ProductBuilderPage() {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 console.log('🖱️ Overlay onClick - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau
+                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                // Désélectionner le texte et le logo IMMÉDIATEMENT
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
+                                // Fermer le panneau
                                 setMobileActivePanel(null);
                                 setSelectedColorClass(null);
-                                // Réinitialiser le flag après un délai
+                                // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
-                                }, 500);
+                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
+                                }, 1000);
                               }}
                               onTouchStart={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 console.log('👆 Overlay onTouchStart - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau
+                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                // Désélectionner le texte et le logo IMMÉDIATEMENT
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
+                                // Fermer le panneau
                                 setMobileActivePanel(null);
                                 setSelectedColorClass(null);
-                                // Réinitialiser le flag après un délai
+                                // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
-                                }, 500);
+                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
+                                }, 1000);
                               }}
                               onMouseDown={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 console.log('🖱️ Overlay onMouseDown - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau
+                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
                                 isManuallyClosingRef.current = true;
                                 // Nettoyer le timeout précédent
                                 if (manualCloseTimeoutRef.current) {
                                   clearTimeout(manualCloseTimeoutRef.current);
                                 }
-                                // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                // Désélectionner le texte et le logo IMMÉDIATEMENT
                                 if (selectedTextId) {
                                   console.log('📝 Désélection du texte:', selectedTextId);
                                   setSelectedTextId(null);
                                 }
-                                // Désélectionner le logo AVANT de fermer le panneau
                                 if (selectedLogoId) {
                                   console.log('🖼️ Désélection du logo:', selectedLogoId);
                                   setSelectedLogoId(null);
                                 }
+                                // Fermer le panneau
                                 setMobileActivePanel(null);
                                 setSelectedColorClass(null);
-                                // Réinitialiser le flag après un délai
+                                // Garder le flag actif plus longtemps pour éviter la réouverture
                                 manualCloseTimeoutRef.current = setTimeout(() => {
                                   isManuallyClosingRef.current = false;
-                                }, 500);
+                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
+                                }, 1000);
                               }}
                               style={{
                                 position: 'absolute',
@@ -8746,22 +8757,15 @@ export default function ProductBuilderPage() {
                                     color: #ffffff !important;
                                   }
                                   /* Forcer la croix de fermeture en noir - règles très spécifiques avec !important */
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn {
-                                    color: #111827 !important;
-                                  }
                                   .mobile-panel-slide-up button.mobile-panel-close-btn,
                                   .mobile-panel-slide-up button.mobile-panel-close-btn *,
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg,
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg *,
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn svg path {
-                                    color: #111827 !important;
-                                    stroke: #111827 !important;
-                                    fill: none !important;
-                                  }
-                                  /* Exclure le bouton de fermeture des règles globales qui forcent la couleur */
-                                  .mobile-panel-slide-up button.mobile-panel-close-btn {
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn span {
                                     color: #111827 !important;
                                     background-color: transparent !important;
+                                  }
+                                  /* Exclure le bouton de fermeture des règles globales */
+                                  .mobile-panel-slide-up button.mobile-panel-close-btn:not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]) {
+                                    color: #111827 !important;
                                   }
                                 `}</style>
                                 {/* Header du panneau - Style stretchmx */}
@@ -8916,26 +8920,25 @@ export default function ProductBuilderPage() {
                                     </div>
                                     <button 
                                       onClick={() => { 
-                                        // Marquer qu'on ferme manuellement le panneau
+                                        // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
                                         isManuallyClosingRef.current = true;
                                         // Nettoyer le timeout précédent
                                         if (manualCloseTimeoutRef.current) {
                                           clearTimeout(manualCloseTimeoutRef.current);
                                         }
-                                        // Désélectionner le texte AVANT de fermer le panneau pour éviter qu'il se rouvre
+                                        // Désélectionner le texte et le logo IMMÉDIATEMENT
                                         if (selectedTextId) {
                                           setSelectedTextId(null);
                                         }
-                                        // Désélectionner le logo AVANT de fermer le panneau
                                         if (selectedLogoId) {
                                           setSelectedLogoId(null);
                                         }
                                         setMobileActivePanel(null); 
                                         setSelectedColorClass(null);
-                                        // Réinitialiser le flag après un délai
+                                        // Garder le flag actif plus longtemps pour éviter la réouverture
                                         manualCloseTimeoutRef.current = setTimeout(() => {
                                           isManuallyClosingRef.current = false;
-                                        }, 500);
+                                        }, 1000);
                                       }} 
                                       className="mobile-panel-close-btn"
                                       style={{ 
@@ -8947,32 +8950,16 @@ export default function ProductBuilderPage() {
                                         background: 'none', 
                                         border: 'none', 
                                         cursor: 'pointer', 
-                                        borderRadius: '6px'
+                                        borderRadius: '6px',
+                                        color: '#111827'
                                       }}
                                     >
-                                      <svg 
-                                        width="20" 
-                                        height="20" 
-                                        fill="none" 
-                                        viewBox="0 0 24 24"
-                                        style={{ 
-                                          color: '#111827', 
-                                          stroke: '#111827',
-                                          fill: 'none'
-                                        }}
-                                      >
-                                        <path 
-                                          d="M6 18L18 6M6 6l12 12" 
-                                          stroke="#111827" 
-                                          strokeWidth={2}
-                                          strokeLinecap="round" 
-                                          strokeLinejoin="round"
-                                          style={{ 
-                                            stroke: '#111827',
-                                            fill: 'none'
-                                          }} 
-                                        />
-                                      </svg>
+                                      <span style={{ 
+                                        fontSize: '20px', 
+                                        lineHeight: '1', 
+                                        color: '#111827',
+                                        fontWeight: 'bold'
+                                      }}>×</span>
                                     </button>
                                   </div>
                                 </div>
