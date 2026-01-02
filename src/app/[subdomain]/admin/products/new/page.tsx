@@ -5995,7 +5995,12 @@ export default function ProductBuilderPage() {
                                 
                                 useEffect(() => {
                                   // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
-                                  if (initializedRef.current || viewHasBeenSetRef.current) return;
+                                  // Si viewHasBeenSetRef est true, ne JAMAIS réinitialiser la caméra, même si le composant se remonte
+                                  if (initializedRef.current || viewHasBeenSetRef.current) {
+                                    // Si une vue a été définie, marquer comme initialisé pour éviter toute réinitialisation
+                                    initializedRef.current = true;
+                                    return;
+                                  }
                                   
                                   // Attendre que les valeurs soient chargées depuis le produit (pas les valeurs par défaut)
                                   // Si initialZoom est toujours la valeur par défaut (5) et qu'on n'a pas encore initialisé, attendre un peu plus
