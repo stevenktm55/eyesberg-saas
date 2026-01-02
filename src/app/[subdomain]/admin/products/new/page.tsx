@@ -1321,6 +1321,8 @@ export default function ProductBuilderPage() {
   // Ref pour suivre le texte qui vient d'être désélectionné manuellement
   const manuallyDeselectedTextIdRef = useRef<string | null>(null);
   const manuallyDeselectedLogoIdRef = useRef<string | null>(null);
+  // Ref pour indiquer qu'on ouvre manuellement le panneau (via les onglets)
+  const isManuallyOpeningRef = useRef<boolean>(false);
 
   // Fermer le panneau mobile typographie quand le texte est désélectionné
   useEffect(() => {
@@ -1341,6 +1343,10 @@ export default function ProductBuilderPage() {
 
   // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
   useEffect(() => {
+    // Ne pas ouvrir automatiquement si on ouvre manuellement
+    if (isManuallyOpeningRef.current) {
+      return;
+    }
     // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
       return;
@@ -1351,7 +1357,6 @@ export default function ProductBuilderPage() {
       return;
     }
     // Ne pas ouvrir automatiquement si le panneau est déjà ouvert ET que c'est le même module
-    // Mais permettre l'ouverture manuelle via les onglets
     if (mobileActivePanel && selectedTextId) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'text') {
@@ -1385,6 +1390,10 @@ export default function ProductBuilderPage() {
 
   // Ouvrir automatiquement le panneau mobile logos quand un logo est sélectionné
   useEffect(() => {
+    // Ne pas ouvrir automatiquement si on ouvre manuellement
+    if (isManuallyOpeningRef.current) {
+      return;
+    }
     // Ne pas ouvrir si on vient de fermer manuellement le panneau
     if (isManuallyClosingRef.current) {
       return;
@@ -1395,7 +1404,6 @@ export default function ProductBuilderPage() {
       return;
     }
     // Ne pas ouvrir automatiquement si le panneau est déjà ouvert ET que c'est le même module
-    // Mais permettre l'ouverture manuelle via les onglets
     if (mobileActivePanel && selectedLogoId) {
       const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
       if (activeModule && activeModule.contentType === 'logos') {
@@ -9608,15 +9616,25 @@ export default function ProductBuilderPage() {
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
                                           const newPanel = isActive ? null : module.id;
                                           console.log('📱 setMobileActivePanel:', newPanel);
+                                          
+                                          // Marquer qu'on ouvre manuellement le panneau
+                                          isManuallyOpeningRef.current = true;
+                                          // Réinitialiser le flag de fermeture manuelle
+                                          isManuallyClosingRef.current = false;
+                                          
                                           // Réinitialiser les états des logos si on change d'onglet
                                           if (module.contentType === 'logos') {
                                             setLogoSearchQuery('');
                                             setSelectedLogoForVariants(null);
                                             setShowLogoLibrary(false);
                                           }
-                                          // Réinitialiser le flag de fermeture manuelle pour permettre l'ouverture
-                                          isManuallyClosingRef.current = false;
+                                          
                                           setMobileActivePanel(newPanel);
+                                          
+                                          // Réinitialiser le flag d'ouverture manuelle après un court délai
+                                          setTimeout(() => {
+                                            isManuallyOpeningRef.current = false;
+                                          }, 100);
                                         }}
                                         style={{
                                           flex: 1,
