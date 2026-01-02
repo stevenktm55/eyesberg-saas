@@ -7682,6 +7682,7 @@ export default function ProductBuilderPage() {
                                               {/* Scroll horizontal des variantes */}
                                               <div
                                                 ref={logoScrollRef}
+                                                className="logo-variants-scroll"
                                                 onWheel={(e) => {
                                                   if (logoScrollRef.current) {
                                                     e.preventDefault();
@@ -7701,7 +7702,7 @@ export default function ProductBuilderPage() {
                                                 }}
                                               >
                                                 <style>{`
-                                                  div[ref="${logoScrollRef}"]::-webkit-scrollbar {
+                                                  .logo-variants-scroll::-webkit-scrollbar {
                                                     display: none;
                                                   }
                                                 `}</style>
@@ -7858,6 +7859,7 @@ export default function ProductBuilderPage() {
                                             {/* Scroll horizontal des logos */}
                                             <div
                                               ref={logoScrollRef}
+                                              className="logo-library-scroll"
                                               onWheel={(e) => {
                                                 if (logoScrollRef.current) {
                                                   e.preventDefault();
@@ -7877,7 +7879,7 @@ export default function ProductBuilderPage() {
                                               }}
                                             >
                                               <style>{`
-                                                div[ref="${logoScrollRef}"]::-webkit-scrollbar {
+                                                .logo-library-scroll::-webkit-scrollbar {
                                                   display: none;
                                                 }
                                               `}</style>
@@ -9294,12 +9296,19 @@ export default function ProductBuilderPage() {
                                       <button
                                         key={module.id}
                                         className="mobile-tab-btn"
-                                        onClick={() => {
-                                          console.log('📱 Clic sur onglet mobile:', module.tabName, 'isActive:', isActive, 'module.id:', module.id);
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          console.log('📱 Clic sur onglet mobile:', module.tabName, 'isActive:', isActive, 'module.id:', module.id, 'mobileActivePanel actuel:', mobileActivePanel);
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
                                           const newPanel = isActive ? null : module.id;
                                           console.log('📱 setMobileActivePanel:', newPanel);
                                           setMobileActivePanel(newPanel);
+                                          // Réinitialiser la recherche de logos si on change d'onglet
+                                          if (module.contentType === 'logos') {
+                                            setLogoSearchQuery('');
+                                            setSelectedLogoForVariants(null);
+                                          }
                                         }}
                                         style={{
                                           flex: 1,
