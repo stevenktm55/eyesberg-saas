@@ -1320,6 +1320,20 @@ export default function ProductBuilderPage() {
   const manuallyDeselectedTextIdRef = useRef<string | null>(null);
   const manuallyDeselectedLogoIdRef = useRef<string | null>(null);
 
+  // Fermer le panneau mobile typographie quand le texte est désélectionné
+  useEffect(() => {
+    if (viewportMode === 'mobile' && !selectedTextId && mobileActivePanel) {
+      const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
+      if (activeModule && activeModule.contentType === 'text') {
+        // Ne pas fermer si on vient de fermer manuellement (pour éviter les conflits)
+        if (!isManuallyClosingRef.current) {
+          setMobileActivePanel(null);
+          setSelectedColorClass(null);
+        }
+      }
+    }
+  }, [selectedTextId, viewportMode, mobileActivePanel, customizationModules]);
+
   // Ouvrir automatiquement le panneau mobile typographie quand un texte est sélectionné
   useEffect(() => {
     // Ne pas ouvrir si on vient de fermer manuellement le panneau
@@ -1343,6 +1357,20 @@ export default function ProductBuilderPage() {
       }
     }
   }, [selectedTextId, viewportMode, customizationModules, mobileActivePanel]);
+
+  // Fermer le panneau mobile logos quand le logo est désélectionné
+  useEffect(() => {
+    if (viewportMode === 'mobile' && !selectedLogoId && mobileActivePanel) {
+      const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
+      if (activeModule && activeModule.contentType === 'logos') {
+        // Ne pas fermer si on vient de fermer manuellement (pour éviter les conflits)
+        if (!isManuallyClosingRef.current) {
+          setMobileActivePanel(null);
+          setSelectedColorClass(null);
+        }
+      }
+    }
+  }, [selectedLogoId, viewportMode, mobileActivePanel, customizationModules]);
 
   // Ouvrir automatiquement le panneau mobile logos quand un logo est sélectionné
   useEffect(() => {
@@ -6459,8 +6487,10 @@ export default function ProductBuilderPage() {
                                   <OrbitControls
                                     ref={controlsRef}
                                     enablePan={false}
-                                    enableZoom={!selectedTextId && !isPlacingText && !isRestoringRef.current}
-                                    enableRotate={!selectedTextId && !isPlacingText && !isRestoringRef.current}
+                                    // Permettre le zoom et la rotation même quand un texte est sélectionné (pour permettre le déplacement du texte)
+                                    enableZoom={!isPlacingText && !isRestoringRef.current}
+                                    enableRotate={!isPlacingText && !isRestoringRef.current}
+                                    // OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
                                     enabled={!isDraggingText && !isRotatingText && !isResizingText && !isPlacingText && !isRestoringRef.current}
                                     minDistance={minZoom}
                                     maxDistance={maxZoom}
@@ -6507,120 +6537,6 @@ export default function ProductBuilderPage() {
                           </Canvas>
                             );
                           })()}
-                          
-                          {/* Overlay pour fermer le panneau mobile et désélectionner le texte en cliquant sur le 3D */}
-                          {viewportMode === 'mobile' && mobileActivePanel && (
-                            <div
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('🖱️ Overlay onClick - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
-                                isManuallyClosingRef.current = true;
-                                // Nettoyer le timeout précédent
-                                if (manualCloseTimeoutRef.current) {
-                                  clearTimeout(manualCloseTimeoutRef.current);
-                                }
-                                // Stocker les IDs avant désélection pour empêcher la réouverture
-                                if (selectedTextId) {
-                                  console.log('📝 Désélection du texte:', selectedTextId);
-                                  manuallyDeselectedTextIdRef.current = selectedTextId;
-                                  setSelectedTextId(null);
-                                }
-                                if (selectedLogoId) {
-                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
-                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
-                                  setSelectedLogoId(null);
-                                }
-                                // Fermer le panneau
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Garder le flag actif plus longtemps pour éviter la réouverture
-                                manualCloseTimeoutRef.current = setTimeout(() => {
-                                  isManuallyClosingRef.current = false;
-                                  manuallyDeselectedTextIdRef.current = null;
-                                  manuallyDeselectedLogoIdRef.current = null;
-                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
-                                }, 1000);
-                              }}
-                              onTouchStart={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('👆 Overlay onTouchStart - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
-                                isManuallyClosingRef.current = true;
-                                // Nettoyer le timeout précédent
-                                if (manualCloseTimeoutRef.current) {
-                                  clearTimeout(manualCloseTimeoutRef.current);
-                                }
-                                // Stocker les IDs avant désélection pour empêcher la réouverture
-                                if (selectedTextId) {
-                                  console.log('📝 Désélection du texte:', selectedTextId);
-                                  manuallyDeselectedTextIdRef.current = selectedTextId;
-                                  setSelectedTextId(null);
-                                }
-                                if (selectedLogoId) {
-                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
-                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
-                                  setSelectedLogoId(null);
-                                }
-                                // Fermer le panneau
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Garder le flag actif plus longtemps pour éviter la réouverture
-                                manualCloseTimeoutRef.current = setTimeout(() => {
-                                  isManuallyClosingRef.current = false;
-                                  manuallyDeselectedTextIdRef.current = null;
-                                  manuallyDeselectedLogoIdRef.current = null;
-                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
-                                }, 1000);
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('🖱️ Overlay onMouseDown - Fermeture panneau et désélection texte');
-                                // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
-                                isManuallyClosingRef.current = true;
-                                // Nettoyer le timeout précédent
-                                if (manualCloseTimeoutRef.current) {
-                                  clearTimeout(manualCloseTimeoutRef.current);
-                                }
-                                // Stocker les IDs avant désélection pour empêcher la réouverture
-                                if (selectedTextId) {
-                                  console.log('📝 Désélection du texte:', selectedTextId);
-                                  manuallyDeselectedTextIdRef.current = selectedTextId;
-                                  setSelectedTextId(null);
-                                }
-                                if (selectedLogoId) {
-                                  console.log('🖼️ Désélection du logo:', selectedLogoId);
-                                  manuallyDeselectedLogoIdRef.current = selectedLogoId;
-                                  setSelectedLogoId(null);
-                                }
-                                // Fermer le panneau
-                                setMobileActivePanel(null);
-                                setSelectedColorClass(null);
-                                // Garder le flag actif plus longtemps pour éviter la réouverture
-                                manualCloseTimeoutRef.current = setTimeout(() => {
-                                  isManuallyClosingRef.current = false;
-                                  manuallyDeselectedTextIdRef.current = null;
-                                  manuallyDeselectedLogoIdRef.current = null;
-                                  console.log('✅ Flag de fermeture manuelle réinitialisé');
-                                }, 1000);
-                              }}
-                              style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                zIndex: 199,
-                                backgroundColor: 'rgba(0, 0, 0, 0.01)',
-                                cursor: 'pointer',
-                                pointerEvents: 'auto',
-                                touchAction: 'none'
-                              }}
-                            />
-                          )}
                           
                           {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
                           {uv2Canvas && viewportMode !== 'mobile' && (
