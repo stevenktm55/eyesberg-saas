@@ -7118,16 +7118,594 @@ export default function ProductBuilderPage() {
                                             </div>
                                           )}
                                           
-                                          {/* Les autres onglets (police, couleur, contour, déformation) seront ajoutés si nécessaire */}
-                                          {activeTextTab !== 'contenu' && (
-                                            <div style={{
-                                              fontSize: '13px',
-                                              color: '#6b7280',
-                                              textAlign: 'center',
-                                              padding: '20px',
-                                              fontFamily: 'var(--stepn-font-body)'
-                                            }}>
-                                              Fonctionnalité {tabs.find(t => t.id === activeTextTab)?.label} à implémenter
+                                          {/* Onglet Police */}
+                                          {activeTextTab === 'police' && (() => {
+                                            // Filtrer les polices selon les groupes sélectionnés
+                                            const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+                                            const visibleFonts = (() => {
+                                              const allFonts: Array<{ id: string; name: string; display_name?: string; file_url?: string; file_type?: string; groupId: string }> = [];
+                                              fontGroups.forEach(group => {
+                                                if (group.fonts) {
+                                                  group.fonts.forEach((font: any) => {
+                                                    allFonts.push({
+                                                      id: font.id,
+                                                      name: font.name || font.id,
+                                                      display_name: font.display_name,
+                                                      file_url: font.file_url,
+                                                      file_type: font.file_type || font.format,
+                                                      groupId: group.id
+                                                    });
+                                                  });
+                                                }
+                                              });
+                                              
+                                              if (allowedGroupIds && allowedGroupIds.length > 0) {
+                                                return allFonts.filter(font => allowedGroupIds.includes(font.groupId));
+                                              }
+                                              return allFonts;
+                                            })();
+                                            
+                                            // Texte de prévisualisation
+                                            const previewText = selectedText.content && selectedText.content.trim() !== '' 
+                                              ? selectedText.content 
+                                              : 'ZG';
+                                            
+                                            return (
+                                              <div>
+                                                <div style={{
+                                                  fontSize: '13px',
+                                                  fontWeight: '500',
+                                                  color: '#111827',
+                                                  marginBottom: '12px',
+                                                  fontFamily: 'var(--stepn-font-body)'
+                                                }}>
+                                                  Police
+                                                </div>
+                                                {visibleFonts.length === 0 ? (
+                                                  <p style={{ 
+                                                    color: '#6b7280', 
+                                                    fontSize: '12px', 
+                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    padding: '12px',
+                                                    backgroundColor: '#f9fafb',
+                                                    borderRadius: '8px'
+                                                  }}>
+                                                    Aucune police disponible. Cochez des groupes de polices dans les settings du module.
+                                                  </p>
+                                                ) : (
+                                                  <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(2, 1fr)',
+                                                    gap: '10px',
+                                                    padding: '4px'
+                                                  }}>
+                                                    {visibleFonts.map((font) => {
+                                                      const isSelected = selectedText.fontFamily === font.id;
+                                                      const fontFamilyValue = font.display_name || font.name;
+                                                      
+                                                      return (
+                                                        <div
+                                                          key={font.id}
+                                                          onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
+                                                          style={{
+                                                            padding: '10px',
+                                                            backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                                            borderRadius: '8px',
+                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            minHeight: '80px',
+                                                            position: 'relative'
+                                                          }}
+                                                        >
+                                                          <div style={{
+                                                            width: '100%',
+                                                            padding: '6px',
+                                                            backgroundColor: '#f5f5f5',
+                                                            borderRadius: '4px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            minHeight: '50px',
+                                                            fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                            fontSize: '16px',
+                                                            fontWeight: 'bold',
+                                                            color: '#111827'
+                                                          }}>
+                                                            {previewText}
+                                                          </div>
+                                                          <span style={{
+                                                            fontSize: '10px',
+                                                            color: '#111827',
+                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            textAlign: 'center',
+                                                            fontWeight: '500'
+                                                          }}>
+                                                            {font.display_name || font.name}
+                                                          </span>
+                                                          {isSelected && (
+                                                            <div style={{
+                                                              position: 'absolute',
+                                                              bottom: '6px',
+                                                              right: '6px',
+                                                              width: '18px',
+                                                              height: '18px',
+                                                              borderRadius: '50%',
+                                                              backgroundColor: '#111827',
+                                                              display: 'flex',
+                                                              alignItems: 'center',
+                                                              justifyContent: 'center'
+                                                            }}>
+                                                              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                                                                <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                              </svg>
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                )}
+                                                <div style={{ marginTop: '16px' }}>
+                                                  <div style={{
+                                                    fontSize: '13px',
+                                                    fontWeight: '500',
+                                                    color: '#111827',
+                                                    marginBottom: '8px',
+                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between'
+                                                  }}>
+                                                    <span>Taille du texte</span>
+                                                    <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                                                      {Math.round(textConstraints.minFontSizePx)} px – {Math.round(textConstraints.maxFontSizePx)} px
+                                                    </span>
+                                                  </div>
+                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    <input
+                                                      type="range"
+                                                      min={textConstraints.minFontSizePx}
+                                                      max={textConstraints.maxFontSizePx}
+                                                      step={1}
+                                                      value={selectedText.fontSize}
+                                                      onChange={(e) => updateText(selectedTextId, { fontSize: parseFloat(e.target.value) })}
+                                                      style={{
+                                                        flex: 1,
+                                                        accentColor: '#111827'
+                                                      }}
+                                                    />
+                                                    <span style={{
+                                                      fontSize: '13px',
+                                                      fontWeight: '600',
+                                                      color: '#111827',
+                                                      minWidth: '48px',
+                                                      textAlign: 'right',
+                                                      fontFamily: 'var(--stepn-font-body)'
+                                                    }}>
+                                                      {Math.round(selectedText.fontSize)} px
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })()}
+                                          
+                                          {/* Onglet Couleur */}
+                                          {activeTextTab === 'couleur' && (
+                                            <div>
+                                              <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: '#111827',
+                                                marginBottom: '12px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Couleur
+                                              </div>
+                                              {activeModule.textColorPaletteId ? (() => {
+                                                const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
+                                                if (!palette) {
+                                                  return (
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                      Palette introuvable. Veuillez en sélectionner une autre.
+                                                    </p>
+                                                  );
+                                                }
+                                                const paletteColors = palette.colors || [];
+                                                if (paletteColors.length === 0) {
+                                                  return (
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                      La palette sélectionnée ne contient aucune couleur.
+                                                    </p>
+                                                  );
+                                                }
+                                                return (
+                                                  <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(4, 1fr)',
+                                                    gap: '10px'
+                                                  }}>
+                                                    {paletteColors.map((color: any, index: number) => {
+                                                      const hex = (color?.hex || '#000000').toLowerCase();
+                                                      const isSelected = (selectedText.color || '').toLowerCase() === hex;
+                                                      return (
+                                                        <button
+                                                          key={color?.id || `${palette.id}-${index}`}
+                                                          onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
+                                                          style={{
+                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                                            borderRadius: '10px',
+                                                            padding: '8px',
+                                                            backgroundColor: '#ffffff',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            cursor: 'pointer',
+                                                            transition: 'border-color 0.2s'
+                                                          }}
+                                                        >
+                                                          <span style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '50%',
+                                                            border: '1px solid #d1d5db',
+                                                            backgroundColor: color?.hex || '#000000',
+                                                            display: 'inline-block'
+                                                          }} />
+                                                          <span style={{
+                                                            fontSize: '10px',
+                                                            color: '#111827',
+                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            textAlign: 'center'
+                                                          }}>
+                                                            {color?.name || (color?.hex || '#000000').toUpperCase().slice(0, 6)}
+                                                          </span>
+                                                        </button>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                );
+                                              })() : (
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                  Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
+                                                </p>
+                                              )}
+                                            </div>
+                                          )}
+                                          
+                                          {/* Onglet Contour */}
+                                          {activeTextTab === 'contour' && (
+                                            <div>
+                                              <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: '#111827',
+                                                marginBottom: '12px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Contour
+                                              </div>
+                                              {activeModule.textStrokePaletteId ? (() => {
+                                                const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
+                                                if (!palette) {
+                                                  return (
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                      Palette introuvable. Veuillez en sélectionner une autre.
+                                                    </p>
+                                                  );
+                                                }
+                                                const paletteColors = palette.colors || [];
+                                                if (paletteColors.length === 0) {
+                                                  return (
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                      La palette sélectionnée ne contient aucune couleur.
+                                                    </p>
+                                                  );
+                                                }
+                                                return (
+                                                  <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(4, 1fr)',
+                                                    gap: '10px',
+                                                    marginBottom: '16px'
+                                                  }}>
+                                                    {paletteColors.map((color: any, index: number) => {
+                                                      const hex = (color?.hex || '#000000').toLowerCase();
+                                                      const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
+                                                      return (
+                                                        <button
+                                                          key={color?.id || `${palette.id}-${index}`}
+                                                          onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
+                                                          style={{
+                                                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                                            borderRadius: '10px',
+                                                            padding: '8px',
+                                                            backgroundColor: '#ffffff',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            cursor: 'pointer',
+                                                            transition: 'border-color 0.2s'
+                                                          }}
+                                                        >
+                                                          <span style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '50%',
+                                                            border: '1px solid #d1d5db',
+                                                            backgroundColor: color?.hex || '#000000',
+                                                            display: 'inline-block'
+                                                          }} />
+                                                          <span style={{
+                                                            fontSize: '10px',
+                                                            color: '#111827',
+                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            textAlign: 'center'
+                                                          }}>
+                                                            {color?.name || (color?.hex || '#000000').toUpperCase().slice(0, 6)}
+                                                          </span>
+                                                        </button>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                );
+                                              })() : (
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
+                                                  Sélectionnez une palette de contours dans les réglages du module.
+                                                </p>
+                                              )}
+                                              <div>
+                                                {(() => {
+                                                  const sliderMin = textConstraints.strokeMinWidthPx;
+                                                  const sliderMax = textConstraints.strokeMaxWidthPx;
+                                                  const sliderRange = sliderMax - sliderMin;
+                                                  
+                                                  const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
+                                                  let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
+                                                  currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
+                                                  currentPxValue = Math.round(currentPxValue);
+                                                  if (currentPxValue < sliderMin) currentPxValue = sliderMin;
+                                                  if (currentPxValue > sliderMax) currentPxValue = sliderMax;
+                                                  
+                                                  const sliderId = `stroke-slider-mobile-${selectedTextId}`;
+                                                  
+                                                  return (
+                                                    <div style={{ width: '100%' }}>
+                                                      <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        marginBottom: '8px'
+                                                      }}>
+                                                        <div style={{
+                                                          fontSize: '13px',
+                                                          fontWeight: '500',
+                                                          color: '#111827',
+                                                          fontFamily: 'var(--stepn-font-body)'
+                                                        }}>
+                                                          Épaisseur {currentPxValue}
+                                                        </div>
+                                                      </div>
+                                                      <style>{`
+                                                        #${sliderId} {
+                                                          -webkit-appearance: none;
+                                                          appearance: none;
+                                                          width: 100%;
+                                                          height: 6px;
+                                                          border-radius: 3px;
+                                                          background: #e5e7eb;
+                                                          outline: none;
+                                                          padding: 0;
+                                                          margin: 0;
+                                                        }
+                                                        #${sliderId}::-webkit-slider-thumb {
+                                                          -webkit-appearance: none;
+                                                          appearance: none;
+                                                          width: 18px;
+                                                          height: 18px;
+                                                          border-radius: 50%;
+                                                          background: #3b82f6;
+                                                          cursor: pointer;
+                                                          border: none;
+                                                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                                        }
+                                                        #${sliderId}::-moz-range-thumb {
+                                                          width: 18px;
+                                                          height: 18px;
+                                                          border-radius: 50%;
+                                                          background: #3b82f6;
+                                                          cursor: pointer;
+                                                          border: none;
+                                                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                                        }
+                                                      `}</style>
+                                                      <input
+                                                        id={sliderId}
+                                                        type="range"
+                                                        min={sliderMin}
+                                                        max={sliderMax}
+                                                        step="1"
+                                                        value={currentPxValue}
+                                                        onChange={(e) => {
+                                                          const pxValue = parseFloat(e.target.value);
+                                                          if (!Number.isFinite(pxValue)) return;
+                                                          let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
+                                                          clampedValue = Math.round(clampedValue);
+                                                          if (clampedValue < sliderMin) clampedValue = sliderMin;
+                                                          if (clampedValue > sliderMax) clampedValue = sliderMax;
+                                                          updateText(selectedTextId, { strokeWidth: clampedValue });
+                                                        }}
+                                                        disabled={sliderRange <= 0}
+                                                      />
+                                                    </div>
+                                                  );
+                                                })()}
+                                              </div>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Onglet Déformation */}
+                                          {activeTextTab === 'deformation' && (
+                                            <div>
+                                              <div style={{
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                color: '#111827',
+                                                marginBottom: '12px',
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}>
+                                                Type de déformation
+                                              </div>
+                                              <div>
+                                                <style>{`
+                                                  select.deformation-select-mobile {
+                                                    color: #111827 !important;
+                                                  }
+                                                  select.deformation-select-mobile option {
+                                                    color: #111827 !important;
+                                                    background-color: #ffffff !important;
+                                                  }
+                                                `}</style>
+                                                <select
+                                                  className="deformation-select-mobile"
+                                                  value={selectedText.deformation || ''}
+                                                  onChange={(e) => updateText(selectedTextId, { 
+                                                    deformation: e.target.value || undefined 
+                                                  })}
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '12px',
+                                                    backgroundColor: '#ffffff',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    color: '#111827',
+                                                    fontSize: '14px',
+                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    cursor: 'pointer',
+                                                    outline: 'none',
+                                                    marginBottom: selectedText.deformation ? '16px' : '0'
+                                                  }}
+                                                >
+                                                  {(() => {
+                                                    const allDeformations = [
+                                                      { value: '', label: 'Aucune' },
+                                                      { value: 'arc', label: 'Arc' },
+                                                      { value: 'wave', label: 'Vague' },
+                                                      { value: 'bulge', label: 'Bombé' },
+                                                      { value: 'pinch', label: 'Pincement' },
+                                                      { value: 'flag', label: 'Drapeau' },
+                                                      { value: 'fisheye', label: 'Fisheye' },
+                                                      { value: 'squeeze', label: 'Compression' },
+                                                      { value: 'skew', label: 'Inclinaison' },
+                                                      { value: 'spiral', label: 'Spirale' },
+                                                      { value: 'rotate', label: 'Rotation progressive' },
+                                                      { value: 'tilt', label: 'Tilt' },
+                                                      { value: 'perspective', label: 'Perspective' },
+                                                      { value: 'fade', label: 'Fondu' },
+                                                      { value: 'ribbon', label: 'Ruban' },
+                                                      { value: 'incline', label: 'Montée/descente' },
+                                                      { value: 'staircase', label: 'Escalier' },
+                                                      { value: 'wave-arc', label: 'Vague + Arc' },
+                                                      { value: 'pulse', label: 'Pulse' },
+                                                    ];
+                                                    
+                                                    const enabledDeformations = activeModule?.textEnabledDeformations;
+                                                    const filteredDeformations = enabledDeformations && enabledDeformations.length > 0
+                                                      ? allDeformations.filter(def => 
+                                                          def.value === '' || enabledDeformations.includes(def.value)
+                                                        )
+                                                      : allDeformations;
+                                                    
+                                                    return filteredDeformations.map(def => (
+                                                      <option key={def.value} value={def.value} style={{ color: '#111827', backgroundColor: '#ffffff' }}>{def.label}</option>
+                                                    ));
+                                                  })()}
+                                                </select>
+                                              </div>
+                                              {selectedText.deformation && (() => {
+                                                const sliderId = `deformation-slider-mobile-${selectedTextId}`;
+                                                const intensity = selectedText.deformationIntensity ?? 0;
+                                                
+                                                return (
+                                                  <div style={{ marginTop: '16px' }}>
+                                                    <div style={{
+                                                      display: 'flex',
+                                                      justifyContent: 'space-between',
+                                                      alignItems: 'center',
+                                                      marginBottom: '8px'
+                                                    }}>
+                                                      <div style={{
+                                                        fontSize: '13px',
+                                                        fontWeight: '500',
+                                                        color: '#111827',
+                                                        fontFamily: 'var(--stepn-font-body)'
+                                                      }}>
+                                                        Intensité
+                                                      </div>
+                                                      <div style={{
+                                                        fontSize: '13px',
+                                                        fontWeight: '600',
+                                                        color: '#111827',
+                                                        fontFamily: 'var(--stepn-font-body)',
+                                                        minWidth: '60px',
+                                                        textAlign: 'right'
+                                                      }}>
+                                                        {intensity > 0 ? `+${intensity}` : intensity.toString()}
+                                                      </div>
+                                                    </div>
+                                                    <style>{`
+                                                      #${sliderId} {
+                                                        -webkit-appearance: none;
+                                                        appearance: none;
+                                                        width: 100%;
+                                                        height: 6px;
+                                                        border-radius: 3px;
+                                                        background: #e5e7eb;
+                                                        outline: none;
+                                                        padding: 0;
+                                                        margin: 0;
+                                                      }
+                                                      #${sliderId}::-webkit-slider-thumb {
+                                                        -webkit-appearance: none;
+                                                        appearance: none;
+                                                        width: 18px;
+                                                        height: 18px;
+                                                        border-radius: 50%;
+                                                        background: #8eff36;
+                                                        border: 2px solid #ffffff;
+                                                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                                                        cursor: pointer;
+                                                      }
+                                                      #${sliderId}::-moz-range-thumb {
+                                                        width: 18px;
+                                                        height: 18px;
+                                                        border-radius: 50%;
+                                                        background: #8eff36;
+                                                        border: 2px solid #ffffff;
+                                                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                                                        cursor: pointer;
+                                                      }
+                                                    `}</style>
+                                                    <input
+                                                      id={sliderId}
+                                                      type="range"
+                                                      min="-100"
+                                                      max="100"
+                                                      step="1"
+                                                      value={intensity}
+                                                      onChange={(e) => updateText(selectedTextId, { 
+                                                        deformationIntensity: parseInt(e.target.value) 
+                                                      })}
+                                                    />
+                                                  </div>
+                                                );
+                                              })()}
                                             </div>
                                           )}
                                         </div>
