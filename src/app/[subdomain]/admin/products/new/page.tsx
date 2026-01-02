@@ -10574,8 +10574,8 @@ export default function ProductBuilderPage() {
                               zoneRotation
                             );
                             
-                            // Positionner la caméra sur la vue de la zone
-                            if (zoneCategory) {
+                            // Ne pas réinitialiser la caméra en mode mobile
+                            if (zoneCategory && viewportMode !== 'mobile') {
                               setTargetView(zoneCategory);
                             }
                             
