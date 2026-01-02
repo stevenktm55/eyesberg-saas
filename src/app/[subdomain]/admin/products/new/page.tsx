@@ -6665,9 +6665,103 @@ export default function ProductBuilderPage() {
                                 }}
                               >
                                 {/* Header du panneau - Style stretchmx */}
-                                <div style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+                                <div 
+                                  style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}
+                                  onTouchStart={(e) => {
+                                    console.log('👆 page.tsx - TouchStart sur header panneau mobile');
+                                    const touch = e.touches[0];
+                                    (e.currentTarget as any).swipeStartY = touch.clientY;
+                                    (e.currentTarget as any).swipeStartTime = Date.now();
+                                  }}
+                                  onTouchMove={(e) => {
+                                    const touch = e.touches[0];
+                                    const startY = (e.currentTarget as any).swipeStartY;
+                                    if (startY !== undefined) {
+                                      const deltaY = touch.clientY - startY;
+                                      const panel = (e.currentTarget as HTMLElement).closest('.mobile-panel-slide-up');
+                                      if (panel && deltaY > 0) {
+                                        (panel as HTMLElement).style.transform = `translateY(${deltaY}px)`;
+                                        (panel as HTMLElement).style.transition = 'none';
+                                      }
+                                    }
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    console.log('👆 page.tsx - TouchEnd sur header panneau mobile');
+                                    const startY = (e.currentTarget as any).swipeStartY;
+                                    const startTime = (e.currentTarget as any).swipeStartTime;
+                                    if (startY !== undefined && startTime !== undefined) {
+                                      const touch = e.changedTouches[0];
+                                      const deltaY = touch.clientY - startY;
+                                      const deltaTime = Date.now() - startTime;
+                                      const velocity = deltaY / deltaTime;
+                                      const panel = (e.currentTarget as HTMLElement).closest('.mobile-panel-slide-up');
+                                      
+                                      if (panel) {
+                                        (panel as HTMLElement).style.transition = 'transform 0.3s ease-out';
+                                        
+                                        if (deltaY > 50 || velocity > 0.3) {
+                                          console.log('✅ page.tsx - Fermeture panneau mobile par swipe down');
+                                          (panel as HTMLElement).style.transform = 'translateY(100%)';
+                                          setTimeout(() => {
+                                            setMobileActivePanel(null);
+                                            setSelectedColorClass(null);
+                                          }, 300);
+                                        } else {
+                                          (panel as HTMLElement).style.transform = 'translateY(0)';
+                                        }
+                                      }
+                                    }
+                                  }}
+                                >
                                   {/* Drag handle */}
-                                  <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
+                                  <div 
+                                    style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px', cursor: 'grab' }}
+                                    onTouchStart={(e) => {
+                                      console.log('👆 page.tsx - TouchStart sur drag handle');
+                                      const touch = e.touches[0];
+                                      (e.currentTarget as any).swipeStartY = touch.clientY;
+                                      (e.currentTarget as any).swipeStartTime = Date.now();
+                                    }}
+                                    onTouchMove={(e) => {
+                                      const touch = e.touches[0];
+                                      const startY = (e.currentTarget as any).swipeStartY;
+                                      if (startY !== undefined) {
+                                        const deltaY = touch.clientY - startY;
+                                        const panel = (e.currentTarget as HTMLElement).closest('.mobile-panel-slide-up');
+                                        if (panel && deltaY > 0) {
+                                          (panel as HTMLElement).style.transform = `translateY(${deltaY}px)`;
+                                          (panel as HTMLElement).style.transition = 'none';
+                                        }
+                                      }
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      console.log('👆 page.tsx - TouchEnd sur drag handle');
+                                      const startY = (e.currentTarget as any).swipeStartY;
+                                      const startTime = (e.currentTarget as any).swipeStartTime;
+                                      if (startY !== undefined && startTime !== undefined) {
+                                        const touch = e.changedTouches[0];
+                                        const deltaY = touch.clientY - startY;
+                                        const deltaTime = Date.now() - startTime;
+                                        const velocity = deltaY / deltaTime;
+                                        const panel = (e.currentTarget as HTMLElement).closest('.mobile-panel-slide-up');
+                                        
+                                        if (panel) {
+                                          (panel as HTMLElement).style.transition = 'transform 0.3s ease-out';
+                                          
+                                          if (deltaY > 50 || velocity > 0.3) {
+                                            console.log('✅ page.tsx - Fermeture panneau mobile par swipe down (drag handle)');
+                                            (panel as HTMLElement).style.transform = 'translateY(100%)';
+                                            setTimeout(() => {
+                                              setMobileActivePanel(null);
+                                              setSelectedColorClass(null);
+                                            }, 300);
+                                          } else {
+                                            (panel as HTMLElement).style.transform = 'translateY(0)';
+                                          }
+                                        }
+                                      }
+                                    }}
+                                  >
                                     <div style={{ width: '32px', height: '4px', backgroundColor: '#d1d5db', borderRadius: '2px' }} />
                                   </div>
                                   {/* Titre et bouton fermer */}
