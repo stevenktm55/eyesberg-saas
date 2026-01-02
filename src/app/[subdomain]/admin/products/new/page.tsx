@@ -7609,6 +7609,7 @@ export default function ProductBuilderPage() {
                                                     </div>
                                                   </div>
                                                 );
+                                              })() : (
                                                 <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
                                                   Sélectionnez une palette de contours dans les réglages du module.
                                                 </p>
