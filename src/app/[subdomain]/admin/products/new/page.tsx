@@ -8662,7 +8662,9 @@ export default function ProductBuilderPage() {
                                   display: 'flex',
                                   flexDirection: 'column',
                                   overflow: 'hidden',
-                                  color: '#111827'
+                                  color: '#111827',
+                                  // Permettre les événements pointer à travers le panneau pour le Canvas en dessous
+                                  pointerEvents: 'auto'
                                 }}
                               >
                                 <style>{`
