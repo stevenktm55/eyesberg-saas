@@ -6235,9 +6235,18 @@ export default function ProductBuilderPage() {
                                         target: [target.x, target.y, target.z] as [number, number, number],
                                         distance: distance
                                       };
-                                      // Désactiver temporairement les mises à jour automatiques
+                                      // Désactiver complètement OrbitControls pendant la transition
                                       isRestoringRef.current = true;
+                                      if (controlsRef.current) {
+                                        controlsRef.current.enabled = false;
+                                      }
                                     } else if (!mobileActivePanel && savedCameraStateRef.current) {
+                                      // Réactiver OrbitControls après la fermeture
+                                      isRestoringRef.current = false;
+                                      if (controlsRef.current) {
+                                        controlsRef.current.enabled = true;
+                                      }
+                                      
                                       // Restaurer l'état sauvegardé de la caméra après que le panneau soit complètement fermé
                                       const restoreCamera = () => {
                                         if (controlsRef.current && savedCameraStateRef.current) {
@@ -6267,7 +6276,6 @@ export default function ProductBuilderPage() {
                                           
                                           controlsRef.current.update();
                                           savedCameraStateRef.current = null;
-                                          isRestoringRef.current = false;
                                         }
                                       };
                                       
@@ -6298,19 +6306,24 @@ export default function ProductBuilderPage() {
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
                                 // Surveiller et corriger la distance de la caméra en continu pendant que le panneau est ouvert
+                                // ET désactiver complètement OrbitControls pour empêcher tout recalcul
                                 useEffect(() => {
                                   if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current && isRestoringRef.current) {
                                     let animationFrameId: number;
-                                    let lastDistance = savedCameraStateRef.current.distance;
                                     
                                     const maintainDistance = () => {
                                       if (controlsRef.current && savedCameraStateRef.current && isRestoringRef.current) {
+                                        // S'assurer qu'OrbitControls est désactivé
+                                        if (controlsRef.current.enabled) {
+                                          controlsRef.current.enabled = false;
+                                        }
+                                        
                                         const camera = controlsRef.current.object;
                                         const target = controlsRef.current.target;
                                         const currentDistance = camera.position.distanceTo(target);
                                         
-                                        // Si la distance a changé, la corriger
-                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.01) {
+                                        // Si la distance a changé, la corriger immédiatement
+                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.001) {
                                           const dx = camera.position.x - target.x;
                                           const dy = camera.position.y - target.y;
                                           const dz = camera.position.z - target.z;
@@ -6323,7 +6336,8 @@ export default function ProductBuilderPage() {
                                               target.y + dy * scale,
                                               target.z + dz * scale
                                             );
-                                            controlsRef.current.update();
+                                            // Ne pas appeler update() pour éviter qu'OrbitControls ne recalcule
+                                            camera.updateProjectionMatrix();
                                           }
                                         }
                                         
