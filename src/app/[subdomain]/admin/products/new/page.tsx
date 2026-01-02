@@ -8688,6 +8688,13 @@ export default function ProductBuilderPage() {
                                   .mobile-action-btn-black {
                                     color: #ffffff !important;
                                   }
+                                  /* Forcer la croix de fermeture en noir */
+                                  .mobile-panel-slide-up button:has(svg[stroke="#111827"]) {
+                                    color: #111827 !important;
+                                  }
+                                  .mobile-panel-slide-up button:has(svg[stroke="#111827"]) svg {
+                                    stroke: #111827 !important;
+                                  }
                                 `}</style>
                                 {/* Header du panneau - Style stretchmx */}
                                 <div 
