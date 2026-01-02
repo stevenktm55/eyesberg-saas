@@ -1275,6 +1275,8 @@ function Viewer3D({
   onTextPlaced,
   viewerSettings,
   cameraSettings,
+  onCloseModal,
+  isMobileModalOpen,
 }: { 
   designTexture: string | null; 
   colors: Record<string, string>;
@@ -1367,6 +1369,9 @@ function Viewer3D({
     zoomSpeed?: number;
     rotateSpeed?: number;
   };
+  // Fermeture du panneau mobile
+  onCloseModal?: () => void;
+  isMobileModalOpen?: boolean;
 }) {
   const [testUVMap, setTestUVMap] = useState<string | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{uv: [number, number], svg: [number, number]} | null>(null);
@@ -4434,8 +4439,59 @@ export default function ConfiguratorViewer({
               </div>
             )}
             
-            {/* En-tête du panneau */}
-            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
+            {/* En-tête du panneau avec swipe down pour fermer en mobile */}
+            <div 
+              className="flex-shrink-0 p-4 border-b border-gray-200 bg-white"
+              style={isMobileMode ? { touchAction: 'pan-y' } : {}}
+              onTouchStart={isMobileMode ? (e) => {
+                const touch = e.touches[0];
+                (e.currentTarget as any).swipeStartY = touch.clientY;
+                (e.currentTarget as any).swipeStartTime = Date.now();
+              } : undefined}
+              onTouchMove={isMobileMode ? (e) => {
+                const touch = e.touches[0];
+                const startY = (e.currentTarget as any).swipeStartY;
+                if (startY !== undefined) {
+                  const deltaY = touch.clientY - startY;
+                  const panel = (e.currentTarget as HTMLElement).closest('[style*="height: 40%"]');
+                  if (panel && deltaY > 0) {
+                    (panel as HTMLElement).style.transform = `translateY(${deltaY}px)`;
+                    (panel as HTMLElement).style.transition = 'none';
+                  }
+                }
+              } : undefined}
+              onTouchEnd={isMobileMode ? (e) => {
+                const startY = (e.currentTarget as any).swipeStartY;
+                const startTime = (e.currentTarget as any).swipeStartTime;
+                if (startY !== undefined) {
+                  const touch = e.changedTouches[0];
+                  const deltaY = touch.clientY - startY;
+                  const deltaTime = Date.now() - (startTime || 0);
+                  const panel = (e.currentTarget as HTMLElement).closest('[style*="height: 40%"]');
+                  
+                  const velocity = deltaY / deltaTime;
+                  if (deltaY > 100 || (deltaY > 50 && velocity > 0.5)) {
+                    console.log('✅ Swipe down détecté - Fermeture du panneau');
+                    setActiveCustomizerTab(null);
+                  }
+                  
+                  if (panel) {
+                    (panel as HTMLElement).style.transform = '';
+                    (panel as HTMLElement).style.transition = '';
+                  }
+                  delete (e.currentTarget as any).swipeStartY;
+                  delete (e.currentTarget as any).swipeStartTime;
+                }
+              } : undefined}
+            >
+              {isMobileMode && (
+                <div
+                  className="absolute top-1 left-1/2 -translate-x-1/2 w-20 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing"
+                  style={{ touchAction: 'pan-y' }}
+                >
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 {activeModule.iconUrl ? (
                   <img src={activeModule.iconUrl} alt={activeModule.tabName} className="w-7 h-7" />
@@ -8060,6 +8116,40 @@ export default function ConfiguratorViewer({
           }}
         >
           <div style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+            {/* Overlay pour fermer le panneau mobile en cliquant sur la zone 3D */}
+            {isMobileMode && activeCustomizerTab && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: '40%', // Laisser de l'espace pour le panneau
+                  backgroundColor: 'transparent',
+                  zIndex: 45,
+                  pointerEvents: 'auto',
+                  touchAction: 'auto'
+                }}
+                onClick={(e) => {
+                  console.log('🖱️ ConfiguratorViewer - Clic sur overlay zone 3D');
+                  e.stopPropagation();
+                  e.preventDefault();
+                  console.log('✅ Fermeture du panneau mobile');
+                  setActiveCustomizerTab(null);
+                }}
+                onTouchStart={(e) => {
+                  console.log('👆 ConfiguratorViewer - Touch sur overlay zone 3D');
+                  e.stopPropagation();
+                  e.preventDefault();
+                  console.log('✅ Fermeture du panneau mobile (touch)');
+                  setActiveCustomizerTab(null);
+                }}
+                onMouseDown={(e) => {
+                  console.log('🖱️ ConfiguratorViewer - MouseDown sur overlay zone 3D');
+                  e.stopPropagation();
+                }}
+              />
+            )}
             <Viewer3D
             designTexture={designTexture}
             colors={colors}
@@ -8105,6 +8195,11 @@ export default function ConfiguratorViewer({
             onTextPlaced={onTextPlaced}
             viewerSettings={snapshot?.viewerSettings}
             cameraSettings={snapshot?.cameraSettings}
+            onCloseModal={() => {
+              console.log('✅ Viewer3D - Fermeture du panneau mobile via onCloseModal');
+              setActiveCustomizerTab(null);
+            }}
+            isMobileModalOpen={!!(isMobileMode && activeCustomizerTab)}
           />
           </div>
           
