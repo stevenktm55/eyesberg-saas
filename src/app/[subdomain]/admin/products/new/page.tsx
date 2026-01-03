@@ -7062,7 +7062,8 @@ export default function ProductBuilderPage() {
                             
                             // Récupérer les zones des groupes sélectionnés pour les logos
                             // Utiliser la même logique que pour les textes
-                            const logoZoneGroupIds = activeModule.config?.logoZoneGroupIds || 
+                            const logoZoneGroupIds = activeModule.logoZoneGroupIds ||
+                                                     activeModule.config?.logoZoneGroupIds || 
                                                      activeModule.selectedItems?.logoZoneGroupIds || 
                                                      activeModule.zoneGroupIds ||
                                                      activeModule.config?.zoneGroupIds ||
@@ -8279,36 +8280,36 @@ export default function ProductBuilderPage() {
                                     ) : (
                                       // Vue initiale : Bouton ajouter + logos placés
                                       <>
-                                        {/* Bouton ajouter */}
-                                        <button
+                                    {/* Bouton ajouter */}
+                                    <button
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
                                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
                                           className="mobile-action-btn-black"
-                                        >
-                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                          {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
-                                        </button>
-                                        {/* Logos placés */}
-                                        <div>
+                                    >
+                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                    </button>
+                                    {/* Logos placés */}
+                                    <div>
                                           <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>Logos placés ({modulePlacedLogos.length})</h3>
-                                          {modulePlacedLogos.length === 0 ? (
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
-                                              <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                      {modulePlacedLogos.length === 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
+                                          <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                               <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo ajouté</p>
                                               <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
-                                            </div>
-                                          ) : (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                              {modulePlacedLogos.map((logo) => (
-                                                <div key={logo.id} onClick={() => setSelectedLogoId(logo.id)} style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}>
-                                                  <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
                                         </div>
+                                      ) : (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                          {modulePlacedLogos.map((logo) => (
+                                            <div key={logo.id} onClick={() => setSelectedLogoId(logo.id)} style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}>
+                                              <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                       </>
                                     )}
                                   </div>
