@@ -6350,6 +6350,7 @@ export default function ProductBuilderPage() {
                                 
                                 // Sauvegarder la position de la caméra avant l'ouverture du panneau et la restaurer après
                                 // NE PAS désactiver OrbitControls pour permettre le déplacement du texte
+                                // NE PAS réinitialiser la caméra à la face quand un onglet s'ouvre
                                 useEffect(() => {
                                   if (controlsRef.current && viewportMode === 'mobile') {
                                     if (mobileActivePanel && !savedCameraStateRef.current) {
@@ -6362,7 +6363,9 @@ export default function ProductBuilderPage() {
                                         target: [target.x, target.y, target.z] as [number, number, number],
                                         distance: distance
                                       };
+                                      console.log('💾 Caméra sauvegardée avant ouverture panneau:', savedCameraStateRef.current);
                                       // NE PAS désactiver OrbitControls - permettre le déplacement du texte
+                                      // NE PAS réinitialiser la caméra - garder la vue actuelle
                                       // isRestoringRef reste false pour permettre les interactions
                                     } else if (!mobileActivePanel && savedCameraStateRef.current) {
                                       // Restaurer l'état sauvegardé de la caméra après que le panneau soit complètement fermé
@@ -6467,6 +6470,54 @@ export default function ProductBuilderPage() {
                                     };
                                   }
                                 }, [mobileActivePanel, isDraggingText]);
+                                
+                                // Écouter l'événement setCameraView pour positionner la caméra
+                                useEffect(() => {
+                                  const handleSetCameraView = (event: CustomEvent) => {
+                                    console.log('📡 Événement setCameraView reçu dans ControlsManager:', event.detail);
+                                    if (!controlsRef.current) return;
+                                    
+                                    const camera = controlsRef.current.object;
+                                    const target = controlsRef.current.target;
+                                    const maxDistance = maxZoom;
+                                    
+                                    const view = event.detail as 'front' | 'back' | 'left' | 'right';
+                                    
+                                    // Mapper la vue à la catégorie pour utiliser la bonne distance
+                                    const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                      'front': 'torse',
+                                      'back': 'dos',
+                                      'left': 'bras-gauche',
+                                      'right': 'bras-droit'
+                                    };
+                                    
+                                    const category = viewToCategory[view];
+                                    const distance = viewDistance[category] || maxDistance;
+                                    
+                                    console.log('📸 Positionnement caméra:', { view, category, distance });
+                                    
+                                    if (view === 'front') {
+                                      camera.position.set(0, 0, distance);
+                                      target.set(0, 0, 0);
+                                    } else if (view === 'back') {
+                                      camera.position.set(0, 0, -distance);
+                                      target.set(0, 0, 0);
+                                    } else if (view === 'left') {
+                                      camera.position.set(-distance, 0, 0);
+                                      target.set(0, 0, 0);
+                                    } else if (view === 'right') {
+                                      camera.position.set(distance, 0, 0);
+                                      target.set(0, 0, 0);
+                                    }
+                                    
+                                    camera.rotation.set(0, 0, 0);
+                                    controlsRef.current.update();
+                                    requestAnimationFrame(() => controlsRef.current?.update());
+                                  };
+                                  
+                                  window.addEventListener('setCameraView', handleSetCameraView as EventListener);
+                                  return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
+                                }, [viewDistance, maxZoom]);
                                 
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
