@@ -7303,6 +7303,30 @@ export default function ProductBuilderPage() {
                                                 zoneRotation
                                               );
                                               
+                                              // Positionner la caméra selon la vue de la zone
+                                              const viewToCameraView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                                'Face': 'front',
+                                                'Dos': 'back',
+                                                'Gauche': 'left',
+                                                'Droite': 'right'
+                                              };
+                                              
+                                              // Si la zone a une vue, l'utiliser directement
+                                              if (selectedZone.view && viewToCameraView[selectedZone.view]) {
+                                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewToCameraView[selectedZone.view] }));
+                                              } else if (zoneCategory) {
+                                                // Sinon, mapper la catégorie à une vue
+                                                const categoryToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                                  'torse': 'front',
+                                                  'dos': 'back',
+                                                  'bras-gauche': 'left',
+                                                  'bras-droit': 'right'
+                                                };
+                                                if (categoryToView[zoneCategory]) {
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: categoryToView[zoneCategory] }));
+                                                }
+                                              }
+                                              
                                               setShowLogoZoneModal(false);
                                               setSelectedLogoForZone(null);
                                               setSelectedLogoZoneId('');
