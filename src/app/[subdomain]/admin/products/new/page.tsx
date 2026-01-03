@@ -7070,23 +7070,9 @@ export default function ProductBuilderPage() {
                                                      activeModule.selectedItems?.zoneGroupIds ||
                                                      [];
                             
-                            // Debug temporaire - afficher toutes les propriétés
-                            console.log('🔍 Zones logos - activeModule complet:', JSON.stringify(activeModule, null, 2));
-                            console.log('🔍 Zones logos - zoneGroups:', zoneGroups.map(g => ({ id: g.id, name: g.name, zonesCount: g.zones?.length || 0 })));
-                            console.log('🔍 Zones logos - logoZoneGroupIds trouvés:', logoZoneGroupIds);
-                            
                             const availableZones = zoneGroups
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
-                            
-                            console.log('📍 Zones disponibles pour logos:', availableZones.length);
-                            if (availableZones.length === 0 && zoneGroups.length > 0) {
-                              console.log('⚠️ Aucune zone trouvée mais zoneGroups existe. Vérifiez les IDs:', {
-                                logoZoneGroupIds,
-                                zoneGroupsIds: zoneGroups.map(g => g.id),
-                                match: zoneGroups.filter(g => logoZoneGroupIds.includes(g.id))
-                              });
-                            }
                             
                             return (
                               <div
@@ -7298,12 +7284,23 @@ export default function ProductBuilderPage() {
                                                 selectedZone.position[2] || 0
                                               ];
                                               
+                                              // Récupérer les dimensions et rotation de la zone si disponibles
+                                              const zoneWidth = (selectedZone as any)?.width as number | undefined;
+                                              const zoneHeight = (selectedZone as any)?.height as number | undefined;
+                                              const zoneRotationRaw = (selectedZone as any)?.defaultRotation as number | undefined;
+                                              const zoneRotation = zoneRotationRaw !== undefined && zoneRotationRaw !== null 
+                                                ? zoneRotationRaw * (Math.PI / 180) 
+                                                : undefined;
+                                              
                                               await addLogo(
                                                 selectedLogoForZone.logoId,
                                                 selectedLogoForZone.variantId,
                                                 selectedLogoForZone.variantFile || '',
                                                 zonePosition,
-                                                zoneCategory
+                                                zoneCategory || 'torse',
+                                                zoneWidth,
+                                                zoneHeight,
+                                                zoneRotation
                                               );
                                               
                                               setShowLogoZoneModal(false);
