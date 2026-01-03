@@ -7308,14 +7308,27 @@ export default function ProductBuilderPage() {
                                                 'Face': 'front',
                                                 'Dos': 'back',
                                                 'Gauche': 'left',
-                                                'Droite': 'right'
+                                                'Droite': 'right',
+                                                'front': 'front',
+                                                'back': 'back',
+                                                'left': 'left',
+                                                'right': 'right'
                                               };
                                               
+                                              // Déterminer la vue de la caméra
+                                              let cameraView: 'front' | 'back' | 'left' | 'right' | null = null;
+                                              
                                               // Si la zone a une vue, l'utiliser directement
-                                              if (selectedZone.view && viewToCameraView[selectedZone.view]) {
-                                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewToCameraView[selectedZone.view] }));
-                                              } else if (zoneCategory) {
-                                                // Sinon, mapper la catégorie à une vue
+                                              if (selectedZone.view) {
+                                                const zoneView = String(selectedZone.view);
+                                                console.log('📸 Zone view trouvée:', zoneView);
+                                                if (viewToCameraView[zoneView]) {
+                                                  cameraView = viewToCameraView[zoneView];
+                                                }
+                                              }
+                                              
+                                              // Sinon, mapper la catégorie à une vue
+                                              if (!cameraView && zoneCategory) {
                                                 const categoryToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
                                                   'torse': 'front',
                                                   'dos': 'back',
@@ -7323,8 +7336,19 @@ export default function ProductBuilderPage() {
                                                   'bras-droit': 'right'
                                                 };
                                                 if (categoryToView[zoneCategory]) {
-                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: categoryToView[zoneCategory] }));
+                                                  cameraView = categoryToView[zoneCategory];
+                                                  console.log('📸 Camera view depuis catégorie:', zoneCategory, '->', cameraView);
                                                 }
+                                              }
+                                              
+                                              // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
+                                              if (cameraView) {
+                                                console.log('📸 Déclenchement setCameraView avec:', cameraView);
+                                                setTimeout(() => {
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                                                }, 100);
+                                              } else {
+                                                console.log('⚠️ Aucune vue de caméra déterminée pour la zone');
                                               }
                                               
                                               setShowLogoZoneModal(false);
