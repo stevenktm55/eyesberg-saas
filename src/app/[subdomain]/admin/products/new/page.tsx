@@ -4308,14 +4308,20 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={logo.id}
                                       onClick={async () => {
-                                        // Si le logo a des variantes, toujours ouvrir la vue des variantes (même en mode remplacement)
-                                        if (hasVariants) {
-                                          setSelectedLogoForVariants(logo);
-                                          return;
-                                        }
+                                        console.log('🎯 Desktop - Clic sur logo, logoToReplace:', logoToReplace, 'hasVariants:', hasVariants);
                                         
-                                        // Si on est en mode remplacement et que le logo n'a pas de variantes, remplacer directement
+                                        // Si on est en mode remplacement, vérifier d'abord
                                         if (logoToReplace) {
+                                          console.log('🎯 Desktop - Mode remplacement détecté');
+                                          // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
+                                          if (hasVariants) {
+                                            console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes');
+                                            setSelectedLogoForVariants(logo);
+                                            return;
+                                          }
+                                          
+                                          console.log('🎯 Desktop - Logo sans variante, remplacement direct');
+                                          // Sinon, remplacer directement
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
                                           if (logoToReplaceData) {
                                             // Calculer les dimensions du nouveau logo
@@ -4406,7 +4412,15 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                         
-                                        // Sinon, ouvrir directement le modal de sélection de zone
+                                        console.log('🎯 Desktop - Pas de remplacement, comportement normal');
+                                        // Si le logo a des variantes, ouvrir la vue des variantes
+                                        if (hasVariants) {
+                                          console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes');
+                                          setSelectedLogoForVariants(logo);
+                                          return;
+                                        }
+                                        
+                                        // Si mode zones, ouvrir directement le modal de sélection de zone
                                         if (activeModule.logoPlacementMode === 'zones') {
                                           setSelectedLogoForZone({
                                             logoId: logo.id,
@@ -6934,25 +6948,60 @@ export default function ProductBuilderPage() {
                                       gridTemplateColumns: 'repeat(2, 1fr)',
                                       gap: '12px'
                                     }}>
-                                      {allLogos.map((logo: any) => (
-                                        <div
-                                          key={logo.id}
-                                          onClick={() => {
-                                            setSelectedLogoForVariants(logo);
-                                          }}
-                                          style={{
-                                            cursor: 'pointer',
-                                            border: '1px solid #e0e0e0',
-                                            borderRadius: '8px',
-                                            overflow: 'hidden',
-                                            backgroundColor: '#ffffff',
-                                            transition: 'all 0.2s',
-                                            padding: '12px',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                          }}
+                                      {allLogos.map((logo: any) => {
+                                        const hasVariants = logo.variants && logo.variants.length > 0;
+                                        
+                                        return (
+                                          <div
+                                            key={logo.id}
+                                            onClick={async () => {
+                                              console.log('🎯 Modal - Clic sur logo, logoToReplace:', logoToReplace, 'hasVariants:', hasVariants);
+                                              
+                                              // Si on est en mode remplacement
+                                              if (logoToReplace) {
+                                                console.log('🎯 Modal - Mode remplacement détecté');
+                                                // Si le logo a des variantes, ouvrir la vue des variantes
+                                                if (hasVariants) {
+                                                  console.log('🎯 Modal - Logo a des variantes, ouverture vue variantes');
+                                                  setSelectedLogoForVariants(logo);
+                                                  return;
+                                                }
+                                                
+                                                console.log('🎯 Modal - Logo sans variante, remplacement direct');
+                                                // Sinon, remplacer directement le logo
+                                                const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
+                                                if (logoToUpdate) {
+                                                  setPlacedLogos(placedLogos.map(l => 
+                                                    l.id === logoToReplace 
+                                                      ? { ...l, logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
+                                                      : l
+                                                  ));
+                                                  
+                                                  // Réinitialiser les états
+                                                  setLogoToReplace(null);
+                                                  setShowLogoLibrary(false);
+                                                  setSelectedLogoId(null);
+                                                }
+                                                return;
+                                              }
+                                              
+                                              console.log('🎯 Modal - Pas de remplacement, comportement normal');
+                                              // Comportement normal : ouvrir les variantes
+                                              setSelectedLogoForVariants(logo);
+                                            }}
+                                            style={{
+                                              cursor: 'pointer',
+                                              border: '1px solid #e0e0e0',
+                                              borderRadius: '8px',
+                                              overflow: 'hidden',
+                                              backgroundColor: '#ffffff',
+                                              transition: 'all 0.2s',
+                                              padding: '12px',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              alignItems: 'center',
+                                              gap: '8px'
+                                            }}
                                         >
                                           <div style={{
                                             width: '100%',
@@ -7002,7 +7051,8 @@ export default function ProductBuilderPage() {
                                             {logo.name}
                                           </p>
                                         </div>
-                                      ))}
+                                      );
+                                    })}
                                     </div>
                                   )}
                                 </div>
