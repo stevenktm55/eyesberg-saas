@@ -6354,72 +6354,9 @@ export default function ProductBuilderPage() {
                                 
                                 // La rotation initiale est gérée par CameraInitializer, pas besoin de la gérer ici
                                 
-                                // Sauvegarder la position de la caméra avant l'ouverture du panneau et la restaurer après
-                                // NE PAS désactiver OrbitControls pour permettre le déplacement du texte
-                                // NE PAS réinitialiser la caméra à la face quand un onglet s'ouvre
-                                useEffect(() => {
-                                  if (controlsRef.current && viewportMode === 'mobile') {
-                                    if (mobileActivePanel && !savedCameraStateRef.current) {
-                                      // Sauvegarder l'état actuel de la caméra AVANT que le panneau ne commence à s'ouvrir
-                                      const camera = controlsRef.current.object;
-                                      const target = controlsRef.current.target;
-                                      const distance = camera.position.distanceTo(target);
-                                      savedCameraStateRef.current = {
-                                        position: [camera.position.x, camera.position.y, camera.position.z] as [number, number, number],
-                                        target: [target.x, target.y, target.z] as [number, number, number],
-                                        distance: distance
-                                      };
-                                      console.log('💾 Caméra sauvegardée avant ouverture panneau:', savedCameraStateRef.current);
-                                      // NE PAS désactiver OrbitControls - permettre le déplacement du texte
-                                      // NE PAS réinitialiser la caméra - garder la vue actuelle
-                                      // isRestoringRef reste false pour permettre les interactions
-                                    } else if (!mobileActivePanel && savedCameraStateRef.current) {
-                                      // Restaurer l'état sauvegardé de la caméra après que le panneau soit complètement fermé
-                                      const restoreCamera = () => {
-                                        if (controlsRef.current && savedCameraStateRef.current) {
-                                          const camera = controlsRef.current.object;
-                                          const target = controlsRef.current.target;
-                                          
-                                          // Calculer la direction normalisée
-                                          const dx = savedCameraStateRef.current.position[0] - savedCameraStateRef.current.target[0];
-                                          const dy = savedCameraStateRef.current.position[1] - savedCameraStateRef.current.target[1];
-                                          const dz = savedCameraStateRef.current.position[2] - savedCameraStateRef.current.target[2];
-                                          const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                                          
-                                          // Restaurer le target
-                                          target.set(...savedCameraStateRef.current.target);
-                                          
-                                          // Restaurer la position avec la distance sauvegardée
-                                          if (length > 0) {
-                                            const scale = savedCameraStateRef.current.distance / length;
-                                            camera.position.set(
-                                              savedCameraStateRef.current.target[0] + dx * scale,
-                                              savedCameraStateRef.current.target[1] + dy * scale,
-                                              savedCameraStateRef.current.target[2] + dz * scale
-                                            );
-                                          } else {
-                                            camera.position.set(...savedCameraStateRef.current.position);
-                                          }
-                                          
-                                          controlsRef.current.update();
-                                          savedCameraStateRef.current = null;
-                                        }
-                                      };
-                                      
-                                      // Restaurer immédiatement et plusieurs fois pour s'assurer que ça prend
-                                      restoreCamera();
-                                      requestAnimationFrame(() => {
-                                        restoreCamera();
-                                        requestAnimationFrame(() => {
-                                          restoreCamera();
-                                          setTimeout(restoreCamera, 50);
-                                          setTimeout(restoreCamera, 150);
-                                          setTimeout(restoreCamera, 300);
-                                        });
-                                      });
-                                    }
-                                  }
-                                }, [mobileActivePanel]);
+                                // NE PAS sauvegarder/restaurer la caméra automatiquement en mobile
+                                // Cela causait un retour à la vue de face à chaque ouverture d'onglet
+                                // La caméra doit garder sa position actuelle même quand un panneau s'ouvre/ferme
                                 
                                 // Mettre à jour les réglages quand ils changent
                                 useEffect(() => {
@@ -6432,57 +6369,12 @@ export default function ProductBuilderPage() {
                                   }
                                 }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
                                 
-                                // Surveiller et corriger la distance de la caméra en continu pendant que le panneau est ouvert
-                                // MAIS permettre OrbitControls pour le déplacement du texte
-                                useEffect(() => {
-                                  if (controlsRef.current && viewportMode === 'mobile' && savedCameraStateRef.current && mobileActivePanel) {
-                                    let animationFrameId: number;
-                                    
-                                    const maintainDistance = () => {
-                                      if (controlsRef.current && savedCameraStateRef.current && mobileActivePanel) {
-                                        const camera = controlsRef.current.object;
-                                        const target = controlsRef.current.target;
-                                        const currentDistance = camera.position.distanceTo(target);
-                                        
-                                        // Si la distance a changé de manière significative (zoom/dezoom), la corriger
-                                        // Mais seulement si ce n'est pas un déplacement de texte (isDraggingText)
-                                        if (Math.abs(currentDistance - savedCameraStateRef.current.distance) > 0.1 && !isDraggingText) {
-                                          const dx = camera.position.x - target.x;
-                                          const dy = camera.position.y - target.y;
-                                          const dz = camera.position.z - target.z;
-                                          const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                                          
-                                          if (length > 0) {
-                                            const scale = savedCameraStateRef.current.distance / length;
-                                            camera.position.set(
-                                              target.x + dx * scale,
-                                              target.y + dy * scale,
-                                              target.z + dz * scale
-                                            );
-                                            camera.updateProjectionMatrix();
-                                          }
-                                        }
-                                        
-                                        animationFrameId = requestAnimationFrame(maintainDistance);
-                                      }
-                                    };
-                                    
-                                    animationFrameId = requestAnimationFrame(maintainDistance);
-                                    
-                                    return () => {
-                                      if (animationFrameId) {
-                                        cancelAnimationFrame(animationFrameId);
-                                      }
-                                    };
-                                  }
-                                }, [mobileActivePanel, isDraggingText]);
+                                // Ne pas maintenir la distance de force - laisser la caméra libre
                                 
                                 // Écouter l'événement setCameraView pour positionner la caméra
                                 useEffect(() => {
                                   const handleSetCameraView = (event: CustomEvent) => {
-                                    console.log('📡 Événement setCameraView reçu dans ControlsManager:', event.detail);
                                     if (!controlsRef.current) {
-                                      console.log('❌ controlsRef.current est null');
                                       return;
                                     }
                                     
@@ -6502,12 +6394,6 @@ export default function ProductBuilderPage() {
                                     
                                     const category = viewToCategory[view];
                                     const distance = viewDistance[category] || maxDistance;
-                                    
-                                    console.log('📸 Positionnement caméra:', { view, category, distance, viewDistance });
-                                    
-                                    // Désactiver temporairement la sauvegarde pour permettre le changement de vue
-                                    const previousSavedState = savedCameraStateRef.current;
-                                    savedCameraStateRef.current = null;
                                     
                                     if (view === 'front') {
                                       camera.position.set(0, 0, distance);
@@ -6529,25 +6415,15 @@ export default function ProductBuilderPage() {
                                     
                                     // Forcer la mise à jour plusieurs fois pour s'assurer que ça prend
                                     requestAnimationFrame(() => {
-                                      if (controlsRef.current) {
-                                        controlsRef.current.update();
-                                        requestAnimationFrame(() => {
-                                          if (controlsRef.current) {
-                                            controlsRef.current.update();
-                                            console.log('✅ Caméra positionnée à:', camera.position);
-                                            
-                                            // Sauvegarder la nouvelle position si on est en mobile avec un panneau ouvert
-                                            if (viewportMode === 'mobile' && mobileActivePanel) {
-                                              savedCameraStateRef.current = {
-                                                position: [camera.position.x, camera.position.y, camera.position.z] as [number, number, number],
-                                                target: [target.x, target.y, target.z] as [number, number, number],
-                                                distance: camera.position.distanceTo(target)
-                                              };
+                                        if (controlsRef.current) {
+                                          controlsRef.current.update();
+                                          requestAnimationFrame(() => {
+                                            if (controlsRef.current) {
+                                              controlsRef.current.update();
                                             }
-                                          }
-                                        });
-                                      }
-                                    });
+                                          });
+                                        }
+                                      });
                                   };
                                   
                                   window.addEventListener('setCameraView', handleSetCameraView as EventListener);
@@ -6562,14 +6438,6 @@ export default function ProductBuilderPage() {
                                     
                                     const camera = controlsRef.current.object;
                                     const distance = viewDistance[targetView] || initialZoom;
-                                    
-                                    console.log('📸 Changement de vue:', {
-                                      targetView,
-                                      viewDistance: viewDistance[targetView],
-                                      initialZoom,
-                                      distanceUtilisee: distance,
-                                      toutesLesDistances: viewDistance
-                                    });
                                     
                                     // Positionner la caméra aux positions standard (sans rotation initiale)
                                     switch (targetView) {
@@ -8084,8 +7952,8 @@ export default function ProductBuilderPage() {
                                 
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {/* Tabs de vue - Toujours affichés */}
-                                    {activeModule.logoPlacementMode === 'zones' && (
+                                    {/* Tabs de vue - Masqués si on est en train de choisir une variante */}
+                                    {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
                                         {views.map((view) => (
                                           <button 
@@ -8106,33 +7974,35 @@ export default function ProductBuilderPage() {
                                     {/* Si la bibliothèque est ouverte (après clic sur "Ajouter un logo") */}
                                     {showLogoLibrary ? (
                                       <>
-                                        {/* Bouton Importer un logo */}
-                                        <button
+                                        {/* Bouton Importer un logo - Masqué si on est en train de choisir une variante */}
+                                        {!selectedLogoForVariants && (
+                                          <button
                                           onClick={() => {
                                             // TODO: Implémenter l'import de logo
                                             console.log('📤 Importer un logo');
                                           }}
-                                          style={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center', 
-                                            gap: '8px', 
-                                            padding: '12px', 
-                                            backgroundColor: '#000000', 
-                                            color: '#ffffff', 
-                                            border: 'none', 
-                                            borderRadius: '8px', 
-                                            fontSize: '13px', 
-                                            fontWeight: '500', 
-                                            cursor: 'pointer', 
-                                            fontFamily: 'var(--stepn-font-body)',
-                                            width: '100%'
-                                          }}
-                                          className="mobile-action-btn-black"
-                                        >
-                                          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                          Importer un logo
-                                        </button>
+                                            style={{ 
+                                              display: 'flex', 
+                                              alignItems: 'center', 
+                                              justifyContent: 'center', 
+                                              gap: '8px', 
+                                              padding: '12px', 
+                                              backgroundColor: '#000000', 
+                                              color: '#ffffff', 
+                                              border: 'none', 
+                                              borderRadius: '8px', 
+                                              fontSize: '13px', 
+                                              fontWeight: '500', 
+                                              cursor: 'pointer', 
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              width: '100%'
+                                            }}
+                                            className="mobile-action-btn-black"
+                                          >
+                                            <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                            Importer un logo
+                                          </button>
+                                        )}
                                         
                                         {/* Barre de recherche */}
                                         <input
@@ -8343,7 +8213,21 @@ export default function ProductBuilderPage() {
                                                     <div
                                                       key={logo.id}
                                                       onClick={() => {
-                                                        setSelectedLogoForVariants(logo);
+                                                        // Vérifier si le logo a des variantes
+                                                        const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
+                                                        
+                                                        if (!hasVariants && activeModule.logoPlacementMode === 'zones') {
+                                                          // Pas de variantes + mode zones : ouvrir directement le modal de zone
+                                                          setSelectedLogoForZone({
+                                                            logoId: logo.id,
+                                                            variantId: undefined,
+                                                            variantFile: logo.file_url
+                                                          });
+                                                          setShowLogoZoneModal(true);
+                                                        } else {
+                                                          // A des variantes ou mode libre : afficher les variantes
+                                                          setSelectedLogoForVariants(logo);
+                                                        }
                                                       }}
                                                       style={{
                                                         minWidth: '100px',
@@ -8427,7 +8311,7 @@ export default function ProductBuilderPage() {
                                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
                                           className="mobile-action-btn-black"
                                     >
-                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
                                     </button>
                                     {/* Logos placés */}
@@ -9359,7 +9243,7 @@ export default function ProductBuilderPage() {
                                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
                                       className="mobile-action-btn-black"
                                     >
-                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
                                     </button>
                                     
@@ -9531,7 +9415,6 @@ export default function ProductBuilderPage() {
                                         (panel as HTMLElement).style.transition = 'transform 0.3s ease-out';
                                         
                                         if (deltaY > 50 || velocity > 0.3) {
-                                          console.log('✅ page.tsx - Fermeture panneau mobile par swipe down');
                                           // Marquer qu'on ferme manuellement le panneau
                                           isManuallyClosingRef.current = true;
                                           // Nettoyer le timeout précédent
@@ -9598,7 +9481,6 @@ export default function ProductBuilderPage() {
                                           (panel as HTMLElement).style.transition = 'transform 0.3s ease-out';
                                           
                                           if (deltaY > 50 || velocity > 0.3) {
-                                            console.log('✅ page.tsx - Fermeture panneau mobile par swipe down (drag handle)');
                                             // Marquer qu'on ferme manuellement le panneau
                                             isManuallyClosingRef.current = true;
                                             // Nettoyer le timeout précédent
