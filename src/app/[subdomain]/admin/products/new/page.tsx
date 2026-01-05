@@ -783,17 +783,23 @@ export default function ProductBuilderPage() {
       if (selectedLogoId) {
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
         const logo = placedLogos.find(l => l.id === selectedLogoId);
+        console.log('🎯 useEffect selectedLogoId - Logo trouvé:', logo ? 'OUI' : 'NON', 'logoToReplace:', logoToReplace, 'showLogoLibrary:', showLogoLibrary);
         if (logo) {
           // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
           if (!logoToReplace && !showLogoLibrary) {
+            console.log('🎯 useEffect - Définition logoToReplace:', selectedLogoId);
             // Ouvrir la bibliothèque pour remplacer le logo
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
+          } else {
+            console.log('🎯 useEffect - logoToReplace déjà défini ou bibliothèque déjà ouverte');
           }
         }
       } else {
+        console.log('🎯 useEffect - selectedLogoId null, fermeture si nécessaire');
         // Logo désélectionné : fermer la bibliothèque si elle était ouverte pour un remplacement
         if (logoToReplace && showLogoLibrary) {
+          console.log('🎯 useEffect - Fermeture et réinitialisation logoToReplace');
           setShowLogoLibrary(false);
           setLogoToReplace(null);
           setSelectedLogoForVariants(null);
@@ -4568,6 +4574,7 @@ export default function ProductBuilderPage() {
                           {/* Bouton "Ajouter un logo" */}
                           <button
                             onClick={() => {
+                              console.log('🎯 Clic sur "Ajouter un logo", logoToReplace avant:', logoToReplace);
                               setLogoToReplace(null); // Réinitialiser le remplacement
                               setShowLogoLibrary(true);
                             }}
@@ -4627,7 +4634,10 @@ export default function ProductBuilderPage() {
                                 return (
                                   <div
                                     key={logo.id}
-                                    onClick={() => setSelectedLogoId(logo.id)}
+                                    onClick={() => {
+                                      console.log('🎯 Desktop - Clic sur logo placé:', logo.id);
+                                      setSelectedLogoId(logo.id);
+                                    }}
                                     style={{
                                       padding: '10px 12px',
                                       backgroundColor: selectedLogoId === logo.id ? '#2a2a2a' : '#1a1a1a',
@@ -8416,7 +8426,14 @@ export default function ProductBuilderPage() {
                                       ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                           {modulePlacedLogos.map((logo) => (
-                                            <div key={logo.id} onClick={() => setSelectedLogoId(logo.id)} style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}>
+                                            <div 
+                                              key={logo.id} 
+                                              onClick={() => {
+                                                console.log('🎯 Mobile - Clic sur logo placé:', logo.id);
+                                                setSelectedLogoId(logo.id);
+                                              }} 
+                                              style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}
+                                            >
                                               <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                                             </div>
                                           ))}
