@@ -4279,9 +4279,11 @@ export default function ProductBuilderPage() {
                             <div style={{ marginBottom: '12px' }}>
                               <button
                                 onClick={() => {
+                                  console.log('🎯 Desktop - Clic sur Retour');
                                   setShowLogoLibrary(false);
                                   setSelectedLogoForVariants(null);
-                                  setLogoToReplace(null); // Réinitialiser le remplacement
+                                  setLogoToReplace(null);
+                                  setSelectedLogoId(null); // Désélectionner le logo
                                 }}
                                 style={{
                                   padding: '8px 16px',
@@ -4300,16 +4302,60 @@ export default function ProductBuilderPage() {
                               </button>
                             </div>
                             
-                            {/* Bouton "Importer un logo" */}
+                            {/* Boutons "Supprimer" et "Importer un logo" */}
                             {!selectedLogoForVariants && (
-                              <div style={{ marginBottom: '12px' }}>
+                              <div style={{ marginBottom: '12px', display: 'flex', gap: '8px' }}>
+                                {/* Bouton Supprimer - visible uniquement si un logo est sélectionné */}
+                                {selectedLogoId && placedLogos.find(l => l.id === selectedLogoId) && (
+                                  <button
+                                    onClick={() => {
+                                      console.log('🎯 Desktop - Clic sur Supprimer logo:', selectedLogoId);
+                                      const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
+                                      if (logoToDelete && confirm('Voulez-vous vraiment supprimer ce logo ?')) {
+                                        setPlacedLogos(placedLogos.filter(l => l.id !== selectedLogoId));
+                                        setSelectedLogoId(null);
+                                        setShowLogoLibrary(false);
+                                        setLogoToReplace(null);
+                                      }
+                                    }}
+                                    style={{
+                                      flex: 1,
+                                      padding: '12px 24px',
+                                      fontSize: '14px',
+                                      fontWeight: '500',
+                                      backgroundColor: '#ef4444',
+                                      color: '#ffffff',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '8px',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#dc2626';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#ef4444';
+                                    }}
+                                  >
+                                    <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Supprimer
+                                  </button>
+                                )}
+                                
+                                {/* Bouton Importer un logo */}
                                 <button
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
                                     console.log('🎯 Clic sur "Importer un logo" desktop');
                                   }}
                                   style={{
-                                    width: '100%',
+                                    flex: 1,
                                     padding: '12px 24px',
                                     fontSize: '14px',
                                     fontWeight: '500',
@@ -8070,34 +8116,74 @@ export default function ProductBuilderPage() {
                                     {/* Si la bibliothèque est ouverte (après clic sur "Ajouter un logo") */}
                                     {showLogoLibrary ? (
                                       <>
-                                        {/* Bouton Importer un logo - Masqué si on est en train de choisir une variante */}
+                                        {/* Boutons Supprimer et Importer - Masqués si on est en train de choisir une variante */}
                                         {!selectedLogoForVariants && (
-                                          <button
-                                          onClick={() => {
-                                            // TODO: Implémenter l'import de logo
-                                            console.log('📤 Importer un logo');
-                                          }}
-                                            style={{ 
-                                              display: 'flex', 
-                                              alignItems: 'center', 
-                                              justifyContent: 'center', 
-                                              gap: '8px', 
-                                              padding: '12px', 
-                                              backgroundColor: '#000000', 
-                                              color: '#ffffff', 
-                                              border: 'none', 
-                                              borderRadius: '8px', 
-                                              fontSize: '13px', 
-                                              fontWeight: '500', 
-                                              cursor: 'pointer', 
-                                              fontFamily: 'var(--stepn-font-body)',
-                                              width: '100%'
-                                            }}
-                                            className="mobile-action-btn-black"
-                                          >
-                                            <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                            Importer un logo
-                                          </button>
+                                          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                                            {/* Bouton Supprimer - visible uniquement si un logo est sélectionné */}
+                                            {selectedLogoId && placedLogos.find(l => l.id === selectedLogoId) && (
+                                              <button
+                                                onClick={() => {
+                                                  console.log('🎯 Mobile - Clic sur Supprimer logo:', selectedLogoId);
+                                                  const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
+                                                  if (logoToDelete && confirm('Voulez-vous vraiment supprimer ce logo ?')) {
+                                                    setPlacedLogos(placedLogos.filter(l => l.id !== selectedLogoId));
+                                                    setSelectedLogoId(null);
+                                                    setShowLogoLibrary(false);
+                                                    setLogoToReplace(null);
+                                                  }
+                                                }}
+                                                style={{ 
+                                                  flex: 1,
+                                                  display: 'flex', 
+                                                  alignItems: 'center', 
+                                                  justifyContent: 'center', 
+                                                  gap: '8px', 
+                                                  padding: '12px', 
+                                                  backgroundColor: '#ef4444', 
+                                                  color: '#ffffff', 
+                                                  border: 'none', 
+                                                  borderRadius: '8px', 
+                                                  fontSize: '13px', 
+                                                  fontWeight: '500', 
+                                                  cursor: 'pointer', 
+                                                  fontFamily: 'var(--stepn-font-body)'
+                                                }}
+                                              >
+                                                <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Supprimer
+                                              </button>
+                                            )}
+                                            
+                                            {/* Bouton Importer un logo */}
+                                            <button
+                                              onClick={() => {
+                                                // TODO: Implémenter l'import de logo
+                                                console.log('📤 Importer un logo');
+                                              }}
+                                              style={{ 
+                                                flex: 1,
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                gap: '8px', 
+                                                padding: '12px', 
+                                                backgroundColor: '#000000', 
+                                                color: '#ffffff', 
+                                                border: 'none', 
+                                                borderRadius: '8px', 
+                                                fontSize: '13px', 
+                                                fontWeight: '500', 
+                                                cursor: 'pointer', 
+                                                fontFamily: 'var(--stepn-font-body)'
+                                              }}
+                                              className="mobile-action-btn-black"
+                                            >
+                                              <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                              Importer un logo
+                                            </button>
+                                          </div>
                                         )}
                                         
                                         {/* Barre de recherche */}
@@ -9859,9 +9945,19 @@ export default function ProductBuilderPage() {
                                           
                                           // Réinitialiser les états des logos si on change d'onglet
                                           if (module.contentType === 'logos') {
+                                            console.log('🎯 Mobile - Changement onglet logos, réinitialisation états');
                                             setLogoSearchQuery('');
                                             setSelectedLogoForVariants(null);
                                             setShowLogoLibrary(false);
+                                            setSelectedLogoId(null); // Désélectionner le logo
+                                            setLogoToReplace(null); // Réinitialiser le mode remplacement
+                                          }
+                                          
+                                          // Si on ferme le panneau (clic sur l'onglet actif), désélectionner le logo
+                                          if (isActive) {
+                                            console.log('🎯 Mobile - Fermeture panneau, désélection logo');
+                                            setSelectedLogoId(null);
+                                            setLogoToReplace(null);
                                           }
                                           
                                           // Changer l'état du panneau
