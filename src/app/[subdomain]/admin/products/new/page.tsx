@@ -28,6 +28,12 @@ if (typeof document !== 'undefined') {
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
     }
+    .mobile-action-btn-black,
+    .mobile-action-btn-black * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-text-stroke-color: #ffffff !important;
+    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -6475,7 +6481,10 @@ export default function ProductBuilderPage() {
                                 useEffect(() => {
                                   const handleSetCameraView = (event: CustomEvent) => {
                                     console.log('📡 Événement setCameraView reçu dans ControlsManager:', event.detail);
-                                    if (!controlsRef.current) return;
+                                    if (!controlsRef.current) {
+                                      console.log('❌ controlsRef.current est null');
+                                      return;
+                                    }
                                     
                                     const camera = controlsRef.current.object;
                                     const target = controlsRef.current.target;
@@ -6494,7 +6503,11 @@ export default function ProductBuilderPage() {
                                     const category = viewToCategory[view];
                                     const distance = viewDistance[category] || maxDistance;
                                     
-                                    console.log('📸 Positionnement caméra:', { view, category, distance });
+                                    console.log('📸 Positionnement caméra:', { view, category, distance, viewDistance });
+                                    
+                                    // Désactiver temporairement la sauvegarde pour permettre le changement de vue
+                                    const previousSavedState = savedCameraStateRef.current;
+                                    savedCameraStateRef.current = null;
                                     
                                     if (view === 'front') {
                                       camera.position.set(0, 0, distance);
@@ -6511,13 +6524,35 @@ export default function ProductBuilderPage() {
                                     }
                                     
                                     camera.rotation.set(0, 0, 0);
+                                    camera.updateProjectionMatrix();
                                     controlsRef.current.update();
-                                    requestAnimationFrame(() => controlsRef.current?.update());
+                                    
+                                    // Forcer la mise à jour plusieurs fois pour s'assurer que ça prend
+                                    requestAnimationFrame(() => {
+                                      if (controlsRef.current) {
+                                        controlsRef.current.update();
+                                        requestAnimationFrame(() => {
+                                          if (controlsRef.current) {
+                                            controlsRef.current.update();
+                                            console.log('✅ Caméra positionnée à:', camera.position);
+                                            
+                                            // Sauvegarder la nouvelle position si on est en mobile avec un panneau ouvert
+                                            if (viewportMode === 'mobile' && mobileActivePanel) {
+                                              savedCameraStateRef.current = {
+                                                position: [camera.position.x, camera.position.y, camera.position.z] as [number, number, number],
+                                                target: [target.x, target.y, target.z] as [number, number, number],
+                                                distance: camera.position.distanceTo(target)
+                                              };
+                                            }
+                                          }
+                                        });
+                                      }
+                                    });
                                   };
                                   
                                   window.addEventListener('setCameraView', handleSetCameraView as EventListener);
                                   return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
-                                }, [viewDistance, maxZoom]);
+                                }, [viewDistance, maxZoom, viewportMode, mobileActivePanel]);
                                 
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
@@ -8053,7 +8088,15 @@ export default function ProductBuilderPage() {
                                     {activeModule.logoPlacementMode === 'zones' && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
                                         {views.map((view) => (
-                                          <button key={view} onClick={() => setActiveLogoView(view)} style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <button 
+                                            key={view} 
+                                            onClick={() => {
+                                              setActiveLogoView(view);
+                                              // Changer la vue de la caméra en mobile aussi
+                                              window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                            }} 
+                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                          >
                                             {viewLabels[view]}
                                           </button>
                                         ))}
