@@ -7275,7 +7275,6 @@ export default function ProductBuilderPage() {
                                               // Si la zone a une vue, l'utiliser directement
                                               if (selectedZone.view) {
                                                 const zoneView = String(selectedZone.view);
-                                                console.log('📸 Zone view trouvée:', zoneView);
                                                 if (viewToCameraView[zoneView]) {
                                                   cameraView = viewToCameraView[zoneView];
                                                 }
@@ -7291,18 +7290,14 @@ export default function ProductBuilderPage() {
                                                 };
                                                 if (categoryToView[zoneCategory]) {
                                                   cameraView = categoryToView[zoneCategory];
-                                                  console.log('📸 Camera view depuis catégorie:', zoneCategory, '->', cameraView);
                                                 }
                                               }
                                               
                                               // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
                                               if (cameraView) {
-                                                console.log('📸 Déclenchement setCameraView avec:', cameraView);
                                                 setTimeout(() => {
                                                   window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                                                 }, 100);
-                                              } else {
-                                                console.log('⚠️ Aucune vue de caméra déterminée pour la zone');
                                               }
                                               
                                               setShowLogoZoneModal(false);
