@@ -6378,6 +6378,9 @@ export default function ProductBuilderPage() {
                                       return;
                                     }
                                     
+                                    // Marquer qu'une vue a été définie pour empêcher CameraInitializer de réinitialiser
+                                    viewHasBeenSetRef.current = true;
+                                    
                                     const camera = controlsRef.current.object;
                                     const target = controlsRef.current.target;
                                     const maxDistance = maxZoom;
@@ -6428,7 +6431,7 @@ export default function ProductBuilderPage() {
                                   
                                   window.addEventListener('setCameraView', handleSetCameraView as EventListener);
                                   return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
-                                }, [viewDistance, maxZoom, viewportMode, mobileActivePanel]);
+                                }, [viewDistance, maxZoom, viewportMode, mobileActivePanel, viewHasBeenSetRef]);
                                 
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
@@ -7947,8 +7950,8 @@ export default function ProductBuilderPage() {
                                 
                                 return (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {/* Tabs de vue - Masqués si on est en train de choisir une variante */}
-                                    {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && (
+                                    {/* Tabs de vue - Masqués si on est en train de choisir une variante OU si la bibliothèque est ouverte */}
+                                    {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && !showLogoLibrary && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
                                         {views.map((view) => (
                                           <button 
