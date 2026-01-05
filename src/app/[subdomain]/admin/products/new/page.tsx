@@ -4233,8 +4233,8 @@ export default function ProductBuilderPage() {
                         // Vue principale de la bibliothèque
                         return (
                           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            {/* Boutons de vue en haut - uniquement si mode zones */}
-                            {activeModule.logoPlacementMode === 'zones' && (
+                            {/* Boutons de vue en haut - uniquement si mode zones ET bibliothèque non ouverte */}
+                            {activeModule.logoPlacementMode === 'zones' && !showLogoLibrary && (
                               <div style={{ 
                                 display: 'grid', 
                                 gridTemplateColumns: 'repeat(4, 1fr)', 
@@ -4299,6 +4299,45 @@ export default function ProductBuilderPage() {
                                 ← Retour
                               </button>
                             </div>
+                            
+                            {/* Bouton "Importer un logo" */}
+                            {!selectedLogoForVariants && (
+                              <div style={{ marginBottom: '12px' }}>
+                                <button
+                                  onClick={() => {
+                                    // Logique d'importation de logo (à implémenter)
+                                    console.log('🎯 Clic sur "Importer un logo" desktop');
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '12px 24px',
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    backgroundColor: '#000000',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#000000';
+                                  }}
+                                >
+                                  <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Importer un logo
+                                </button>
+                              </div>
+                            )}
                             
                             {/* Bibliothèque de logos */}
                             {allLogos.length === 0 ? (
@@ -4571,13 +4610,13 @@ export default function ProductBuilderPage() {
                             </div>
                           )}
                           
-                          {/* Bouton "Ajouter un logo" */}
-                          <button
-                            onClick={() => {
-                              console.log('🎯 Clic sur "Ajouter un logo", logoToReplace avant:', logoToReplace);
-                              setLogoToReplace(null); // Réinitialiser le remplacement
-                              setShowLogoLibrary(true);
-                            }}
+                          {/* Bouton "Ajouter un logo" - Ne s'affiche pas si on est en mode remplacement */}
+                          {!logoToReplace && (
+                            <button
+                              onClick={() => {
+                                console.log('🎯 Clic sur "Ajouter un logo"');
+                                setShowLogoLibrary(true);
+                              }}
                             style={{
                               width: '100%',
                               padding: '12px 24px',
@@ -4604,6 +4643,7 @@ export default function ProductBuilderPage() {
                             <span>+</span>
                             {buttonLabel}
                           </button>
+                          )}
                           
                           {/* Logos placés */}
                           {filteredPlacedLogos.length > 0 && (
@@ -6608,8 +6648,8 @@ export default function ProductBuilderPage() {
                           )}
                           </div>
                           
-                          {/* Modal de bibliothèque de logos - Desktop uniquement (mobile utilise le panneau) */}
-                          {showLogoLibrary && viewportMode !== 'mobile' && (() => {
+                          {/* SUPPRIMÉ : Modal de bibliothèque de logos desktop - La bibliothèque est maintenant dans la sidebar */}
+                          {false && showLogoLibrary && viewportMode !== 'mobile' && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
                             if (!activeModule || activeModule.contentType !== 'logos') return null;
                             
