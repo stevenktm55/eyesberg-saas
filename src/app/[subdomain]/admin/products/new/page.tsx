@@ -786,7 +786,6 @@ export default function ProductBuilderPage() {
         if (logo) {
           // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
           if (!logoToReplace && !showLogoLibrary) {
-            console.log('🎯 Logo sélectionné depuis le modèle 3D, ouverture de la bibliothèque:', selectedLogoId);
             // Ouvrir la bibliothèque pour remplacer le logo
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
@@ -795,7 +794,6 @@ export default function ProductBuilderPage() {
       } else {
         // Logo désélectionné : fermer la bibliothèque si elle était ouverte pour un remplacement
         if (logoToReplace && showLogoLibrary) {
-          console.log('🎯 Logo désélectionné, fermeture de la bibliothèque');
           setShowLogoLibrary(false);
           setLogoToReplace(null);
           setSelectedLogoForVariants(null);
@@ -8023,19 +8021,11 @@ export default function ProductBuilderPage() {
                                         {/* Si un logo est sélectionné pour afficher ses variantes */}
                                         {selectedLogoForVariants ? (
                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                            {/* Header avec retour */}
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                                              <button 
-                                                onClick={() => setSelectedLogoForVariants(null)} 
-                                                style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: '500' }}
-                                              >
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                                                Retour
-                                              </button>
-                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)' }}>
+                                            {/* Titre centré sans bouton retour (le bouton retour principal du header suffit) */}
+                                            <div style={{ paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
+                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)', textAlign: 'center' }}>
                                                 {selectedLogoForVariants.name}
                                               </h3>
-                                              <div style={{ width: '60px' }} /> {/* Spacer pour centrer */}
                                             </div>
                                             
                                             {/* Liste des variantes en scroll horizontal */}
@@ -8085,8 +8075,11 @@ export default function ProductBuilderPage() {
                                                         <div
                                                           key={variant.id || `base-${index}`}
                                                           onClick={async () => {
+                                                            console.log('🎯 Clic sur variante, logoToReplace:', logoToReplace);
+                                                            
                                                             // Si on est en mode remplacement, remplacer directement le logo
                                                             if (logoToReplace) {
+                                                              console.log('🎯 Mode remplacement variante détecté, remplacement direct');
                                                               const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                               if (logoToUpdate) {
                                                                 // Mettre à jour le logo avec le nouveau logo et variante
@@ -8105,6 +8098,7 @@ export default function ProductBuilderPage() {
                                                               return;
                                                             }
                                                             
+                                                            console.log('🎯 Pas de remplacement variante, comportement normal');
                                                             // Sinon, comportement normal
                                                             // Si mode zones, ouvrir le modal de sélection de zone
                                                             if (activeModule.logoPlacementMode === 'zones') {
@@ -8232,8 +8226,11 @@ export default function ProductBuilderPage() {
                                                     <div
                                                       key={logo.id}
                                                       onClick={async () => {
+                                                        console.log('🎯 Clic sur logo, logoToReplace:', logoToReplace);
+                                                        
                                                         // Si on est en mode remplacement, remplacer directement le logo
                                                         if (logoToReplace) {
+                                                          console.log('🎯 Mode remplacement détecté, remplacement direct');
                                                           const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                           if (logoToUpdate) {
                                                             // Déterminer le fichier à utiliser (logo de base ou première variante)
@@ -8254,6 +8251,7 @@ export default function ProductBuilderPage() {
                                                           return;
                                                         }
                                                         
+                                                        console.log('🎯 Pas de remplacement, comportement normal');
                                                         // Sinon, comportement normal
                                                         // Vérifier si le logo a des variantes
                                                         const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
