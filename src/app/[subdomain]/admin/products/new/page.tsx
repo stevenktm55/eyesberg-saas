@@ -8304,11 +8304,11 @@ export default function ProductBuilderPage() {
                                                                     : l
                                                                 ));
                                                                 
-                                                                // Réinitialiser les états
+                                                                // Réinitialiser les états (mais garder le logo sélectionné pour pouvoir continuer à le modifier)
                                                                 setLogoToReplace(null);
                                                                 setShowLogoLibrary(false);
                                                                 setSelectedLogoForVariants(null);
-                                                                setSelectedLogoId(null);
+                                                                // setSelectedLogoId(null); // Ne pas désélectionner pour pouvoir continuer à modifier le logo
                                                               }
                                                               return;
                                                             }
@@ -8471,10 +8471,10 @@ export default function ProductBuilderPage() {
                                                                   : l
                                                               ));
                                                               
-                                                              // Réinitialiser les états
+                                                              // Réinitialiser les états (mais garder le logo sélectionné pour pouvoir continuer à le modifier)
                                                               setLogoToReplace(null);
                                                               setShowLogoLibrary(false);
-                                                              setSelectedLogoId(null);
+                                                              // setSelectedLogoId(null); // Ne pas désélectionner pour pouvoir continuer à modifier le logo
                                                             }
                                                             return;
                                                           }
@@ -13250,27 +13250,24 @@ export default function ProductBuilderPage() {
                 );
               })()}
             </div>
-          </div>
-        );
-      })()}
-      
-      {/* Modal de confirmation de suppression */}
-      {showDeleteModal && itemToDelete && (() => {
-        console.log('🎨 Rendering delete modal:', { showDeleteModal, itemToDelete });
-        return (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10000
-            }}
+          
+          {/* Modal de confirmation de suppression - Positionné dans la simulation mobile si mobile */}
+          {showDeleteModal && itemToDelete && (() => {
+            console.log('🎨 Rendering delete modal:', { showDeleteModal, itemToDelete, viewportMode });
+            return (
+              <div
+                style={{
+                  position: viewportMode === 'mobile' ? 'absolute' : 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10000
+                }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowDeleteModal(false);
@@ -13415,7 +13412,10 @@ export default function ProductBuilderPage() {
               </button>
             </div>
           </div>
-        </div>
+            </div>
+            );
+          })()}
+          </div>
         );
       })()}
       </div>
