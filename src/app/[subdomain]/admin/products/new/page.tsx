@@ -9931,6 +9931,168 @@ export default function ProductBuilderPage() {
                             );
                           })()}
                           
+                          {/* Modal de confirmation de suppression - Version MOBILE (dans la simulation) */}
+                          {viewportMode === 'mobile' && showDeleteModal && itemToDelete && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 10000
+                              }}
+                              onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                  setShowDeleteModal(false);
+                                  setItemToDelete(null);
+                                }
+                              }}
+                            >
+                              <div
+                                style={{
+                                  backgroundColor: '#ffffff',
+                                  borderRadius: '12px',
+                                  padding: '32px',
+                                  width: '90%',
+                                  maxWidth: '400px',
+                                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  gap: '24px'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* Icône de poubelle */}
+                                <div
+                                  style={{
+                                    width: '64px',
+                                    height: '64px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#fee2e2',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '32px'
+                                  }}
+                                >
+                                  🗑️
+                                </div>
+                                
+                                {/* Titre */}
+                                <h2
+                                  style={{
+                                    fontSize: '20px',
+                                    fontWeight: '600',
+                                    color: '#000000',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    margin: 0,
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  Supprimer l'élément ?
+                                </h2>
+                                
+                                {/* Message */}
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <p
+                                    style={{
+                                      fontSize: '14px',
+                                      color: '#666666',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      margin: 0
+                                    }}
+                                  >
+                                    Êtes-vous sûr de vouloir supprimer {itemToDelete.type === 'logo' ? 'le logo' : 'le texte'} "{itemToDelete.name}" ?
+                                  </p>
+                                  <p
+                                    style={{
+                                      fontSize: '14px',
+                                      color: '#666666',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      margin: 0
+                                    }}
+                                  >
+                                    Cette action ne peut pas être annulée.
+                                  </p>
+                                </div>
+                                
+                                {/* Boutons */}
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    width: '100%'
+                                  }}
+                                >
+                                  <button
+                                    onClick={() => {
+                                      setShowDeleteModal(false);
+                                      setItemToDelete(null);
+                                    }}
+                                    style={{
+                                      flex: 1,
+                                      padding: '12px 24px',
+                                      backgroundColor: '#ffffff',
+                                      border: '1px solid #e0e0e0',
+                                      borderRadius: '6px',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      color: '#000000',
+                                      cursor: 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#ffffff';
+                                    }}
+                                  >
+                                    Non
+                                  </button>
+                                  <button
+                                    onClick={handleConfirmDelete}
+                                    style={{
+                                      flex: 1,
+                                      padding: '12px 24px',
+                                      backgroundColor: '#ef4444',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      fontSize: '14px',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      color: '#ffffff',
+                                      cursor: 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#dc2626';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#ef4444';
+                                    }}
+                                  >
+                                    Oui
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Barre mobile en bas du téléphone - Style stretchmx */}
                           {viewportMode === 'mobile' && (
                             <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb', color: '#111827' }}>
@@ -13249,168 +13411,6 @@ export default function ProductBuilderPage() {
                   </div>
                 );
               })()}
-              
-              {/* Modal de confirmation de suppression - Version MOBILE (dans la simulation) */}
-              {viewportMode === 'mobile' && showDeleteModal && itemToDelete && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 10000
-                  }}
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                      setShowDeleteModal(false);
-                      setItemToDelete(null);
-                    }
-                  }}
-                >
-                  <div
-                    style={{
-                      backgroundColor: '#ffffff',
-                      borderRadius: '12px',
-                      padding: '32px',
-                      width: '90%',
-                      maxWidth: '400px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '24px'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Icône de poubelle */}
-                    <div
-                      style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '50%',
-                        backgroundColor: '#fee2e2',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '32px'
-                      }}
-                    >
-                      🗑️
-                    </div>
-                    
-                    {/* Titre */}
-                    <h2
-                      style={{
-                        fontSize: '20px',
-                        fontWeight: '600',
-                        color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
-                        margin: 0,
-                        textAlign: 'center'
-                      }}
-                    >
-                      Supprimer l'élément ?
-                    </h2>
-                    
-                    {/* Message */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: '14px',
-                          color: '#666666',
-                          fontFamily: 'var(--stepn-font-body)',
-                          margin: 0
-                        }}
-                      >
-                        Êtes-vous sûr de vouloir supprimer {itemToDelete.type === 'logo' ? 'le logo' : 'le texte'} "{itemToDelete.name}" ?
-                      </p>
-                      <p
-                        style={{
-                          fontSize: '14px',
-                          color: '#666666',
-                          fontFamily: 'var(--stepn-font-body)',
-                          margin: 0
-                        }}
-                      >
-                        Cette action ne peut pas être annulée.
-                      </p>
-                    </div>
-                    
-                    {/* Boutons */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '12px',
-                        width: '100%'
-                      }}
-                    >
-                      <button
-                        onClick={() => {
-                          setShowDeleteModal(false);
-                          setItemToDelete(null);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '12px 24px',
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#000000',
-                          cursor: 'pointer',
-                          fontWeight: '500',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f5f5f5';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ffffff';
-                        }}
-                      >
-                        Non
-                      </button>
-                      <button
-                        onClick={handleConfirmDelete}
-                        style={{
-                          flex: 1,
-                          padding: '12px 24px',
-                          backgroundColor: '#ef4444',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          fontWeight: '500',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dc2626';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ef4444';
-                        }}
-                      >
-                        Oui
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         );
