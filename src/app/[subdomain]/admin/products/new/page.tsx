@@ -4314,14 +4314,14 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={logo.id}
                                       onClick={async () => {
-                                        console.log('🎯 Desktop - Clic sur logo, logoToReplace:', logoToReplace, 'hasVariants:', hasVariants);
+                                        console.log('🎯 Desktop - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
                                         
                                         // Si on est en mode remplacement, vérifier d'abord
                                         if (logoToReplace) {
-                                          console.log('🎯 Desktop - Mode remplacement détecté');
+                                          console.log('🎯 Desktop - Mode remplacement détecté, hasVariants:', hasVariants);
                                           // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
                                           if (hasVariants) {
-                                            console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes');
+                                            console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes, logo:', logo);
                                             setSelectedLogoForVariants(logo);
                                             return;
                                           }
@@ -6965,14 +6965,14 @@ export default function ProductBuilderPage() {
                                           <div
                                             key={logo.id}
                                             onClick={async () => {
-                                              console.log('🎯 Modal - Clic sur logo, logoToReplace:', logoToReplace, 'hasVariants:', hasVariants);
+                                              console.log('🎯 Modal - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
                                               
                                               // Si on est en mode remplacement
                                               if (logoToReplace) {
-                                                console.log('🎯 Modal - Mode remplacement détecté');
+                                                console.log('🎯 Modal - Mode remplacement détecté, hasVariants:', hasVariants);
                                                 // Si le logo a des variantes, ouvrir la vue des variantes
                                                 if (hasVariants) {
-                                                  console.log('🎯 Modal - Logo a des variantes, ouverture vue variantes');
+                                                  console.log('🎯 Modal - Logo a des variantes, ouverture vue variantes, logo:', logo);
                                                   setSelectedLogoForVariants(logo);
                                                   return;
                                                 }
@@ -8282,61 +8282,72 @@ export default function ProductBuilderPage() {
                                                       display: none;
                                                     }
                                                   `}</style>
-                                                  {filteredLogos.map((logo: any) => (
-                                                    <div
-                                                      key={logo.id}
-                                                      onClick={async () => {
-                                                        console.log('🎯 Clic sur logo, logoToReplace:', logoToReplace);
-                                                        
-                                                        // Si on est en mode remplacement, remplacer directement le logo
-                                                        if (logoToReplace) {
-                                                          console.log('🎯 Mode remplacement détecté, remplacement direct');
-                                                          const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
-                                                          if (logoToUpdate) {
-                                                            // Déterminer le fichier à utiliser (logo de base ou première variante)
-                                                            const fileToUse = logo.file_url;
+                                                  {filteredLogos.map((logo: any) => {
+                                                    const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
+                                                    
+                                                    return (
+                                                      <div
+                                                        key={logo.id}
+                                                        onClick={async () => {
+                                                          console.log('🎯 Mobile - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
+                                                          
+                                                          // Si on est en mode remplacement, vérifier d'abord les variantes
+                                                          if (logoToReplace) {
+                                                            console.log('🎯 Mobile - Mode remplacement détecté, hasVariants:', hasVariants);
                                                             
-                                                            // Mettre à jour le logo avec le nouveau logo et variante
-                                                            setPlacedLogos(placedLogos.map(l => 
-                                                              l.id === logoToReplace 
-                                                                ? { ...l, logoId: logo.id, variantId: undefined, variantFile: fileToUse }
-                                                                : l
-                                                            ));
+                                                            // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
+                                                            if (hasVariants) {
+                                                              console.log('🎯 Mobile - Logo a des variantes, ouverture vue variantes, logo:', logo);
+                                                              setSelectedLogoForVariants(logo);
+                                                              return;
+                                                            }
                                                             
-                                                            // Réinitialiser les états
-                                                            setLogoToReplace(null);
-                                                            setShowLogoLibrary(false);
-                                                            setSelectedLogoId(null);
+                                                            console.log('🎯 Mobile - Logo sans variante, remplacement direct');
+                                                            // Sinon, remplacer directement le logo
+                                                            const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
+                                                            if (logoToUpdate) {
+                                                              // Déterminer le fichier à utiliser (logo de base ou première variante)
+                                                              const fileToUse = logo.file_url;
+                                                              
+                                                              // Mettre à jour le logo avec le nouveau logo et variante
+                                                              setPlacedLogos(placedLogos.map(l => 
+                                                                l.id === logoToReplace 
+                                                                  ? { ...l, logoId: logo.id, variantId: undefined, variantFile: fileToUse }
+                                                                  : l
+                                                              ));
+                                                              
+                                                              // Réinitialiser les états
+                                                              setLogoToReplace(null);
+                                                              setShowLogoLibrary(false);
+                                                              setSelectedLogoId(null);
+                                                            }
+                                                            return;
                                                           }
-                                                          return;
-                                                        }
-                                                        
-                                                        console.log('🎯 Pas de remplacement, comportement normal');
-                                                        // Sinon, comportement normal
-                                                        // Vérifier si le logo a des variantes
-                                                        const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
-                                                        
-                                                        if (!hasVariants && activeModule.logoPlacementMode === 'zones') {
-                                                          // Pas de variantes + mode zones : ouvrir directement le modal de zone
-                                                          setSelectedLogoForZone({
-                                                            logoId: logo.id,
-                                                            variantId: undefined,
-                                                            variantFile: logo.file_url
-                                                          });
-                                                          setShowLogoZoneModal(true);
-                                                        } else {
-                                                          // A des variantes ou mode libre : afficher les variantes
-                                                          setSelectedLogoForVariants(logo);
-                                                        }
-                                                      }}
-                                                      style={{
-                                                        minWidth: '100px',
-                                                        width: '100px',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        alignItems: 'center',
-                                                        gap: '8px',
-                                                        cursor: 'pointer',
+                                                          
+                                                          console.log('🎯 Mobile - Pas de remplacement, comportement normal');
+                                                          
+                                                          // Vérifier si le logo a des variantes
+                                                          if (!hasVariants && activeModule.logoPlacementMode === 'zones') {
+                                                            // Pas de variantes + mode zones : ouvrir directement le modal de zone
+                                                            setSelectedLogoForZone({
+                                                              logoId: logo.id,
+                                                              variantId: undefined,
+                                                              variantFile: logo.file_url
+                                                            });
+                                                            setShowLogoZoneModal(true);
+                                                          } else {
+                                                            // A des variantes ou mode libre : afficher les variantes
+                                                            setSelectedLogoForVariants(logo);
+                                                          }
+                                                        }}
+                                                        style={{
+                                                          minWidth: '100px',
+                                                          width: '100px',
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+                                                          alignItems: 'center',
+                                                          gap: '8px',
+                                                          cursor: 'pointer',
                                                         padding: '8px',
                                                         borderRadius: '8px',
                                                         border: '1px solid #e5e7eb',
@@ -8393,7 +8404,8 @@ export default function ProductBuilderPage() {
                                                         {logo.name}
                                                       </p>
                                                     </div>
-                                                  ))}
+                                                  );
+                                                })}
                                                 </div>
                                               </div>
                                             )}
