@@ -8085,6 +8085,27 @@ export default function ProductBuilderPage() {
                                                         <div
                                                           key={variant.id || `base-${index}`}
                                                           onClick={async () => {
+                                                            // Si on est en mode remplacement, remplacer directement le logo
+                                                            if (logoToReplace) {
+                                                              const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
+                                                              if (logoToUpdate) {
+                                                                // Mettre à jour le logo avec le nouveau logo et variante
+                                                                setPlacedLogos(placedLogos.map(l => 
+                                                                  l.id === logoToReplace 
+                                                                    ? { ...l, logoId: selectedLogoForVariants.id, variantId: variant.id === 'base' ? undefined : variant.id, variantFile: fileToUse }
+                                                                    : l
+                                                                ));
+                                                                
+                                                                // Réinitialiser les états
+                                                                setLogoToReplace(null);
+                                                                setShowLogoLibrary(false);
+                                                                setSelectedLogoForVariants(null);
+                                                                setSelectedLogoId(null);
+                                                              }
+                                                              return;
+                                                            }
+                                                            
+                                                            // Sinon, comportement normal
                                                             // Si mode zones, ouvrir le modal de sélection de zone
                                                             if (activeModule.logoPlacementMode === 'zones') {
                                                               setSelectedLogoForZone({
@@ -8210,7 +8231,30 @@ export default function ProductBuilderPage() {
                                                   {filteredLogos.map((logo: any) => (
                                                     <div
                                                       key={logo.id}
-                                                      onClick={() => {
+                                                      onClick={async () => {
+                                                        // Si on est en mode remplacement, remplacer directement le logo
+                                                        if (logoToReplace) {
+                                                          const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
+                                                          if (logoToUpdate) {
+                                                            // Déterminer le fichier à utiliser (logo de base ou première variante)
+                                                            const fileToUse = logo.file_url;
+                                                            
+                                                            // Mettre à jour le logo avec le nouveau logo et variante
+                                                            setPlacedLogos(placedLogos.map(l => 
+                                                              l.id === logoToReplace 
+                                                                ? { ...l, logoId: logo.id, variantId: undefined, variantFile: fileToUse }
+                                                                : l
+                                                            ));
+                                                            
+                                                            // Réinitialiser les états
+                                                            setLogoToReplace(null);
+                                                            setShowLogoLibrary(false);
+                                                            setSelectedLogoId(null);
+                                                          }
+                                                          return;
+                                                        }
+                                                        
+                                                        // Sinon, comportement normal
                                                         // Vérifier si le logo a des variantes
                                                         const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
                                                         
@@ -9513,18 +9557,46 @@ export default function ProductBuilderPage() {
                                   </div>
                                   {/* Titre et bouton fermer */}
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                      <div style={{ width: '28px', height: '28px', backgroundColor: '#111827', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        {activeModule.iconUrl ? (
-                                          <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
-                                        ) : (
-                                          <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
-                                        )}
+                                    {/* Si bibliothèque de logos ouverte, afficher bouton Retour */}
+                                    {activeModule.contentType === 'logos' && showLogoLibrary ? (
+                                      <button
+                                        onClick={() => {
+                                          setShowLogoLibrary(false);
+                                          setSelectedLogoForVariants(null);
+                                          setLogoSearchQuery('');
+                                        }}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          backgroundColor: 'transparent',
+                                          border: 'none',
+                                          cursor: 'pointer',
+                                          padding: '0',
+                                          color: '#111827'
+                                        }}
+                                      >
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                          Retour
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ width: '28px', height: '28px', backgroundColor: '#111827', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                          {activeModule.iconUrl ? (
+                                            <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
+                                          ) : (
+                                            <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
+                                          )}
+                                        </div>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                          {activeModule.tabName || 'Module'}
+                                        </span>
                                       </div>
-                                      <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
-                                        {activeModule.tabName || 'Module'}
-                                      </span>
-                                    </div>
+                                    )}
                                     <button 
                                       onClick={() => { 
                                         // Marquer qu'on ferme manuellement le panneau IMMÉDIATEMENT
@@ -9659,6 +9731,9 @@ export default function ProductBuilderPage() {
                                           e.stopPropagation();
                                           // Ne pas réinitialiser la caméra quand on change d'onglet mobile
                                           const newPanel = isActive ? null : module.id;
+                                          
+                                          // Marquer qu'une vue a été définie pour empêcher CameraInitializer de réinitialiser
+                                          viewHasBeenSetRef.current = true;
                                           
                                           // Marquer qu'on ouvre manuellement le panneau AVANT de changer l'état
                                           isManuallyOpeningRef.current = true;
