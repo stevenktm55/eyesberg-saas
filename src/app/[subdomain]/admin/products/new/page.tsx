@@ -1672,6 +1672,9 @@ export default function ProductBuilderPage() {
         removeText(itemToDelete.id);
       } else {
         removeLogo(itemToDelete.id);
+        // Fermer la bibliothèque et réinitialiser les états après suppression d'un logo
+        setShowLogoLibrary(false);
+        setLogoToReplace(null);
       }
       setShowDeleteModal(false);
       setItemToDelete(null);
@@ -4311,11 +4314,24 @@ export default function ProductBuilderPage() {
                                     onClick={() => {
                                       console.log('🎯 Desktop - Clic sur Supprimer logo:', selectedLogoId);
                                       const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
-                                      if (logoToDelete && confirm('Voulez-vous vraiment supprimer ce logo ?')) {
-                                        setPlacedLogos(placedLogos.filter(l => l.id !== selectedLogoId));
-                                        setSelectedLogoId(null);
-                                        setShowLogoLibrary(false);
-                                        setLogoToReplace(null);
+                                      if (logoToDelete) {
+                                        // Trouver le nom du logo dans les bibliothèques
+                                        let logoName = 'Logo';
+                                        for (const library of logoLibraries) {
+                                          const foundLogo = library.logos?.find((l: any) => l.id === logoToDelete.logoId);
+                                          if (foundLogo) {
+                                            logoName = foundLogo.name || 'Logo';
+                                            break;
+                                          }
+                                        }
+                                        
+                                        // Ouvrir le modal de confirmation
+                                        setItemToDelete({
+                                          id: selectedLogoId,
+                                          name: logoName,
+                                          type: 'logo'
+                                        });
+                                        setShowDeleteModal(true);
                                       }
                                     }}
                                     style={{
@@ -8125,11 +8141,24 @@ export default function ProductBuilderPage() {
                                                 onClick={() => {
                                                   console.log('🎯 Mobile - Clic sur Supprimer logo:', selectedLogoId);
                                                   const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
-                                                  if (logoToDelete && confirm('Voulez-vous vraiment supprimer ce logo ?')) {
-                                                    setPlacedLogos(placedLogos.filter(l => l.id !== selectedLogoId));
-                                                    setSelectedLogoId(null);
-                                                    setShowLogoLibrary(false);
-                                                    setLogoToReplace(null);
+                                                  if (logoToDelete) {
+                                                    // Trouver le nom du logo dans les bibliothèques
+                                                    let logoName = 'Logo';
+                                                    for (const library of logoLibraries) {
+                                                      const foundLogo = library.logos?.find((l: any) => l.id === logoToDelete.logoId);
+                                                      if (foundLogo) {
+                                                        logoName = foundLogo.name || 'Logo';
+                                                        break;
+                                                      }
+                                                    }
+                                                    
+                                                    // Ouvrir le modal de confirmation
+                                                    setItemToDelete({
+                                                      id: selectedLogoId,
+                                                      name: logoName,
+                                                      type: 'logo'
+                                                    });
+                                                    setShowDeleteModal(true);
                                                   }
                                                 }}
                                                 style={{ 
