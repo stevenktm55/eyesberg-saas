@@ -3507,7 +3507,7 @@ export default function ProductBuilderPage() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 padding: '16px 6px',
-                gap: '6px'
+                gap: '10px'
               }}>
                 {customizationModules.map((module) => (
                   <button
@@ -3522,6 +3522,7 @@ export default function ProductBuilderPage() {
                       }
                     }}
                     style={{
+                      width: '53px',
                       padding: '14px 8px',
                       backgroundColor: activeCustomizerTab === module.id ? '#000000' : '#ffffff',
                       border: 'none',
@@ -4263,12 +4264,12 @@ export default function ProductBuilderPage() {
                             {/* Boutons de vue en haut - uniquement si mode zones ET bibliothèque non ouverte */}
                             {activeModule.logoPlacementMode === 'zones' && !showLogoLibrary && (
                               <div style={{ 
-                                display: 'flex', 
-                                gap: '20px', 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(4, 1fr)', 
+                                gap: '12px', 
                                 marginBottom: '12px',
                                 paddingBottom: '12px',
-                                borderBottom: '1px solid #e0e0e0',
-                                flexWrap: 'wrap'
+                                borderBottom: '1px solid #e0e0e0'
                               }}>
                                 {(['front', 'back', 'left', 'right'] as const).map((view) => (
                                   <button
@@ -4295,7 +4296,8 @@ export default function ProductBuilderPage() {
                                       transition: 'all 0.15s',
                                       position: 'relative',
                                       paddingBottom: '12px',
-                                      borderBottom: activeLogoView === view ? '2px solid #000000' : 'none'
+                                      borderBottom: activeLogoView === view ? '2px solid #000000' : 'none',
+                                      textAlign: 'center'
                                     }}
                                   >
                                     {viewLabels[view]}
@@ -4662,12 +4664,12 @@ export default function ProductBuilderPage() {
                           {/* Boutons de vue en haut - uniquement si mode zones */}
                           {activeModule.logoPlacementMode === 'zones' && (
                             <div style={{ 
-                              display: 'flex', 
-                              gap: '20px', 
+                              display: 'grid', 
+                              gridTemplateColumns: 'repeat(4, 1fr)', 
+                              gap: '12px', 
                               marginBottom: '0',
                               paddingBottom: '12px',
-                              borderBottom: '1px solid #e0e0e0',
-                              flexWrap: 'wrap'
+                              borderBottom: '1px solid #e0e0e0'
                             }}>
                               {(['front', 'back', 'left', 'right'] as const).map((view) => (
                                 <button
@@ -4694,7 +4696,8 @@ export default function ProductBuilderPage() {
                                     transition: 'all 0.15s',
                                     position: 'relative',
                                     paddingBottom: '12px',
-                                    borderBottom: activeLogoView === view ? '2px solid #000000' : 'none'
+                                    borderBottom: activeLogoView === view ? '2px solid #000000' : 'none',
+                                    textAlign: 'center'
                                   }}
                                 >
                                   {viewLabels[view]}
