@@ -785,14 +785,14 @@ export default function ProductBuilderPage() {
         const logo = placedLogos.find(l => l.id === selectedLogoId);
         console.log('🎯 useEffect selectedLogoId - Logo trouvé:', logo ? 'OUI' : 'NON', 'logoToReplace:', logoToReplace, 'showLogoLibrary:', showLogoLibrary);
         if (logo) {
-          // Si on n'est pas déjà en mode remplacement et que la bibliothèque n'est pas ouverte
-          if (!logoToReplace && !showLogoLibrary) {
+          // Si on n'est pas déjà en mode remplacement, définir logoToReplace (peu importe si bibliothèque déjà ouverte)
+          if (!logoToReplace) {
             console.log('🎯 useEffect - Définition logoToReplace:', selectedLogoId);
             // Ouvrir la bibliothèque pour remplacer le logo
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
           } else {
-            console.log('🎯 useEffect - logoToReplace déjà défini ou bibliothèque déjà ouverte');
+            console.log('🎯 useEffect - logoToReplace déjà défini');
           }
         }
       } else {
