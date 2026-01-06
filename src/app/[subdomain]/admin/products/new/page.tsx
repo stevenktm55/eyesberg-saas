@@ -3600,7 +3600,8 @@ export default function ProductBuilderPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
-                  animation: 'slideIn 0.3s ease-out'
+                  animation: 'slideIn 0.3s ease-out',
+                  marginLeft: '8px'
                 }}>
                   {/* Tab Header */}
                   <div style={{
@@ -6059,8 +6060,8 @@ export default function ProductBuilderPage() {
                         e.currentTarget.style.borderColor = '#d0d0d0';
                       }}
                     >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 8L8 2L14 8M8 3V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 3.33334V16.6667M10 3.33334L5 8.33334M10 3.33334L15 8.33334" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       Sauvegarder
                     </button>
@@ -6092,8 +6093,8 @@ export default function ProductBuilderPage() {
                         e.currentTarget.style.backgroundColor = '#000000';
                       }}
                     >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 2L3.5 10.5H13.5L15 2H2ZM3.5 10.5L2.5 14H13.5L12.5 10.5M5.5 14C5.5 14.5523 5.05228 15 4.5 15C3.94772 15 3.5 14.5523 3.5 14M11.5 14C11.5 14.5523 11.0523 15 10.5 15C9.94772 15 9.5 14.5523 9.5 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 3.33334H4.16667L6.66667 13.3333H16.6667M6.66667 13.3333L5 6.66667H17.5L16.6667 13.3333M6.66667 13.3333L5.83333 16.6667H17.5M7.5 16.6667C7.5 17.1269 7.12691 17.5 6.66667 17.5C6.20643 17.5 5.83333 17.1269 5.83333 16.6667M15.8333 16.6667C15.8333 17.1269 15.4602 17.5 15 17.5C14.5398 17.5 14.1667 17.1269 14.1667 16.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       Ajouter au panier
                     </button>
