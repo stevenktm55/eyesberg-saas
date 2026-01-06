@@ -5014,22 +5014,24 @@ export default function ProductBuilderPage() {
                             }}
                             style={{
                               width: '100%',
-                              padding: '12px 16px',
-                              backgroundColor: isPlacingText ? '#8eff36' : '#ffffff',
-                              border: isPlacingText ? '1px solid #8eff36' : '1px solid #e0e0e0',
-                              borderRadius: '4px',
+                              padding: '14px 20px',
+                              backgroundColor: isPlacingText ? '#8eff36' : '#000000',
+                              border: 'none',
+                              borderRadius: '8px',
                               fontSize: '14px',
                               fontFamily: 'var(--stepn-font-body)',
-                              color: '#000000',
+                              color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
-                              transition: 'all 0.2s'
+                              transition: 'all 0.2s',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#f5f5f5';
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#ffffff';
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#000000';
                             }}
                           >
                             {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
@@ -5039,63 +5041,60 @@ export default function ProductBuilderPage() {
                         {/* Liste des textes ajoutés - affichée uniquement quand aucun texte n'est sélectionné */}
                         {!selectedTextId && texts.length > 0 && (
                           <div style={{
-                            marginTop: '16px',
+                            marginTop: '20px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '8px'
+                            gap: '12px'
                           }}>
                             <div style={{
-                              fontSize: '12px',
-                              color: '#a0a0a0',
+                              fontSize: '13px',
+                              color: '#9ca3af',
                               fontFamily: 'var(--stepn-font-body)',
-                              marginBottom: '4px'
+                              marginBottom: '4px',
+                              fontStyle: 'italic'
                             }}>
                               Textes ajoutés ({texts.length})
                             </div>
                             {texts.map((text) => (
                               <div
                                 key={text.id}
-                                onClick={() => selectText(text.id)}
                                 style={{
-                                  padding: '10px 12px',
-                                  backgroundColor: selectedTextId === text.id ? '#2a2a2a' : '#1a1a1a',
-                                  border: selectedTextId === text.id ? '1px solid #8eff36' : '1px solid #2a2a2a',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
+                                  padding: '16px',
+                                  backgroundColor: '#000000',
+                                  border: '1px solid #e5e7eb',
+                                  borderRadius: '12px',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                  transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (selectedTextId !== text.id) {
-                                    e.currentTarget.style.backgroundColor = '#222222';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (selectedTextId !== text.id) {
-                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
-                                  }
+                                  gap: '12px',
+                                  transition: 'all 0.2s',
+                                  cursor: 'default'
                                 }}
                               >
-                                <div style={{
-                                  flex: 1,
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: '4px'
-                                }}>
+                                <div 
+                                  onClick={() => selectText(text.id)}
+                                  style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '6px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
                                   <div style={{
-                                    fontSize: '14px',
+                                    fontSize: '15px',
                                     color: '#ffffff',
                                     fontFamily: 'var(--stepn-font-body)',
-                                    fontWeight: selectedTextId === text.id ? '600' : '400'
+                                    fontWeight: '500',
+                                    lineHeight: '1.4'
                                   }}>
                                     {text.content || '(Texte vide)'}
                                   </div>
                                   <div style={{
-                                    fontSize: '11px',
-                                    color: '#666',
-                                    fontFamily: 'var(--stepn-font-body)'
+                                    fontSize: '12px',
+                                    color: '#9ca3af',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontStyle: 'italic'
                                   }}>
                                     {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
                                     {text.locked && ' 🔒'}
@@ -5107,24 +5106,31 @@ export default function ProductBuilderPage() {
                                     confirmDeleteText(text.id);
                                   }}
                                   style={{
-                                    padding: '4px 8px',
-                                    backgroundColor: '#ff4444',
+                                    padding: '8px',
+                                    backgroundColor: '#ef4444',
                                     border: 'none',
-                                    borderRadius: '4px',
+                                    borderRadius: '8px',
                                     color: '#ffffff',
-                                    fontSize: '12px',
-                                    fontFamily: 'var(--stepn-font-body)',
                                     cursor: 'pointer',
-                                    fontWeight: '500'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '36px',
+                                    height: '36px',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s'
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#ff3333';
+                                    e.currentTarget.style.backgroundColor = '#dc2626';
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#ff4444';
+                                    e.currentTarget.style.backgroundColor = '#ef4444';
                                   }}
+                                  title="Supprimer"
                                 >
-                                  ×
+                                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
                                 </button>
                               </div>
                             ))}
@@ -6671,43 +6677,6 @@ export default function ProductBuilderPage() {
                           </Canvas>
                             );
                           })()}
-                          
-                          {/* UV2 Preview Window - Outside Canvas - Caché en mode mobile */}
-                          {uv2Canvas && viewportMode !== 'mobile' && (
-                            <div style={{
-                              position: 'absolute',
-                              bottom: '20px',
-                              right: '20px',
-                              width: '200px',
-                              height: '200px',
-                              backgroundColor: '#1a1a1a',
-                              border: '2px solid #333',
-                              borderRadius: '8px',
-                              padding: '8px',
-                              zIndex: 1000,
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                            }}>
-                              <div style={{
-                                fontSize: '11px',
-                                color: '#999',
-                                marginBottom: '4px',
-                                fontFamily: 'var(--stepn-font-body)'
-                              }}>
-                                UV2 Preview
-                              </div>
-                              <img
-                                src={uv2PreviewUrl || ''}
-                                alt="UV2 Preview"
-                                style={{
-                                  width: '100%',
-                                  height: 'calc(100% - 20px)',
-                                  objectFit: 'contain',
-                                  imageRendering: 'pixelated',
-                                  border: '1px solid #333'
-                                }}
-                              />
-                            </div>
-                          )}
                           </div>
                           
                           {/* SUPPRIMÉ : Modal de bibliothèque de logos desktop - La bibliothèque est maintenant dans la sidebar */}
