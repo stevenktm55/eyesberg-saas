@@ -8297,10 +8297,77 @@ export default function ProductBuilderPage() {
                                                               console.log('🎯 Mode remplacement variante détecté, remplacement direct');
                                                               const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                               if (logoToUpdate) {
-                                                                // Mettre à jour le logo avec le nouveau logo et variante
+                                                                // Calculer les dimensions du nouveau logo
+                                                                let logoWidth: number | undefined = undefined;
+                                                                let logoHeight: number | undefined = undefined;
+                                                                
+                                                                try {
+                                                                  const response = await fetch(fileToUse);
+                                                                  const svgText = await response.text();
+                                                                  const parser = new DOMParser();
+                                                                  const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                                                                  const svgElement = svgDoc.querySelector('svg');
+                                                                  if (svgElement) {
+                                                                    const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+                                                                    const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+                                                                    const viewBox = svgElement.getAttribute('viewBox');
+                                                                    
+                                                                    let actualWidth = svgWidth;
+                                                                    let actualHeight = svgHeight;
+                                                                    
+                                                                    if (viewBox) {
+                                                                      const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+                                                                      if (vbWidth && vbHeight) {
+                                                                        actualWidth = vbWidth;
+                                                                        actualHeight = vbHeight;
+                                                                      }
+                                                                    }
+                                                                    
+                                                                    if (actualWidth > 0 && actualHeight > 0) {
+                                                                      logoWidth = actualWidth;
+                                                                      logoHeight = actualHeight;
+                                                                    }
+                                                                  }
+                                                                } catch (error) {
+                                                                  console.error('Erreur lors du calcul des dimensions du logo:', error);
+                                                                }
+                                                                
+                                                                // Calculer le nouveau scale pour conserver la même taille visuelle
+                                                                let newScale = logoToUpdate.scale;
+                                                                if (logoWidth && logoHeight && logoToUpdate.width && logoToUpdate.height) {
+                                                                  const SCALE_FACTOR = 0.50;
+                                                                  const currentVisualWidth = logoToUpdate.width * logoToUpdate.scale * SCALE_FACTOR;
+                                                                  const currentVisualHeight = logoToUpdate.height * logoToUpdate.scale * SCALE_FACTOR;
+                                                                  
+                                                                  const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
+                                                                  const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
+                                                                  
+                                                                  newScale = Math.min(scaleX, scaleY);
+                                                                  
+                                                                  console.log('📐 Mobile - Scale adjustment (variante):', {
+                                                                    oldWidth: logoToUpdate.width,
+                                                                    oldHeight: logoToUpdate.height,
+                                                                    oldScale: logoToUpdate.scale,
+                                                                    newWidth: logoWidth,
+                                                                    newHeight: logoHeight,
+                                                                    newScale: newScale,
+                                                                    currentVisualWidth,
+                                                                    currentVisualHeight
+                                                                  });
+                                                                }
+                                                                
+                                                                // Mettre à jour le logo avec les nouvelles dimensions
                                                                 setPlacedLogos(placedLogos.map(l => 
                                                                   l.id === logoToReplace 
-                                                                    ? { ...l, logoId: selectedLogoForVariants.id, variantId: variant.id === 'base' ? undefined : variant.id, variantFile: fileToUse }
+                                                                    ? { 
+                                                                        ...l, 
+                                                                        logoId: selectedLogoForVariants.id, 
+                                                                        variantId: variant.id === 'base' ? undefined : variant.id, 
+                                                                        variantFile: fileToUse,
+                                                                        width: logoWidth,
+                                                                        height: logoHeight,
+                                                                        scale: newScale
+                                                                      }
                                                                     : l
                                                                 ));
                                                                 
@@ -8457,25 +8524,92 @@ export default function ProductBuilderPage() {
                                                               return;
                                                             }
                                                             
-                                                            console.log('🎯 Mobile - Logo sans variante, remplacement direct');
-                                                            // Sinon, remplacer directement le logo
-                                                            const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
-                                                            if (logoToUpdate) {
-                                                              // Déterminer le fichier à utiliser (logo de base ou première variante)
-                                                              const fileToUse = logo.file_url;
-                                                              
-                                                              // Mettre à jour le logo avec le nouveau logo et variante
-                                                              setPlacedLogos(placedLogos.map(l => 
-                                                                l.id === logoToReplace 
-                                                                  ? { ...l, logoId: logo.id, variantId: undefined, variantFile: fileToUse }
-                                                                  : l
-                                                              ));
-                                                              
-                                                              // Réinitialiser les états (mais garder le logo sélectionné pour pouvoir continuer à le modifier)
-                                                              setLogoToReplace(null);
-                                                              setShowLogoLibrary(false);
-                                                              // setSelectedLogoId(null); // Ne pas désélectionner pour pouvoir continuer à modifier le logo
+                                                          console.log('🎯 Mobile - Logo sans variante, remplacement direct');
+                                                          // Sinon, remplacer directement le logo
+                                                          const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
+                                                          if (logoToUpdate) {
+                                                            // Déterminer le fichier à utiliser (logo de base ou première variante)
+                                                            const fileToUse = logo.file_url;
+                                                            
+                                                            // Calculer les dimensions du nouveau logo
+                                                            let logoWidth: number | undefined = undefined;
+                                                            let logoHeight: number | undefined = undefined;
+                                                            
+                                                            try {
+                                                              const response = await fetch(fileToUse);
+                                                              const svgText = await response.text();
+                                                              const parser = new DOMParser();
+                                                              const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                                                              const svgElement = svgDoc.querySelector('svg');
+                                                              if (svgElement) {
+                                                                const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+                                                                const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+                                                                const viewBox = svgElement.getAttribute('viewBox');
+                                                                
+                                                                let actualWidth = svgWidth;
+                                                                let actualHeight = svgHeight;
+                                                                
+                                                                if (viewBox) {
+                                                                  const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+                                                                  if (vbWidth && vbHeight) {
+                                                                    actualWidth = vbWidth;
+                                                                    actualHeight = vbHeight;
+                                                                  }
+                                                                }
+                                                                
+                                                                if (actualWidth > 0 && actualHeight > 0) {
+                                                                  logoWidth = actualWidth;
+                                                                  logoHeight = actualHeight;
+                                                                }
+                                                              }
+                                                            } catch (error) {
+                                                              console.error('Erreur lors du calcul des dimensions du logo:', error);
                                                             }
+                                                            
+                                                            // Calculer le nouveau scale pour conserver la même taille visuelle
+                                                            let newScale = logoToUpdate.scale;
+                                                            if (logoWidth && logoHeight && logoToUpdate.width && logoToUpdate.height) {
+                                                              const SCALE_FACTOR = 0.50;
+                                                              const currentVisualWidth = logoToUpdate.width * logoToUpdate.scale * SCALE_FACTOR;
+                                                              const currentVisualHeight = logoToUpdate.height * logoToUpdate.scale * SCALE_FACTOR;
+                                                              
+                                                              const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
+                                                              const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
+                                                              
+                                                              newScale = Math.min(scaleX, scaleY);
+                                                              
+                                                              console.log('📐 Mobile - Scale adjustment:', {
+                                                                oldWidth: logoToUpdate.width,
+                                                                oldHeight: logoToUpdate.height,
+                                                                oldScale: logoToUpdate.scale,
+                                                                newWidth: logoWidth,
+                                                                newHeight: logoHeight,
+                                                                newScale: newScale,
+                                                                currentVisualWidth,
+                                                                currentVisualHeight
+                                                              });
+                                                            }
+                                                            
+                                                            // Mettre à jour le logo avec les nouvelles dimensions
+                                                            setPlacedLogos(placedLogos.map(l => 
+                                                              l.id === logoToReplace 
+                                                                ? { 
+                                                                    ...l, 
+                                                                    logoId: logo.id, 
+                                                                    variantId: undefined, 
+                                                                    variantFile: fileToUse,
+                                                                    width: logoWidth,
+                                                                    height: logoHeight,
+                                                                    scale: newScale
+                                                                  }
+                                                                : l
+                                                            ));
+                                                            
+                                                            // Réinitialiser les états (mais garder le logo sélectionné pour pouvoir continuer à le modifier)
+                                                            setLogoToReplace(null);
+                                                            setShowLogoLibrary(false);
+                                                            // setSelectedLogoId(null); // Ne pas désélectionner pour pouvoir continuer à modifier le logo
+                                                          }
                                                             return;
                                                           }
                                                           
