@@ -3500,14 +3500,14 @@ export default function ProductBuilderPage() {
             {/* Left Sidebar - Customizer Tabs (only visible when model is selected AND en mode desktop) */}
             {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
-                width: '65px',
+                width: '80px',
                 backgroundColor: '#ffffff',
                 borderRight: '1px solid #d0d0d0',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                padding: '16px 6px',
-                gap: '10px'
+                padding: '8px',
+                gap: '8px'
               }}>
                 {customizationModules.map((module) => (
                   <button
@@ -3522,11 +3522,12 @@ export default function ProductBuilderPage() {
                       }
                     }}
                     style={{
-                      width: '53px',
-                      padding: '14px 8px',
+                      width: '64px',
+                      height: '64px',
+                      padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? '#000000' : '#ffffff',
                       border: 'none',
-                      borderRadius: '14px',
+                      borderRadius: '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -3534,7 +3535,7 @@ export default function ProductBuilderPage() {
                       cursor: 'pointer',
                       fontSize: '20px',
                       transition: 'all 0.15s ease',
-                      gap: '8px'
+                      gap: '4px'
                     }}
                     title={module.tabName}
                   >
@@ -3548,29 +3549,29 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       overflow: 'hidden'
                     }}>
-                      {module.iconUrl ? (
-                        <img
-                          src={module.iconUrl}
-                          alt={module.tabName}
-                          style={{
+                    {module.iconUrl ? (
+                      <img
+                        src={module.iconUrl}
+                        alt={module.tabName}
+                        style={{
                             width: '14px',
                             height: '14px',
                             maxWidth: '14px',
                             maxHeight: '14px',
-                            objectFit: 'contain',
+                          objectFit: 'contain',
                             display: 'block',
                             filter: activeCustomizerTab === module.id ? 'invert(0)' : 'invert(1)'
-                          }}
-                        />
-                      ) : (
+                        }}
+                      />
+                    ) : (
                         <span style={{ 
                           fontSize: '14px', 
                           lineHeight: '1',
                           color: activeCustomizerTab === module.id ? '#000000' : '#ffffff'
                         }}>
-                          {module.icon}
-                        </span>
-                      )}
+                        {module.icon}
+                      </span>
+                    )}
                     </div>
                     <span style={{ 
                       fontSize: '10px', 
@@ -4264,11 +4265,10 @@ export default function ProductBuilderPage() {
                             {/* Boutons de vue en haut - uniquement si mode zones ET bibliothèque non ouverte */}
                             {activeModule.logoPlacementMode === 'zones' && !showLogoLibrary && (
                               <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(4, 1fr)', 
-                                gap: '12px', 
+                                display: 'flex', 
+                                gap: '0', 
                                 marginBottom: '12px',
-                                paddingBottom: '12px',
+                                paddingBottom: '0',
                                 borderBottom: '1px solid #e0e0e0'
                               }}>
                                 {(['front', 'back', 'left', 'right'] as const).map((view) => (
@@ -4286,18 +4286,19 @@ export default function ProductBuilderPage() {
                                       setTargetView(viewToCategory[view]);
                                     }}
                                     style={{
-                                      padding: '0',
+                                      height: '42px',
+                                      padding: '0 12px',
                                       fontSize: '14px',
-                                      fontWeight: activeLogoView === view ? '500' : '400',
+                                      fontWeight: '500',
                                       border: 'none',
+                                      borderRadius: '0',
                                       background: 'transparent',
                                       cursor: 'pointer',
                                       color: activeLogoView === view ? '#000000' : '#606060',
                                       transition: 'all 0.15s',
                                       position: 'relative',
-                                      paddingBottom: '12px',
-                                      borderBottom: activeLogoView === view ? '2px solid #000000' : 'none',
-                                      textAlign: 'center'
+                                      borderBottom: activeLogoView === view ? '2px solid #000000' : '2px solid transparent',
+                                      whiteSpace: 'nowrap'
                                     }}
                                   >
                                     {viewLabels[view]}
@@ -4449,12 +4450,12 @@ export default function ProductBuilderPage() {
                                         if (logoToReplace) {
                                           console.log('🎯 Desktop - Mode remplacement détecté, hasVariants:', hasVariants);
                                           // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
-                                          if (hasVariants) {
+                                        if (hasVariants) {
                                             console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes, logo:', logo);
-                                            setSelectedLogoForVariants(logo);
-                                            return;
-                                          }
-                                          
+                                          setSelectedLogoForVariants(logo);
+                                          return;
+                                        }
+                                        
                                           console.log('🎯 Desktop - Logo sans variante, remplacement direct');
                                           // Sinon, remplacer directement
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
@@ -4664,11 +4665,10 @@ export default function ProductBuilderPage() {
                           {/* Boutons de vue en haut - uniquement si mode zones */}
                           {activeModule.logoPlacementMode === 'zones' && (
                             <div style={{ 
-                              display: 'grid', 
-                              gridTemplateColumns: 'repeat(4, 1fr)', 
-                              gap: '12px', 
+                              display: 'flex', 
+                              gap: '0', 
                               marginBottom: '0',
-                              paddingBottom: '12px',
+                              paddingBottom: '0',
                               borderBottom: '1px solid #e0e0e0'
                             }}>
                               {(['front', 'back', 'left', 'right'] as const).map((view) => (
@@ -4686,18 +4686,19 @@ export default function ProductBuilderPage() {
                                     setTargetView(viewToCategory[view]);
                                   }}
                                   style={{
-                                    padding: '0',
+                                    height: '42px',
+                                    padding: '0 12px',
                                     fontSize: '14px',
-                                    fontWeight: activeLogoView === view ? '500' : '400',
+                                    fontWeight: '500',
                                     border: 'none',
+                                    borderRadius: '0',
                                     background: 'transparent',
                                     cursor: 'pointer',
                                     color: activeLogoView === view ? '#000000' : '#606060',
                                     transition: 'all 0.15s',
                                     position: 'relative',
-                                    paddingBottom: '12px',
-                                    borderBottom: activeLogoView === view ? '2px solid #000000' : 'none',
-                                    textAlign: 'center'
+                                    borderBottom: activeLogoView === view ? '2px solid #000000' : '2px solid transparent',
+                                    whiteSpace: 'nowrap'
                                   }}
                                 >
                                   {viewLabels[view]}
@@ -4708,11 +4709,11 @@ export default function ProductBuilderPage() {
                           
                           {/* Bouton "Ajouter un logo" - Ne s'affiche pas si on est en mode remplacement */}
                           {!logoToReplace && (
-                            <button
-                              onClick={() => {
+                          <button
+                            onClick={() => {
                                 console.log('🎯 Clic sur "Ajouter un logo"');
-                                setShowLogoLibrary(true);
-                              }}
+                              setShowLogoLibrary(true);
+                            }}
                             style={{
                               width: '100%',
                               padding: '13px 20px',
@@ -5111,9 +5112,9 @@ export default function ProductBuilderPage() {
                                 <div 
                                   onClick={() => selectText(text.id)}
                                   style={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
                                     gap: '6px',
                                     cursor: 'pointer'
                                   }}
@@ -6795,7 +6796,7 @@ export default function ProductBuilderPage() {
                                       }
                                     `}</style>
                                     {/* Header */}
-                                    <div style={{
+                            <div style={{
                                       display: 'flex',
                                       justifyContent: 'space-between',
                                       alignItems: 'center',
@@ -6955,7 +6956,7 @@ export default function ProductBuilderPage() {
                             return (
                               <div
                                 style={{
-                                  position: 'absolute',
+                              position: 'absolute',
                                   top: 0,
                                   left: 0,
                                   right: 0,
@@ -6977,7 +6978,7 @@ export default function ProductBuilderPage() {
                                   className="zone-selection-modal-content"
                                   style={{
                                     backgroundColor: '#ffffff',
-                                    borderRadius: '8px',
+                              borderRadius: '8px',
                                     padding: '20px',
                                     width: '90%',
                                     maxWidth: '100%',
@@ -7061,7 +7062,7 @@ export default function ProductBuilderPage() {
                                       Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
                                     </p>
                                   ) : (
-                                    <div style={{
+                              <div style={{
                                       display: 'grid',
                                       gridTemplateColumns: 'repeat(2, 1fr)',
                                       gap: '12px'
@@ -7149,7 +7150,7 @@ export default function ProductBuilderPage() {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                fontSize: '11px',
+                                fontSize: '11px',
                                                 color: '#666',
                                                 textAlign: 'center',
                                                 padding: '8px'
@@ -7377,12 +7378,12 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   fontWeight: '500',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)'
-                                                }}>
+                                fontFamily: 'var(--stepn-font-body)'
+                              }}>
                                                   {zone.name}
                                                   {zone.view && ` (${zone.view})`}
                                                 </p>
-                                              </div>
+                              </div>
                                             </div>
                                           );
                                         })}
@@ -7699,7 +7700,7 @@ export default function ProductBuilderPage() {
                                                   <img
                                                     src={zone.thumbnailUrl}
                                                     alt={zone.name}
-                                                    style={{
+                                style={{
                                                       maxWidth: '100%',
                                                       maxHeight: '100%',
                                                       objectFit: 'contain'
@@ -7707,7 +7708,7 @@ export default function ProductBuilderPage() {
                                                   />
                                                 ) : (
                                                   <div style={{
-                                                    width: '100%',
+                                  width: '100%',
                                                     height: '100%',
                                                     backgroundColor: '#e0e0e0',
                                                     display: 'flex',
@@ -7905,9 +7906,9 @@ export default function ProductBuilderPage() {
                                           >
                                             Ajouter
                                           </button>
-                                        </div>
-                                      )}
-                                    </div>
+                            </div>
+                          )}
+                          </div>
                                   )}
                                 </div>
                               </div>
@@ -9956,18 +9957,18 @@ export default function ProductBuilderPage() {
                                         </span>
                                       </button>
                                     ) : (
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div style={{ width: '28px', height: '28px', backgroundColor: '#111827', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                          {activeModule.iconUrl ? (
-                                            <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
-                                          ) : (
-                                            <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
-                                          )}
-                                        </div>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
-                                          {activeModule.tabName || 'Module'}
-                                        </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <div style={{ width: '28px', height: '28px', backgroundColor: '#111827', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {activeModule.iconUrl ? (
+                                          <img src={activeModule.iconUrl} alt="" style={{ width: '18px', height: '18px', filter: 'brightness(0) invert(1)' }} />
+                                        ) : (
+                                          <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
+                                        )}
                                       </div>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                        {activeModule.tabName || 'Module'}
+                                      </span>
+                                    </div>
                                     )}
                                     <button 
                                       onClick={() => { 
@@ -13558,19 +13559,19 @@ export default function ProductBuilderPage() {
       
       {/* Modal de confirmation de suppression - Version DESKTOP (niveau global) */}
       {viewportMode === 'desktop' && showDeleteModal && itemToDelete && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000
-          }}
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000
+            }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowDeleteModal(false);
