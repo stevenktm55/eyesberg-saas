@@ -3601,7 +3601,7 @@ export default function ProductBuilderPage() {
                   flexDirection: 'column',
                   overflow: 'hidden',
                   animation: 'slideIn 0.3s ease-out',
-                  marginLeft: '8px'
+                  marginLeft: '16px'
                 }}>
                   {/* Tab Header */}
                   <div style={{
@@ -6060,8 +6060,8 @@ export default function ProductBuilderPage() {
                         e.currentTarget.style.borderColor = '#d0d0d0';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 3.33334V16.6667M10 3.33334L5 8.33334M10 3.33334L15 8.33334" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                       </svg>
                       Sauvegarder
                     </button>
@@ -6093,8 +6093,8 @@ export default function ProductBuilderPage() {
                         e.currentTarget.style.backgroundColor = '#000000';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2.5 3.33334H4.16667L6.66667 13.3333H16.6667M6.66667 13.3333L5 6.66667H17.5L16.6667 13.3333M6.66667 13.3333L5.83333 16.6667H17.5M7.5 16.6667C7.5 17.1269 7.12691 17.5 6.66667 17.5C6.20643 17.5 5.83333 17.1269 5.83333 16.6667M15.8333 16.6667C15.8333 17.1269 15.4602 17.5 15 17.5C14.5398 17.5 14.1667 17.1269 14.1667 16.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
                       </svg>
                       Ajouter au panier
                     </button>
