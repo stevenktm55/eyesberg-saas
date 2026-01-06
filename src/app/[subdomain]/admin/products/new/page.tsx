@@ -6020,6 +6020,84 @@ export default function ProductBuilderPage() {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Bottom Action Buttons */}
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#ffffff',
+                    borderTop: '1px solid #e0e0e0',
+                    display: 'flex',
+                    gap: '12px'
+                  }}>
+                    <button
+                      onClick={() => {
+                        // TODO: Implémenter la sauvegarde
+                        console.log('Sauvegarder');
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '12px 20px',
+                        backgroundColor: '#ffffff',
+                        color: '#000000',
+                        border: '1px solid #d0d0d0',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fafafa';
+                        e.currentTarget.style.borderColor = '#a0a0a0';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ffffff';
+                        e.currentTarget.style.borderColor = '#d0d0d0';
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8L8 2L14 8M8 3V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Sauvegarder
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: Implémenter l'ajout au panier
+                        console.log('Ajouter au panier');
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '12px 20px',
+                        backgroundColor: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#000000';
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 2L3.5 10.5H13.5L15 2H2ZM3.5 10.5L2.5 14H13.5L12.5 10.5M5.5 14C5.5 14.5523 5.05228 15 4.5 15C3.94772 15 3.5 14.5523 3.5 14M11.5 14C11.5 14.5523 11.0523 15 10.5 15C9.94772 15 9.5 14.5523 9.5 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Ajouter au panier
+                    </button>
+                  </div>
                 </div>
               );
             })()}
