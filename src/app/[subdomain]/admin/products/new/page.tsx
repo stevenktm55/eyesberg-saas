@@ -3500,14 +3500,14 @@ export default function ProductBuilderPage() {
             {/* Left Sidebar - Customizer Tabs (only visible when model is selected AND en mode desktop) */}
             {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
-                width: '80px',
+                width: '65px',
                 backgroundColor: '#ffffff',
-                borderRight: '1px solid #e0e0e0',
+                borderRight: '1px solid #d0d0d0',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                padding: '16px 0',
-                gap: '8px'
+                padding: '16px 6px',
+                gap: '6px'
               }}>
                 {customizationModules.map((module) => (
                   <button
@@ -3522,40 +3522,64 @@ export default function ProductBuilderPage() {
                       }
                     }}
                     style={{
-                      width: '48px',
-                      height: '48px',
-                      backgroundColor: activeCustomizerTab === module.id ? '#f5f5f5' : 'transparent',
-                      border: activeCustomizerTab === module.id ? '1px solid #e0e0e0' : '1px solid #e0e0e0',
-                      borderRadius: '4px',
+                      padding: '14px 8px',
+                      backgroundColor: activeCustomizerTab === module.id ? '#000000' : '#ffffff',
+                      border: 'none',
+                      borderRadius: '14px',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      color: activeCustomizerTab === module.id ? '#000000' : '#666666',
                       fontSize: '20px',
-                      transition: 'all 0.2s',
-                      overflow: 'hidden'
+                      transition: 'all 0.15s ease',
+                      gap: '8px'
                     }}
                     title={module.tabName}
                   >
-                    {module.iconUrl ? (
-                      <img
-                        src={module.iconUrl}
-                        alt={module.tabName}
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          maxWidth: '32px',
-                          maxHeight: '32px',
-                          objectFit: 'contain',
-                          display: 'block'
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: '24px', lineHeight: '1' }}>
-                        {module.icon}
-                      </span>
-                    )}
+                    <div style={{
+                      width: '22px',
+                      height: '22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: activeCustomizerTab === module.id ? '#ffffff' : '#000000',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      {module.iconUrl ? (
+                        <img
+                          src={module.iconUrl}
+                          alt={module.tabName}
+                          style={{
+                            width: '14px',
+                            height: '14px',
+                            maxWidth: '14px',
+                            maxHeight: '14px',
+                            objectFit: 'contain',
+                            display: 'block',
+                            filter: activeCustomizerTab === module.id ? 'invert(0)' : 'invert(1)'
+                          }}
+                        />
+                      ) : (
+                        <span style={{ 
+                          fontSize: '14px', 
+                          lineHeight: '1',
+                          color: activeCustomizerTab === module.id ? '#000000' : '#ffffff'
+                        }}>
+                          {module.icon}
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ 
+                      fontSize: '10px', 
+                      fontWeight: '400',
+                      lineHeight: '1.2',
+                      textAlign: 'center',
+                      color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
+                    }}>
+                      {module.tabName}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -4239,12 +4263,12 @@ export default function ProductBuilderPage() {
                             {/* Boutons de vue en haut - uniquement si mode zones ET bibliothèque non ouverte */}
                             {activeModule.logoPlacementMode === 'zones' && !showLogoLibrary && (
                               <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(4, 1fr)', 
-                                gap: '4px', 
+                                display: 'flex', 
+                                gap: '20px', 
                                 marginBottom: '12px',
                                 paddingBottom: '12px',
-                                borderBottom: '1px solid #e0e0e0'
+                                borderBottom: '1px solid #e0e0e0',
+                                flexWrap: 'wrap'
                               }}>
                                 {(['front', 'back', 'left', 'right'] as const).map((view) => (
                                   <button
@@ -4261,15 +4285,17 @@ export default function ProductBuilderPage() {
                                       setTargetView(viewToCategory[view]);
                                     }}
                                     style={{
-                                      padding: '8px 12px',
-                                      fontSize: '12px',
-                                      fontWeight: '500',
-                                      borderRadius: '4px',
+                                      padding: '0',
+                                      fontSize: '14px',
+                                      fontWeight: activeLogoView === view ? '500' : '400',
                                       border: 'none',
+                                      background: 'transparent',
                                       cursor: 'pointer',
-                                      backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
-                                      color: activeLogoView === view ? '#ffffff' : '#374151',
-                                      transition: 'all 0.2s'
+                                      color: activeLogoView === view ? '#000000' : '#606060',
+                                      transition: 'all 0.15s',
+                                      position: 'relative',
+                                      paddingBottom: '12px',
+                                      borderBottom: activeLogoView === view ? '2px solid #000000' : 'none'
                                     }}
                                   >
                                     {viewLabels[view]}
@@ -4636,9 +4662,12 @@ export default function ProductBuilderPage() {
                           {/* Boutons de vue en haut - uniquement si mode zones */}
                           {activeModule.logoPlacementMode === 'zones' && (
                             <div style={{ 
-                              display: 'grid', 
-                              gridTemplateColumns: 'repeat(4, 1fr)', 
-                              gap: '4px'
+                              display: 'flex', 
+                              gap: '20px', 
+                              marginBottom: '0',
+                              paddingBottom: '12px',
+                              borderBottom: '1px solid #e0e0e0',
+                              flexWrap: 'wrap'
                             }}>
                               {(['front', 'back', 'left', 'right'] as const).map((view) => (
                                 <button
@@ -4655,15 +4684,17 @@ export default function ProductBuilderPage() {
                                     setTargetView(viewToCategory[view]);
                                   }}
                                   style={{
-                                    padding: '8px 12px',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    borderRadius: '4px',
+                                    padding: '0',
+                                    fontSize: '14px',
+                                    fontWeight: activeLogoView === view ? '500' : '400',
                                     border: 'none',
+                                    background: 'transparent',
                                     cursor: 'pointer',
-                                    backgroundColor: activeLogoView === view ? '#3b82f6' : '#f3f4f6',
-                                    color: activeLogoView === view ? '#ffffff' : '#374151',
-                                    transition: 'all 0.2s'
+                                    color: activeLogoView === view ? '#000000' : '#606060',
+                                    transition: 'all 0.15s',
+                                    position: 'relative',
+                                    paddingBottom: '12px',
+                                    borderBottom: activeLogoView === view ? '2px solid #000000' : 'none'
                                   }}
                                 >
                                   {viewLabels[view]}
@@ -4681,13 +4712,13 @@ export default function ProductBuilderPage() {
                               }}
                             style={{
                               width: '100%',
-                              padding: '12px 24px',
+                              padding: '13px 20px',
                               fontSize: '14px',
                               fontWeight: '500',
-                              backgroundColor: '#3b82f6',
+                              backgroundColor: '#000000',
                               color: '#ffffff',
                               border: 'none',
-                              borderRadius: '6px',
+                              borderRadius: '8px',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
@@ -4696,13 +4727,13 @@ export default function ProductBuilderPage() {
                               transition: 'all 0.2s'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#2563eb';
+                              e.currentTarget.style.backgroundColor = '#1a1a1a';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#3b82f6';
+                              e.currentTarget.style.backgroundColor = '#000000';
                             }}
                           >
-                            <span>+</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
                             {buttonLabel}
                           </button>
                           )}
@@ -4712,15 +4743,16 @@ export default function ProductBuilderPage() {
                             <div style={{
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: '8px'
+                              gap: '12px'
                             }}>
                               <div style={{
-                                fontSize: '12px',
-                                color: '#a0a0a0',
+                                fontSize: '14px',
+                                color: '#000000',
                                 fontFamily: 'var(--stepn-font-body)',
+                                fontWeight: '600',
                                 marginBottom: '4px'
                               }}>
-                                Logos ajoutés ({filteredPlacedLogos.length})
+                                Logos placés ({filteredPlacedLogos.length})
                               </div>
                               {filteredPlacedLogos.map((logo) => {
                                 // Trouver le nom du logo depuis les bibliothèques
@@ -4741,10 +4773,10 @@ export default function ProductBuilderPage() {
                                       setSelectedLogoId(logo.id);
                                     }}
                                     style={{
-                                      padding: '10px 12px',
-                                      backgroundColor: selectedLogoId === logo.id ? '#2a2a2a' : '#1a1a1a',
-                                      border: selectedLogoId === logo.id ? '1px solid #8eff36' : '1px solid #2a2a2a',
-                                      borderRadius: '4px',
+                                      padding: '14px',
+                                      backgroundColor: selectedLogoId === logo.id ? '#fafafa' : '#fafafa',
+                                      border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e0e0e0',
+                                      borderRadius: '8px',
                                       cursor: 'pointer',
                                       display: 'flex',
                                       alignItems: 'center',
@@ -4753,12 +4785,14 @@ export default function ProductBuilderPage() {
                                     }}
                                     onMouseEnter={(e) => {
                                       if (selectedLogoId !== logo.id) {
-                                        e.currentTarget.style.backgroundColor = '#222222';
+                                        e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                        e.currentTarget.style.borderColor = '#000000';
                                       }
                                     }}
                                     onMouseLeave={(e) => {
                                       if (selectedLogoId !== logo.id) {
-                                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                        e.currentTarget.style.backgroundColor = '#fafafa';
+                                        e.currentTarget.style.borderColor = '#e0e0e0';
                                       }
                                     }}
                                   >
