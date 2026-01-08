@@ -1541,6 +1541,7 @@ export default function ModelsConfigPage() {
                           Capturer
                         </button>
                       </div>
+                    </div>
                     )}
                   </div>
                 </div>
