@@ -41,7 +41,7 @@ if (typeof document !== 'undefined') {
   }
 }
 
-type Tab = 'build' | 'camera' | 'pricing' | 'variants' | 'connect';
+type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
 type CustomizationModule = {
   id: string;
@@ -96,15 +96,6 @@ type CustomizationModule = {
     sizePatternId?: string;
   };
   colorClassLabels?: Record<string, string>; // Labels personnalisés pour les classes de couleurs (ex: { primary: 'Principal', secondary: 'Secondaire' })
-};
-
-// Type pour les vues caméra personnalisées
-type CameraView = {
-  id: string;
-  name: string; // Nom de la vue (ex: "Manche gauche", "Col devant")
-  position: { x: number; y: number; z: number }; // Position de la caméra
-  target: { x: number; y: number; z: number }; // Point ciblé par la caméra
-  isDefault?: boolean; // true pour les vues par défaut (Front, Back, Left, Right)
 };
 
 // Garder Question pour compatibilité avec l'ancien système
@@ -649,18 +640,6 @@ export default function ProductBuilderPage() {
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [customizationModules, setCustomizationModules] = useState<CustomizationModule[]>([]);
-  const [cameraViews, setCameraViews] = useState<CameraView[]>([
-    { id: 'view-front', name: 'Front', position: { x: 0, y: 0, z: 15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-back', name: 'Back', position: { x: 0, y: 0, z: -15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-left', name: 'Left', position: { x: -15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-right', name: 'Right', position: { x: 15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true }
-  ]);
-  const [showCameraViewsPanel, setShowCameraViewsPanel] = useState(false);
-  const [captureMode, setCaptureMode] = useState(false);
-  const [currentCameraPosition, setCurrentCameraPosition] = useState({ x: 0, y: 0, z: 0 });
-  const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
-  const [showNameViewModal, setShowNameViewModal] = useState(false);
-  const [newViewName, setNewViewName] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [showQuestionSettings, setShowQuestionSettings] = useState(false);
   const [showCreateModuleModal, setShowCreateModuleModal] = useState(false);
@@ -2189,22 +2168,6 @@ export default function ProductBuilderPage() {
               Build
             </button>
             <button
-              onClick={() => setActiveTab('camera')}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: activeTab === 'camera' ? '#1a1a1a' : 'transparent',
-                color: activeTab === 'camera' ? '#8eff36' : '#a0a0a0',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
-                fontWeight: activeTab === 'camera' ? '600' : '400'
-              }}
-            >
-              📷 Camera
-            </button>
-            <button
               onClick={() => setActiveTab('pricing')}
               style={{
                 padding: '8px 16px',
@@ -2311,7 +2274,15 @@ export default function ProductBuilderPage() {
 
 
         {/* Main Builder Area */}
-        {activeTab === 'camera' ? (
+        {activeTab === 'connect' ? (
+          <ConnectTabContent 
+            shop={searchParams.get('shop')}
+            productId={productId}
+            onProductLinked={async (shopifyProductId: string, shopifyVariantId: string) => {
+              // Linking logic...
+            }}
+          />
+        ) : false ? (
           <div style={{
             flex: 1,
             display: 'flex',
