@@ -11,7 +11,7 @@ import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 // Composant pour contrôler la caméra depuis l'extérieur du Canvas
 function CameraController() {
-  const { camera, gl } = useThree();
+  const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   
   useEffect(() => {
@@ -31,14 +31,13 @@ function CameraController() {
           console.log('🎯 Target contrôles mis à jour:', controlsRef.current.target);
         }
         
-        // Forcer le rendu
-        gl.render(gl.scene, camera);
+        // React Three Fiber gère automatiquement le rendu - pas besoin de forcer
       }
     };
     
     window.addEventListener('goToCameraView', handleGoToView);
     return () => window.removeEventListener('goToCameraView', handleGoToView);
-  }, [camera, gl]);
+  }, [camera]);
   
   // Exposer les contrôles via un callback
   const setControlsRef = (controls: any) => {
