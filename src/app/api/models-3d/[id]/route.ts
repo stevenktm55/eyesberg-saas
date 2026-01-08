@@ -53,7 +53,14 @@ export async function GET(
       throw error;
     }
 
-    return NextResponse.json(model);
+    const response = NextResponse.json(model);
+    
+    // Ajouter des headers no-cache pour éviter les problèmes de cache
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error: any) {
     console.error('Error fetching model:', error);
     return NextResponse.json(

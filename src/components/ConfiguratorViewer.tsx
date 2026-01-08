@@ -1499,13 +1499,21 @@ function Viewer3D({
       console.log('🔍 Recherche de vue sauvegardée pour modelId:', modelIdFromSnapshot, 'view:', view);
       
       if (modelIdFromSnapshot) {
-        const response = await fetch(`/api/models-3d/${modelIdFromSnapshot}`);
-        console.log('🌐 Response status:', response.status, response.ok);
+        // Ajouter cache-busting pour forcer le rechargement des vues
+        const cacheBuster = Date.now();
+        const response = await fetch(`/api/models-3d/${modelIdFromSnapshot}?t=${cacheBuster}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        console.log('🌐 Response status:', response.status, response.ok, 'Cache-buster:', cacheBuster);
         if (response.ok) {
           const model = await response.json();
-          console.log('📦 Model chargé:', model);
+          console.log('📦 Model chargé (avec cache-buster):', model);
           const views = model.camera_views || [];
-          console.log('📷 Toutes les vues disponibles:', views);
+          console.log('📷 Toutes les vues disponibles (fresh):', views);
+          console.log('📷 Timestamps des vues:', views.map((v: any) => ({ name: v.name, id: v.id, timestamp: v.id.split('-')[1] })));
           const viewLabelMap: Record<string, string> = {
             'front': 'Face',
             'back': 'Dos', 
@@ -1515,7 +1523,7 @@ function Viewer3D({
           const targetLabel = viewLabelMap[view];
           console.log('🎯 Recherche de la vue avec label:', targetLabel, 'pour view:', view);
           savedView = views.find((v: any) => v.name === targetLabel);
-          console.log('📷 Vue trouvée:', savedView);
+          console.log('📷 Vue trouvée (fresh):', savedView);
           if (!savedView) {
             console.log('❌ Aucune vue trouvée avec le label:', targetLabel);
             console.log('📋 Labels disponibles:', views.map((v: any) => v.name));

@@ -18,6 +18,8 @@ export async function POST(
 
     const newView = await request.json();
     const modelId = params.id;
+    
+    console.log('💾 Sauvegarde vue caméra:', { modelId, viewName: newView.name, position: newView.position, target: newView.target });
 
     // Récupérer le modèle actuel avec ses vues
     const { data: model, error: fetchError } = await supabaseAdmin
@@ -62,6 +64,8 @@ export async function POST(
 
     if (updateError) throw updateError;
 
+    console.log('✅ Vue caméra sauvegardée avec succès:', { modelId, viewName: newView.name, totalViews: cameraViews.length });
+    
     return NextResponse.json(updatedModel);
   } catch (error: any) {
     console.error('Error updating camera views:', error);
