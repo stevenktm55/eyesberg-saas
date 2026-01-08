@@ -3,6 +3,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { UVMapViewer } from "@/components/UVMapViewer";
 
+type CameraView = {
+  id: string;
+  name: string;
+  position: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+};
+
 type Zone = {
   id: string;
   name: string;
@@ -13,7 +20,8 @@ type Zone = {
   height: number; // Height in UV space (0-1)
   thumbnailUrl?: string;
   isLogo: boolean; // true for logo, false for text
-  view?: "Face" | "Dos" | "Gauche" | "Droite"; // Vue de la zone
+  view?: "Face" | "Dos" | "Gauche" | "Droite"; // Vue de la zone (legacy)
+  cameraViewId?: string; // ID de la vue de caméra du modèle 3D
   createdAt?: string;
 };
 
@@ -31,6 +39,7 @@ type Model3D = {
   name: string;
   glb_url?: string;
   glbUrl?: string;
+  cameraViews?: CameraView[];
 };
 
 type Design2D = {
@@ -43,6 +52,7 @@ export default function ZonesConfigPage() {
   const [zoneGroups, setZoneGroups] = useState<ZoneGroup[]>([]);
   const [models3D, setModels3D] = useState<Model3D[]>([]);
   const [designs2D, setDesigns2D] = useState<Design2D[]>([]);
+  const [availableCameraViews, setAvailableCameraViews] = useState<CameraView[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [showEditModal, setShowEditModal] = useState(false);
@@ -67,12 +77,14 @@ export default function ZonesConfigPage() {
     height: number;
     rotation: number;
     view?: "Face" | "Dos" | "Gauche" | "Droite";
+    cameraViewId?: string;
   }>({
     isLogo: false,
     width: 0.1,
     height: 0.1,
     rotation: 0,
-    view: "Face"
+    view: "Face",
+    cameraViewId: undefined
   });
 
   useEffect(() => {
@@ -80,6 +92,20 @@ export default function ZonesConfigPage() {
     fetchModels3D();
     fetchDesigns2D();
   }, []);
+
+  // Charger les vues de caméra du modèle 3D sélectionné
+  useEffect(() => {
+    if (selectedModel3DId) {
+      const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+      if (selectedModel?.cameraViews) {
+        setAvailableCameraViews(selectedModel.cameraViews);
+      } else {
+        setAvailableCameraViews([]);
+      }
+    } else {
+      setAvailableCameraViews([]);
+    }
+  }, [selectedModel3DId, models3D]);
 
   async function fetchZoneGroups() {
     try {
@@ -230,7 +256,8 @@ export default function ZonesConfigPage() {
         width: zone.width,
         height: zone.height,
         rotation: zone.rotation,
-        view: zone.view || "Face"
+        view: zone.view || "Face",
+        cameraViewId: zone.cameraViewId
       });
     }
   }
@@ -250,6 +277,7 @@ export default function ZonesConfigPage() {
     if (updates.rotation !== undefined) setZoneSettings(prev => ({ ...prev, rotation: updates.rotation! }));
     if (updates.isLogo !== undefined) setZoneSettings(prev => ({ ...prev, isLogo: updates.isLogo! }));
     if (updates.view !== undefined) setZoneSettings(prev => ({ ...prev, view: updates.view! }));
+    if (updates.cameraViewId !== undefined) setZoneSettings(prev => ({ ...prev, cameraViewId: updates.cameraViewId }));
   }
 
   async function handleThumbnailUpload(file: File) {
@@ -926,7 +954,7 @@ export default function ZonesConfigPage() {
                           marginBottom: '8px',
                           fontFamily: 'var(--stepn-font-body)'
                         }}>
-                          Vue
+                          Vue (Legacy)
                         </label>
                         <select
                           value={zoneSettings.view || "Face"}
@@ -953,6 +981,66 @@ export default function ZonesConfigPage() {
                           <option value="Gauche">Gauche</option>
                           <option value="Droite">Droite</option>
                         </select>
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '12px',
+                          color: '#a0a0a0',
+                          marginBottom: '8px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}>
+                          📷 Vue de caméra (depuis modèle 3D)
+                        </label>
+                        {availableCameraViews.length === 0 ? (
+                          <p style={{
+                            fontSize: '12px',
+                            color: '#666',
+                            fontStyle: 'italic',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            Aucune vue disponible. Créez des vues dans le modèle 3D.
+                          </p>
+                        ) : (
+                          <select
+                            value={zoneSettings.cameraViewId || ''}
+                            onChange={(e) => {
+                              const cameraViewId = e.target.value || undefined;
+                              setZoneSettings(prev => ({ ...prev, cameraViewId }));
+                              handleUpdateZone({ cameraViewId });
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px 12px',
+                              backgroundColor: '#1a1a1a',
+                              border: '1px solid #2a2a2a',
+                              borderRadius: '4px',
+                              color: '#ffffff',
+                              fontSize: '14px',
+                              fontFamily: 'var(--stepn-font-body)',
+                              cursor: 'pointer',
+                              outline: 'none'
+                            }}
+                          >
+                            <option value="">Aucune vue sélectionnée</option>
+                            {availableCameraViews.map((view) => (
+                              <option key={view.id} value={view.id}>
+                                {view.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {zoneSettings.cameraViewId && (
+                          <p style={{
+                            fontSize: '11px',
+                            color: '#8eff36',
+                            marginTop: '4px',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            ✓ Vue de caméra personnalisée configurée
+                          </p>
+                        )}
                       </div>
 
                       <div style={{ marginBottom: '16px' }}>
