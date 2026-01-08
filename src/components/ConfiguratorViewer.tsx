@@ -3454,16 +3454,29 @@ export default function ConfiguratorViewer({
   // Déterminer la catégorie active pour le sélecteur de zone
   const activeCategoryForZone = showZoneSelector?.view ? viewToCategory[showZoneSelector.view] : 'torse';
 
+  // Log de debug pour voir toutes les zones disponibles
+  console.log('🖼️ DEBUT FILTRAGE - textZones disponibles:', textZones.length, 'zones:', textZones.map(z => ({
+    name: z.name,
+    categories: z.categories,
+    zoneCategory: z.zoneCategory,
+    is_logo: (z as any).is_logo,
+    view: z.view
+  })));
+
   // Filtrer les zones selon la vue active pour le sélecteur de zone
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
-    console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'categoryForView:', categoryForView);
+    console.log('🖼️ Filtrage zone - zone:', zone.name, 'categories:', zone.categories, 'zoneCategory:', zone.zoneCategory, 'is_logo:', (zone as any).is_logo, 'categoryForView:', categoryForView);
     
     // Vérifier si le nom de la zone contient "logo" (insensible à la casse)
     const hasLogoInName = zone.name && zone.name.toLowerCase().includes('logo');
     console.log('🖼️ hasLogoInName:', hasLogoInName, 'zone.name:', zone.name);
     
-    // Vérifier si la zone a la catégorie logo pour cette vue
+    // NOUVELLE STRUCTURE: Vérifier is_logo (table zones)
+    const hasIsLogoFlag = (zone as any).is_logo === true;
+    console.log('🖼️ hasIsLogoFlag:', hasIsLogoFlag, 'zone.is_logo:', (zone as any).is_logo);
+    
+    // ANCIENNE STRUCTURE: Vérifier si la zone a la catégorie logo pour cette vue (table text_zones)
     const hasLogoCategory = zone.categories && zone.categories.length > 0 && (
       zone.categories.includes(`logo-${categoryForView}`) ||
       zone.categories.includes('logo') ||
@@ -3476,10 +3489,11 @@ export default function ConfiguratorViewer({
     console.log('🖼️ zoneCategoryMatches:', zoneCategoryMatches, 'zone.zoneCategory:', zone.zoneCategory);
     
     // Accepter la zone si :
-    // 1. Elle a une catégorie logo
-    // 2. Son nom contient "logo" (même si les catégories sont vides)
-    // 3. Sa zoneCategory correspond à la catégorie de vue ET son nom contient "logo"
-    const isLogoZone = hasLogoCategory || hasLogoInName || (zoneCategoryMatches && hasLogoInName);
+    // 1. Elle a le flag is_logo (nouvelle structure)
+    // 2. Elle a une catégorie logo (ancienne structure)
+    // 3. Son nom contient "logo" (même si les catégories sont vides)
+    // 4. Sa zoneCategory correspond à la catégorie de vue ET son nom contient "logo"
+    const isLogoZone = hasIsLogoFlag || hasLogoCategory || hasLogoInName || (zoneCategoryMatches && hasLogoInName);
     
     console.log('🖼️ isLogoZone:', isLogoZone);
     if (!isLogoZone) {
