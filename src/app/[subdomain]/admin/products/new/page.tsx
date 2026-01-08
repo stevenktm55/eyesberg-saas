@@ -131,35 +131,49 @@ type Design2D = {
 };
 
 // Composant pour contrôler la caméra via événements personnalisés
-function CameraController() {
-  const { camera, gl } = useThree();
-  const controlsRef = useRef<any>(null);
+function CameraController({ controlsRef }: { controlsRef?: React.RefObject<any> }) {
+  const { camera } = useThree();
 
   useEffect(() => {
     const handleGoToCameraView = (event: any) => {
       const { position, target } = event.detail;
       console.log('🎬 CameraController - Événement reçu:', event.detail);
       
-      if (camera && position && target) {
-        // Animer la caméra vers la nouvelle position
-        camera.position.set(position.x, position.y, position.z);
+      if (camera && position && target && controlsRef?.current) {
+        const controls = controlsRef.current;
         
-        // Mettre à jour le target des contrôles
-        if (controlsRef.current) {
-          controlsRef.current.target.set(target.x, target.y, target.z);
-          controlsRef.current.update();
-        }
+        // Sauvegarder les limites actuelles
+        const originalMinDistance = controls.minDistance;
+        const originalMaxDistance = controls.maxDistance;
+        
+        console.log('🔓 Limites actuelles:', { min: originalMinDistance, max: originalMaxDistance });
+        
+        // Désactiver temporairement les limites pour permettre n'importe quelle distance
+        controls.minDistance = 0;
+        controls.maxDistance = Infinity;
+        
+        // Mettre à jour la position et le target
+        camera.position.set(position.x, position.y, position.z);
+        controls.target.set(target.x, target.y, target.z);
+        controls.update();
         
         console.log('📸 Position caméra mise à jour:', camera.position);
-        console.log('🎯 Target contrôles mis à jour:', controlsRef.current?.target);
+        console.log('🎯 Target contrôles mis à jour:', controls.target);
+        
+        // Restaurer les limites après un délai
+        setTimeout(() => {
+          controls.minDistance = originalMinDistance;
+          controls.maxDistance = originalMaxDistance;
+          console.log('🔒 Limites de zoom restaurées:', { min: originalMinDistance, max: originalMaxDistance });
+        }, 500); // Délai plus long pour être sûr
       }
     };
 
     window.addEventListener('goToCameraView', handleGoToCameraView);
     return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
-  }, [camera]);
+  }, [camera, controlsRef]);
 
-  return <OrbitControls ref={controlsRef} enablePan={false} enableZoom={true} enableRotate={true} minDistance={5} maxDistance={50} />;
+  return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
 
 // Composant pour l'iframe de prévisualisation (côté client uniquement)
@@ -7299,7 +7313,7 @@ export default function ProductBuilderPage() {
                                     mobileActivePanel={mobileActivePanel}
                                   />
                                   
-                                  <CameraController />
+                                  <CameraController controlsRef={controlsRef} />
                                 </>
                               );
                             })()}
