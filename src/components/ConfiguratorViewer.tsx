@@ -4047,42 +4047,6 @@ export default function ConfiguratorViewer({
     lastCameraChangeRef.current = Date.now();
   }, [isMobile]);
   
-  const setCameraView = useCallback((view: 'front' | 'back' | 'left' | 'right') => {
-    const controls = controlsRef.current;
-    if (!controls || !controls.object || !controls.target) return;
-    const camera = controls.object;
-    const target = controls.target;
-    if (view === 'front') {
-      camera.position.set(0, 0, isMobile ? 8 : 5);
-      target.set(0, isMobile ? -1.5 : 0, 0);
-    } else if (view === 'back') {
-      camera.position.set(0, 0, isMobile ? -8 : -5);
-      target.set(0, isMobile ? -1.5 : 0, 0);
-    } else if (view === 'left') {
-      camera.position.set(isMobile ? -8 : -5, 0, 0);
-      target.set(0, 0, 0);
-    } else if (view === 'right') {
-      camera.position.set(isMobile ? 8 : 5, 0, 0);
-      target.set(0, 0, 0);
-    }
-    
-    // Désactiver temporairement les limites de zoom pour permettre le repositionnement
-    console.log('🔓 Désactivation temporaire des limites de zoom (2ème fonction)');
-    controls.minDistance = 0;
-    controls.maxDistance = Infinity;
-    
-    controls.update();
-    requestAnimationFrame(() => controls.update());
-    
-    // Réactiver les limites après un délai
-    setTimeout(() => {
-      console.log('🔒 Réactivation des limites de zoom (2ème fonction)');
-      controls.minDistance = 2;
-      controls.maxDistance = 10;
-    }, 500);
-    
-    lastCameraChangeRef.current = Date.now();
-  }, [isMobile]);
   
   // Écouter les événements de changement de vue de caméra
   useEffect(() => {
