@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { Model3DPreview } from "@/components/Model3DPreview";
 import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
 import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
+import { ModelViewer } from "@/components/ModelViewer";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 type Model3D = {
@@ -603,50 +606,100 @@ export default function ModelsConfigPage() {
             {/* Header */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '24px',
+              flexDirection: 'column',
               borderBottom: '1px solid #2a2a2a'
             }}>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                color: '#ffffff',
-                fontFamily: 'var(--stepn-font-body)'
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '24px 24px 16px 24px'
               }}>
-                {isCreating ? 'Nouveau modèle 3D' : `${selectedModel?.name} - Material Mapping`}
-              </h2>
-              <button
-                onClick={closeModal}
-                style={{
-                  padding: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#a0a0a0',
-                  cursor: 'pointer',
+                <h2 style={{
                   fontSize: '20px',
-                  transition: 'all 0.2s',
-                  width: '32px',
-                  height: '32px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  {isCreating ? 'Nouveau modèle 3D' : selectedModel?.name}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  style={{
+                    padding: '8px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#a0a0a0',
+                    cursor: 'pointer',
+                    fontSize: '20px',
+                    transition: 'all 0.2s',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '4px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2a2a2a';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#a0a0a0';
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              {/* Tabs - Only show for existing models */}
+              {!isCreating && (
+                <div style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '4px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2a2a2a';
-                  e.currentTarget.style.color = '#ffffff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#a0a0a0';
-                }}
-              >
-                ×
-              </button>
+                  gap: '8px',
+                  padding: '0 24px'
+                }}>
+                  <button
+                    onClick={() => setActiveModalTab('materials')}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: activeModalTab === 'materials' ? '#2a2a2a' : 'transparent',
+                      border: 'none',
+                      borderBottom: activeModalTab === 'materials' ? '2px solid #8eff36' : '2px solid transparent',
+                      color: activeModalTab === 'materials' ? '#ffffff' : '#a0a0a0',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      fontFamily: 'var(--stepn-font-body)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    🎨 Material Mapping
+                  </button>
+                  <button
+                    onClick={() => setActiveModalTab('camera')}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: activeModalTab === 'camera' ? '#2a2a2a' : 'transparent',
+                      border: 'none',
+                      borderBottom: activeModalTab === 'camera' ? '2px solid #8eff36' : '2px solid transparent',
+                      color: activeModalTab === 'camera' ? '#ffffff' : '#a0a0a0',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      fontFamily: 'var(--stepn-font-body)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    📷 Camera Views
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Content */}
+            {activeModalTab === 'materials' || isCreating ? (
             <div style={{
               display: 'flex',
               flex: 1,
@@ -997,6 +1050,369 @@ export default function ModelsConfigPage() {
                 </div>
               </div>
             </div>
+            ) : (
+              /* Tab Camera Views */
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                overflow: 'hidden',
+                backgroundColor: '#0a0a0a',
+                minHeight: '600px'
+              }}>
+                {/* Viewer 3D */}
+                <div style={{
+                  flex: 1,
+                  position: 'relative',
+                  backgroundColor: '#1a1a1a'
+                }}>
+                  <Canvas
+                    camera={{ position: [0, 0, 15], fov: 50 }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'linear-gradient(to bottom, #1a1a1a, #0a0a0a)'
+                    }}
+                  >
+                    <ambientLight intensity={0.5} />
+                    <directionalLight position={[10, 10, 5]} intensity={1} />
+                    <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+                    
+                    <Suspense fallback={null}>
+                      {selectedModel?.glbUrl || (selectedModel as any)?.glb_url ? (
+                        <ModelViewer 
+                          url={(selectedModel as any).glb_url || selectedModel.glbUrl || ''}
+                          designTexture={null}
+                          colors={{}}
+                          texts={[]}
+                          updateTextPosition={() => {}}
+                          selectedTextId={null}
+                          updateTextRotation={() => {}}
+                          updateTextSize={() => {}}
+                          placedLogos={[]}
+                          updateLogoPosition={() => {}}
+                          updateLogoRotation={() => {}}
+                          updateLogoScale={() => {}}
+                          selectedLogoId={null}
+                          setIsDraggingText={() => {}}
+                          isDraggingText={false}
+                          setIsRotatingText={() => {}}
+                          isRotatingText={false}
+                          setIsResizingText={() => {}}
+                          isResizingText={false}
+                          setIsDraggingLogo={() => {}}
+                          isDraggingLogo={false}
+                          setIsRotatingLogo={() => {}}
+                          isRotatingLogo={false}
+                          setIsResizingLogo={() => {}}
+                          isResizingLogo={false}
+                          selectedDesign={{ id: null, svgUrl: null }}
+                        />
+                      ) : (
+                        <mesh>
+                          <boxGeometry args={[2, 2, 2]} />
+                          <meshStandardMaterial color="#8eff36" />
+                        </mesh>
+                      )}
+                    </Suspense>
+                    
+                    <OrbitControls 
+                      enablePan={false}
+                      enableZoom={true}
+                      enableRotate={true}
+                      minDistance={5}
+                      maxDistance={50}
+                      onChange={(e) => {
+                        if (captureMode && e?.target) {
+                          const camera = (e.target as any).object;
+                          const target = (e.target as any).target;
+                          setCurrentCameraPosition({
+                            x: parseFloat(camera.position.x.toFixed(2)),
+                            y: parseFloat(camera.position.y.toFixed(2)),
+                            z: parseFloat(camera.position.z.toFixed(2))
+                          });
+                          setCurrentCameraTarget({
+                            x: parseFloat(target.x.toFixed(2)),
+                            y: parseFloat(target.y.toFixed(2)),
+                            z: parseFloat(target.z.toFixed(2))
+                          });
+                        }
+                      }}
+                    />
+                  </Canvas>
+
+                  {/* Overlay Info quand mode capture actif */}
+                  {captureMode && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '20px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                      border: '2px solid #8eff36',
+                      borderRadius: '8px',
+                      padding: '16px 24px',
+                      zIndex: 10,
+                      color: '#ffffff',
+                      fontFamily: 'var(--stepn-font-body)',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#8eff36' }}>
+                        📷 Mode Capture Actif
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#a0a0a0', marginBottom: '8px' }}>
+                        Positionnez la caméra comme vous le souhaitez
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                        Position: X:{currentCameraPosition.x} Y:{currentCameraPosition.y} Z:{currentCameraPosition.z}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                        Target: X:{currentCameraTarget.x} Y:{currentCameraTarget.y} Z:{currentCameraTarget.z}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Panel de gestion des vues */}
+                <div style={{
+                  width: '400px',
+                  backgroundColor: '#0a0a0a',
+                  borderLeft: '1px solid #1a1a1a',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  {/* Header */}
+                  <div style={{
+                    padding: '20px',
+                    borderBottom: '1px solid #1a1a1a'
+                  }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#ffffff',
+                      fontFamily: 'var(--stepn-font-body)',
+                      margin: 0,
+                      marginBottom: '8px'
+                    }}>
+                      📷 Vues Caméra
+                    </h3>
+                    <p style={{
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      fontFamily: 'var(--stepn-font-body)',
+                      margin: 0
+                    }}>
+                      Créez des vues réutilisables pour ce modèle
+                    </p>
+                  </div>
+
+                  {/* Liste des vues */}
+                  <div style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    padding: '16px'
+                  }}>
+                    {cameraViews.map((view) => (
+                      <div
+                        key={view.id}
+                        style={{
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '8px',
+                          padding: '16px',
+                          marginBottom: '12px',
+                          fontFamily: 'var(--stepn-font-body)'
+                        }}
+                      >
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '12px'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            <span style={{ fontSize: '18px' }}>👁️</span>
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              color: '#ffffff'
+                            }}>
+                              {view.name}
+                            </span>
+                            {view.isDefault && (
+                              <span style={{
+                                fontSize: '10px',
+                                backgroundColor: '#2a2a2a',
+                                color: '#8eff36',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: '500'
+                              }}>
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          {!view.isDefault && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Supprimer la vue "${view.name}" ?`)) {
+                                  setCameraViews(cameraViews.filter(v => v.id !== view.id));
+                                }
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#ef4444',
+                                cursor: 'pointer',
+                                fontSize: '18px',
+                                padding: '4px'
+                              }}
+                              title="Supprimer"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </div>
+
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#666',
+                          fontFamily: 'monospace',
+                          marginBottom: '8px'
+                        }}>
+                          <div>Pos: X:{view.position.x} Y:{view.position.y} Z:{view.position.z}</div>
+                          <div>Target: X:{view.target.x} Y:{view.target.y} Z:{view.target.z}</div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('setCameraView', {
+                              detail: {
+                                position: view.position,
+                                target: view.target
+                              }
+                            }));
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            backgroundColor: '#2a2a2a',
+                            border: '1px solid #3a3a3a',
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#3a3a3a';
+                            e.currentTarget.style.borderColor = '#8eff36';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#2a2a2a';
+                            e.currentTarget.style.borderColor = '#3a3a3a';
+                          }}
+                        >
+                          📍 Aller à cette vue
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Bouton Capturer */}
+                  <div style={{
+                    padding: '16px',
+                    borderTop: '1px solid #1a1a1a'
+                  }}>
+                    {!captureMode ? (
+                      <button
+                        onClick={() => {
+                          setCaptureMode(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '14px',
+                          backgroundColor: '#8eff36',
+                          border: 'none',
+                          borderRadius: '6px',
+                          color: '#000000',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--stepn-font-body)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#7de82e';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#8eff36';
+                        }}
+                      >
+                        <span style={{ fontSize: '18px' }}>📸</span>
+                        Capturer une nouvelle vue
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => {
+                            setCaptureMode(false);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: 'transparent',
+                            border: '1px solid #3a3a3a',
+                            borderRadius: '6px',
+                            color: '#ffffff',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowNameViewModal(true);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: '#8eff36',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: '#000000',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            fontFamily: 'var(--stepn-font-body)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span>📸</span>
+                          Capturer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Footer Actions */}
             <div style={{
@@ -1321,6 +1737,161 @@ export default function ModelsConfigPage() {
         title={selectedModel ? `Êtes-vous sûr de vouloir supprimer "${selectedModel.name}" ?` : ""}
         message="Cette action est irréversible."
       />
+
+      {/* Modal: Nommer une nouvelle vue */}
+      {showNameViewModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            backgroundColor: '#1a1a1a',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid #2a2a2a',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '600',
+              color: '#ffffff',
+              fontFamily: 'var(--stepn-font-body)',
+              margin: 0,
+              marginBottom: '24px'
+            }}>
+              📷 Nommer la vue
+            </h3>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '12px',
+                color: '#a0a0a0',
+                fontFamily: 'var(--stepn-font-body)',
+                marginBottom: '8px'
+              }}>
+                Nom de la vue
+              </label>
+              <input
+                type="text"
+                value={newViewName}
+                onChange={(e) => setNewViewName(e.target.value)}
+                placeholder="Ex: Manche gauche, Col devant..."
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newViewName.trim()) {
+                    const newView: CameraView = {
+                      id: `view-${Date.now()}`,
+                      name: newViewName.trim(),
+                      position: currentCameraPosition,
+                      target: currentCameraTarget,
+                      isDefault: false
+                    };
+                    setCameraViews([...cameraViews, newView]);
+                    setNewViewName('');
+                    setShowNameViewModal(false);
+                    setCaptureMode(false);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  backgroundColor: '#0a0a0a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{
+              fontSize: '11px',
+              color: '#666',
+              fontFamily: 'monospace',
+              backgroundColor: '#0a0a0a',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '24px'
+            }}>
+              <div>Position: X:{currentCameraPosition.x} Y:{currentCameraPosition.y} Z:{currentCameraPosition.z}</div>
+              <div>Target: X:{currentCameraTarget.x} Y:{currentCameraTarget.y} Z:{currentCameraTarget.z}</div>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => {
+                  setNewViewName('');
+                  setShowNameViewModal(false);
+                  setCaptureMode(false);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #3a3a3a',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (newViewName.trim()) {
+                    const newView: CameraView = {
+                      id: `view-${Date.now()}`,
+                      name: newViewName.trim(),
+                      position: currentCameraPosition,
+                      target: currentCameraTarget,
+                      isDefault: false
+                    };
+                    setCameraViews([...cameraViews, newView]);
+                    setNewViewName('');
+                    setShowNameViewModal(false);
+                    setCaptureMode(false);
+                  }
+                }}
+                disabled={!newViewName.trim()}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: newViewName.trim() ? '#8eff36' : '#2a2a2a',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  color: newViewName.trim() ? '#000000' : '#666',
+                  cursor: newViewName.trim() ? 'pointer' : 'not-allowed',
+                  fontWeight: '600',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
