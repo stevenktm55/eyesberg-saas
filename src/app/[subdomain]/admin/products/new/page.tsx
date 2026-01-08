@@ -728,21 +728,7 @@ export default function ProductBuilderPage() {
   const [materialMaps, setMaterialMaps] = useState<any[]>([]);
   const [modelMaterialMaps, setModelMaterialMaps] = useState<Record<string, any>>({}); // material_map_id -> material map avec fichiers
   const [modelSpecificMaterialMaps, setModelSpecificMaterialMaps] = useState<Record<string, any>>({}); // Material maps spécifiques au modèle depuis /api/models/[id]/materials
-  const [show3DSettings, setShow3DSettings] = useState(false);
-  const [zoomSpeed, setZoomSpeed] = useState(1);
-  const [rotateSpeed, setRotateSpeed] = useState(1);
-  const [minZoom, setMinZoom] = useState(1);
-  const [maxZoom, setMaxZoom] = useState(10);
-  const [initialZoom, setInitialZoom] = useState(5);
-  const [initialRotation, setInitialRotation] = useState(0);
   const [previewMode, setPreviewMode] = useState(false);
-  // Distances de zoom par vue
-  const [viewDistance, setViewDistance] = useState<Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>>({
-    'torse': 5,
-    'dos': 5,
-    'bras-gauche': 5,
-    'bras-droit': 5
-  });
   // Shopify connection
   const [shopifyProductId, setShopifyProductId] = useState<string | null>(null);
   const [shopifyVariantId, setShopifyVariantId] = useState<string | null>(null);
@@ -1099,47 +1085,6 @@ export default function ProductBuilderPage() {
             }, 100);
             setSelectedModel3DId(product.builder_data?.model3DId || null);
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
-            // Charger les réglages 3D
-            const settings = product.builder_data?.settings || {};
-            console.log('📸 Chargement des réglages 3D depuis le produit:', settings);
-            if (settings.zoomSpeed !== undefined) {
-              console.log('📸 zoomSpeed:', settings.zoomSpeed);
-              setZoomSpeed(settings.zoomSpeed);
-            }
-            if (settings.rotateSpeed !== undefined) {
-              console.log('📸 rotateSpeed:', settings.rotateSpeed);
-              setRotateSpeed(settings.rotateSpeed);
-            }
-            if (settings.minZoom !== undefined) {
-              console.log('📸 minZoom:', settings.minZoom);
-              setMinZoom(settings.minZoom);
-            }
-            if (settings.maxZoom !== undefined) {
-              console.log('📸 maxZoom:', settings.maxZoom);
-              setMaxZoom(settings.maxZoom);
-            }
-            if (settings.initialZoom !== undefined) {
-              console.log('📸 initialZoom:', settings.initialZoom);
-              setInitialZoom(settings.initialZoom);
-            }
-            if (settings.initialRotation !== undefined) {
-              console.log('📸 initialRotation:', settings.initialRotation);
-              setInitialRotation(settings.initialRotation);
-            }
-            // Charger les distances par vue
-            if (settings.viewDistance) {
-              console.log('📸 viewDistance chargée depuis le produit:', settings.viewDistance);
-              setViewDistance(prev => {
-                const newViewDistance = {
-                  ...prev,
-                  ...settings.viewDistance
-                };
-                console.log('📸 Nouvelle viewDistance après merge:', newViewDistance);
-                return newViewDistance;
-              });
-            } else {
-              console.log('⚠️ Aucune viewDistance trouvée dans les settings, utilisation des valeurs par défaut');
-            }
           }
         } else if (shop) {
           // Créer un nouveau produit
@@ -1328,17 +1273,6 @@ export default function ProductBuilderPage() {
 
     setSaving(true);
     try {
-      const settingsToSave = {
-        zoomSpeed,
-        rotateSpeed,
-        minZoom,
-        maxZoom,
-        initialZoom,
-        initialRotation,
-        viewDistance
-      };
-      
-      console.log('💾 Sauvegarde des réglages 3D:', settingsToSave);
       
       const res = await fetch('/api/product-builder', {
         method: 'POST',
@@ -1365,7 +1299,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance]);
+  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
@@ -1386,7 +1320,7 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, autoSave]);
+  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, autoSave]);
 
   // Ref pour empêcher la réouverture automatique du panneau après fermeture manuelle
   const isManuallyClosingRef = useRef(false);
@@ -1576,7 +1510,7 @@ export default function ProductBuilderPage() {
   }
 
   // Text management functions
-  const addText = (content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number, zoneCategory?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit', initialRotation?: number) => {
+  const addText = (content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number, zoneCategory?: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit', initialTextRotation?: number) => {
     const resolvedPosition: [number, number, number] = position
       ? [position[0], position[1], position[2] ?? 0]
       : [0.5, 0.5, 0];
@@ -1613,7 +1547,7 @@ export default function ProductBuilderPage() {
       fontSize: resolvedFontSize,
       color: constraints.defaultColor,
       editable: true,
-      rotation: initialRotation ?? 0,
+      rotation: initialTextRotation ?? 0,
       category,
       zoneCategory,
       fontFamily: resolvedFontFamily,
@@ -2909,24 +2843,6 @@ export default function ProductBuilderPage() {
               justifyContent: 'space-between'
             }}>
               <button
-                onClick={() => setShow3DSettings(!show3DSettings)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: show3DSettings ? '#8eff36' : '#a0a0a0',
-                  fontSize: '22px',
-                  transition: 'color 0.2s'
-                }}
-                title="3D Viewer Settings"
-              >
-                ⚙
-              </button>
-              <button
                 onClick={addQuestion}
                 style={{
                   width: '32px',
@@ -2977,576 +2893,10 @@ export default function ProductBuilderPage() {
                 setDragOverIndex(null);
               }}
             >
-              {/* 3D Viewer Settings Overlay */}
-              {show3DSettings && (
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: '#0a0a0a',
-                  zIndex: 10,
-                  padding: '16px',
-                  overflowY: 'auto'
-                }}>
-                  <div style={{
-                    fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
-                    color: '#ffffff',
-                    marginBottom: '20px',
-                    fontWeight: '600'
-                  }}>
-                    3D Viewer Settings
-                  </div>
-                  
-                  {/* Zoom Speed */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Zoom Speed
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {zoomSpeed.toFixed(1)}x
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0.1"
-                      max="3"
-                      step="0.1"
-                      value={zoomSpeed}
-                      onChange={(e) => setZoomSpeed(parseFloat(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(zoomSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>Slow</span>
-                      <span>Fast</span>
-                    </div>
-                  </div>
-
-                  {/* Rotate Speed */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Rotate Speed
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {rotateSpeed.toFixed(1)}x
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0.1"
-                      max="3"
-                      step="0.1"
-                      value={rotateSpeed}
-                      onChange={(e) => setRotateSpeed(parseFloat(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a ${(rotateSpeed - 0.1) / (3 - 0.1) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>Slow</span>
-                      <span>Fast</span>
-                    </div>
-                  </div>
-
-                  {/* Min Zoom */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Min Zoom Distance
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {minZoom.toFixed(1)}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0.5"
-                      max="5"
-                      step="0.1"
-                      value={minZoom}
-                      onChange={(e) => setMinZoom(parseFloat(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(minZoom - 0.5) / (5 - 0.5) * 100}%, #1a1a1a ${(minZoom - 0.5) / (5 - 0.5) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>0.5</span>
-                      <span>5.0</span>
-                    </div>
-                  </div>
-
-                  {/* Max Zoom */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Max Zoom Distance
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {maxZoom.toFixed(1)}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="20"
-                      step="0.5"
-                      value={maxZoom}
-                      onChange={(e) => setMaxZoom(parseFloat(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(maxZoom - 1) / (20 - 1) * 100}%, #1a1a1a ${(maxZoom - 1) / (20 - 1) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>1.0</span>
-                      <span>20.0</span>
-                    </div>
-                  </div>
-
-                  {/* Initial Zoom */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Initial Zoom Distance
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {initialZoom.toFixed(1)}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="15"
-                      step="0.1"
-                      value={initialZoom}
-                      onChange={(e) => setInitialZoom(parseFloat(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(initialZoom - 1) / (15 - 1) * 100}%, #1a1a1a ${(initialZoom - 1) / (15 - 1) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>1.0</span>
-                      <span>15.0</span>
-                    </div>
-                  </div>
-
-                  {/* Initial Rotation */}
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <label style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#a0a0a0'
-                      }}>
-                        Initial Rotation Angle
-                      </label>
-                      <span style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
-                        color: '#8eff36',
-                        fontWeight: '600'
-                      }}>
-                        {initialRotation}°
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="360"
-                      step="1"
-                      value={initialRotation}
-                      onChange={(e) => setInitialRotation(parseInt(e.target.value))}
-                      style={{
-                        width: '100%',
-                        height: '6px',
-                        backgroundColor: '#1a1a1a',
-                        borderRadius: '3px',
-                        outline: 'none',
-                        cursor: 'pointer',
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${(initialRotation / 360) * 100}%, #1a1a1a ${(initialRotation / 360) * 100}%, #1a1a1a 100%)`
-                      }}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '10px',
-                      color: '#666',
-                      marginTop: '4px'
-                    }}>
-                      <span>0°</span>
-                      <span>360°</span>
-                    </div>
-                  </div>
-
-                  {/* View Distances */}
-                  <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #2a2a2a' }}>
-                    <div style={{
-                      fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
-                      color: '#ffffff',
-                      marginBottom: '24px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      View Zoom Distances
-                    </div>
-                    
-                    {/* Front View Distance */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <label style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#a0a0a0'
-                        }}>
-                          Front View Distance
-                        </label>
-                        <span style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#8eff36',
-                          fontWeight: '600'
-                        }}>
-                          {viewDistance.torse.toFixed(1)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="15"
-                        step="0.1"
-                        value={viewDistance.torse}
-                        onChange={(e) => {
-                          const newValue = parseFloat(e.target.value);
-                          console.log('📸 Front View Distance changé:', newValue);
-                          setViewDistance(prev => ({ ...prev, torse: newValue }));
-                        }}
-                        style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: '#1a1a1a',
-                          borderRadius: '3px',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          WebkitAppearance: 'none',
-                          appearance: 'none',
-                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance.torse - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance.torse - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
-                        }}
-                      />
-                    </div>
-
-                    {/* Back View Distance */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <label style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#a0a0a0'
-                        }}>
-                          Back View Distance
-                        </label>
-                        <span style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#8eff36',
-                          fontWeight: '600'
-                        }}>
-                          {viewDistance.dos.toFixed(1)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="15"
-                        step="0.1"
-                        value={viewDistance.dos}
-                        onChange={(e) => {
-                          const newValue = parseFloat(e.target.value);
-                          console.log('📸 Back View Distance changé:', newValue);
-                          setViewDistance(prev => ({ ...prev, dos: newValue }));
-                        }}
-                        style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: '#1a1a1a',
-                          borderRadius: '3px',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          WebkitAppearance: 'none',
-                          appearance: 'none',
-                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance.dos - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance.dos - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
-                        }}
-                      />
-                    </div>
-
-                    {/* Left View Distance */}
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <label style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#a0a0a0'
-                        }}>
-                          Left View Distance
-                        </label>
-                        <span style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#8eff36',
-                          fontWeight: '600'
-                        }}>
-                          {viewDistance['bras-droit'].toFixed(1)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="15"
-                        step="0.1"
-                        value={viewDistance['bras-droit']}
-                        onChange={(e) => {
-                          const newValue = parseFloat(e.target.value);
-                          console.log('📸 Left View Distance changé:', newValue);
-                          setViewDistance(prev => ({ ...prev, 'bras-droit': newValue }));
-                        }}
-                        style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: '#1a1a1a',
-                          borderRadius: '3px',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          WebkitAppearance: 'none',
-                          appearance: 'none',
-                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance['bras-droit'] - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance['bras-droit'] - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
-                        }}
-                      />
-                    </div>
-
-                    {/* Right View Distance */}
-                    <div>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <label style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#a0a0a0'
-                        }}>
-                          Right View Distance
-                        </label>
-                        <span style={{
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#8eff36',
-                          fontWeight: '600'
-                        }}>
-                          {viewDistance['bras-gauche'].toFixed(1)}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="15"
-                        step="0.1"
-                        value={viewDistance['bras-gauche']}
-                        onChange={(e) => {
-                          const newValue = parseFloat(e.target.value);
-                          console.log('📸 Right View Distance changé:', newValue);
-                          setViewDistance(prev => ({ ...prev, 'bras-gauche': newValue }));
-                        }}
-                        style={{
-                          width: '100%',
-                          height: '6px',
-                          backgroundColor: '#1a1a1a',
-                          borderRadius: '3px',
-                          outline: 'none',
-                          cursor: 'pointer',
-                          WebkitAppearance: 'none',
-                          appearance: 'none',
-                          background: `linear-gradient(to right, #8eff36 0%, #8eff36 ${((viewDistance['bras-gauche'] - 1) / (15 - 1)) * 100}%, #1a1a1a ${((viewDistance['bras-gauche'] - 1) / (15 - 1)) * 100}%, #1a1a1a 100%)`
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
               
               {/* Questions/Modules Content (hidden when settings are open) */}
               {(() => {
                 console.log('🔍 État d\'affichage des modules:', {
-                  show3DSettings,
                   customizationModulesLength: customizationModules.length,
                   questionsLength: questions.length,
                   shouldShowEmptyMessage: customizationModules.length === 0 && questions.length === 0,
@@ -3555,7 +2905,7 @@ export default function ProductBuilderPage() {
                 });
                 return null;
               })()}
-              {!show3DSettings && (
+              {(
                 customizationModules.length === 0 && questions.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
@@ -6879,7 +6229,7 @@ export default function ProductBuilderPage() {
                           <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           {(() => {
                             // Ajuster les paramètres pour mobile
-                            const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
+                            const mobileInitialZoom = viewportMode === 'mobile' ? 7.5 : 5;
                             const mobileFov = viewportMode === 'mobile' ? 65 : 50;
                             
                             return (
@@ -6892,121 +6242,6 @@ export default function ProductBuilderPage() {
                                 gl={{ preserveDrawingBuffer: true }}
                                 style={{ width: '100%', height: '100%' }}
                               >
-                            {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
-                            {(() => {
-                              function CameraInitializer({ initialZoom, initialRotation, viewHasBeenSetRef }: { initialZoom: number; initialRotation: number; viewHasBeenSetRef: React.MutableRefObject<boolean> }) {
-                                const { camera } = useThree();
-                                const initializedRef = useRef(false);
-                                const lastZoomRef = useRef<number | null>(null);
-                                const lastRotationRef = useRef<number | null>(null);
-                                
-                                useEffect(() => {
-                                  // Ne s'exécuter qu'une seule fois au montage et seulement si aucune vue n'a été définie
-                                  // Si viewHasBeenSetRef est true, ne JAMAIS réinitialiser la caméra, même si le composant se remonte
-                                  if (initializedRef.current || viewHasBeenSetRef.current) {
-                                    // Si une vue a été définie, marquer comme initialisé pour éviter toute réinitialisation
-                                    initializedRef.current = true;
-                                    return;
-                                  }
-                                  
-                                  // Attendre que les valeurs soient chargées depuis le produit (pas les valeurs par défaut)
-                                  // Si initialZoom est toujours la valeur par défaut (5) et qu'on n'a pas encore initialisé, attendre un peu plus
-                                  if (initialZoom === 5 && !lastZoomRef.current) {
-                                    // Attendre un peu pour que les valeurs soient chargées depuis le produit
-                                    const checkTimer = setTimeout(() => {
-                                      if (!initializedRef.current && !viewHasBeenSetRef.current) {
-                                        // Utiliser les valeurs actuelles même si ce sont les valeurs par défaut
-                                        const distance = initialZoom || 5;
-                                        camera.position.set(0, 0, distance);
-                                        
-                                        if (initialRotation !== 0) {
-                                          const angleRad = (initialRotation * Math.PI) / 180;
-                                          const x = 0;
-                                          const z = distance;
-                                          const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                          const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                          camera.position.set(newX, camera.position.y, newZ);
-                                        }
-                                        
-                                        camera.updateProjectionMatrix();
-                                        initializedRef.current = true;
-                                        lastZoomRef.current = initialZoom;
-                                        lastRotationRef.current = initialRotation;
-                                      }
-                                    }, 500);
-                                    return () => clearTimeout(checkTimer);
-                                  }
-                                  
-                                  // Si les valeurs ont changé depuis la dernière initialisation, réinitialiser
-                                  // MAIS seulement si viewHasBeenSetRef est false (pas de vue définie par l'utilisateur)
-                                  if (lastZoomRef.current !== null && (lastZoomRef.current !== initialZoom || lastRotationRef.current !== initialRotation)) {
-                                    // Ne pas réinitialiser si une vue a été définie par l'utilisateur
-                                    if (!viewHasBeenSetRef.current) {
-                                      const distance = initialZoom || 5;
-                                      camera.position.set(0, 0, distance);
-                                      
-                                      if (initialRotation !== 0) {
-                                        const angleRad = (initialRotation * Math.PI) / 180;
-                                        const x = 0;
-                                        const z = distance;
-                                        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                        camera.position.set(newX, camera.position.y, newZ);
-                                      }
-                                      
-                                      camera.updateProjectionMatrix();
-                                      lastZoomRef.current = initialZoom;
-                                      lastRotationRef.current = initialRotation;
-                                    }
-                                    // Même si on ne réinitialise pas, mettre à jour les refs pour éviter les réinitialisations futures
-                                    lastZoomRef.current = initialZoom;
-                                    lastRotationRef.current = initialRotation;
-                                    return;
-                                  }
-                                  
-                                  // Première initialisation
-                                  if (!initializedRef.current) {
-                                    const timer = setTimeout(() => {
-                                      if (initializedRef.current || viewHasBeenSetRef.current) return;
-                                      
-                                      const distance = initialZoom || 5;
-                                      camera.position.set(0, 0, distance);
-                                      
-                                      if (initialRotation !== 0) {
-                                        const angleRad = (initialRotation * Math.PI) / 180;
-                                        const x = 0;
-                                        const z = distance;
-                                        const newX = x * Math.cos(angleRad) - z * Math.sin(angleRad);
-                                        const newZ = x * Math.sin(angleRad) + z * Math.cos(angleRad);
-                                        camera.position.set(newX, camera.position.y, newZ);
-                                      }
-                                      
-                                      camera.updateProjectionMatrix();
-                                      initializedRef.current = true;
-                                      lastZoomRef.current = initialZoom;
-                                      lastRotationRef.current = initialRotation;
-                                    }, 200);
-                                    
-                                    return () => clearTimeout(timer);
-                                  }
-                                }, [initialZoom, initialRotation, camera, viewHasBeenSetRef]);
-                                
-                                // Ne jamais réinitialiser la caméra si une vue a été définie par l'utilisateur
-                                // Même si initialZoom ou initialRotation changent, on ne doit pas réinitialiser
-                                // si l'utilisateur a déjà positionné la caméra
-                                // Protection supplémentaire : si viewHasBeenSetRef est true, ne jamais toucher à la caméra
-                                useEffect(() => {
-                                  if (viewHasBeenSetRef.current) {
-                                    initializedRef.current = true;
-                                  }
-                                }, [viewHasBeenSetRef]);
-                                
-                                return null;
-                              }
-                              // Passer le ref persistant pour savoir si une vue a été définie
-                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
-                              return <CameraInitializer initialZoom={mobileInitialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
-                            })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
                             <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
@@ -7083,13 +6318,6 @@ export default function ProductBuilderPage() {
                               // Composant pour gérer OrbitControls avec les réglages
                               function ControlsManager({ 
                                 targetView, 
-                                viewDistance, 
-                                initialZoom, 
-                                initialRotation, 
-                                zoomSpeed, 
-                                rotateSpeed, 
-                                minZoom, 
-                                maxZoom,
                                 selectedTextId,
                                 isPlacingText,
                                 isDraggingText,
@@ -7100,13 +6328,6 @@ export default function ProductBuilderPage() {
                                 mobileActivePanel
                               }: {
                                 targetView: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit' | null;
-                                viewDistance: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>;
-                                initialZoom: number;
-                                initialRotation: number;
-                                zoomSpeed: number;
-                                rotateSpeed: number;
-                                minZoom: number;
-                                maxZoom: number;
                                 selectedTextId: string | null;
                                 isPlacingText: 'nom' | 'numero' | null;
                                 isDraggingText: boolean;
@@ -7130,13 +6351,13 @@ export default function ProductBuilderPage() {
                                 // Mettre à jour les réglages quand ils changent
                                 useEffect(() => {
                                   if (controlsRef.current && !isRestoringRef.current) {
-                                    controlsRef.current.zoomSpeed = zoomSpeed;
-                                    controlsRef.current.rotateSpeed = rotateSpeed;
-                                    controlsRef.current.minDistance = minZoom;
-                                    controlsRef.current.maxDistance = maxZoom;
+                                    controlsRef.current.zoomSpeed = 1;
+                                    controlsRef.current.rotateSpeed = 1;
+                                    controlsRef.current.minDistance = 2;
+                                    controlsRef.current.maxDistance = 10;
                                     controlsRef.current.update();
                                   }
-                                }, [zoomSpeed, rotateSpeed, minZoom, maxZoom]);
+                                }, []);
                                 
                                 // Ne pas maintenir la distance de force - laisser la caméra libre
                                 
@@ -7152,7 +6373,7 @@ export default function ProductBuilderPage() {
                                     
                                     const camera = controlsRef.current.object;
                                     const target = controlsRef.current.target;
-                                    const maxDistance = maxZoom;
+                                    const maxDistance = 10;
                                     
                                     const view = event.detail as 'front' | 'back' | 'left' | 'right';
                                     
@@ -7165,7 +6386,7 @@ export default function ProductBuilderPage() {
                                     };
                                     
                                     const category = viewToCategory[view];
-                                    const distance = viewDistance[category] || maxDistance;
+                                    const distance = 5;
                                     
                                     if (view === 'front') {
                                       camera.position.set(0, 0, distance);
@@ -7200,7 +6421,7 @@ export default function ProductBuilderPage() {
                                   
                                   window.addEventListener('setCameraView', handleSetCameraView as EventListener);
                                   return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
-                                }, [viewDistance, maxZoom, viewportMode, mobileActivePanel, viewHasBeenSetRef]);
+                                }, [viewportMode, mobileActivePanel, viewHasBeenSetRef]);
                                 
                                 // Gérer le changement de vue (sans appliquer la rotation initiale)
                                 useEffect(() => {
@@ -7209,7 +6430,7 @@ export default function ProductBuilderPage() {
                                     viewHasBeenSetRef.current = true;
                                     
                                     const camera = controlsRef.current.object;
-                                    const distance = viewDistance[targetView] || initialZoom;
+                                    const distance = 5;
                                     
                                     // Positionner la caméra aux positions standard (sans rotation initiale)
                                     switch (targetView) {
@@ -7237,7 +6458,7 @@ export default function ProductBuilderPage() {
                                       setTargetView(null);
                                     }, 100);
                                   }
-                                }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
+                                }, [targetView, setTargetView, viewHasBeenSetRef]);
                                 
                                 // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
                                 const shouldDisableOrbitControls = viewportMode === 'mobile' && selectedTextId && mobileActivePanel;
@@ -7272,10 +6493,10 @@ export default function ProductBuilderPage() {
                                       // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
                                       // Sinon, OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
                                       enabled={orbitControlsEnabled}
-                                      minDistance={minZoom}
-                                      maxDistance={maxZoom}
-                                      zoomSpeed={zoomSpeed}
-                                      rotateSpeed={rotateSpeed}
+                                      minDistance={2}
+                                      maxDistance={10}
+                                      zoomSpeed={1}
+                                      rotateSpeed={1}
                                       makeDefault={false}
                                     />
                                     
@@ -7285,28 +6506,14 @@ export default function ProductBuilderPage() {
                               }
                               
                               // Ajuster tous les paramètres pour mobile
-                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
-                              const adjustedMinZoom = viewportMode === 'mobile' ? minZoom * 1.5 : minZoom;
-                              const adjustedMaxZoom = viewportMode === 'mobile' ? maxZoom * 1.5 : maxZoom;
-                              // Ajuster viewDistance pour mobile
-                              const adjustedViewDistance = viewportMode === 'mobile' ? {
-                                'torse': viewDistance.torse * 1.5,
-                                'dos': viewDistance.dos * 1.5,
-                                'bras-gauche': viewDistance['bras-gauche'] * 1.5,
-                                'bras-droit': viewDistance['bras-droit'] * 1.5
-                              } : viewDistance;
+                              const mobileInitialZoom = viewportMode === 'mobile' ? 7.5 : 5;
+                              const adjustedMinZoom = viewportMode === 'mobile' ? 3 : 2;
+                              const adjustedMaxZoom = viewportMode === 'mobile' ? 15 : 10;
                               
                               return (
                                 <>
                                   <ControlsManager
                                     targetView={targetView}
-                                    viewDistance={adjustedViewDistance}
-                                    initialZoom={mobileInitialZoom}
-                                    initialRotation={initialRotation}
-                                    zoomSpeed={zoomSpeed}
-                                    rotateSpeed={rotateSpeed}
-                                    minZoom={adjustedMinZoom}
-                                    maxZoom={adjustedMaxZoom}
                                     selectedTextId={selectedTextId}
                                     isPlacingText={isPlacingText}
                                     isDraggingText={isDraggingText}
