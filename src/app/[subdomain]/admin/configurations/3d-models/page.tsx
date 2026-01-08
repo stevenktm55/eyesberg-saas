@@ -1388,35 +1388,143 @@ export default function ModelsConfigPage() {
                         Capturer une nouvelle vue
                       </button>
                     ) : (
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => {
-                            setCaptureMode(false);
-                          }}
-                          style={{
-                            flex: 1,
-                            padding: '12px',
-                            backgroundColor: 'transparent',
-                            border: '1px solid #3a3a3a',
-                            borderRadius: '6px',
-                            color: '#ffffff',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* Ajustements précis Position & Target */}
+                        <div style={{
+                          backgroundColor: '#2a2a2a',
+                          padding: '12px',
+                          borderRadius: '6px',
+                          border: '1px solid #3a3a3a'
+                        }}>
+                          <div style={{
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#8eff36',
+                            marginBottom: '8px',
                             fontFamily: 'var(--stepn-font-body)'
-                          }}
-                        >
-                          Annuler
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowNameViewModal(true);
-                          }}
-                          style={{
-                            flex: 1,
-                            padding: '12px',
-                            backgroundColor: '#8eff36',
-                            border: 'none',
+                          }}>
+                            📐 Position Caméra (où est la caméra)
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                            {(['x', 'y', 'z'] as const).map((axis) => (
+                              <div key={`pos-${axis}`} style={{ flex: 1 }}>
+                                <label style={{
+                                  fontSize: '10px',
+                                  color: '#a0a0a0',
+                                  textTransform: 'uppercase',
+                                  fontWeight: '600',
+                                  display: 'block',
+                                  marginBottom: '4px'
+                                }}>
+                                  {axis.toUpperCase()}
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  value={currentCameraPosition?.[axis] || 0}
+                                  onChange={(e) => {
+                                    const newPos = { ...currentCameraPosition, [axis]: parseFloat(e.target.value) || 0 };
+                                    setCurrentCameraPosition(newPos as any);
+                                    // Appliquer immédiatement
+                                    window.dispatchEvent(new CustomEvent('goToCameraView', {
+                                      detail: { position: newPos, target: currentCameraTarget }
+                                    }));
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '6px',
+                                    backgroundColor: '#1a1a1a',
+                                    border: '1px solid #3a3a3a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '12px',
+                                    fontFamily: 'monospace'
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+
+                          <div style={{
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: '#8eff36',
+                            marginBottom: '8px',
+                            fontFamily: 'var(--stepn-font-body)'
+                          }}>
+                            🎯 Target (où regarde la caméra)
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {(['x', 'y', 'z'] as const).map((axis) => (
+                              <div key={`target-${axis}`} style={{ flex: 1 }}>
+                                <label style={{
+                                  fontSize: '10px',
+                                  color: '#a0a0a0',
+                                  textTransform: 'uppercase',
+                                  fontWeight: '600',
+                                  display: 'block',
+                                  marginBottom: '4px'
+                                }}>
+                                  {axis.toUpperCase()}
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  value={currentCameraTarget?.[axis] || 0}
+                                  onChange={(e) => {
+                                    const newTarget = { ...currentCameraTarget, [axis]: parseFloat(e.target.value) || 0 };
+                                    setCurrentCameraTarget(newTarget as any);
+                                    // Appliquer immédiatement
+                                    window.dispatchEvent(new CustomEvent('goToCameraView', {
+                                      detail: { position: currentCameraPosition, target: newTarget }
+                                    }));
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    padding: '6px',
+                                    backgroundColor: '#1a1a1a',
+                                    border: '1px solid #3a3a3a',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '12px',
+                                    fontFamily: 'monospace'
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Boutons Annuler / Capturer */}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => {
+                              setCaptureMode(false);
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '12px',
+                              backgroundColor: 'transparent',
+                              border: '1px solid #3a3a3a',
+                              borderRadius: '6px',
+                              color: '#ffffff',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowNameViewModal(true);
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '12px',
+                              backgroundColor: '#8eff36',
+                              border: 'none',
                             borderRadius: '6px',
                             color: '#000000',
                             fontSize: '13px',
