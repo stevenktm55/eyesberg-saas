@@ -152,14 +152,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         controls.minDistance = 0;
         controls.maxDistance = Infinity;
         
-        // Appliquer un facteur de correction pour les distances Z (configurateur vs admin)
-        const DISTANCE_CORRECTION_FACTOR = 2.5; // Augmenter les distances Z
-        const correctedZ = position.z * DISTANCE_CORRECTION_FACTOR;
-        
-        console.log('🔧 Correction distance Z:', position.z, '→', correctedZ);
-        
         // Mettre à jour la position et le target
-        camera.position.set(position.x, position.y, correctedZ);
+        camera.position.set(position.x, position.y, position.z);
         controls.target.set(target.x, target.y, target.z);
         controls.update();
         

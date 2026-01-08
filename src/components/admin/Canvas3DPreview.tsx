@@ -146,7 +146,7 @@ export function Canvas3DPreview({
                     <ConfiguratorViewer
                     productId={productId}
                     shopDomain={shop}
-                    forceMobileLayout={true}
+                    forceMobileLayout={false}
                     preview={true}
                   />
                 </div>
