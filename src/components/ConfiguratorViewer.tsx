@@ -1499,9 +1499,12 @@ function Viewer3D({
       
       if (modelIdFromSnapshot) {
         const response = await fetch(`/api/models-3d/${modelIdFromSnapshot}`);
+        console.log('🌐 Response status:', response.status, response.ok);
         if (response.ok) {
           const model = await response.json();
+          console.log('📦 Model chargé:', model);
           const views = model.camera_views || [];
+          console.log('📷 Toutes les vues disponibles:', views);
           const viewLabelMap: Record<string, string> = {
             'front': 'Face',
             'back': 'Dos', 
@@ -1509,8 +1512,15 @@ function Viewer3D({
             'right': 'Droite'
           };
           const targetLabel = viewLabelMap[view];
+          console.log('🎯 Recherche de la vue avec label:', targetLabel, 'pour view:', view);
           savedView = views.find((v: any) => v.name === targetLabel);
           console.log('📷 Vue trouvée:', savedView);
+          if (!savedView) {
+            console.log('❌ Aucune vue trouvée avec le label:', targetLabel);
+            console.log('📋 Labels disponibles:', views.map((v: any) => v.name));
+          }
+        } else {
+          console.log('❌ Erreur API response:', response.status, response.statusText);
         }
       }
     } catch (err) {
