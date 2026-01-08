@@ -35,8 +35,12 @@ export function useCameraViews(modelId?: string | null) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('🎬 useCameraViews appelé avec modelId:', modelId);
+
   useEffect(() => {
+    console.log('🎬 useEffect useCameraViews - modelId:', modelId);
     if (!modelId) {
+      console.log('⚠️ Pas de modelId, arrêt du chargement des vues');
       setCameraViews([]);
       setIsLoading(false);
       return;

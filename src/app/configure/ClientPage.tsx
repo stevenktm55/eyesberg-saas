@@ -405,11 +405,11 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           
           // Charger les texture maps et material maps du modèle
           if (forcedModelId) {
-            const res = await fetch('/api/models');
+            const res = await fetch('/api/models-3d');
             const models = await res.json();
             const selectedModel = models.find((m: any) => m.id === forcedModelId);
             if (selectedModel) {
-              console.log('✅ Modèle trouvé - ID:', selectedModel.id, 'materialMaps:', Object.keys(selectedModel.materialMaps || {}));
+              // Modèle trouvé
               setTextureMaps(selectedModel.textureMaps || null);
               setMaterialMaps(selectedModel.materialMaps || null);
               setModelId(selectedModel.id);
@@ -429,7 +429,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         }
         
         // Charger tous les modèles
-        const response = await fetch('/api/models');
+        const response = await fetch('/api/models-3d');
         const models = await response.json();
         
         let chosen = null;
@@ -475,7 +475,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
     let mounted = true;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/models');
+        const res = await fetch('/api/models-3d');
         const models = await res.json();
         const current = models.find((m: any) => m.id === modelId);
         if (!current) return;
@@ -487,7 +487,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         const tmChanged = JSON.stringify(nextTextureMaps) !== JSON.stringify(textureMaps);
 
         if (mounted && (mmChanged || tmChanged)) {
-          console.log('🔄 Sync materialMaps/textureMaps depuis API (configure)');
+          // Sync materialMaps/textureMaps depuis API
           if (tmChanged) setTextureMaps(nextTextureMaps);
           if (mmChanged) setMaterialMaps(nextMaterialMaps);
         }
@@ -519,7 +519,7 @@ function useDesignSelection() {
     if (design) {
       console.log('🎯 model_type du design reçu:', design.model_type);
       setSelectedDesign({ id: design.id, svgUrl: design.svgUrl, model_type: design.model_type });
-      console.log('✅ selectedDesign mis à jour avec model_type:', design.model_type);
+      // selectedDesign mis à jour
     } else {
       setSelectedDesign({ id: null, svgUrl: null });
       // selectedDesign mis à jour vers null
@@ -917,7 +917,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const updateLogoPosition = (id: string, position: [number, number, number]) => {
-    console.log('🔄 updateLogoPosition called:', { id, position });
+    // updateLogoPosition called
     // Create a new position array to avoid reference sharing
     const newPosition: [number, number, number] = [position[0], position[1], position[2] || 0];
     setPlacedLogos(prev => prev.map(logo => 
@@ -926,7 +926,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const updateLogoRotation = (id: string, rotation: number) => {
-    console.log('🔄 updateLogoRotation called:', { id, rotation });
+    // updateLogoRotation called
     setPlacedLogos(prev => prev.map(logo => 
       logo.id === id ? { ...logo, rotation } : logo
     ));
@@ -940,7 +940,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const selectLogo = (id: string | null) => {
-    console.log('🔄 selectLogo appelé:', { id, stack: new Error().stack });
+    // selectLogo appelé
     setSelectedLogoId(id);
     
     if (onLogoSelectionChange) {
@@ -5344,7 +5344,7 @@ useEffect(() => {
         let inferredProductId: string | null = null;
         if (modelUrl) {
           // Associer modelUrl -> model_id -> product mapping
-          const modelsRes = await fetch('/api/models');
+          const modelsRes = await fetch('/api/models-3d');
           if (modelsRes.ok) {
             const models = await modelsRes.json();
             const m = Array.isArray(models) ? models.find((mm: any) => mm.glbUrl === modelUrl) : null;
@@ -5482,7 +5482,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       // Charger le premier modèle disponible si aucun n'est chargé
       (async () => {
         try {
-          const res = await fetch('/api/models');
+          const res = await fetch('/api/models-3d');
           const models = await res.json();
           if (models && models.length > 0) {
             const firstModel = models[0];
@@ -6815,7 +6815,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         
         // Récupérer les design_ids autorisés pour ce modèle
         try {
-          const response = await fetch('/api/models');
+          const response = await fetch('/api/models-3d');
           const models = await response.json();
           const currentModel = models.find((m: any) => m.glbUrl === configData.modelUrl);
           
