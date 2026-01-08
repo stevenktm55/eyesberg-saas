@@ -194,6 +194,23 @@ function SimpleViewer({
   // Ref for onRequestTextDelete to ensure closure has latest value
   const onRequestTextDeleteRef = useRef<((id: string) => void) | undefined>(onRequestTextDelete);
   
+  // Écouter les événements de changement de vue de caméra personnalisés
+  useEffect(() => {
+    const handleSetCameraView = (event: any) => {
+      const detail = event.detail;
+      console.log('🎬 [SimpleViewer] Événement setCameraView reçu:', detail);
+      
+      if (detail?.type === 'custom' && detail.position && detail.target && camera) {
+        // Animer la caméra vers la nouvelle position
+        camera.position.set(detail.position.x, detail.position.y, detail.position.z);
+        console.log('📸 [SimpleViewer] Position caméra mise à jour:', camera.position);
+      }
+    };
+
+    window.addEventListener('setCameraView', handleSetCameraView);
+    return () => window.removeEventListener('setCameraView', handleSetCameraView);
+  }, [camera]);
+  
   // Update ref when isPlacingText changes
   useEffect(() => {
     isPlacingTextRef.current = isPlacingText;
@@ -4035,6 +4052,29 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
       updateLogoRotation(id, rotation);
     }
   }, [updateLogoRotation]);
+
+  // Écouter les événements de changement de vue de caméra depuis le builder
+  useEffect(() => {
+    const handleGoToCameraView = (event: any) => {
+      const { position, target } = event.detail;
+      console.log('🎬 [ModelViewer] Événement goToCameraView reçu:', event.detail);
+      
+      if (position && target) {
+        // Dispatcher un autre événement que le Canvas écoutera
+        window.dispatchEvent(new CustomEvent('setCameraView', { 
+          detail: { 
+            type: 'custom',
+            position, 
+            target 
+          } 
+        }));
+        console.log('📤 [ModelViewer] Événement setCameraView dispatché');
+      }
+    };
+
+    window.addEventListener('goToCameraView', handleGoToCameraView);
+    return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
+  }, []);
 
   return <SimpleViewer 
     url={url} 

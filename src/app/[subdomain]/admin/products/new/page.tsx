@@ -130,6 +130,38 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
+// Composant pour contrôler la caméra via événements personnalisés
+function CameraController() {
+  const { camera, gl } = useThree();
+  const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    const handleGoToCameraView = (event: any) => {
+      const { position, target } = event.detail;
+      console.log('🎬 CameraController - Événement reçu:', event.detail);
+      
+      if (camera && position && target) {
+        // Animer la caméra vers la nouvelle position
+        camera.position.set(position.x, position.y, position.z);
+        
+        // Mettre à jour le target des contrôles
+        if (controlsRef.current) {
+          controlsRef.current.target.set(target.x, target.y, target.z);
+          controlsRef.current.update();
+        }
+        
+        console.log('📸 Position caméra mise à jour:', camera.position);
+        console.log('🎯 Target contrôles mis à jour:', controlsRef.current?.target);
+      }
+    };
+
+    window.addEventListener('goToCameraView', handleGoToCameraView);
+    return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
+  }, [camera]);
+
+  return <OrbitControls ref={controlsRef} enablePan={false} enableZoom={true} enableRotate={true} minDistance={5} maxDistance={50} />;
+}
+
 // Composant pour l'iframe de prévisualisation (côté client uniquement)
 function PreviewIframe({ productId, shop }: { productId: string; shop: string | null }) {
   const configuratorUrl = useMemo(() => {
