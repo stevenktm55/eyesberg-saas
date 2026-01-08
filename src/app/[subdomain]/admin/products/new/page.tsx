@@ -135,9 +135,16 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
   const { camera } = useThree();
 
   useEffect(() => {
+    // Ne s'exécuter que dans l'admin, pas dans le configurateur
+    const isInAdmin = typeof window !== 'undefined' && window.location.pathname.includes('/admin/');
+    if (!isInAdmin) {
+      console.log('🚫 CameraController admin ignoré - pas dans l\'admin');
+      return;
+    }
+
     const handleGoToCameraView = (event: any) => {
       const { position, target } = event.detail;
-      console.log('🎬 CameraController - Événement reçu:', event.detail);
+      console.log('🎬 🏢 CameraController ADMIN - Événement reçu:', event.detail);
       
       if (camera && position && target && controlsRef?.current) {
         const controls = controlsRef.current;
@@ -164,7 +171,7 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         setTimeout(() => {
           controls.minDistance = minDistance;
           controls.maxDistance = maxDistance;
-          console.log('🔒 Limites de zoom restaurées:', { min: minDistance, max: maxDistance });
+          console.log('🔒 🏢 Limites admin restaurées:', { min: minDistance, max: maxDistance });
         }, 500); // Délai plus long pour être sûr
       }
     };

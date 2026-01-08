@@ -21,7 +21,7 @@ function ConfiguratorCameraController({ controlsRef, minDistance = 2, maxDistanc
   useEffect(() => {
     const handleGoToCameraView = (event: any) => {
       const { position, target } = event.detail;
-      console.log('🎬 ConfiguratorCameraController - Événement reçu:', event.detail);
+      console.log('🎬 🔧 ConfiguratorCameraController - Événement reçu:', event.detail);
       
       if (camera && position && target && controlsRef?.current) {
         const controls = controlsRef.current;
@@ -44,7 +44,7 @@ function ConfiguratorCameraController({ controlsRef, minDistance = 2, maxDistanc
         setTimeout(() => {
           controls.minDistance = minDistance;
           controls.maxDistance = maxDistance;
-          console.log('🔒 Limites configurateur restaurées:', { min: minDistance, max: maxDistance });
+          console.log('🔒 🔧 Limites configurateur restaurées:', { min: minDistance, max: maxDistance });
         }, 500);
       }
     };
