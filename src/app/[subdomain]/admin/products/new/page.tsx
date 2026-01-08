@@ -5120,11 +5120,17 @@ export default function ProductBuilderPage() {
                                 <button
                                   key={viewConfig.id}
                                   onClick={() => {
+                                    console.log('🎯 [Desktop] Clic sur label de vue:', {
+                                      viewConfig,
+                                      modelCameraViews,
+                                      customViews
+                                    });
                                     setActiveLogoView(viewConfig.id as any);
                                     
                                     // Si une vue de caméra personnalisée est configurée, l'utiliser
                                     if (viewConfig.cameraViewId) {
                                       const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                      console.log('📷 [Desktop] Vue de caméra trouvée:', cameraView);
                                       if (cameraView) {
                                         // Dispatcher l'événement avec les coordonnées de la vue
                                         window.dispatchEvent(new CustomEvent('goToCameraView', { 
@@ -8679,11 +8685,17 @@ export default function ProductBuilderPage() {
                                           <button 
                                             key={viewConfig.id} 
                                             onClick={() => {
+                                              console.log('🎯 [Mobile] Clic sur label de vue:', {
+                                                viewConfig,
+                                                modelCameraViews,
+                                                customViews
+                                              });
                                               setActiveLogoView(viewConfig.id as any);
                                               
                                               // Si une vue de caméra personnalisée est configurée, l'utiliser
                                               if (viewConfig.cameraViewId) {
                                                 const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                                console.log('📷 [Mobile] Vue de caméra trouvée:', cameraView);
                                                 if (cameraView) {
                                                   // Dispatcher l'événement avec les coordonnées de la vue
                                                   window.dispatchEvent(new CustomEvent('goToCameraView', { 
