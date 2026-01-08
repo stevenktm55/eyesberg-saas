@@ -1253,20 +1253,20 @@ function Viewer3D({
     
     switch (direction) {
       case 'back':
-        camera.position.set(0, 1, -maxDistance);
-        target.set(0, 1, 0);
+        camera.position.set(0, 0, -maxDistance);
+        target.set(0, 0, 0);
         break;
       case 'left':
-        camera.position.set(-maxDistance, 1, 0);
-        target.set(0, 1, 0);
+        camera.position.set(-maxDistance, 0, 0);
+        target.set(0, 0, 0);
         break;
       case 'right':
-        camera.position.set(maxDistance, 1, 0);
-        target.set(0, 1, 0);
+        camera.position.set(maxDistance, 0, 0);
+        target.set(0, 0, 0);
         break;
       default: // front
-        camera.position.set(0, 1, maxDistance);
-        target.set(0, 1, 0);
+        camera.position.set(0, 0, maxDistance);
+        target.set(0, 0, 0);
     }
     
     controls.update();
@@ -1311,19 +1311,19 @@ function Viewer3D({
       const maxDistance = cameraSettings.maxDistance;
       
       if (view === 'front') {
-        camera.position.set(0, 1, maxDistance);
+        camera.position.set(0, 0, maxDistance);
         target.set(0, isMobile ? -1.5 : 0, 0);
         console.log('📍 Positionnée caméra en front (fallback)');
       } else if (view === 'back') {
-        camera.position.set(0, 1, -maxDistance);
+        camera.position.set(0, 0, -maxDistance);
         target.set(0, isMobile ? -1.5 : 0, 0);
         console.log('📍 Positionnée caméra en back (fallback)');
       } else if (view === 'left') {
-        camera.position.set(-maxDistance, 1, 0);
+        camera.position.set(-maxDistance, 0, 0);
         target.set(0, 0, 0);
         console.log('📍 Positionnée caméra en left (fallback)');
       } else if (view === 'right') {
-        camera.position.set(maxDistance, 1, 0);
+        camera.position.set(maxDistance, 0, 0);
         target.set(0, 0, 0);
         console.log('📍 Positionnée caméra en right (fallback)');
       }
@@ -1453,8 +1453,8 @@ function Viewer3D({
   }, []);
 
   // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
-  // Utilisation de la fonction de conversion pour maintenir la cohérence
-  const cameraPosition: [number, number, number] = [0, 1, cameraSettings.defaultPositionZ];
+  // IMPORTANT: Utiliser Y=0 pour être cohérent avec Canvas3DPreview où les vues sont enregistrées
+  const cameraPosition: [number, number, number] = [0, 0, cameraSettings.defaultPositionZ];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
@@ -5459,6 +5459,15 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   
   // Charger les vues de caméra pour le modèle actuel
   const { cameraViews, isLoading: cameraViewsLoading, saveCameraView } = useCameraViews(modelId);
+  
+  // Log des vues de caméra chargées pour debug
+  useEffect(() => {
+    if (cameraViews.length > 0) {
+      console.log('📷 Vues de caméra chargées:', cameraViews);
+    } else if (!cameraViewsLoading && modelId) {
+      console.log('⚠️ Aucune vue de caméra trouvée pour le modèle:', modelId);
+    }
+  }, [cameraViews, cameraViewsLoading, modelId]);
   
   // État pour suivre la vue de caméra actuellement active
   const [currentCameraView, setCurrentCameraView] = useState<'front' | 'back' | 'left' | 'right'>('front');
