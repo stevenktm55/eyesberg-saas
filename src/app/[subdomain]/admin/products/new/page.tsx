@@ -1130,7 +1130,14 @@ export default function ProductBuilderPage() {
       const res = await fetch('/api/models-3d');
       if (res.ok) {
         const data = await res.json();
-        setModels3D(Array.isArray(data) ? data : []);
+        // ✅ Mapper camera_views (snake_case) vers cameraViews (camelCase)
+        const mappedData = Array.isArray(data) 
+          ? data.map((model: any) => ({
+              ...model,
+              cameraViews: model.camera_views || []
+            }))
+          : [];
+        setModels3D(mappedData);
       }
     } catch (error) {
       console.error('Error fetching 3D models:', error);

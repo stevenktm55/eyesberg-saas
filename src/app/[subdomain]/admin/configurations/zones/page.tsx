@@ -137,9 +137,13 @@ export default function ZonesConfigPage() {
       const res = await fetch('/api/models-3d');
       if (res.ok) {
         const data = await res.json();
-        console.log('🔍 [Zones] Modèles 3D reçus:', data);
-        console.log('🔍 [Zones] Premier modèle camera_views:', data[0]?.camera_views);
-        setModels3D(data);
+        // ✅ Mapper camera_views (snake_case) vers cameraViews (camelCase)
+        const mappedData = data.map((model: any) => ({
+          ...model,
+          cameraViews: model.camera_views || []
+        }));
+        console.log('✅ [Zones] Modèles 3D mappés:', mappedData);
+        setModels3D(mappedData);
       }
     } catch (error) {
       console.error('Error fetching models 3D:', error);

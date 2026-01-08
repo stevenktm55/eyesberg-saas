@@ -114,14 +114,14 @@ export default function ModelsConfigPage() {
 
   useEffect(() => {
     if (selectedModel && !isCreating) {
-      // Load camera views from the model
-      const modelCameraViews = (selectedModel as any).camera_views;
-      if (modelCameraViews && Array.isArray(modelCameraViews) && modelCameraViews.length > 0) {
-        setCameraViews(modelCameraViews);
-      } else {
-        // Start with empty array - no default views
-        setCameraViews([]);
-      }
+      // Load camera views from the model (now using camelCase after mapping)
+      const modelCameraViews = selectedModel.cameraViews || (selectedModel as any).camera_views || [];
+      console.log('🎬 [3D Models] Chargement des vues depuis le modèle:', {
+        modelName: selectedModel.name,
+        cameraViews: modelCameraViews,
+        count: modelCameraViews.length
+      });
+      setCameraViews(modelCameraViews);
       
       // Extract model parts from the model data
       // Ne charger que si modelParts est vide ou si le modèle a changé
@@ -168,13 +168,20 @@ export default function ModelsConfigPage() {
       const res = await fetch("/api/models-3d");
       if (!res.ok) throw new Error("Failed to fetch models");
       const data = await res.json();
-      console.log('📦 Modèles 3D chargés:', data);
-      console.log('📷 Vues de caméra par modèle:', data.map((m: any) => ({
+      // ✅ Mapper camera_views (snake_case) vers cameraViews (camelCase)
+      const mappedData = Array.isArray(data)
+        ? data.map((model: any) => ({
+            ...model,
+            cameraViews: model.camera_views || []
+          }))
+        : [];
+      console.log('📦 Modèles 3D chargés:', mappedData);
+      console.log('📷 Vues de caméra par modèle:', mappedData.map((m: any) => ({
         modelName: m.name,
-        cameraViews: m.camera_views,
-        viewsCount: m.camera_views?.length || 0
+        cameraViews: m.cameraViews,
+        viewsCount: m.cameraViews?.length || 0
       })));
-      setModels(Array.isArray(data) ? data : []);
+      setModels(mappedData);
     } catch (error) {
       console.error("Error fetching models:", error);
     }
