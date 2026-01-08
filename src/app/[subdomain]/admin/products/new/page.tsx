@@ -5098,6 +5098,13 @@ export default function ProductBuilderPage() {
                         return true; // En mode libre, afficher tous les logos
                       });
                       
+                      // Utiliser uniquement les vues personnalisées configurées dans le module
+                      const customViews = activeModule.viewLabels || [];
+                      
+                      // Charger les vues de caméra du modèle 3D
+                      const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                      const modelCameraViews = selectedModel?.cameraViews || [];
+                      
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {/* Boutons de vue en haut - uniquement si mode zones */}

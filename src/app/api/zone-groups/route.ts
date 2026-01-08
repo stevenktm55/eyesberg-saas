@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
             thumbnailUrl: z.thumbnail_url,
             isLogo: z.is_logo,
             view: z.view || 'Face',
+            cameraViewId: z.camera_view_id,
             createdAt: z.created_at
           })),
           design2dIds: group.design2d_ids || [],
@@ -114,7 +115,8 @@ export async function POST(request: NextRequest) {
       height: zone.height,
       thumbnail_url: zone.thumbnailUrl || null,
       is_logo: zone.isLogo || false,
-      view: zone.view || 'Face'
+      view: zone.view || 'Face',
+      camera_view_id: zone.cameraViewId || null
     }));
 
     const { data: insertedZones, error: zonesError } = await supabaseAdmin
@@ -139,6 +141,7 @@ export async function POST(request: NextRequest) {
         thumbnailUrl: z.thumbnail_url,
         isLogo: z.is_logo,
         view: z.view,
+        cameraViewId: z.camera_view_id,
         createdAt: z.created_at
       })),
       design2dIds: group.design2d_ids || [],
@@ -231,7 +234,8 @@ export async function PATCH(request: NextRequest) {
           height: zone.height,
           thumbnail_url: zone.thumbnailUrl || null,
           is_logo: zone.isLogo || false,
-          view: zone.view || 'Face'
+          view: zone.view || 'Face',
+          camera_view_id: zone.cameraViewId || null
         }));
 
         const { error: zonesError } = await supabaseAdmin
@@ -276,6 +280,7 @@ export async function PATCH(request: NextRequest) {
         thumbnailUrl: z.thumbnail_url,
         isLogo: z.is_logo,
         view: z.view || 'Face',
+        cameraViewId: z.camera_view_id,
         createdAt: z.created_at
       })),
       design2dIds: updatedGroup.design2d_ids || [],
