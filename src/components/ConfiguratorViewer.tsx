@@ -11,6 +11,37 @@ import { ShopifyLoginModal } from "@/components/ShopifyLoginModal";
 import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
 import Image from "next/image";
+import { useThree } from "@react-three/fiber";
+
+// Composant pour écouter les changements de vue de caméra
+function CameraViewListener({ controlsRef }: { controlsRef: React.RefObject<any> }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    const handleSetCameraView = (event: any) => {
+      const detail = event.detail;
+      console.log('🎬 [CameraViewListener] Événement setCameraView reçu:', detail);
+      
+      if (detail?.type === 'custom' && detail.position && detail.target) {
+        // Mettre à jour la position de la caméra
+        camera.position.set(detail.position.x, detail.position.y, detail.position.z);
+        console.log('📸 [CameraViewListener] Position caméra mise à jour:', camera.position);
+        
+        // Mettre à jour le target des OrbitControls
+        if (controlsRef.current) {
+          controlsRef.current.target.set(detail.target.x, detail.target.y, detail.target.z);
+          controlsRef.current.update();
+          console.log('🎯 [CameraViewListener] Target contrôles mis à jour:', controlsRef.current.target);
+        }
+      }
+    };
+
+    window.addEventListener('setCameraView', handleSetCameraView);
+    return () => window.removeEventListener('setCameraView', handleSetCameraView);
+  }, [camera, controlsRef]);
+
+  return null;
+}
 
 // Interface pour les zones de texte
 interface TextZone {
@@ -1797,6 +1828,8 @@ function Viewer3D({
             zoomToCursor={false}
             screenSpacePanning={false}
           />
+          
+          <CameraViewListener controlsRef={controlsRef} />
         </Canvas>
       </div>
     </div>
