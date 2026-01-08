@@ -2337,7 +2337,7 @@ export default function ProductBuilderPage() {
                 <directionalLight position={[-10, -10, -5]} intensity={0.5} />
                 
                 <Suspense fallback={null}>
-                  {models3D[0]?.glbUrl && (
+                  {models3D[0]?.glbUrl ? (
                     <ModelViewer 
                       key={models3D[0].glbUrl}
                       url={models3D[0].glbUrl}
@@ -2367,6 +2367,11 @@ export default function ProductBuilderPage() {
                       isResizingLogo={false}
                       selectedDesign={{ id: null, svgUrl: null }}
                     />
+                  ) : (
+                    <mesh>
+                      <boxGeometry args={[2, 2, 2]} />
+                      <meshStandardMaterial color="#8eff36" />
+                    </mesh>
                   )}
                 </Suspense>
                 
@@ -2455,10 +2460,69 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   fontFamily: 'var(--stepn-font-body)',
-                  margin: 0
+                  margin: 0,
+                  marginBottom: '16px'
                 }}>
                   Gérez les vues caméra de votre modèle 3D
                 </p>
+
+                {/* Sélecteur de modèle 3D */}
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '11px',
+                    color: '#a0a0a0',
+                    fontFamily: 'var(--stepn-font-body)',
+                    marginBottom: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Modèle 3D
+                  </label>
+                  <select
+                    value={models3D[0]?.id || ''}
+                    onChange={(e) => {
+                      const selectedModel = models3D.find(m => m.id === e.target.value);
+                      if (selectedModel) {
+                        // Mettre à jour le modèle sélectionné
+                        const updatedModels = [selectedModel, ...models3D.filter(m => m.id !== selectedModel.id)];
+                        setModels3D(updatedModels);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      backgroundColor: '#1a1a1a',
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="" style={{ backgroundColor: '#1a1a1a' }}>
+                      {models3D.length === 0 ? 'Aucun modèle disponible' : 'Sélectionner un modèle'}
+                    </option>
+                    {models3D.map(model => (
+                      <option key={model.id} value={model.id} style={{ backgroundColor: '#1a1a1a' }}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                  {models3D.length === 0 && (
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#666',
+                      fontFamily: 'var(--stepn-font-body)',
+                      marginTop: '6px',
+                      fontStyle: 'italic'
+                    }}>
+                      Ajoutez un modèle 3D dans "My Configurations 2D/3D"
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Liste des vues */}
