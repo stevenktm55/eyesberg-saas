@@ -1479,37 +1479,76 @@ function Viewer3D({
     lastCameraChangeRef.current = Date.now();
   }, [isMobile]);
 
-  const setCameraView = useCallback((view: 'front' | 'back' | 'left' | 'right') => {
+  const setCameraView = useCallback(async (view: 'front' | 'back' | 'left' | 'right') => {
     const controls = controlsRef.current;
     console.log('🎥 setCameraView appelé avec view:', view);
     if (!controls || !controls.object || !controls.target) {
       console.log('⚠️ Pas de controls ou camera disponible');
       return;
     }
+    
     const camera = controls.object;
     const target = controls.target;
-    if (view === 'front') {
-      camera.position.set(0, 0, isMobile ? 8 : 5);
-      target.set(0, isMobile ? -1.5 : 0, 0);
-      console.log('📍 Positionnée caméra en front');
-    } else if (view === 'back') {
-      camera.position.set(0, 0, isMobile ? -8 : -5);
-      target.set(0, isMobile ? -1.5 : 0, 0);
-      console.log('📍 Positionnée caméra en back');
-    } else if (view === 'left') {
-      camera.position.set(isMobile ? -8 : -5, 0, 0);
-      target.set(0, 0, 0);
-      console.log('📍 Positionnée caméra en left');
-    } else if (view === 'right') {
-      camera.position.set(isMobile ? 8 : 5, 0, 0);
-      target.set(0, 0, 0);
-      console.log('📍 Positionnée caméra en right');
+    
+    // Essayer de charger la vue depuis la base de données
+    let savedView = null;
+    try {
+      // Récupérer le modelId depuis le snapshot si disponible
+      const modelIdFromSnapshot = snapshot?.model3D?.id || null;
+      console.log('🔍 Recherche de vue sauvegardée pour modelId:', modelIdFromSnapshot, 'view:', view);
+      
+      if (modelIdFromSnapshot) {
+        const response = await fetch(`/api/models-3d/${modelIdFromSnapshot}`);
+        if (response.ok) {
+          const model = await response.json();
+          const views = model.camera_views || [];
+          const viewLabelMap: Record<string, string> = {
+            'front': 'Face',
+            'back': 'Dos', 
+            'left': 'Gauche',
+            'right': 'Droite'
+          };
+          const targetLabel = viewLabelMap[view];
+          savedView = views.find((v: any) => v.name === targetLabel);
+          console.log('📷 Vue trouvée:', savedView);
+        }
+      }
+    } catch (err) {
+      console.log('⚠️ Erreur lors du chargement de la vue:', err);
     }
     
     // Désactiver temporairement les limites de zoom pour permettre le repositionnement
     console.log('🔓 Désactivation temporaire des limites de zoom');
     controls.minDistance = 0;
     controls.maxDistance = Infinity;
+    
+    if (savedView) {
+      // Utiliser la vue sauvegardée
+      console.log('📸 Utilisation de la vue sauvegardée:', savedView);
+      camera.position.set(savedView.position.x, savedView.position.y, savedView.position.z);
+      target.set(savedView.target.x, savedView.target.y, savedView.target.z);
+      console.log(`📍 Positionnée caméra en ${view} avec vue sauvegardée - pos: [${savedView.position.x}, ${savedView.position.y}, ${savedView.position.z}]`);
+    } else {
+      // Fallback vers les positions par défaut
+      console.log('⚠️ Pas de vue sauvegardée, utilisation du fallback');
+      if (view === 'front') {
+        camera.position.set(0, 0, isMobile ? 8 : 5);
+        target.set(0, isMobile ? -1.5 : 0, 0);
+        console.log('📍 Positionnée caméra en front (fallback)');
+      } else if (view === 'back') {
+        camera.position.set(0, 0, isMobile ? -8 : -5);
+        target.set(0, isMobile ? -1.5 : 0, 0);
+        console.log('📍 Positionnée caméra en back (fallback)');
+      } else if (view === 'left') {
+        camera.position.set(isMobile ? -8 : -5, 0, 0);
+        target.set(0, 0, 0);
+        console.log('📍 Positionnée caméra en left (fallback)');
+      } else if (view === 'right') {
+        camera.position.set(isMobile ? 8 : 5, 0, 0);
+        target.set(0, 0, 0);
+        console.log('📍 Positionnée caméra en right (fallback)');
+      }
+    }
     
     controls.update();
     requestAnimationFrame(() => controls.update());
@@ -1523,7 +1562,7 @@ function Viewer3D({
     
     // Marquer l'heure de modification pour éviter un reset immédiat
     lastCameraChangeRef.current = Date.now();
-  }, [isMobile]);
+  }, [isMobile, snapshot]);
 
   // Écouter les événements de changement de vue de caméra
   useEffect(() => {
@@ -3063,6 +3102,8 @@ export default function ConfiguratorViewer({
   onAddToCart?: () => void;
   forceMobileLayout?: boolean;
 }) {
+  console.log('🚀 ConfiguratorViewer component loading...');
+  
   // Récupérer les paramètres de l'URL si non fournis
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const productId = propProductId || urlParams?.get('productId') || null;
