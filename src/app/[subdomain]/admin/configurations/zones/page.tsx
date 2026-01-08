@@ -97,9 +97,15 @@ export default function ZonesConfigPage() {
   useEffect(() => {
     if (selectedModel3DId) {
       const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+      console.log('🔍 [Zones] selectedModel3DId:', selectedModel3DId);
+      console.log('🔍 [Zones] selectedModel:', selectedModel);
+      console.log('🔍 [Zones] selectedModel?.cameraViews:', selectedModel?.cameraViews);
+      console.log('🔍 [Zones] selectedModel?.camera_views:', (selectedModel as any)?.camera_views);
       if (selectedModel?.cameraViews) {
+        console.log('✅ [Zones] Vues chargées:', selectedModel.cameraViews);
         setAvailableCameraViews(selectedModel.cameraViews);
       } else {
+        console.log('⚠️ [Zones] Aucune vue trouvée');
         setAvailableCameraViews([]);
       }
     } else {
@@ -131,6 +137,8 @@ export default function ZonesConfigPage() {
       const res = await fetch('/api/models-3d');
       if (res.ok) {
         const data = await res.json();
+        console.log('🔍 [Zones] Modèles 3D reçus:', data);
+        console.log('🔍 [Zones] Premier modèle camera_views:', data[0]?.camera_views);
         setModels3D(data);
       }
     } catch (error) {
