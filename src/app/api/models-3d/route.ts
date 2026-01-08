@@ -16,7 +16,16 @@ export async function GET(request: NextRequest) {
     const { data: models, error: modelsError } = await supabaseAdmin
       .from('models_3d')
       .select(`
-        *,
+        id,
+        name,
+        glb_url,
+        thumbnail_url,
+        description,
+        metadata,
+        created_at,
+        updated_at,
+        subdomain,
+        camera_views,
         model_parts (
           id,
           name,
