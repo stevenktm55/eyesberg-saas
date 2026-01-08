@@ -61,10 +61,6 @@ type CustomizationModule = {
   placedLogosLabel?: string; // Texte de l'en-tête "Logos placés" (par défaut: "Logos placés")
   logoPlacementMode?: 'zones' | 'free'; // Mode de placement du logo: zones prédéfinies ou placement libre
   logoZoneGroupIds?: string[]; // IDs des groupes de zones à afficher pour les logos (si logoPlacementMode === 'zones')
-  logoViewFrontLabel?: string; // Label personnalisé pour la vue "front" (par défaut: "Front")
-  logoViewBackLabel?: string; // Label personnalisé pour la vue "back" (par défaut: "Back")
-  logoViewLeftLabel?: string; // Label personnalisé pour la vue "left" (par défaut: "Left")
-  logoViewRightLabel?: string; // Label personnalisé pour la vue "right" (par défaut: "Right")
   // Vues de caméra personnalisées (depuis modèle 3D)
   viewLabels?: { id: string; label: string; cameraViewId?: string }[]; // Labels de vues personnalisés avec liaison aux vues du modèle 3D
   selectedCameraViews?: string[]; // IDs des vues de caméra disponibles depuis le modèle 3D
@@ -4414,14 +4410,6 @@ export default function ProductBuilderPage() {
                         </div>
                       );
                     })() : activeModule.contentType === 'logos' ? (() => {
-                      // Labels des vues personnalisables
-                      const viewLabels = {
-                        'front': activeModule.logoViewFrontLabel || 'Torse',
-                        'back': activeModule.logoViewBackLabel || 'Dos',
-                        'left': activeModule.logoViewLeftLabel || 'Bras gauche',
-                        'right': activeModule.logoViewRightLabel || 'Bras droit'
-                      };
-                      
                       // Label du bouton personnalisable
                       const buttonLabel = activeModule.addLogoButtonLabel || 'Ajouter un logo';
                       
@@ -8646,14 +8634,8 @@ export default function ProductBuilderPage() {
                               // MODULE LOGOS - Style stretchmx (tabs vues + bouton ajouter + logos placés OU bibliothèque)
                               if (activeModule.contentType === 'logos') {
                                 // Utiliser les vues personnalisées si configurées, sinon fallback sur les legacy
-                                const customViews = activeModule.viewLabels && activeModule.viewLabels.length > 0 
-                                  ? activeModule.viewLabels 
-                                  : [
-                                      { id: 'front', label: activeModule.logoViewFrontLabel || 'Torse', cameraViewId: undefined },
-                                      { id: 'back', label: activeModule.logoViewBackLabel || 'Dos', cameraViewId: undefined },
-                                      { id: 'left', label: activeModule.logoViewLeftLabel || 'Bras gauche', cameraViewId: undefined },
-                                      { id: 'right', label: activeModule.logoViewRightLabel || 'Bras droit', cameraViewId: undefined }
-                                    ];
+                                // Utiliser uniquement les vues personnalisées configurées dans le module
+                                const customViews = activeModule.viewLabels || [];
                                     
                                 // Charger les vues de caméra du modèle 3D
                                 const selectedModel = models3D.find(m => m.id === selectedModel3DId);
@@ -11569,137 +11551,6 @@ export default function ProductBuilderPage() {
                         outline: 'none'
                       }}
                     />
-                  </div>
-
-                  {/* Labels des vues */}
-                  <div style={{ marginBottom: '20px' }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '12px',
-                      color: '#a0a0a0',
-                      marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
-                    }}>
-                      Labels des vues
-                    </label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Front:</span>
-                        <input
-                          type="text"
-                          value={selectedModule.logoViewFrontLabel || 'Front'}
-                          onChange={(e) => {
-                            const updated = { 
-                              ...selectedModule, 
-                              logoViewFrontLabel: e.target.value || undefined
-                            };
-                            setSelectedModule(updated);
-                            setCustomizationModules(customizationModules.map(m => 
-                              m.id === selectedModule.id ? updated : m
-                            ));
-                          }}
-                          placeholder="Front"
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            outline: 'none'
-                          }}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Back:</span>
-                        <input
-                          type="text"
-                          value={selectedModule.logoViewBackLabel || 'Back'}
-                          onChange={(e) => {
-                            const updated = { 
-                              ...selectedModule, 
-                              logoViewBackLabel: e.target.value || undefined
-                            };
-                            setSelectedModule(updated);
-                            setCustomizationModules(customizationModules.map(m => 
-                              m.id === selectedModule.id ? updated : m
-                            ));
-                          }}
-                          placeholder="Back"
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            outline: 'none'
-                          }}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Left:</span>
-                        <input
-                          type="text"
-                          value={selectedModule.logoViewLeftLabel || 'Left'}
-                          onChange={(e) => {
-                            const updated = { 
-                              ...selectedModule, 
-                              logoViewLeftLabel: e.target.value || undefined
-                            };
-                            setSelectedModule(updated);
-                            setCustomizationModules(customizationModules.map(m => 
-                              m.id === selectedModule.id ? updated : m
-                            ));
-                          }}
-                          placeholder="Left"
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            outline: 'none'
-                          }}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ color: '#ffffff', fontSize: '12px', width: '60px' }}>Right:</span>
-                        <input
-                          type="text"
-                          value={selectedModule.logoViewRightLabel || 'Right'}
-                          onChange={(e) => {
-                            const updated = { 
-                              ...selectedModule, 
-                              logoViewRightLabel: e.target.value || undefined
-                            };
-                            setSelectedModule(updated);
-                            setCustomizationModules(customizationModules.map(m => 
-                              m.id === selectedModule.id ? updated : m
-                            ));
-                          }}
-                          placeholder="Right"
-                          style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            outline: 'none'
-                          }}
-                        />
-                      </div>
-                    </div>
                   </div>
 
                   {/* Vues de caméra personnalisées (depuis modèle 3D) */}
