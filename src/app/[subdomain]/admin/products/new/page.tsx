@@ -53,9 +53,12 @@ type CustomizationModule = {
   options?: string[]; // Pour dropdown et radio
   contentType?: 'colors' | 'logos' | 'fonts' | 'designs-2d' | 'sizes' | 'text' | null; // Type de contenu à afficher
   addTextButtonLabel?: string; // Texte du bouton "Ajouter un texte" (par défaut: "Ajouter un texte")
+  placedTextsLabel?: string; // Texte de l'en-tête "Textes ajoutés" (par défaut: "Textes ajoutés")
   textPlacementMode?: 'zones' | 'free'; // Mode de placement du texte: zones prédéfinies ou placement libre
   zoneGroupIds?: string[]; // IDs des groupes de zones à afficher (si textPlacementMode === 'zones')
   addLogoButtonLabel?: string; // Texte du bouton "Ajouter un logo" (par défaut: "Ajouter un logo")
+  importLogoButtonLabel?: string; // Texte du bouton "Importer un logo" (par défaut: "Importer un logo")
+  placedLogosLabel?: string; // Texte de l'en-tête "Logos placés" (par défaut: "Logos placés")
   logoPlacementMode?: 'zones' | 'free'; // Mode de placement du logo: zones prédéfinies ou placement libre
   logoZoneGroupIds?: string[]; // IDs des groupes de zones à afficher pour les logos (si logoPlacementMode === 'zones')
   logoViewFrontLabel?: string; // Label personnalisé pour la vue "front" (par défaut: "Front")
@@ -4426,7 +4429,7 @@ export default function ProductBuilderPage() {
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  Importer un logo
+                                  {activeModule.importLogoButtonLabel || 'Importer un logo'}
                                 </button>
                               </div>
                             )}
@@ -4757,7 +4760,7 @@ export default function ProductBuilderPage() {
                                 fontWeight: '600',
                                 marginBottom: '4px'
                               }}>
-                                Logos placés ({filteredPlacedLogos.length})
+                                {activeModule.placedLogosLabel || 'Logos placés'} ({filteredPlacedLogos.length})
                               </div>
                               {filteredPlacedLogos.map((logo) => {
                                 // Trouver le nom du logo depuis les bibliothèques
@@ -5086,13 +5089,13 @@ export default function ProductBuilderPage() {
                             gap: '12px'
                           }}>
                             <div style={{
-                              fontSize: '13px',
-                              color: '#9ca3af',
+                              fontSize: '14px',
+                              color: '#000000',
                               fontFamily: 'var(--stepn-font-body)',
                               marginBottom: '4px',
-                              fontStyle: 'italic'
+                              fontWeight: '600'
                             }}>
-                              Textes ajoutés ({texts.length})
+                              {activeModule.placedTextsLabel || 'Textes ajoutés'} ({texts.length})
                             </div>
                             {texts.map((text) => (
                               <div
@@ -8296,7 +8299,7 @@ export default function ProductBuilderPage() {
                                               className="mobile-action-btn-black"
                                             >
                                               <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                              Importer un logo
+                                              {activeModule.importLogoButtonLabel || 'Importer un logo'}
                                             </button>
                                           </div>
                                         )}
@@ -8803,7 +8806,7 @@ export default function ProductBuilderPage() {
                                     </button>
                                     {/* Logos placés */}
                                     <div>
-                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>Logos placés ({modulePlacedLogos.length})</h3>
+                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>{activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})</h3>
                                       {modulePlacedLogos.length === 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
                                           <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
