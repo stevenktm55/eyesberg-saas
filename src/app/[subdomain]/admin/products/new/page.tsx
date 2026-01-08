@@ -5114,19 +5114,45 @@ export default function ProductBuilderPage() {
                               paddingBottom: '0',
                               borderBottom: '1px solid #e0e0e0'
                             }}>
-                              {(['front', 'back', 'left', 'right'] as const).map((view) => (
+                              {customViews.map((viewConfig) => (
                                 <button
-                                  key={view}
+                                  key={viewConfig.id}
                                   onClick={() => {
-                                    setActiveLogoView(view);
-                                    // Mapper les vues aux catégories pour la caméra
-                                    const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                      'front': 'torse',
-                                      'back': 'dos',
-                                      'left': 'bras-droit', // Inversé
-                                      'right': 'bras-gauche' // Inversé
-                                    };
-                                    setTargetView(viewToCategory[view]);
+                                    setActiveLogoView(viewConfig.id as any);
+                                    
+                                    // Si une vue de caméra personnalisée est configurée, l'utiliser
+                                    if (viewConfig.cameraViewId) {
+                                      const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                      if (cameraView) {
+                                        // Dispatcher l'événement avec les coordonnées de la vue
+                                        window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                          detail: {
+                                            position: cameraView.position,
+                                            target: cameraView.target
+                                          }
+                                        }));
+                                      } else {
+                                        // Fallback sur la vue legacy
+                                        const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                          'front': 'torse',
+                                          'back': 'dos',
+                                          'left': 'bras-droit',
+                                          'right': 'bras-gauche'
+                                        };
+                                        const category = viewToCategory[viewConfig.id] || 'torse';
+                                        setTargetView(category);
+                                      }
+                                    } else {
+                                      // Utiliser la vue legacy (front, back, left, right)
+                                      const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                        'front': 'torse',
+                                        'back': 'dos',
+                                        'left': 'bras-droit',
+                                        'right': 'bras-gauche'
+                                      };
+                                      const category = viewToCategory[viewConfig.id] || 'torse';
+                                      setTargetView(category);
+                                    }
                                   }}
                                   style={{
                                     height: '42px',
@@ -5137,14 +5163,14 @@ export default function ProductBuilderPage() {
                                     borderRadius: '0',
                                     background: 'transparent',
                                     cursor: 'pointer',
-                                    color: activeLogoView === view ? '#000000' : '#606060',
+                                    color: activeLogoView === viewConfig.id ? '#000000' : '#606060',
                                     transition: 'all 0.15s',
                                     position: 'relative',
-                                    borderBottom: activeLogoView === view ? '2px solid #000000' : '2px solid transparent',
+                                    borderBottom: activeLogoView === viewConfig.id ? '2px solid #000000' : '2px solid transparent',
                                     whiteSpace: 'nowrap'
                                   }}
                                 >
-                                  {viewLabels[view]}
+                                  {viewConfig.label}
                                 </button>
                               ))}
                             </div>
@@ -8612,8 +8638,20 @@ export default function ProductBuilderPage() {
                               
                               // MODULE LOGOS - Style stretchmx (tabs vues + bouton ajouter + logos placés OU bibliothèque)
                               if (activeModule.contentType === 'logos') {
-                                const views = ['front', 'back', 'left', 'right'] as const;
-                                const viewLabels: Record<string, string> = { front: activeModule.logoViewFrontLabel || 'Torse', back: activeModule.logoViewBackLabel || 'Dos', left: activeModule.logoViewLeftLabel || 'Bras gauche', right: activeModule.logoViewRightLabel || 'Bras droit' };
+                                // Utiliser les vues personnalisées si configurées, sinon fallback sur les legacy
+                                const customViews = activeModule.viewLabels && activeModule.viewLabels.length > 0 
+                                  ? activeModule.viewLabels 
+                                  : [
+                                      { id: 'front', label: activeModule.logoViewFrontLabel || 'Torse', cameraViewId: undefined },
+                                      { id: 'back', label: activeModule.logoViewBackLabel || 'Dos', cameraViewId: undefined },
+                                      { id: 'left', label: activeModule.logoViewLeftLabel || 'Bras gauche', cameraViewId: undefined },
+                                      { id: 'right', label: activeModule.logoViewRightLabel || 'Bras droit', cameraViewId: undefined }
+                                    ];
+                                    
+                                // Charger les vues de caméra du modèle 3D
+                                const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                                const modelCameraViews = selectedModel?.cameraViews || [];
+                                
                                 const modulePlacedLogos = placedLogos.filter(l => l.category);
                                 
                                 // Récupérer les bibliothèques de logos sélectionnées
@@ -8641,17 +8679,35 @@ export default function ProductBuilderPage() {
                                     {/* Tabs de vue - Masqués si on est en train de choisir une variante OU si la bibliothèque est ouverte */}
                                     {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && !showLogoLibrary && (
                                       <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
-                                        {views.map((view) => (
+                                        {customViews.map((viewConfig) => (
                                           <button 
-                                            key={view} 
+                                            key={viewConfig.id} 
                                             onClick={() => {
-                                              setActiveLogoView(view);
-                                              // Changer la vue de la caméra en mobile aussi
-                                              window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                              setActiveLogoView(viewConfig.id as any);
+                                              
+                                              // Si une vue de caméra personnalisée est configurée, l'utiliser
+                                              if (viewConfig.cameraViewId) {
+                                                const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                                if (cameraView) {
+                                                  // Dispatcher l'événement avec les coordonnées de la vue
+                                                  window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                                    detail: {
+                                                      position: cameraView.position,
+                                                      target: cameraView.target
+                                                    }
+                                                  }));
+                                                } else {
+                                                  // Fallback sur la vue legacy
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
+                                                }
+                                              } else {
+                                                // Utiliser la vue legacy (front, back, left, right)
+                                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
+                                              }
                                             }} 
-                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === view ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === view ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
                                           >
-                                            {viewLabels[view]}
+                                            {viewConfig.label}
                                           </button>
                                         ))}
                                       </div>
