@@ -77,6 +77,20 @@ export default function ModelsConfigPage() {
 
   useEffect(() => {
     if (selectedModel && !isCreating) {
+      // Load camera views from the model
+      const modelCameraViews = (selectedModel as any).camera_views;
+      if (modelCameraViews && Array.isArray(modelCameraViews)) {
+        setCameraViews(modelCameraViews);
+      } else {
+        // Reset to default views if none exist
+        setCameraViews([
+          { id: 'view-front', name: 'Front', position: { x: 0, y: 0, z: 15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+          { id: 'view-back', name: 'Back', position: { x: 0, y: 0, z: -15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+          { id: 'view-left', name: 'Left', position: { x: -15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+          { id: 'view-right', name: 'Right', position: { x: 15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true }
+        ]);
+      }
+      
       // Extract model parts from the model data
       // Ne charger que si modelParts est vide ou si le modèle a changé
       const parts: ModelPart[] = (selectedModel as any).model_parts?.map((part: any) => ({
@@ -348,6 +362,20 @@ export default function ModelsConfigPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save model parts");
+      
+      // Sauvegarder les vues caméra
+      const cameraRes = await fetch("/api/models-3d/camera-views", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelId: selectedModel.id,
+          cameraViews,
+        }),
+      });
+
+      if (!cameraRes.ok) {
+        console.warn("Failed to save camera views, but model parts were saved");
+      }
       
       await fetchModels();
       closeModal();
