@@ -8,6 +8,7 @@ import { ShopifyAddToCart } from "@/components/ShopifyAddToCart";
 import { useShopifyIntegration, AddToCartSuccess } from "@/hooks/useShopifyIntegration";
 import { useShopifyCustomer } from "@/hooks/useShopifyCustomer";
 import { ShopifyLoginModal } from "@/components/ShopifyLoginModal";
+import { useCameraViews, CameraView } from "@/hooks/useCameraViews";
 import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
 import Image from "next/image";
@@ -1488,19 +1489,19 @@ function Viewer3D({
     const camera = controls.object;
     const target = controls.target;
     if (view === 'front') {
-      camera.position.set(0, 1, isMobile ? 18 : 10);
+      camera.position.set(0, 0, isMobile ? 18 : 10);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en front');
     } else if (view === 'back') {
-      camera.position.set(0, 1, isMobile ? -18 : -10);
+      camera.position.set(0, 0, isMobile ? -18 : -10);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en back');
     } else if (view === 'left') {
-      camera.position.set(-10, 1, 0);
+      camera.position.set(-10, 0, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en left');
     } else if (view === 'right') {
-      camera.position.set(10, 1, 0);
+      camera.position.set(10, 0, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en right');
     }
@@ -3984,16 +3985,16 @@ export default function ConfiguratorViewer({
     const camera = controls.object;
     const target = controls.target;
     if (view === 'front') {
-      camera.position.set(0, 1, isMobile ? 18 : 10);
+      camera.position.set(0, 0, isMobile ? 18 : 10);
       target.set(0, isMobile ? -1.5 : 0, 0);
     } else if (view === 'back') {
-      camera.position.set(0, 1, isMobile ? -18 : -10);
+      camera.position.set(0, 0, isMobile ? -18 : -10);
       target.set(0, isMobile ? -1.5 : 0, 0);
     } else if (view === 'left') {
-      camera.position.set(-10, 1, 0);
+      camera.position.set(-10, 0, 0);
       target.set(0, 0, 0);
     } else if (view === 'right') {
-      camera.position.set(10, 1, 0);
+      camera.position.set(10, 0, 0);
       target.set(0, 0, 0);
     }
     controls.update();
@@ -4011,8 +4012,8 @@ export default function ConfiguratorViewer({
     return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
   }, [setCameraView]);
   
-  // Paramètres de caméra
-  const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, 10];
+  // Paramètres de caméra - IMPORTANT: Utiliser Y=0 pour être cohérent avec Canvas3DPreview
+  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 18] : [0, 0, 10];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
   const minDistance = isMobile ? 7 : 2.5;
   const maxDistance = isMobile ? 18 : 10;
