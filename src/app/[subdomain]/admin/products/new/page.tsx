@@ -7262,21 +7262,25 @@ export default function ProductBuilderPage() {
                                 });
                                 
                                 return (
-                                  <OrbitControls
-                                    ref={controlsRef}
-                                    enablePan={false}
-                                    // Permettre le zoom et la rotation même quand un texte est sélectionné (pour permettre le déplacement du texte)
-                                    enableZoom={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
-                                    enableRotate={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
-                                    // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
-                                    // Sinon, OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
-                                    enabled={orbitControlsEnabled}
-                                    minDistance={minZoom}
-                                    maxDistance={maxZoom}
-                                    zoomSpeed={zoomSpeed}
-                                    rotateSpeed={rotateSpeed}
-                                    makeDefault={false}
-                                  />
+                                  <>
+                                    <OrbitControls
+                                      ref={controlsRef}
+                                      enablePan={false}
+                                      // Permettre le zoom et la rotation même quand un texte est sélectionné (pour permettre le déplacement du texte)
+                                      enableZoom={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
+                                      enableRotate={!isPlacingText && !isRestoringRef.current && !shouldDisableOrbitControls}
+                                      // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
+                                      // Sinon, OrbitControls reste actif sauf pendant le placement, le drag, la rotation ou le resize
+                                      enabled={orbitControlsEnabled}
+                                      minDistance={minZoom}
+                                      maxDistance={maxZoom}
+                                      zoomSpeed={zoomSpeed}
+                                      rotateSpeed={rotateSpeed}
+                                      makeDefault={false}
+                                    />
+                                    
+                                    <CameraController controlsRef={controlsRef} />
+                                  </>
                                 );
                               }
                               
@@ -7312,8 +7316,6 @@ export default function ProductBuilderPage() {
                                     viewHasBeenSetRef={viewHasBeenSetRef}
                                     mobileActivePanel={mobileActivePanel}
                                   />
-                                  
-                                  <CameraController controlsRef={controlsRef} />
                                 </>
                               );
                             })()}
