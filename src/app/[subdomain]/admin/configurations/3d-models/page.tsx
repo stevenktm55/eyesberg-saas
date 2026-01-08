@@ -1,13 +1,34 @@
 "use client";
 
 import { useEffect, useState, useRef, Suspense } from "react";
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Model3DPreview } from "@/components/Model3DPreview";
 import { Model3DPreviewStatic } from "@/components/Model3DPreviewStatic";
 import { MaterialMapPreview3DStatic } from "@/components/MaterialMapPreview3DStatic";
 import { ModelViewer } from "@/components/ModelViewer";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+
+// Composant pour contrôler la caméra depuis l'extérieur du Canvas
+function CameraController() {
+  const { camera, controls } = useThree();
+  
+  useEffect(() => {
+    const handleGoToView = (e: any) => {
+      const { position, target } = e.detail;
+      if (position && target && controls) {
+        camera.position.set(position.x, position.y, position.z);
+        (controls as any).target.set(target.x, target.y, target.z);
+        (controls as any).update();
+      }
+    };
+    
+    window.addEventListener('goToCameraView', handleGoToView);
+    return () => window.removeEventListener('goToCameraView', handleGoToView);
+  }, [camera, controls]);
+  
+  return null;
+}
 
 type Model3D = {
   id: string;
@@ -57,12 +78,7 @@ export default function ModelsConfigPage() {
   
   // Camera Views states
   const [activeModalTab, setActiveModalTab] = useState<'materials' | 'camera'>('materials');
-  const [cameraViews, setCameraViews] = useState<CameraView[]>([
-    { id: 'view-front', name: 'Front', position: { x: 0, y: 0, z: 15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-back', name: 'Back', position: { x: 0, y: 0, z: -15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-left', name: 'Left', position: { x: -15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-    { id: 'view-right', name: 'Right', position: { x: 15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true }
-  ]);
+  const [cameraViews, setCameraViews] = useState<CameraView[]>([]);
   const [captureMode, setCaptureMode] = useState(false);
   const [currentCameraPosition, setCurrentCameraPosition] = useState({ x: 0, y: 0, z: 0 });
   const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
@@ -79,16 +95,11 @@ export default function ModelsConfigPage() {
     if (selectedModel && !isCreating) {
       // Load camera views from the model
       const modelCameraViews = (selectedModel as any).camera_views;
-      if (modelCameraViews && Array.isArray(modelCameraViews)) {
+      if (modelCameraViews && Array.isArray(modelCameraViews) && modelCameraViews.length > 0) {
         setCameraViews(modelCameraViews);
       } else {
-        // Reset to default views if none exist
-        setCameraViews([
-          { id: 'view-front', name: 'Front', position: { x: 0, y: 0, z: 15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-          { id: 'view-back', name: 'Back', position: { x: 0, y: 0, z: -15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-          { id: 'view-left', name: 'Left', position: { x: -15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
-          { id: 'view-right', name: 'Right', position: { x: 15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true }
-        ]);
+        // Start with empty array - no default views
+        setCameraViews([]);
       }
       
       // Extract model parts from the model data
@@ -1143,12 +1154,12 @@ export default function ModelsConfigPage() {
                       )}
                     </Suspense>
                     
+                    <CameraController />
+                    
                     <OrbitControls 
-                      enablePan={false}
+                      enablePan={true}
                       enableZoom={true}
                       enableRotate={true}
-                      minDistance={5}
-                      maxDistance={50}
                       onChange={(e) => {
                         if (captureMode && e?.target) {
                           const camera = (e.target as any).object;
@@ -1271,21 +1282,8 @@ export default function ModelsConfigPage() {
                             }}>
                               {view.name}
                             </span>
-                            {view.isDefault && (
-                              <span style={{
-                                fontSize: '10px',
-                                backgroundColor: '#2a2a2a',
-                                color: '#8eff36',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                fontWeight: '500'
-                              }}>
-                                Default
-                              </span>
-                            )}
                           </div>
-                          {!view.isDefault && (
-                            <button
+                          <button
                               onClick={() => {
                                 if (confirm(`Supprimer la vue "${view.name}" ?`)) {
                                   setCameraViews(cameraViews.filter(v => v.id !== view.id));
@@ -1318,7 +1316,7 @@ export default function ModelsConfigPage() {
 
                         <button
                           onClick={() => {
-                            window.dispatchEvent(new CustomEvent('setCameraView', {
+                            window.dispatchEvent(new CustomEvent('goToCameraView', {
                               detail: {
                                 position: view.position,
                                 target: view.target
