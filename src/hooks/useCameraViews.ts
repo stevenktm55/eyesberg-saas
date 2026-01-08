@@ -47,6 +47,8 @@ export function useCameraViews(modelId?: string | null) {
         setIsLoading(true);
         setError(null);
         
+        console.log('🔍 Chargement des vues de caméra pour modelId:', modelId);
+        
         // Charger le modèle 3D avec ses vues de caméra depuis Supabase
         const response = await fetch(`/api/models-3d/${modelId}`);
         
@@ -55,13 +57,18 @@ export function useCameraViews(modelId?: string | null) {
         }
         
         const model = await response.json();
+        console.log('📦 Modèle chargé:', model);
+        console.log('📷 Vues brutes du modèle:', model.camera_views);
+        
         const views = model.camera_views || [];
         
         // Convertir au format attendu par ClientPage
         const convertedViews = views.map(convertSupabaseViewToClientFormat);
+        console.log('🔄 Vues converties:', convertedViews);
+        
         setCameraViews(convertedViews);
       } catch (err) {
-        console.error('Error loading camera views:', err);
+        console.error('❌ Error loading camera views:', err);
         setError(err instanceof Error ? err.message : 'Failed to load camera views');
         setCameraViews([]);
       } finally {
