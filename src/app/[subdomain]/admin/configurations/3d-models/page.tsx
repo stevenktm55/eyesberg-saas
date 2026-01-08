@@ -1301,7 +1301,6 @@ export default function ModelsConfigPage() {
                             >
                               🗑️
                             </button>
-                          )}
                         </div>
 
                         <div style={{
