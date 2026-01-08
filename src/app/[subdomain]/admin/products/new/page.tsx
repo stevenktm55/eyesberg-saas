@@ -145,6 +145,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     const handleGoToCameraView = (event: any) => {
       const { position, target } = event.detail;
       console.log('🎬 🏢 CameraController ADMIN - Événement reçu:', event.detail);
+      console.log('🔍 🏢 Position détaillée:', position);
+      console.log('🔍 🏢 Target détaillé:', target);
       
       if (camera && position && target && controlsRef?.current) {
         const controls = controlsRef.current;
@@ -166,6 +168,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
+        console.log('🔍 🏢 Position appliquée - X:', position.x, 'Y:', position.y, 'Z:', position.z);
+        console.log('🔍 🏢 Target appliqué - X:', target.x, 'Y:', target.y, 'Z:', target.z);
         
         // Restaurer les limites après un délai (utiliser les paramètres du composant)
         setTimeout(() => {
@@ -4975,6 +4979,8 @@ export default function ProductBuilderPage() {
                                       const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
                                       console.log('📷 [Desktop] Vue de caméra trouvée:', cameraView);
                                       if (cameraView) {
+                                        console.log('🔍 [Desktop] Position avant envoi:', cameraView.position);
+                                        console.log('🔍 [Desktop] Target avant envoi:', cameraView.target);
                                         // Dispatcher l'événement avec les coordonnées de la vue
                                         window.dispatchEvent(new CustomEvent('goToCameraView', { 
                                           detail: {
@@ -8546,6 +8552,8 @@ export default function ProductBuilderPage() {
                                                 const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
                                                 console.log('📷 [Mobile] Vue de caméra trouvée:', cameraView);
                                                 if (cameraView) {
+                                                  console.log('🔍 [Mobile] Position avant envoi:', cameraView.position);
+                                                  console.log('🔍 [Mobile] Target avant envoi:', cameraView.target);
                                                   // Dispatcher l'événement avec les coordonnées de la vue
                                                   window.dispatchEvent(new CustomEvent('goToCameraView', { 
                                                     detail: {
