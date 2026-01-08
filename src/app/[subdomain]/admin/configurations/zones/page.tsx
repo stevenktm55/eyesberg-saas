@@ -20,7 +20,6 @@ type Zone = {
   height: number; // Height in UV space (0-1)
   thumbnailUrl?: string;
   isLogo: boolean; // true for logo, false for text
-  view?: "Face" | "Dos" | "Gauche" | "Droite"; // Vue de la zone (legacy)
   cameraViewId?: string; // ID de la vue de caméra du modèle 3D
   createdAt?: string;
 };
@@ -76,7 +75,6 @@ export default function ZonesConfigPage() {
     width: number;
     height: number;
     rotation: number;
-    view?: "Face" | "Dos" | "Gauche" | "Droite";
     cameraViewId?: string;
   }>({
     isLogo: false,
@@ -97,15 +95,9 @@ export default function ZonesConfigPage() {
   useEffect(() => {
     if (selectedModel3DId) {
       const selectedModel = models3D.find(m => m.id === selectedModel3DId);
-      console.log('🔍 [Zones] selectedModel3DId:', selectedModel3DId);
-      console.log('🔍 [Zones] selectedModel:', selectedModel);
-      console.log('🔍 [Zones] selectedModel?.cameraViews:', selectedModel?.cameraViews);
-      console.log('🔍 [Zones] selectedModel?.camera_views:', (selectedModel as any)?.camera_views);
       if (selectedModel?.cameraViews) {
-        console.log('✅ [Zones] Vues chargées:', selectedModel.cameraViews);
         setAvailableCameraViews(selectedModel.cameraViews);
       } else {
-        console.log('⚠️ [Zones] Aucune vue trouvée');
         setAvailableCameraViews([]);
       }
     } else {
@@ -142,7 +134,6 @@ export default function ZonesConfigPage() {
           ...model,
           cameraViews: model.camera_views || []
         }));
-        console.log('✅ [Zones] Modèles 3D mappés:', mappedData);
         setModels3D(mappedData);
       }
     } catch (error) {
@@ -242,8 +233,7 @@ export default function ZonesConfigPage() {
       width: zoneSettings.width,
       height: zoneSettings.height,
       isLogo: zoneSettings.isLogo,
-      thumbnailUrl: zoneSettings.thumbnailUrl,
-      view: zoneSettings.view || "Face"
+      thumbnailUrl: zoneSettings.thumbnailUrl
     };
     setEditingZones([...editingZones, newZone]);
     setSelectedZoneId(newZone.id);
@@ -268,7 +258,6 @@ export default function ZonesConfigPage() {
         width: zone.width,
         height: zone.height,
         rotation: zone.rotation,
-        view: zone.view || "Face",
         cameraViewId: zone.cameraViewId
       });
     }
@@ -288,7 +277,6 @@ export default function ZonesConfigPage() {
     if (updates.height !== undefined) setZoneSettings(prev => ({ ...prev, height: updates.height! }));
     if (updates.rotation !== undefined) setZoneSettings(prev => ({ ...prev, rotation: updates.rotation! }));
     if (updates.isLogo !== undefined) setZoneSettings(prev => ({ ...prev, isLogo: updates.isLogo! }));
-    if (updates.view !== undefined) setZoneSettings(prev => ({ ...prev, view: updates.view! }));
     if (updates.cameraViewId !== undefined) setZoneSettings(prev => ({ ...prev, cameraViewId: updates.cameraViewId }));
   }
 
@@ -956,43 +944,6 @@ export default function ZonesConfigPage() {
                             }}
                           />
                         )}
-                      </div>
-
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '12px',
-                          color: '#a0a0a0',
-                          marginBottom: '8px',
-                          fontFamily: 'var(--stepn-font-body)'
-                        }}>
-                          Vue (Legacy)
-                        </label>
-                        <select
-                          value={zoneSettings.view || "Face"}
-                          onChange={(e) => {
-                            const view = e.target.value as "Face" | "Dos" | "Gauche" | "Droite";
-                            setZoneSettings(prev => ({ ...prev, view }));
-                            handleUpdateZone({ view });
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
-                            cursor: 'pointer',
-                            outline: 'none'
-                          }}
-                        >
-                          <option value="Face">Face</option>
-                          <option value="Dos">Dos</option>
-                          <option value="Gauche">Gauche</option>
-                          <option value="Droite">Droite</option>
-                        </select>
                       </div>
 
                       <div style={{ marginBottom: '16px' }}>
