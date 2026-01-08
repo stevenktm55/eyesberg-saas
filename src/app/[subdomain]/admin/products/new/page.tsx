@@ -7297,6 +7297,8 @@ export default function ProductBuilderPage() {
                                   viewHasBeenSetRef={viewHasBeenSetRef}
                                   mobileActivePanel={mobileActivePanel}
                                 />
+                                
+                                <CameraController />
                               );
                             })()}
                           </Canvas>
