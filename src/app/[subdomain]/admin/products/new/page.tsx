@@ -7279,26 +7279,28 @@ export default function ProductBuilderPage() {
                               } : viewDistance;
                               
                               return (
-                                <ControlsManager
-                                  targetView={targetView}
-                                  viewDistance={adjustedViewDistance}
-                                  initialZoom={mobileInitialZoom}
-                                  initialRotation={initialRotation}
-                                  zoomSpeed={zoomSpeed}
-                                  rotateSpeed={rotateSpeed}
-                                  minZoom={adjustedMinZoom}
-                                  maxZoom={adjustedMaxZoom}
-                                  selectedTextId={selectedTextId}
-                                  isPlacingText={isPlacingText}
-                                  isDraggingText={isDraggingText}
-                                  isRotatingText={isRotatingText}
-                                  isResizingText={isResizingText}
-                                  setTargetView={setTargetView}
-                                  viewHasBeenSetRef={viewHasBeenSetRef}
-                                  mobileActivePanel={mobileActivePanel}
-                                />
-                                
-                                <CameraController />
+                                <>
+                                  <ControlsManager
+                                    targetView={targetView}
+                                    viewDistance={adjustedViewDistance}
+                                    initialZoom={mobileInitialZoom}
+                                    initialRotation={initialRotation}
+                                    zoomSpeed={zoomSpeed}
+                                    rotateSpeed={rotateSpeed}
+                                    minZoom={adjustedMinZoom}
+                                    maxZoom={adjustedMaxZoom}
+                                    selectedTextId={selectedTextId}
+                                    isPlacingText={isPlacingText}
+                                    isDraggingText={isDraggingText}
+                                    isRotatingText={isRotatingText}
+                                    isResizingText={isResizingText}
+                                    setTargetView={setTargetView}
+                                    viewHasBeenSetRef={viewHasBeenSetRef}
+                                    mobileActivePanel={mobileActivePanel}
+                                  />
+                                  
+                                  <CameraController />
+                                </>
                               );
                             })()}
                           </Canvas>
