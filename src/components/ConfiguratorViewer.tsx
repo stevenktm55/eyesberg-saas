@@ -14,47 +14,6 @@ import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal"
 import Image from "next/image";
 import { useThree } from "@react-three/fiber";
 
-// CameraController pour le configurateur avec les bonnes limites de zoom
-function ConfiguratorCameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number }) {
-  const { camera } = useThree();
-
-  useEffect(() => {
-    const handleGoToCameraView = (event: any) => {
-      const { position, target } = event.detail;
-      console.log('🎬 🔧 ConfiguratorCameraController - Événement reçu:', event.detail);
-      
-      if (camera && position && target && controlsRef?.current) {
-        const controls = controlsRef.current;
-        
-        console.log('🔓 Limites configurateur:', { min: minDistance, max: maxDistance });
-        
-        // Désactiver temporairement les limites pour permettre n'importe quelle distance
-        controls.minDistance = 0;
-        controls.maxDistance = Infinity;
-        
-        // Mettre à jour la position et le target
-        camera.position.set(position.x, position.y, position.z);
-        controls.target.set(target.x, target.y, target.z);
-        controls.update();
-        
-        console.log('📸 Position caméra mise à jour (configurateur):', camera.position);
-        console.log('🎯 Target contrôles mis à jour (configurateur):', controls.target);
-        
-        // Restaurer les limites du configurateur après un délai
-        setTimeout(() => {
-          controls.minDistance = minDistance;
-          controls.maxDistance = maxDistance;
-          console.log('🔒 🔧 Limites configurateur restaurées:', { min: minDistance, max: maxDistance });
-        }, 500);
-      }
-    };
-
-    window.addEventListener('goToCameraView', handleGoToCameraView);
-    return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
-  }, [camera, controlsRef, minDistance, maxDistance]);
-
-  return null;
-}
 
 // Composant pour écouter les changements de vue de caméra
 function CameraViewListener({ controlsRef }: { controlsRef: React.RefObject<any> }) {
@@ -1935,12 +1894,6 @@ function Viewer3D({
           />
           
           <CameraViewListener controlsRef={controlsRef} />
-          
-          <ConfiguratorCameraController 
-            controlsRef={controlsRef} 
-            minDistance={minDistance} 
-            maxDistance={maxDistance} 
-          />
         </Canvas>
       </div>
     </div>
