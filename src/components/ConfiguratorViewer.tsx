@@ -3454,18 +3454,6 @@ export default function ConfiguratorViewer({
   // Déterminer la catégorie active pour le sélecteur de zone
   const activeCategoryForZone = showZoneSelector?.view ? viewToCategory[showZoneSelector.view] : 'torse';
 
-  // Debug: afficher toutes les zones disponibles
-  console.log('🖼️ DEBUG - Toutes les textZones disponibles:', textZones.length);
-  textZones.forEach((zone, index) => {
-    console.log(`🖼️ Zone ${index}:`, {
-      id: zone.id,
-      name: zone.name,
-      categories: zone.categories,
-      zoneCategory: zone.zoneCategory,
-      view: zone.view
-    });
-  });
-
   // Filtrer les zones selon la vue active pour le sélecteur de zone
   const filteredZonesForSelector = textZones.filter(zone => {
     const categoryForView = activeCategoryForZone;
@@ -3481,7 +3469,7 @@ export default function ConfiguratorViewer({
       zone.categories.includes('logo') ||
       zone.categories.some((cat: string) => cat.toLowerCase().includes('logo'))
     );
-    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories:', zone.categories);
+    console.log('🖼️ hasLogoCategory:', hasLogoCategory, 'zone.categories length:', zone.categories?.length);
     
     // Vérifier si zoneCategory correspond à la catégorie de vue
     const zoneCategoryMatches = zone.zoneCategory && zone.zoneCategory === categoryForView;
