@@ -10952,7 +10952,7 @@ export default function ProductBuilderPage() {
                     </div>
                   )}
 
-                  {/* Texte du bouton */}
+                  {/* Texte du bouton "Ajouter un logo" */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{
                       display: 'block',
@@ -10961,7 +10961,7 @@ export default function ProductBuilderPage() {
                       marginBottom: '8px',
                       fontFamily: 'var(--stepn-font-body)'
                     }}>
-                      Texte du bouton
+                      Texte du bouton "Ajouter un logo"
                     </label>
                     <input
                       type="text"
@@ -10977,6 +10977,84 @@ export default function ProductBuilderPage() {
                         ));
                       }}
                       placeholder="Ajouter un logo"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Texte du bouton "Importer un logo" */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Texte du bouton "Importer un logo"
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedModule.importLogoButtonLabel || 'Importer un logo'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          importLogoButtonLabel: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      placeholder="Importer un logo"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Texte de l'en-tête "Logos placés" */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Texte de l'en-tête "Logos placés"
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedModule.placedLogosLabel || 'Logos placés'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          placedLogosLabel: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      placeholder="Logos placés"
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -11498,6 +11576,45 @@ export default function ProductBuilderPage() {
                         ));
                       }}
                       placeholder="Ajouter un texte"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: 'var(--stepn-font-body)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Texte de l'en-tête "Textes ajoutés" */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      color: '#a0a0a0',
+                      marginBottom: '8px',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Texte de l'en-tête "Textes ajoutés"
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedModule.placedTextsLabel || 'Textes ajoutés'}
+                      onChange={(e) => {
+                        const updated = { 
+                          ...selectedModule, 
+                          placedTextsLabel: e.target.value || undefined
+                        };
+                        setSelectedModule(updated);
+                        setCustomizationModules(customizationModules.map(m => 
+                          m.id === selectedModule.id ? updated : m
+                        ));
+                      }}
+                      placeholder="Textes ajoutés"
                       style={{
                         width: '100%',
                         padding: '10px 12px',
