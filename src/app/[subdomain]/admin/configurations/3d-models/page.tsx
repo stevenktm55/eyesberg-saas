@@ -169,6 +169,12 @@ export default function ModelsConfigPage() {
       const res = await fetch("/api/models-3d");
       if (!res.ok) throw new Error("Failed to fetch models");
       const data = await res.json();
+      console.log('📦 Modèles 3D chargés:', data);
+      console.log('📷 Vues de caméra par modèle:', data.map((m: any) => ({
+        modelName: m.name,
+        cameraViews: m.camera_views,
+        viewsCount: m.camera_views?.length || 0
+      })));
       setModels(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching models:", error);
@@ -397,6 +403,12 @@ export default function ModelsConfigPage() {
       if (!res.ok) throw new Error("Failed to save model parts");
       
       // Sauvegarder les vues caméra
+      console.log('💾 Sauvegarde des vues de caméra:', {
+        modelId: selectedModel.id,
+        cameraViews,
+        count: cameraViews.length
+      });
+      
       const cameraRes = await fetch("/api/models-3d/camera-views", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -407,7 +419,12 @@ export default function ModelsConfigPage() {
       });
 
       if (!cameraRes.ok) {
+        const errorData = await cameraRes.json().catch(() => ({}));
+        console.error("❌ Erreur sauvegarde vues:", errorData);
         console.warn("Failed to save camera views, but model parts were saved");
+      } else {
+        const savedData = await cameraRes.json();
+        console.log('✅ Vues de caméra sauvegardées:', savedData);
       }
       
       await fetchModels();
