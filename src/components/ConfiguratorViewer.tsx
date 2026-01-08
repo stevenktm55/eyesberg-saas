@@ -1784,9 +1784,6 @@ function Viewer3D({
   const minDistance = 2;
   const maxDistance = 10;
   
-  // Debug: vérifier les cameraSettings
-  console.log('🔍 cameraSettings:', cameraSettings);
-  console.log('🔍 minDistance final:', minDistance, 'maxDistance final:', maxDistance);
 
   return (
     <div className="h-full flex flex-col bg-white" ref={containerRef}>
