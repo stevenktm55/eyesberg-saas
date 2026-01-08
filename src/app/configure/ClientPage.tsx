@@ -5244,6 +5244,8 @@ function TextItem({
   );
 }
 export default function ConfigurePage() {
+  console.log('🚀 ConfigurePage component loading...');
+  
   // Logs de montage supprimés pour éviter les boucles infinies
   useEffect(() => {
     const w = window as typeof window & { __STRETCHMX_BUILD?: string };
@@ -5456,6 +5458,9 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   }, []);
   
   const { modelUrl, textureMaps, materialMaps, modelId, isLoading: modelIsLoading } = useAutoLoadModel(configModelId, configModelUrl, productId);
+  
+  // DEBUG: Log du modelId reçu
+  console.log('🔍 ClientPage - modelId reçu de useAutoLoadModel:', modelId, 'isLoading:', modelIsLoading);
   
   // Charger les vues de caméra pour le modèle actuel
   const { cameraViews, isLoading: cameraViewsLoading, saveCameraView } = useCameraViews(modelId);
