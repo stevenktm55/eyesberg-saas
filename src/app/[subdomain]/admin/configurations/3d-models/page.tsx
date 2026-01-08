@@ -28,6 +28,14 @@ type DetectedMaterial = {
   index: number;
 };
 
+type CameraView = {
+  id: string;
+  name: string;
+  position: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+  isDefault?: boolean;
+};
+
 export default function ModelsConfigPage() {
   const [models, setModels] = useState<Model3D[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +51,20 @@ export default function ModelsConfigPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showMaterialMapSelector, setShowMaterialMapSelector] = useState(false);
   const [selectedPartForMaterial, setSelectedPartForMaterial] = useState<string | null>(null);
+  
+  // Camera Views states
+  const [activeModalTab, setActiveModalTab] = useState<'materials' | 'camera'>('materials');
+  const [cameraViews, setCameraViews] = useState<CameraView[]>([
+    { id: 'view-front', name: 'Front', position: { x: 0, y: 0, z: 15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+    { id: 'view-back', name: 'Back', position: { x: 0, y: 0, z: -15 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+    { id: 'view-left', name: 'Left', position: { x: -15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true },
+    { id: 'view-right', name: 'Right', position: { x: 15, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 }, isDefault: true }
+  ]);
+  const [captureMode, setCaptureMode] = useState(false);
+  const [currentCameraPosition, setCurrentCameraPosition] = useState({ x: 0, y: 0, z: 0 });
+  const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
+  const [showNameViewModal, setShowNameViewModal] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
 
   useEffect(() => {
     fetchModels();
