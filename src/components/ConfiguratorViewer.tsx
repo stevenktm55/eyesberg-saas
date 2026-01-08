@@ -1768,11 +1768,10 @@ function Viewer3D({
   const fontSizeSliderMax = 750;
 
   // Paramètres de caméra depuis les props ou valeurs par défaut - ALIGNÉS avec Canvas3DPreview
-  const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 8 : 5);
-  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, initialZoom];
+  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, 5];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = cameraSettings?.minZoom ?? 2;
-  const maxDistance = cameraSettings?.maxZoom ?? 10;
+  const minDistance = 2;
+  const maxDistance = 10;
 
   return (
     <div className="h-full flex flex-col bg-white" ref={containerRef}>
@@ -4095,11 +4094,6 @@ export default function ConfiguratorViewer({
     return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
   }, [setCameraView]);
   
-  // Paramètres de caméra - IMPORTANT: Utiliser les mêmes distances que Canvas3DPreview
-  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, 5];
-  const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = 2;
-  const maxDistance = 10;
   
   // Fonctions pour les textes
   const onTextPlaced = useCallback((category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
