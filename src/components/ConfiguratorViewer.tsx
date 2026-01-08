@@ -1439,38 +1439,38 @@ function Viewer3D({
       switch (direction) {
         case 'back':
           // Pour le dos, tourner autour et utiliser la même distance
-          camera.position.set(0, 1, -18);
-          target.set(0, 1, 0); // Regarder en avant
+          camera.position.set(0, 0, -8);
+          target.set(0, 0, 0); // Regarder en avant
           break;
         case 'left':
-          camera.position.set(-18, 1, 0);
-          target.set(0, 1, 0);
+          camera.position.set(-8, 0, 0);
+          target.set(0, 0, 0);
           break;
         case 'right':
-          camera.position.set(18, 1, 0);
-          target.set(0, 1, 0);
+          camera.position.set(8, 0, 0);
+          target.set(0, 0, 0);
           break;
         default: // front
-          camera.position.set(0, 1, 18);
-          target.set(0, 1, 0);
+          camera.position.set(0, 0, 8);
+          target.set(0, 0, 0);
       }
     } else {
       switch (direction) {
         case 'back':
-          camera.position.set(0, 1, -10);
-          target.set(0, 1, 0);
+          camera.position.set(0, 0, -5);
+          target.set(0, 0, 0);
           break;
         case 'left':
-          camera.position.set(-10, 1, 0);
-          target.set(0, 1, 0);
+          camera.position.set(-5, 0, 0);
+          target.set(0, 0, 0);
           break;
         case 'right':
-          camera.position.set(10, 1, 0);
-          target.set(0, 1, 0);
+          camera.position.set(5, 0, 0);
+          target.set(0, 0, 0);
           break;
         default: // front
-          camera.position.set(0, 1, 10);
-          target.set(0, 1, 0);
+          camera.position.set(0, 0, 5);
+          target.set(0, 0, 0);
       }
     }
     
@@ -1505,8 +1505,22 @@ function Viewer3D({
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en right');
     }
+    
+    // Désactiver temporairement les limites de zoom pour permettre le repositionnement
+    console.log('🔓 Désactivation temporaire des limites de zoom');
+    controls.minDistance = 0;
+    controls.maxDistance = Infinity;
+    
     controls.update();
     requestAnimationFrame(() => controls.update());
+    
+    // Réactiver les limites après un délai
+    setTimeout(() => {
+      console.log('🔒 Réactivation des limites de zoom');
+      controls.minDistance = 2;
+      controls.maxDistance = 10;
+    }, 500);
+    
     // Marquer l'heure de modification pour éviter un reset immédiat
     lastCameraChangeRef.current = Date.now();
   }, [isMobile]);
@@ -1633,11 +1647,11 @@ function Viewer3D({
       const applyPosition = () => {
         if (controls.object && controls.target) {
           if (isMobile) {
-            controls.object.position.set(0, 1, 18);
+            controls.object.position.set(0, 0, 8);
             controls.target.set(0, -1, 0);
           } else {
             // Desktop: zoom max comme mobile
-            controls.object.position.set(0, 1, 10);
+            controls.object.position.set(0, 0, 5);
             controls.target.set(0, 0, 0);
           }
           controls.update();
@@ -1714,12 +1728,12 @@ function Viewer3D({
   const fontSizeSliderMin = 60;
   const fontSizeSliderMax = 750;
 
-  // Paramètres de caméra depuis les props ou valeurs par défaut
-  const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 18 : 10);
-  const cameraPosition: [number, number, number] = isMobile ? [0, 1, 18] : [0, 1, initialZoom];
+  // Paramètres de caméra depuis les props ou valeurs par défaut - ALIGNÉS avec Canvas3DPreview
+  const initialZoom = cameraSettings?.initialZoom ?? (isMobile ? 8 : 5);
+  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, initialZoom];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = cameraSettings?.minZoom ?? (isMobile ? 7 : 2.5);
-  const maxDistance = cameraSettings?.maxZoom ?? (isMobile ? 18 : 10);
+  const minDistance = cameraSettings?.minZoom ?? 2;
+  const maxDistance = cameraSettings?.maxZoom ?? 10;
 
   return (
     <div className="h-full flex flex-col bg-white" ref={containerRef}>
@@ -3961,17 +3975,17 @@ export default function ConfiguratorViewer({
     
     if (isMobile) {
       switch (direction) {
-        case 'back': camera.position.set(0, 1, -18); target.set(0, 1, 0); break;
-        case 'left': camera.position.set(-18, 1, 0); target.set(0, 1, 0); break;
-        case 'right': camera.position.set(18, 1, 0); target.set(0, 1, 0); break;
-        default: camera.position.set(0, 1, 18); target.set(0, 1, 0);
+        case 'back': camera.position.set(0, 0, -8); target.set(0, 0, 0); break;
+        case 'left': camera.position.set(-8, 0, 0); target.set(0, 0, 0); break;
+        case 'right': camera.position.set(8, 0, 0); target.set(0, 0, 0); break;
+        default: camera.position.set(0, 0, 8); target.set(0, 0, 0);
       }
     } else {
       switch (direction) {
-        case 'back': camera.position.set(0, 1, -10); target.set(0, 1, 0); break;
-        case 'left': camera.position.set(-10, 1, 0); target.set(0, 1, 0); break;
-        case 'right': camera.position.set(10, 1, 0); target.set(0, 1, 0); break;
-        default: camera.position.set(0, 1, 10); target.set(0, 1, 0);
+        case 'back': camera.position.set(0, 0, -5); target.set(0, 0, 0); break;
+        case 'left': camera.position.set(-5, 0, 0); target.set(0, 0, 0); break;
+        case 'right': camera.position.set(5, 0, 0); target.set(0, 0, 0); break;
+        default: camera.position.set(0, 0, 5); target.set(0, 0, 0);
       }
     }
     controls.update();
@@ -3997,8 +4011,22 @@ export default function ConfiguratorViewer({
       camera.position.set(isMobile ? 8 : 5, 0, 0);
       target.set(0, 0, 0);
     }
+    
+    // Désactiver temporairement les limites de zoom pour permettre le repositionnement
+    console.log('🔓 Désactivation temporaire des limites de zoom (2ème fonction)');
+    controls.minDistance = 0;
+    controls.maxDistance = Infinity;
+    
     controls.update();
     requestAnimationFrame(() => controls.update());
+    
+    // Réactiver les limites après un délai
+    setTimeout(() => {
+      console.log('🔒 Réactivation des limites de zoom (2ème fonction)');
+      controls.minDistance = 2;
+      controls.maxDistance = 10;
+    }, 500);
+    
     lastCameraChangeRef.current = Date.now();
   }, [isMobile]);
   
