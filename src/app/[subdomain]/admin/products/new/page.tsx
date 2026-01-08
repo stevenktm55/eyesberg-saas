@@ -65,6 +65,9 @@ type CustomizationModule = {
   logoViewBackLabel?: string; // Label personnalisé pour la vue "back" (par défaut: "Back")
   logoViewLeftLabel?: string; // Label personnalisé pour la vue "left" (par défaut: "Left")
   logoViewRightLabel?: string; // Label personnalisé pour la vue "right" (par défaut: "Right")
+  // Vues de caméra personnalisées (depuis modèle 3D)
+  viewLabels?: { id: string; label: string; cameraViewId?: string }[]; // Labels de vues personnalisés avec liaison aux vues du modèle 3D
+  selectedCameraViews?: string[]; // IDs des vues de caméra disponibles depuis le modèle 3D
   // Options d'édition de texte
   enableTextContent?: boolean; // Permettre de modifier le contenu du texte
   enableTextFont?: boolean; // Permettre de changer la police
@@ -107,11 +110,19 @@ type Question = {
   options?: string[];
 };
 
+type CameraView = {
+  id: string;
+  name: string;
+  position: { x: number; y: number; z: number };
+  target: { x: number; y: number; z: number };
+};
+
 type Model3D = {
   id: string;
   name: string;
   glb_url?: string;
   glbUrl?: string;
+  cameraViews?: CameraView[];
 };
 
 type Design2D = {
