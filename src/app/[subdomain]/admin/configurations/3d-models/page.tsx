@@ -11,21 +11,42 @@ import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 // Composant pour contrôler la caméra depuis l'extérieur du Canvas
 function CameraController() {
-  const { camera, controls } = useThree();
+  const { camera, gl } = useThree();
+  const controlsRef = useRef<any>(null);
   
   useEffect(() => {
     const handleGoToView = (e: any) => {
       const { position, target } = e.detail;
-      if (position && target && controls) {
+      console.log('🎬 CameraController - Événement reçu:', { position, target });
+      
+      if (position && target) {
+        // Mettre à jour la position de la caméra
         camera.position.set(position.x, position.y, position.z);
-        (controls as any).target.set(target.x, target.y, target.z);
-        (controls as any).update();
+        console.log('📸 Position caméra mise à jour:', camera.position);
+        
+        // Mettre à jour le target des contrôles si disponibles
+        if (controlsRef.current) {
+          controlsRef.current.target.set(target.x, target.y, target.z);
+          controlsRef.current.update();
+          console.log('🎯 Target contrôles mis à jour:', controlsRef.current.target);
+        }
+        
+        // Forcer le rendu
+        gl.render(gl.scene, camera);
       }
     };
     
     window.addEventListener('goToCameraView', handleGoToView);
     return () => window.removeEventListener('goToCameraView', handleGoToView);
-  }, [camera, controls]);
+  }, [camera, gl]);
+  
+  // Exposer les contrôles via un callback
+  const setControlsRef = (controls: any) => {
+    controlsRef.current = controls;
+  };
+  
+  // Stocker la référence globalement pour que OrbitControls puisse y accéder
+  (window as any).__cameraControlsRef = setControlsRef;
   
   return null;
 }
@@ -84,6 +105,7 @@ export default function ModelsConfigPage() {
   const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
   const [showNameViewModal, setShowNameViewModal] = useState(false);
   const [newViewName, setNewViewName] = useState('');
+  const [editingViewId, setEditingViewId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchModels();
@@ -1157,6 +1179,11 @@ export default function ModelsConfigPage() {
                     <CameraController />
                     
                     <OrbitControls 
+                      ref={(controls) => {
+                        if (controls && (window as any).__cameraControlsRef) {
+                          (window as any).__cameraControlsRef(controls);
+                        }
+                      }}
                       enablePan={true}
                       enableZoom={true}
                       enableRotate={true}
@@ -1178,37 +1205,6 @@ export default function ModelsConfigPage() {
                       }}
                     />
                   </Canvas>
-
-                  {/* Overlay Info quand mode capture actif */}
-                  {captureMode && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '20px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                      border: '2px solid #8eff36',
-                      borderRadius: '8px',
-                      padding: '16px 24px',
-                      zIndex: 10,
-                      color: '#ffffff',
-                      fontFamily: 'var(--stepn-font-body)',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#8eff36' }}>
-                        📷 Mode Capture Actif
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#a0a0a0', marginBottom: '8px' }}>
-                        Positionnez la caméra comme vous le souhaitez
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
-                        Position: X:{currentCameraPosition.x} Y:{currentCameraPosition.y} Z:{currentCameraPosition.z}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
-                        Target: X:{currentCameraTarget.x} Y:{currentCameraTarget.y} Z:{currentCameraTarget.z}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Panel de gestion des vues */}
@@ -1283,7 +1279,37 @@ export default function ModelsConfigPage() {
                               {view.name}
                             </span>
                           </div>
-                          <button
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              onClick={() => {
+                                // Charger la vue
+                                window.dispatchEvent(new CustomEvent('goToCameraView', {
+                                  detail: {
+                                    position: view.position,
+                                    target: view.target
+                                  }
+                                }));
+                                // Activer le mode capture
+                                setCaptureMode(true);
+                                setCurrentCameraPosition(view.position);
+                                setCurrentCameraTarget(view.target);
+                                // Stocker l'ID et le nom pour mise à jour
+                                setEditingViewId(view.id);
+                                setNewViewName(view.name);
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#8eff36',
+                                cursor: 'pointer',
+                                fontSize: '18px',
+                                padding: '4px'
+                              }}
+                              title="Modifier"
+                            >
+                              ✏️
+                            </button>
+                            <button
                               onClick={() => {
                                 if (confirm(`Supprimer la vue "${view.name}" ?`)) {
                                   setCameraViews(cameraViews.filter(v => v.id !== view.id));
@@ -1301,6 +1327,7 @@ export default function ModelsConfigPage() {
                             >
                               🗑️
                             </button>
+                          </div>
                         </div>
 
                         <div style={{
@@ -1500,6 +1527,7 @@ export default function ModelsConfigPage() {
                           <button
                             onClick={() => {
                               setCaptureMode(false);
+                              setEditingViewId(null);
                             }}
                             style={{
                               flex: 1,
@@ -1903,7 +1931,7 @@ export default function ModelsConfigPage() {
               margin: 0,
               marginBottom: '24px'
             }}>
-              📷 Nommer la vue
+              {editingViewId ? '✏️ Modifier la vue' : '📷 Créer une vue'}
             </h3>
 
             <div style={{ marginBottom: '24px' }}>
@@ -1924,14 +1952,24 @@ export default function ModelsConfigPage() {
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && newViewName.trim()) {
-                    const newView: CameraView = {
-                      id: `view-${Date.now()}`,
-                      name: newViewName.trim(),
-                      position: currentCameraPosition,
-                      target: currentCameraTarget,
-                      isDefault: false
-                    };
-                    setCameraViews([...cameraViews, newView]);
+                    if (editingViewId) {
+                      // Mettre à jour la vue existante
+                      setCameraViews(cameraViews.map(v => 
+                        v.id === editingViewId 
+                          ? { ...v, name: newViewName.trim(), position: currentCameraPosition, target: currentCameraTarget }
+                          : v
+                      ));
+                      setEditingViewId(null);
+                    } else {
+                      // Créer une nouvelle vue
+                      const newView: CameraView = {
+                        id: `view-${Date.now()}`,
+                        name: newViewName.trim(),
+                        position: currentCameraPosition,
+                        target: currentCameraTarget
+                      };
+                      setCameraViews([...cameraViews, newView]);
+                    }
                     setNewViewName('');
                     setShowNameViewModal(false);
                     setCaptureMode(false);
@@ -1974,6 +2012,7 @@ export default function ModelsConfigPage() {
                   setNewViewName('');
                   setShowNameViewModal(false);
                   setCaptureMode(false);
+                  setEditingViewId(null);
                 }}
                 style={{
                   padding: '12px 24px',
@@ -1993,14 +2032,24 @@ export default function ModelsConfigPage() {
               <button
                 onClick={() => {
                   if (newViewName.trim()) {
-                    const newView: CameraView = {
-                      id: `view-${Date.now()}`,
-                      name: newViewName.trim(),
-                      position: currentCameraPosition,
-                      target: currentCameraTarget,
-                      isDefault: false
-                    };
-                    setCameraViews([...cameraViews, newView]);
+                    if (editingViewId) {
+                      // Mettre à jour la vue existante
+                      setCameraViews(cameraViews.map(v => 
+                        v.id === editingViewId 
+                          ? { ...v, name: newViewName.trim(), position: currentCameraPosition, target: currentCameraTarget }
+                          : v
+                      ));
+                      setEditingViewId(null);
+                    } else {
+                      // Créer une nouvelle vue
+                      const newView: CameraView = {
+                        id: `view-${Date.now()}`,
+                        name: newViewName.trim(),
+                        position: currentCameraPosition,
+                        target: currentCameraTarget
+                      };
+                      setCameraViews([...cameraViews, newView]);
+                    }
                     setNewViewName('');
                     setShowNameViewModal(false);
                     setCaptureMode(false);
@@ -2020,7 +2069,7 @@ export default function ModelsConfigPage() {
                   transition: 'all 0.2s'
                 }}
               >
-                Enregistrer
+                {editingViewId ? 'Mettre à jour' : 'Enregistrer'}
               </button>
             </div>
           </div>
