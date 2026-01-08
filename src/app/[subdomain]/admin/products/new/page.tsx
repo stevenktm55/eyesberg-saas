@@ -11639,6 +11639,277 @@ export default function ProductBuilderPage() {
                     </div>
                   </div>
 
+                  {/* Vues de caméra personnalisées (depuis modèle 3D) */}
+                  <div style={{ 
+                    marginBottom: '20px',
+                    padding: '16px',
+                    backgroundColor: '#1a1a1a',
+                    borderRadius: '8px',
+                    border: '1px solid #2a2a2a'
+                  }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      color: '#8eff36',
+                      marginBottom: '12px',
+                      fontFamily: 'var(--stepn-font-body)',
+                      fontWeight: '600'
+                    }}>
+                      📷 Vues de caméra personnalisées
+                    </label>
+                    
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#a0a0a0',
+                      marginBottom: '16px',
+                      lineHeight: '1.5',
+                      fontFamily: 'var(--stepn-font-body)'
+                    }}>
+                      Sélectionnez les vues créées dans le modèle 3D et associez-les à des labels pour les afficher dans le builder client.
+                    </p>
+
+                    {(() => {
+                      const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                      const availableViews = selectedModel?.cameraViews || [];
+                      const moduleViewLabels = selectedModule.viewLabels || [];
+                      
+                      return (
+                        <>
+                          {availableViews.length === 0 ? (
+                            <div style={{
+                              padding: '12px',
+                              backgroundColor: '#0a0a0a',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              color: '#666',
+                              textAlign: 'center',
+                              fontFamily: 'var(--stepn-font-body)'
+                            }}>
+                              Aucune vue disponible. Créez des vues dans le modèle 3D.
+                            </div>
+                          ) : (
+                            <>
+                              {/* Liste des labels de vues */}
+                              <div style={{ marginBottom: '16px' }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '8px'
+                                }}>
+                                  <span style={{
+                                    fontSize: '12px',
+                                    color: '#ffffff',
+                                    fontWeight: '500',
+                                    fontFamily: 'var(--stepn-font-body)'
+                                  }}>
+                                    Labels configurés ({moduleViewLabels.length})
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      const newLabel = {
+                                        id: `label-${Date.now()}`,
+                                        label: 'Nouvelle vue',
+                                        cameraViewId: undefined
+                                      };
+                                      const updated = {
+                                        ...selectedModule,
+                                        viewLabels: [...moduleViewLabels, newLabel]
+                                      };
+                                      setSelectedModule(updated);
+                                      setCustomizationModules(customizationModules.map(m => 
+                                        m.id === selectedModule.id ? updated : m
+                                      ));
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#8eff36',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      color: '#000000',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      fontFamily: 'var(--stepn-font-body)'
+                                    }}
+                                  >
+                                    + Ajouter un label
+                                  </button>
+                                </div>
+
+                                {moduleViewLabels.length === 0 ? (
+                                  <div style={{
+                                    padding: '12px',
+                                    backgroundColor: '#0a0a0a',
+                                    borderRadius: '4px',
+                                    fontSize: '11px',
+                                    color: '#666',
+                                    textAlign: 'center',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontStyle: 'italic'
+                                  }}>
+                                    Aucun label configuré
+                                  </div>
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {moduleViewLabels.map((viewLabel, index) => (
+                                      <div key={viewLabel.id} style={{
+                                        padding: '12px',
+                                        backgroundColor: '#0a0a0a',
+                                        borderRadius: '4px',
+                                        border: '1px solid #2a2a2a'
+                                      }}>
+                                        <div style={{
+                                          display: 'flex',
+                                          gap: '8px',
+                                          marginBottom: '8px',
+                                          alignItems: 'center'
+                                        }}>
+                                          <input
+                                            type="text"
+                                            value={viewLabel.label}
+                                            onChange={(e) => {
+                                              const updated = {
+                                                ...selectedModule,
+                                                viewLabels: moduleViewLabels.map((vl, i) =>
+                                                  i === index ? { ...vl, label: e.target.value } : vl
+                                                )
+                                              };
+                                              setSelectedModule(updated);
+                                              setCustomizationModules(customizationModules.map(m => 
+                                                m.id === selectedModule.id ? updated : m
+                                              ));
+                                            }}
+                                            placeholder="Nom du label (ex: Torse, Dos...)"
+                                            style={{
+                                              flex: 1,
+                                              padding: '6px 10px',
+                                              backgroundColor: '#1a1a1a',
+                                              border: '1px solid #2a2a2a',
+                                              borderRadius: '4px',
+                                              color: '#ffffff',
+                                              fontSize: '12px',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              outline: 'none'
+                                            }}
+                                          />
+                                          <button
+                                            onClick={() => {
+                                              const updated = {
+                                                ...selectedModule,
+                                                viewLabels: moduleViewLabels.filter((_, i) => i !== index)
+                                              };
+                                              setSelectedModule(updated);
+                                              setCustomizationModules(customizationModules.map(m => 
+                                                m.id === selectedModule.id ? updated : m
+                                              ));
+                                            }}
+                                            style={{
+                                              padding: '6px 10px',
+                                              backgroundColor: 'transparent',
+                                              border: '1px solid #ef4444',
+                                              borderRadius: '4px',
+                                              color: '#ef4444',
+                                              fontSize: '11px',
+                                              cursor: 'pointer',
+                                              fontFamily: 'var(--stepn-font-body)'
+                                            }}
+                                            title="Supprimer"
+                                          >
+                                            🗑️
+                                          </button>
+                                        </div>
+                                        <select
+                                          value={viewLabel.cameraViewId || ''}
+                                          onChange={(e) => {
+                                            const updated = {
+                                              ...selectedModule,
+                                              viewLabels: moduleViewLabels.map((vl, i) =>
+                                                i === index ? { ...vl, cameraViewId: e.target.value || undefined } : vl
+                                              )
+                                            };
+                                            setSelectedModule(updated);
+                                            setCustomizationModules(customizationModules.map(m => 
+                                              m.id === selectedModule.id ? updated : m
+                                            ));
+                                          }}
+                                          style={{
+                                            width: '100%',
+                                            padding: '6px 10px',
+                                            backgroundColor: '#1a1a1a',
+                                            border: '1px solid #2a2a2a',
+                                            borderRadius: '4px',
+                                            color: '#ffffff',
+                                            fontSize: '11px',
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            cursor: 'pointer',
+                                            outline: 'none'
+                                          }}
+                                        >
+                                          <option value="">Sélectionner une vue</option>
+                                          {availableViews.map((view) => (
+                                            <option key={view.id} value={view.id}>
+                                              {view.name}
+                                            </option>
+                                          ))}
+                                        </select>
+                                        {viewLabel.cameraViewId && (
+                                          <div style={{
+                                            marginTop: '6px',
+                                            fontSize: '10px',
+                                            color: '#8eff36',
+                                            fontFamily: 'var(--stepn-font-body)'
+                                          }}>
+                                            ✓ Vue associée
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Liste des vues disponibles (pour info) */}
+                              <div style={{
+                                padding: '12px',
+                                backgroundColor: '#0a0a0a',
+                                borderRadius: '4px',
+                                border: '1px solid #2a2a2a'
+                              }}>
+                                <div style={{
+                                  fontSize: '11px',
+                                  color: '#a0a0a0',
+                                  marginBottom: '8px',
+                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontWeight: '500'
+                                }}>
+                                  Vues disponibles du modèle 3D:
+                                </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                  {availableViews.map((view) => (
+                                    <span
+                                      key={view.id}
+                                      style={{
+                                        padding: '4px 8px',
+                                        backgroundColor: '#1a1a1a',
+                                        borderRadius: '4px',
+                                        fontSize: '10px',
+                                        color: '#ffffff',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}
+                                    >
+                                      👁️ {view.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+
                   {/* Bibliothèques de logos */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{
