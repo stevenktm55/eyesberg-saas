@@ -1489,19 +1489,19 @@ function Viewer3D({
     const camera = controls.object;
     const target = controls.target;
     if (view === 'front') {
-      camera.position.set(0, 0, isMobile ? 18 : 10);
+      camera.position.set(0, 0, isMobile ? 8 : 5);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en front');
     } else if (view === 'back') {
-      camera.position.set(0, 0, isMobile ? -18 : -10);
+      camera.position.set(0, 0, isMobile ? -8 : -5);
       target.set(0, isMobile ? -1.5 : 0, 0);
       console.log('📍 Positionnée caméra en back');
     } else if (view === 'left') {
-      camera.position.set(-10, 0, 0);
+      camera.position.set(isMobile ? -8 : -5, 0, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en left');
     } else if (view === 'right') {
-      camera.position.set(10, 0, 0);
+      camera.position.set(isMobile ? 8 : 5, 0, 0);
       target.set(0, 0, 0);
       console.log('📍 Positionnée caméra en right');
     }
@@ -3985,16 +3985,16 @@ export default function ConfiguratorViewer({
     const camera = controls.object;
     const target = controls.target;
     if (view === 'front') {
-      camera.position.set(0, 0, isMobile ? 18 : 10);
+      camera.position.set(0, 0, isMobile ? 8 : 5);
       target.set(0, isMobile ? -1.5 : 0, 0);
     } else if (view === 'back') {
-      camera.position.set(0, 0, isMobile ? -18 : -10);
+      camera.position.set(0, 0, isMobile ? -8 : -5);
       target.set(0, isMobile ? -1.5 : 0, 0);
     } else if (view === 'left') {
-      camera.position.set(-10, 0, 0);
+      camera.position.set(isMobile ? -8 : -5, 0, 0);
       target.set(0, 0, 0);
     } else if (view === 'right') {
-      camera.position.set(10, 0, 0);
+      camera.position.set(isMobile ? 8 : 5, 0, 0);
       target.set(0, 0, 0);
     }
     controls.update();
@@ -4012,11 +4012,11 @@ export default function ConfiguratorViewer({
     return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
   }, [setCameraView]);
   
-  // Paramètres de caméra - IMPORTANT: Utiliser Y=0 pour être cohérent avec Canvas3DPreview
-  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 18] : [0, 0, 10];
+  // Paramètres de caméra - IMPORTANT: Utiliser les mêmes distances que Canvas3DPreview
+  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, 5];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
-  const minDistance = isMobile ? 7 : 2.5;
-  const maxDistance = isMobile ? 18 : 10;
+  const minDistance = 2;
+  const maxDistance = 10;
   
   // Fonctions pour les textes
   const onTextPlaced = useCallback((category: 'nom' | 'numero', position: [number, number, number], zoneCategory?: string, rotation?: number) => {
