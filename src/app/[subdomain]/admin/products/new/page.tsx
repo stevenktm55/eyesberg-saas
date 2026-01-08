@@ -131,7 +131,7 @@ type Design2D = {
 };
 
 // Composant pour contrôler la caméra via événements personnalisés
-function CameraController({ controlsRef }: { controlsRef?: React.RefObject<any> }) {
+function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number }) {
   const { camera } = useThree();
 
   useEffect(() => {
@@ -160,11 +160,11 @@ function CameraController({ controlsRef }: { controlsRef?: React.RefObject<any> 
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
         
-        // Restaurer les limites après un délai
+        // Restaurer les limites après un délai (utiliser les paramètres du composant)
         setTimeout(() => {
-          controls.minDistance = originalMinDistance;
-          controls.maxDistance = originalMaxDistance;
-          console.log('🔒 Limites de zoom restaurées:', { min: originalMinDistance, max: originalMaxDistance });
+          controls.minDistance = minDistance;
+          controls.maxDistance = maxDistance;
+          console.log('🔒 Limites de zoom restaurées:', { min: minDistance, max: maxDistance });
         }, 500); // Délai plus long pour être sûr
       }
     };
