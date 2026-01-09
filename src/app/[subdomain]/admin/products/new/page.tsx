@@ -11,8 +11,6 @@ import '@/styles/product-builder-theme.css';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
-type Tab = 'build' | 'pricing' | 'variants' | 'connect';
-
 type CustomizationModule = {
   id: string;
   tabName: string; // Nom de l'onglet dans la sidebar
