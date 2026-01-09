@@ -14037,10 +14037,10 @@ export default function ProductBuilderPage() {
                 };
                 
                 const filteredZones = availableZones.filter(zone => {
-                  // Comparer directement avec le label de la vue de la zone
-                  console.log('🔍 Zone filtrage:', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
-                  if (zone.view && zone.view !== activeViewLabel) return false;
-                  return true;
+                  // TEMPORAIRE : Désactiver le filtrage par vue pour voir toutes les zones
+                  console.log('🔍 Zone filtrage (SANS FILTRE):', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
+                  // if (zone.view && zone.view !== activeViewLabel) return false;
+                  return true; // Afficher toutes les zones temporairement
                 });
                 
                 console.log('🔍 Modal zones - filteredZones finales:', filteredZones);
