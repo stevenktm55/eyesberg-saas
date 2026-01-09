@@ -5040,6 +5040,7 @@ export default function ProductBuilderPage() {
                               setShowLogoLibrary(true);
                             }}
                             className="btn-black"
+                            className="btn-black"
                             style={{
                               width: '100%',
                               padding: '13px 20px',
@@ -5377,6 +5378,7 @@ export default function ProductBuilderPage() {
                                 }
                               }
                             }}
+                            className={isPlacingText ? "" : "btn-black"}
                             className={isPlacingText ? "" : "btn-black"}
                             style={{
                               width: '100%',
