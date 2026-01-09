@@ -94,8 +94,11 @@ body {
 /* Typographie STEPN */
 /* EXCLURE totalement le configurateur (product-builder) des styles globaux stepn-theme */
 /* Le configurateur a son propre thème dans configurator-theme.css */
-:not(.product-builder) h1,
-:not(.product-builder) h2 {
+/* Utiliser des sélecteurs spécifiques pour éviter toute application sur .product-builder */
+body:not(.product-builder):not(:has(.product-builder)) h1,
+body:not(.product-builder):not(:has(.product-builder)) h2,
+html:not(:has(.product-builder)) h1,
+html:not(:has(.product-builder)) h2 {
   font-family: var(--stepn-font-heading-ultrabold) !important;
   font-weight: 400 !important;
   letter-spacing: -2.32px !important;
@@ -110,8 +113,10 @@ body {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-:not(.product-builder) h3,
-:not(.product-builder) h4 {
+body:not(.product-builder):not(:has(.product-builder)) h3,
+body:not(.product-builder):not(:has(.product-builder)) h4,
+html:not(:has(.product-builder)) h3,
+html:not(:has(.product-builder)) h4 {
   font-family: var(--stepn-font-heading-regular);
   font-weight: 400;
   letter-spacing: -1px;
@@ -119,8 +124,10 @@ body {
   color: var(--stepn-text);
 }
 
-:not(.product-builder) h5,
-:not(.product-builder) h6 {
+body:not(.product-builder):not(:has(.product-builder)) h5,
+body:not(.product-builder):not(:has(.product-builder)) h6,
+html:not(:has(.product-builder)) h5,
+html:not(:has(.product-builder)) h6 {
   font-family: var(--stepn-font-heading-light);
   font-weight: 300;
   letter-spacing: -0.5px;
@@ -128,13 +135,20 @@ body {
   color: var(--stepn-text);
 }
 
-:not(.product-builder) p,
-:not(.product-builder) span,
-:not(.product-builder) label,
-:not(.product-builder) a,
-:not(.product-builder) input,
-:not(.product-builder) textarea,
-:not(.product-builder) select {
+body:not(.product-builder):not(:has(.product-builder)) p,
+body:not(.product-builder):not(:has(.product-builder)) span,
+body:not(.product-builder):not(:has(.product-builder)) label,
+body:not(.product-builder):not(:has(.product-builder)) a,
+body:not(.product-builder):not(:has(.product-builder)) input,
+body:not(.product-builder):not(:has(.product-builder)) textarea,
+body:not(.product-builder):not(:has(.product-builder)) select,
+html:not(:has(.product-builder)) p,
+html:not(:has(.product-builder)) span,
+html:not(:has(.product-builder)) label,
+html:not(:has(.product-builder)) a,
+html:not(:has(.product-builder)) input,
+html:not(:has(.product-builder)) textarea,
+html:not(:has(.product-builder)) select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
@@ -145,10 +159,27 @@ body {
 }
 
 /* Isolation totale : aucun style stepn-theme ne doit s'appliquer à .product-builder */
+/* Utiliser des règles spécifiques pour annuler tous les styles stepn-theme dans .product-builder */
 .product-builder,
-.product-builder * {
+.product-builder *,
+.product-builder h1,
+.product-builder h2,
+.product-builder h3,
+.product-builder h4,
+.product-builder h5,
+.product-builder h6,
+.product-builder p,
+.product-builder span,
+.product-builder label,
+.product-builder a,
+.product-builder button,
+.product-builder input,
+.product-builder textarea,
+.product-builder select {
   /* Les styles sont définis dans configurator-theme.css */
   /* On réinitialise complètement pour éviter tout conflit */
+  /* Cette section ne fait que garantir qu'aucun style stepn-theme ne s'applique */
+  /* Tous les styles sont définis dans configurator-theme.css */
 }
 
 /* Inputs */
