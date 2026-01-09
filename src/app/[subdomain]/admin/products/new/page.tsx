@@ -168,8 +168,13 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         
         // Mettre à jour la position et le target avec correction
         camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
-        controls.target.set(target.x, target.y, target.z);
+        
+        // Utiliser le target personnalisé s'il est fourni, sinon utiliser le target par défaut
+        const finalTarget = event.detail.target || target;
+        controls.target.set(finalTarget.x, finalTarget.y, finalTarget.z);
         controls.update();
+        
+        console.log('🎯 Target final utilisé:', finalTarget);
         
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
@@ -186,8 +191,25 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     // Listener pour setCameraView (utilisé par les zones)
     const handleSetCameraView = (event: any) => {
       console.log('🎬 CameraController - Événement setCameraView reçu:', event.detail);
-      // Rediriger vers handleGoToCameraView pour traitement unifié
-      handleGoToCameraView(event);
+      
+      // Si l'événement contient un target personnalisé (pour centrer sur logo)
+      if (event.detail && typeof event.detail === 'object' && event.detail.target) {
+        console.log('🎯 CameraController - Target personnalisé détecté:', event.detail.target);
+        
+        // Créer un événement goToCameraView avec le target personnalisé
+        const customEvent = {
+          detail: {
+            position: { x: 0, y: 0, z: 2.14 }, // Position de base, sera corrigée par le facteur
+            target: event.detail.target,
+            view: event.detail.view
+          }
+        };
+        
+        handleGoToCameraView(customEvent);
+      } else {
+        // Rediriger vers handleGoToCameraView pour traitement unifié
+        handleGoToCameraView(event);
+      }
     };
 
     window.addEventListener('goToCameraView', handleGoToCameraView);
@@ -7935,7 +7957,23 @@ export default function ProductBuilderPage() {
                                               if (cameraView) {
                                                 setTimeout(() => {
                                                   console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
-                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                                                  
+                                                  // Calculer la position 3D approximative du logo pour centrer la caméra
+                                                  const logoWorldPosition = {
+                                                    x: (zonePosition[0] - 0.5) * 2, // Centrer autour de 0, échelle approximative
+                                                    y: (zonePosition[1] - 0.5) * 2, // Centrer autour de 0, échelle approximative  
+                                                    z: zonePosition[2] || 0
+                                                  };
+                                                  
+                                                  console.log('🎯 Position logo mobile calculée:', logoWorldPosition);
+                                                  
+                                                  // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { 
+                                                    detail: {
+                                                      view: cameraView,
+                                                      target: logoWorldPosition // Centrer sur le logo
+                                                    }
+                                                  }));
                                                 }, 100);
                                               }
                                               
@@ -14330,11 +14368,31 @@ export default function ProductBuilderPage() {
                             }
                             
                             // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
+                            console.log('🔧 Desktop - viewportMode:', viewportMode, 'cameraView:', cameraView);
                             if (cameraView && viewportMode !== 'mobile') {
                               setTimeout(() => {
                                 console.log('🔧 Vue caméra zone desktop - cameraView:', cameraView);
-                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                                
+                                // Calculer la position 3D approximative du logo pour centrer la caméra
+                                // Convertir les coordonnées UV (0-1) en coordonnées 3D approximatives
+                                const logoWorldPosition = {
+                                  x: (zonePosition[0] - 0.5) * 2, // Centrer autour de 0, échelle approximative
+                                  y: (zonePosition[1] - 0.5) * 2, // Centrer autour de 0, échelle approximative  
+                                  z: zonePosition[2] || 0
+                                };
+                                
+                                console.log('🎯 Position logo calculée:', logoWorldPosition);
+                                
+                                // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
+                                window.dispatchEvent(new CustomEvent('setCameraView', { 
+                                  detail: {
+                                    view: cameraView,
+                                    target: logoWorldPosition // Centrer sur le logo
+                                  }
+                                }));
                               }, 100);
+                            } else {
+                              console.log('🔧 Desktop - Condition non remplie, pas de changement de vue');
                             }
                             
                             // Ne pas réinitialiser la caméra en mode mobile
