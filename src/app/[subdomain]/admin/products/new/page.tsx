@@ -3383,16 +3383,6 @@ export default function ProductBuilderPage() {
               )}
               
               {/* Questions/Modules Content (hidden when settings are open) */}
-              {(() => {
-                  show3DSettings,
-                  customizationModulesLength: customizationModules.length,
-                  questionsLength: questions.length,
-                  shouldShowEmptyMessage: customizationModules.length === 0 && questions.length === 0,
-                  shouldShowWarning: customizationModules.length === 0 && questions.length > 0,
-                  shouldShowModules: customizationModules.length > 0
-                });
-                return null;
-              })()}
               {!show3DSettings && (
                 customizationModules.length === 0 && questions.length === 0 ? (
                 <div style={{
