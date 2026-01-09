@@ -1,6 +1,7 @@
 /**
  * Thème spécifique pour le configurateur (product builder)
  * Styles propres et indépendants de stepn-theme.css
+ * IMPORTANT: Ce fichier doit être chargé APRÈS stepn-theme.css pour override les styles globaux
  */
 
 /* Variables CSS pour le configurateur */
@@ -19,6 +20,9 @@
   --configurator-shadow: rgba(0, 0, 0, 0.1);
   --configurator-shadow-lg: rgba(0, 0, 0, 0.15);
 }
+
+/* ANNULER complètement stepn-theme.css pour .product-builder avec spécificité maximale */
+/* Ces règles override toutes les règles globales de stepn-theme.css */
 
 /* Reset et styles de base pour le configurateur */
 .product-builder {
@@ -224,11 +228,64 @@
   color: var(--configurator-text-muted) !important;
 }
 
-/* Exclure complètement stepn-theme.css du configurateur */
+/* Override FORCE pour annuler stepn-theme.css avec spécificité maximale */
+.product-builder h1,
+.product-builder h2 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.product-builder h3,
+.product-builder h4,
+.product-builder h5,
+.product-builder h6 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.product-builder p,
+.product-builder span,
+.product-builder label,
+.product-builder div,
+.product-builder a {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.product-builder button {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: 500 !important;
+}
+
+.product-builder input,
+.product-builder textarea,
+.product-builder select {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Réinitialiser toutes les variables stepn dans .product-builder */
+.product-builder,
 .product-builder * {
-  /* Réinitialiser toutes les propriétés qui pourraient venir de stepn-theme.css */
   --stepn-accent: initial !important;
   --stepn-text: initial !important;
   --stepn-font-body: initial !important;
   --stepn-font-heading-ultrabold: initial !important;
+  --stepn-font-heading-regular: initial !important;
+  --stepn-font-heading-light: initial !important;
 }
