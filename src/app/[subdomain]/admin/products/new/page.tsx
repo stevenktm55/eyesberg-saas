@@ -4652,14 +4652,14 @@ export default function ProductBuilderPage() {
                                     key={view}
                                     onClick={() => {
                                       setActiveLogoView(view);
-                                      // Mapper les vues aux catégories pour la caméra
-                                      const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                        'front': 'torse',
-                                        'back': 'dos',
-                                        'left': 'bras-gauche', // Voir le côté gauche
-                                        'right': 'bras-droit' // Voir le côté droit
-                                      };
-                                      setTargetView(viewToCategory[view]);
+                                      // Mapper les vues aux catégories pour la caméra - DÉSACTIVÉ
+                                      // const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                      //   'front': 'torse',
+                                      //   'back': 'dos',
+                                      //   'left': 'bras-gauche', // Voir le côté gauche
+                                      //   'right': 'bras-droit' // Voir le côté droit
+                                      // };
+                                      // setTargetView(viewToCategory[view]);
                                     }}
                                     style={{
                                       height: '42px',
@@ -5086,7 +5086,7 @@ export default function ProductBuilderPage() {
                                           'right': 'bras-gauche'
                                         };
                                         const category = viewToCategory[viewConfig.id] || 'torse';
-                                        setTargetView(category);
+                                        // setTargetView(category); // DÉSACTIVÉ - Conflit avec CameraController
                                       }
                                     } else {
                                       // Utiliser la vue legacy (front, back, left, right)
@@ -5097,7 +5097,7 @@ export default function ProductBuilderPage() {
                                         'right': 'bras-gauche'
                                       };
                                       const category = viewToCategory[viewConfig.id] || 'torse';
-                                      setTargetView(category);
+                                      // setTargetView(category); // DÉSACTIVÉ - Conflit avec CameraController
                                     }
                                   }}
                                   style={{
