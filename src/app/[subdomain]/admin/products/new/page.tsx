@@ -137,12 +137,9 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
 
   useEffect(() => {
     const handleGoToCameraView = (event: any) => {
-      console.log('🎬 CameraController - Événement goToCameraView reçu:', event.detail);
-      
       // Si l'événement contient juste une string (vue legacy), convertir en coordonnées
       if (typeof event.detail === 'string') {
         const view = event.detail;
-        console.log('🎬 CameraController - Vue legacy détectée:', view);
         
         // Positions hardcodées pour les vues de base
         const defaultPositions: Record<string, {position: {x: number, y: number, z: number}, target: {x: number, y: number, z: number}}> = {
@@ -154,8 +151,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
         
         if (defaultPositions[view]) {
           const coords = defaultPositions[view];
-          console.log('🎬 CameraController - Conversion vue legacy:', view, '→', coords);
-          console.log('⚠️ ATTENTION: Vue legacy utilisée au lieu de vue sauvegardée!');
           
           // Créer un nouvel événement avec les coordonnées
           const convertedEvent = {
@@ -169,16 +164,12 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
           const { position, target } = convertedEvent.detail;
           processPositionAndTarget(position, target);
           return;
-        } else {
-          console.log('❌ CameraController - Vue legacy inconnue:', view);
-          console.log('🔍 Vues disponibles:', Object.keys(defaultPositions));
         }
       }
       
       // Traitement normal pour les événements avec position/target
       const { position, target } = event.detail;
       if (!position || !target) {
-        console.log('🎬 CameraController - Événement invalide, position ou target manquant');
         return;
       }
       
@@ -198,7 +189,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
         const originalMinDistance = controls.minDistance;
         const originalMaxDistance = controls.maxDistance;
         
-        console.log('🔓 Limites actuelles:', { min: originalMinDistance, max: originalMaxDistance });
         
         // Désactiver temporairement les limites pour permettre n'importe quelle distance
         controls.minDistance = 0;
@@ -214,8 +204,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
           z: position.z * scaleFactor
         };
         
-        console.log('🔧 [ADMIN] Position originale:', position);
-        console.log('🔧 [ADMIN] Position corrigée (x' + scaleFactor + '):', correctedPosition);
         
         // Mettre à jour la position et le target avec correction
         camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
@@ -223,21 +211,17 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
         controls.target.set(target.x, target.y, target.z);
         controls.update();
         
-        console.log('📸 Position caméra mise à jour:', camera.position);
-        console.log('🎯 Target contrôles mis à jour:', controls.target);
         
         // Restaurer les limites après un délai (utiliser les paramètres du composant)
         setTimeout(() => {
           controls.minDistance = minDistance;
           controls.maxDistance = maxDistance;
-          console.log('🔒 Limites de zoom restaurées:', { min: minDistance, max: maxDistance });
         }, 500); // Délai plus long pour être sûr
       }
     };
 
     // Listener pour setCameraView (utilisé par les zones)
     const handleSetCameraView = (event: any) => {
-      console.log('🎬 CameraController - Événement setCameraView reçu:', event.detail);
       // Rediriger vers handleGoToCameraView pour traitement unifié
       handleGoToCameraView(event);
     };
@@ -350,7 +334,6 @@ function ConnectTabContent({
     setError(null);
 
     try {
-      console.log('🔍 Fetching products for shop:', domainToUse);
       const response = await fetch(`/api/shopify/products?shop=${encodeURIComponent(domainToUse)}`);
       
       let data;
@@ -944,23 +927,18 @@ export default function ProductBuilderPage() {
       if (selectedLogoId) {
         // Logo sélectionné : ouvrir la bibliothèque si nécessaire
         const logo = placedLogos.find(l => l.id === selectedLogoId);
-        console.log('🎯 useEffect selectedLogoId - Logo trouvé:', logo ? 'OUI' : 'NON', 'logoToReplace:', logoToReplace, 'showLogoLibrary:', showLogoLibrary);
         if (logo) {
           // Si on n'est pas déjà en mode remplacement, définir logoToReplace (peu importe si bibliothèque déjà ouverte)
           if (!logoToReplace) {
-            console.log('🎯 useEffect - Définition logoToReplace:', selectedLogoId);
             // Ouvrir la bibliothèque pour remplacer le logo
             setLogoToReplace(selectedLogoId);
             setShowLogoLibrary(true);
           } else {
-            console.log('🎯 useEffect - logoToReplace déjà défini');
           }
         }
       } else {
-        console.log('🎯 useEffect - selectedLogoId null, fermeture si nécessaire');
         // Logo désélectionné : fermer la bibliothèque si elle était ouverte pour un remplacement
         if (logoToReplace && showLogoLibrary) {
-          console.log('🎯 useEffect - Fermeture et réinitialisation logoToReplace');
           setShowLogoLibrary(false);
           setLogoToReplace(null);
           setSelectedLogoForVariants(null);
@@ -1153,11 +1131,9 @@ export default function ProductBuilderPage() {
       try {
         if (id) {
           // Charger un produit existant
-          console.log('📸 Chargement du produit avec ID:', id);
           const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}&for=admin`);
           if (res.ok) {
             const product = await res.json();
-            console.log('📸 Produit chargé:', {
               id: product.id,
               name: product.name,
               hasBuilderData: !!product.builder_data,
@@ -1206,44 +1182,34 @@ export default function ProductBuilderPage() {
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
             // Charger les réglages 3D
             const settings = product.builder_data?.settings || {};
-            console.log('📸 Chargement des réglages 3D depuis le produit:', settings);
             if (settings.zoomSpeed !== undefined) {
-              console.log('📸 zoomSpeed:', settings.zoomSpeed);
               setZoomSpeed(settings.zoomSpeed);
             }
             if (settings.rotateSpeed !== undefined) {
-              console.log('📸 rotateSpeed:', settings.rotateSpeed);
               setRotateSpeed(settings.rotateSpeed);
             }
             if (settings.minZoom !== undefined) {
-              console.log('📸 minZoom:', settings.minZoom);
               setMinZoom(settings.minZoom);
             }
             if (settings.maxZoom !== undefined) {
-              console.log('📸 maxZoom:', settings.maxZoom);
               setMaxZoom(settings.maxZoom);
             }
             if (settings.initialZoom !== undefined) {
-              console.log('📸 initialZoom:', settings.initialZoom);
               setInitialZoom(settings.initialZoom);
             }
             if (settings.initialRotation !== undefined) {
-              console.log('📸 initialRotation:', settings.initialRotation);
               setInitialRotation(settings.initialRotation);
             }
             // Charger les distances par vue
             if (settings.viewDistance) {
-              console.log('📸 viewDistance chargée depuis le produit:', settings.viewDistance);
               setViewDistance(prev => {
                 const newViewDistance = {
                   ...prev,
                   ...settings.viewDistance
                 };
-                console.log('📸 Nouvelle viewDistance après merge:', newViewDistance);
                 return newViewDistance;
               });
             } else {
-              console.log('⚠️ Aucune viewDistance trouvée dans les settings, utilisation des valeurs par défaut');
             }
           }
         } else if (shop) {
@@ -1781,7 +1747,6 @@ export default function ProductBuilderPage() {
     console.log('🗑️ confirmDeleteText called with id:', id);
     console.log('📋 texts:', texts);
     const text = texts.find(t => t.id === id);
-    console.log('🔍 Found text:', text);
     if (text) {
       console.log('✅ Setting delete modal for text:', text.content);
       setItemToDelete({
@@ -1801,7 +1766,6 @@ export default function ProductBuilderPage() {
     console.log('📋 placedLogos:', placedLogos);
     console.log('📚 logoLibraries:', logoLibraries);
     const logo = placedLogos.find(l => l.id === id);
-    console.log('🔍 Found logo:', logo);
     if (logo) {
       // Trouver le nom du logo depuis les bibliothèques
       let logoName = 'Logo';
@@ -3441,7 +3405,6 @@ export default function ProductBuilderPage() {
               
               {/* Questions/Modules Content (hidden when settings are open) */}
               {(() => {
-                console.log('🔍 État d\'affichage des modules:', {
                   show3DSettings,
                   customizationModulesLength: customizationModules.length,
                   questionsLength: questions.length,
@@ -4395,7 +4358,6 @@ export default function ProductBuilderPage() {
                           };
                           const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
                           
-                          console.log('🔍 Variantes du logo:', {
                             logoId: selectedLogoForVariants.id,
                             logoName: selectedLogoForVariants.name,
                             baseFile: baseVariant.file_url,
@@ -4559,7 +4521,6 @@ export default function ProductBuilderPage() {
                                             ? selectedLogoForVariants.file_url 
                                             : (variant.file_url || selectedLogoForVariants.file_url);
                                           
-                                          console.log('🎯 Sélection variante:', {
                                             variantId: variant.id,
                                             variantName: variant.name,
                                             fileToUse,
@@ -4691,7 +4652,6 @@ export default function ProductBuilderPage() {
                             <div style={{ marginBottom: '12px' }}>
                               <button
                                 onClick={() => {
-                                  console.log('🎯 Desktop - Clic sur Retour');
                                   setShowLogoLibrary(false);
                                   setSelectedLogoForVariants(null);
                                   setLogoToReplace(null);
@@ -4721,7 +4681,6 @@ export default function ProductBuilderPage() {
                                 {selectedLogoId && placedLogos.find(l => l.id === selectedLogoId) && (
                                   <button
                                     onClick={() => {
-                                      console.log('🎯 Desktop - Clic sur Supprimer logo:', selectedLogoId);
                                       const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
                                       if (logoToDelete) {
                                         // Trouver le nom du logo dans les bibliothèques
@@ -4777,7 +4736,6 @@ export default function ProductBuilderPage() {
                                 <button
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
-                                    console.log('🎯 Clic sur "Importer un logo" desktop');
                                   }}
                                   style={{
                                     flex: 1,
@@ -4824,19 +4782,15 @@ export default function ProductBuilderPage() {
                                     <div
                                       key={logo.id}
                                       onClick={async () => {
-                                        console.log('🎯 Desktop - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
                                         
                                         // Si on est en mode remplacement, vérifier d'abord
                                         if (logoToReplace) {
-                                          console.log('🎯 Desktop - Mode remplacement détecté, hasVariants:', hasVariants);
                                           // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
                                         if (hasVariants) {
-                                            console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes, logo:', logo);
                                           setSelectedLogoForVariants(logo);
                                           return;
                                         }
                                         
-                                          console.log('🎯 Desktop - Logo sans variante, remplacement direct');
                                           // Sinon, remplacer directement
                                           const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
                                           if (logoToReplaceData) {
@@ -4928,10 +4882,8 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                         
-                                        console.log('🎯 Desktop - Pas de remplacement, comportement normal');
                                         // Si le logo a des variantes, ouvrir la vue des variantes
                                         if (hasVariants) {
-                                          console.log('🎯 Desktop - Logo a des variantes, ouverture vue variantes');
                                           setSelectedLogoForVariants(logo);
                                           return;
                                         }
@@ -5062,7 +5014,6 @@ export default function ProductBuilderPage() {
                                 <button
                                   key={viewConfig.id}
                                   onClick={() => {
-                                    console.log('🎯 [Desktop] Clic sur label de vue:', {
                                       viewConfig,
                                       modelCameraViews,
                                       customViews
@@ -5072,7 +5023,6 @@ export default function ProductBuilderPage() {
                                     // Si une vue de caméra personnalisée est configurée, l'utiliser
                                     if (viewConfig.cameraViewId) {
                                       const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
-                                      console.log('📷 [Desktop] Vue de caméra trouvée:', cameraView);
                                       if (cameraView) {
                                         // Dispatcher l'événement avec les coordonnées de la vue
                                         window.dispatchEvent(new CustomEvent('goToCameraView', { 
@@ -5130,7 +5080,6 @@ export default function ProductBuilderPage() {
                           {!logoToReplace && (
                           <button
                             onClick={() => {
-                                console.log('🎯 Clic sur "Ajouter un logo"');
                               setShowLogoLibrary(true);
                             }}
                             style={{
@@ -5192,7 +5141,6 @@ export default function ProductBuilderPage() {
                                   <div
                                     key={logo.id}
                                     onClick={() => {
-                                      console.log('🎯 Desktop - Clic sur logo placé:', logo.id);
                                       setSelectedLogoId(logo.id);
                                     }}
                                     style={{
@@ -7594,19 +7542,15 @@ export default function ProductBuilderPage() {
                                           <div
                                             key={logo.id}
                                             onClick={async () => {
-                                              console.log('🎯 Modal - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
                                               
                                               // Si on est en mode remplacement
                                               if (logoToReplace) {
-                                                console.log('🎯 Modal - Mode remplacement détecté, hasVariants:', hasVariants);
                                                 // Si le logo a des variantes, ouvrir la vue des variantes
                                                 if (hasVariants) {
-                                                  console.log('🎯 Modal - Logo a des variantes, ouverture vue variantes, logo:', logo);
                                                   setSelectedLogoForVariants(logo);
                                                   return;
                                                 }
                                                 
-                                                console.log('🎯 Modal - Logo sans variante, remplacement direct');
                                                 // Sinon, remplacer directement le logo
                                                 const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                 if (logoToUpdate) {
@@ -7624,7 +7568,6 @@ export default function ProductBuilderPage() {
                                                 return;
                                               }
                                               
-                                              console.log('🎯 Modal - Pas de remplacement, comportement normal');
                                               // Comportement normal : ouvrir les variantes
                                               setSelectedLogoForVariants(logo);
                                             }}
@@ -7986,9 +7929,7 @@ export default function ProductBuilderPage() {
                                               // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
                                               if (cameraView) {
                                                 setTimeout(() => {
-                                                  console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
                                                   
-                                                  console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
                                                   window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                                                 }, 100);
                                               }
@@ -8653,7 +8594,6 @@ export default function ProductBuilderPage() {
                                           <button 
                                             key={viewConfig.id} 
                                             onClick={() => {
-                                              console.log('🎯 [Mobile] Clic sur label de vue:', {
                                                 viewConfig,
                                                 modelCameraViews,
                                                 customViews
@@ -8663,7 +8603,6 @@ export default function ProductBuilderPage() {
                                               // Si une vue de caméra personnalisée est configurée, l'utiliser
                                               if (viewConfig.cameraViewId) {
                                                 const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
-                                                console.log('📷 [Mobile] Vue de caméra trouvée:', cameraView);
                                                 if (cameraView) {
                                                   // Dispatcher l'événement avec les coordonnées de la vue
                                                   window.dispatchEvent(new CustomEvent('goToCameraView', { 
@@ -8699,7 +8638,6 @@ export default function ProductBuilderPage() {
                                             {selectedLogoId && placedLogos.find(l => l.id === selectedLogoId) && (
                                               <button
                                                 onClick={() => {
-                                                  console.log('🎯 Mobile - Clic sur Supprimer logo:', selectedLogoId);
                                                   const logoToDelete = placedLogos.find(l => l.id === selectedLogoId);
                                                   if (logoToDelete) {
                                                     // Trouver le nom du logo dans les bibliothèques
@@ -8850,11 +8788,9 @@ export default function ProductBuilderPage() {
                                                         <div
                                                           key={variant.id || `base-${index}`}
                                                           onClick={async () => {
-                                                            console.log('🎯 Clic sur variante, logoToReplace:', logoToReplace);
                                                             
                                                             // Si on est en mode remplacement, remplacer directement le logo
                                                             if (logoToReplace) {
-                                                              console.log('🎯 Mode remplacement variante détecté, remplacement direct');
                                                               const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                               if (logoToUpdate) {
                                                                 // Calculer les dimensions du nouveau logo
@@ -8940,7 +8876,6 @@ export default function ProductBuilderPage() {
                                                               return;
                                                             }
                                                             
-                                                            console.log('🎯 Pas de remplacement variante, comportement normal');
                                                             // Sinon, comportement normal
                                                             // Si mode zones, ouvrir le modal de sélection de zone
                                                             if (activeModule.logoPlacementMode === 'zones') {
@@ -9071,20 +9006,16 @@ export default function ProductBuilderPage() {
                                                       <div
                                                         key={logo.id}
                                                         onClick={async () => {
-                                                          console.log('🎯 Mobile - Clic sur logo:', logo.id, 'logoToReplace:', logoToReplace, 'hasVariants:', hasVariants, 'variants:', logo.variants);
                                                           
                                                           // Si on est en mode remplacement, vérifier d'abord les variantes
                                                           if (logoToReplace) {
-                                                            console.log('🎯 Mobile - Mode remplacement détecté, hasVariants:', hasVariants);
                                                             
                                                             // Si le logo a des variantes, ouvrir la vue des variantes pour choisir
                                                             if (hasVariants) {
-                                                              console.log('🎯 Mobile - Logo a des variantes, ouverture vue variantes, logo:', logo);
                                                               setSelectedLogoForVariants(logo);
                                                               return;
                                                             }
                                                             
-                                                          console.log('🎯 Mobile - Logo sans variante, remplacement direct');
                                                           // Sinon, remplacer directement le logo
                                                           const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
                                                           if (logoToUpdate) {
@@ -9173,7 +9104,6 @@ export default function ProductBuilderPage() {
                                                             return;
                                                           }
                                                           
-                                                          console.log('🎯 Mobile - Pas de remplacement, comportement normal');
                                                           
                                                           // Vérifier si le logo a des variantes
                                                           if (!hasVariants && activeModule.logoPlacementMode === 'zones') {
@@ -9290,7 +9220,6 @@ export default function ProductBuilderPage() {
                                             <div 
                                               key={logo.id} 
                                               onClick={() => {
-                                                console.log('🎯 Mobile - Clic sur logo placé:', logo.id);
                                                 setSelectedLogoId(logo.id);
                                               }} 
                                               style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}
@@ -10830,7 +10759,6 @@ export default function ProductBuilderPage() {
                                           
                                           // Réinitialiser les états des logos si on change d'onglet
                                           if (module.contentType === 'logos') {
-                                            console.log('🎯 Mobile - Changement onglet logos, réinitialisation états');
                                             setLogoSearchQuery('');
                                             setSelectedLogoForVariants(null);
                                             setShowLogoLibrary(false);
@@ -10840,7 +10768,6 @@ export default function ProductBuilderPage() {
                                           
                                           // Si on ferme le panneau (clic sur l'onglet actif), désélectionner le logo
                                           if (isActive) {
-                                            console.log('🎯 Mobile - Fermeture panneau, désélection logo');
                                             setSelectedLogoId(null);
                                             setLogoToReplace(null);
                                           }
@@ -13555,7 +13482,6 @@ export default function ProductBuilderPage() {
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
                 // Debug: log des zones pour vérifier les thumbnails
-                console.log('🔍 Available zones:', availableZones.map(z => ({ 
                   id: z.id, 
                   name: z.name, 
                   thumbnailUrl: z.thumbnailUrl,
@@ -13983,11 +13909,8 @@ export default function ProductBuilderPage() {
 
       {/* Modal de sélection de zones pour les logos */}
       {showLogoZoneModal && selectedLogoForZone && (() => {
-        console.log('🔍 Modal zones - Rendu du modal, showLogoZoneModal:', showLogoZoneModal, 'selectedLogoForZone:', selectedLogoForZone);
         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
-        console.log('🔍 Modal zones - activeModule trouvé:', activeModule);
         if (!activeModule || activeModule.contentType !== 'logos') {
-          console.log('🔍 Modal zones - Pas de module actif ou pas de type logos');
           return null;
         }
         
@@ -14069,27 +13992,19 @@ export default function ProductBuilderPage() {
 
               {(() => {
                 // Debug: Vérifier la configuration du module
-                console.log('🔍 Modal zones - activeModule:', activeModule);
-                console.log('🔍 Modal zones - logoZoneGroupIds:', activeModule.logoZoneGroupIds);
-                console.log('🔍 Modal zones - zoneGroups disponibles:', zoneGroups);
-                console.log('🔍 Modal zones - activeLogoView:', activeLogoView);
                 
                 // Utiliser les vraies customViews du module
                 const customViews = activeModule.viewLabels || [];
-                console.log('🔍 Modal zones - customViews du module:', customViews);
                 
                 // Trouver la vue active
                 const activeViewConfig = customViews.find(v => v.id === activeLogoView);
                 const activeViewLabel = activeViewConfig?.label || activeLogoView;
-                console.log('🔍 Modal zones - activeViewConfig trouvée:', activeViewConfig);
-                console.log('🔍 Modal zones - activeViewLabel calculé:', activeViewLabel);
                 
                 // Récupérer les zones des groupes sélectionnés
                 const availableZones = zoneGroups
                   .filter(group => activeModule.logoZoneGroupIds?.includes(group.id))
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
-                console.log('🔍 Modal zones - availableZones après filtrage groupes:', availableZones);
               
                 // Filtrer par vue active
                 const viewLabels: Record<string, string> = {
@@ -14101,12 +14016,10 @@ export default function ProductBuilderPage() {
                 
                 const filteredZones = availableZones.filter(zone => {
                   // Comparer avec le label de la vue active
-                  console.log('🔍 Zone filtrage:', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
                   if (zone.view && zone.view !== activeViewLabel) return false;
                   return true;
                 });
                 
-                console.log('🔍 Modal zones - filteredZones finales:', filteredZones);
               
                 if (filteredZones.length === 0) {
                   return (
@@ -14384,14 +14297,11 @@ export default function ProductBuilderPage() {
                             }
                             
                             // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
-                            console.log('🔧 Desktop - viewportMode:', viewportMode, 'cameraView:', cameraView);
                             if (cameraView && viewportMode !== 'mobile') {
                               setTimeout(() => {
-                                console.log('🔧 Vue caméra zone desktop - cameraView:', cameraView);
                                 window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                               }, 100);
                             } else {
-                              console.log('🔧 Desktop - Condition non remplie, pas de changement de vue');
                             }
                             
                             // Ne pas réinitialiser la caméra - notre setCameraView s'en occupe déjà
