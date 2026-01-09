@@ -14008,17 +14008,14 @@ export default function ProductBuilderPage() {
                 console.log('🔍 Modal zones - zoneGroups disponibles:', zoneGroups);
                 console.log('🔍 Modal zones - activeLogoView:', activeLogoView);
                 
-                // Chercher la vue active dans customViews pour obtenir son label
-                const customViews = [
-                  { id: 'front', label: 'Face', cameraViewId: null },
-                  { id: 'back', label: 'Dos', cameraViewId: null },
-                  { id: 'left', label: 'Gauche', cameraViewId: null },
-                  { id: 'right', label: 'Droite', cameraViewId: null }
-                ];
+                // Utiliser les vraies customViews du module
+                const customViews = activeModule.viewLabels || [];
+                console.log('🔍 Modal zones - customViews du module:', customViews);
                 
                 // Trouver la vue active
                 const activeViewConfig = customViews.find(v => v.id === activeLogoView);
                 const activeViewLabel = activeViewConfig?.label || activeLogoView;
+                console.log('🔍 Modal zones - activeViewConfig trouvée:', activeViewConfig);
                 console.log('🔍 Modal zones - activeViewLabel calculé:', activeViewLabel);
                 
                 // Récupérer les zones des groupes sélectionnés
@@ -14037,10 +14034,10 @@ export default function ProductBuilderPage() {
                 };
                 
                 const filteredZones = availableZones.filter(zone => {
-                  // TEMPORAIRE : Désactiver le filtrage par vue pour voir toutes les zones
-                  console.log('🔍 Zone filtrage (SANS FILTRE):', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
-                  // if (zone.view && zone.view !== activeViewLabel) return false;
-                  return true; // Afficher toutes les zones temporairement
+                  // Comparer avec le label de la vue active
+                  console.log('🔍 Zone filtrage:', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
+                  if (zone.view && zone.view !== activeViewLabel) return false;
+                  return true;
                 });
                 
                 console.log('🔍 Modal zones - filteredZones finales:', filteredZones);
