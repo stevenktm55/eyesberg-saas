@@ -14401,6 +14401,7 @@ export default function ProductBuilderPage() {
                             setShowLogoLibrary(false);
                           }
                         }}
+                        className={selectedLogoZoneId ? "btn-black" : ""}
                         disabled={!selectedLogoZoneId}
                         style={{
                           padding: '12px 24px',

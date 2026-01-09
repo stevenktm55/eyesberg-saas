@@ -209,18 +209,17 @@ body:not(.product-builder) select,
   color: inherit !important;
 }
 
-/* Forcer le texte blanc sur les boutons avec fond noir dans .product-builder */
-/* Utiliser une approche plus directe avec des règles très spécifiques */
+/* Reset des styles globaux pour les boutons dans .product-builder - NE PAS forcer background-color et color */
+/* Les styles inline doivent prévaloir */
 .product-builder button {
-  /* Reset des styles globaux */
-  background-color: inherit !important;
-  color: inherit !important;
+  /* Reset uniquement les propriétés qui ne concernent pas les couleurs */
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  /* NE PAS mettre background-color: inherit !important ni color: inherit !important */
+  /* car cela override les styles inline */
 }
-
-/* Si un bouton a backgroundColor: #000000 dans son style inline, le texte doit être blanc */
-/* On ne peut pas vraiment cibler via CSS les styles inline, donc on force via une classe ou on laisse les styles inline faire le travail */
-/* Ajoutons une règle qui force le texte blanc si backgroundColor est noir (mais cela ne fonctionnera pas directement) */
-/* Solution: Utiliser des classes CSS spécifiques */
 
 /* Inputs dans .product-builder - FORCER fond blanc et texte gris avec spécificité maximale */
 .product-builder input[type="text"],
