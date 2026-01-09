@@ -259,50 +259,75 @@ button[style*="#8eff36"] > span {
   color: #000000 !important;
 }
 
-/* Override pour les modaux - forcer les couleurs correctes */
+/* Override pour les modaux - forcer les couleurs correctes avec spécificité maximale */
 .modal-override h1,
 .modal-override h2,
 .modal-override h3,
 .modal-override h4,
 .modal-override h5,
-.modal-override h6 {
+.modal-override h6,
+h1.modal-override,
+h2.modal-override,
+h3.modal-override,
+h4.modal-override,
+h5.modal-override,
+h6.modal-override {
   color: #111827 !important;
   text-transform: none !important;
   font-family: inherit !important;
 }
 
-.modal-override p {
+.modal-override p,
+p.modal-override {
   color: #4b5563 !important;
 }
 
-.modal-override p.text-gray-600 {
+.modal-override p.text-gray-600,
+p.modal-override.text-gray-600 {
   color: #4b5563 !important;
 }
 
-.modal-override p.text-gray-500 {
+.modal-override p.text-gray-500,
+p.modal-override.text-gray-500 {
   color: #6b7280 !important;
 }
 
 .modal-override span.font-medium,
-.modal-override span.text-gray-900 {
+.modal-override span.text-gray-900,
+span.modal-override.font-medium,
+span.modal-override.text-gray-900 {
   color: #111827 !important;
 }
 
-.modal-override label {
+.modal-override label,
+label.modal-override {
   color: #111827 !important;
 }
 
-.modal-override button {
+.modal-override button,
+button.modal-override {
   text-transform: none !important;
 }
 
-.modal-override button.bg-white {
+.modal-override button.bg-white,
+button.modal-override.bg-white,
+.modal-override button:has(.bg-white) {
   background-color: #ffffff !important;
   color: #111827 !important;
 }
 
+.modal-override button:disabled,
+button.modal-override:disabled,
+.modal-override button.disabled,
+button.modal-override.disabled {
+  background-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
 .modal-override button:disabled.bg-gray-300,
-.modal-override button.disabled.bg-gray-300 {
+button.modal-override:disabled.bg-gray-300,
+.modal-override button.disabled.bg-gray-300,
+button.modal-override.disabled.bg-gray-300 {
   background-color: #d1d5db !important;
   color: #111827 !important;
 }
