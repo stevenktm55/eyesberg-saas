@@ -134,13 +134,19 @@ useEffect(() => {
       existingOverride.remove();
     }
     
+    // Insérer le style en dernier dans le head pour qu'il soit prioritaire
+    // S'assurer qu'il est après tous les autres styles (y compris stepn-theme.css)
     document.head.appendChild(style);
+    
+    // Forcer la mise à jour des styles en ajoutant une petite classe
+    document.body.classList.add('product-builder-loaded');
     
     return () => {
       const styleElement = document.getElementById('product-builder-override');
       if (styleElement) {
         styleElement.remove();
       }
+      document.body.classList.remove('product-builder-loaded');
     };
   }
 }, []);
