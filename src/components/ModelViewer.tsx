@@ -4009,6 +4009,9 @@ const loadFontToCache = async (font: any): Promise<string | null> => {
 };
 
 export function ModelViewer({ url, color, designTexture, modelId, textureMaps, materialMaps, colors, fonts, texts, updateTextPosition, updateTextRotation, updateTextSize, toggleTextLock, removeText, onRequestTextDelete, selectedTextId, selectText, isDraggingText, setIsDraggingText, isRotatingText, setIsRotatingText, isResizingText, setIsResizingText, onSvgProcessed, onTextAdded, placedLogos, updateLogoPosition, updateLogoRotation, updateLogoScale, toggleLogoLock, removeLogo, onRequestLogoDelete, selectedLogoId, selectLogo, isDraggingLogo, setIsDraggingLogo, isRotatingLogo, setIsRotatingLogo, isResizingLogo, setIsResizingLogo, onClickCoordinates, selectedDesign, isPlacingText, textZones, onTextPlaced, onCanvasReady, textSizeLimits, ...props }: Props) {
+  
+  // Debug: Vérifier que les zones arrivent bien
+  console.log('🔍 ModelViewer - textZones reçues:', textZones?.length || 0, textZones);
   // Wrapper for updateLogoPosition
   const handleUpdateLogoPosition = useCallback((id: string, position: [number, number, number]) => {
     if (updateLogoPosition) {

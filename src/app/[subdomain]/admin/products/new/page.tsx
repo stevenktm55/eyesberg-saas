@@ -826,8 +826,45 @@ export default function ProductBuilderPage() {
   const [isRotatingText, setIsRotatingText] = useState(false);
   const [isResizingText, setIsResizingText] = useState(false);
   const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
-  const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number]; thumbnailUrl?: string; rotation?: number; width?: number; height?: number }> }>>([]);
+  const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number]; thumbnailUrl?: string; rotation?: number; width?: number; height?: number }> }>>([
+    {
+      id: 'test-group',
+      name: 'Zones Test',
+      zones: [
+        {
+          id: 'test-zone-face',
+          name: 'Zone Face Test',
+          position: [0.5, 0.5, 0],
+          view: 'Face',
+          width: 0.2,
+          height: 0.2
+        },
+        {
+          id: 'test-zone-dos',
+          name: 'Zone Dos Test', 
+          position: [0.5, 0.3, 0],
+          view: 'Dos',
+          width: 0.2,
+          height: 0.2
+        }
+      ]
+    }
+  ]);
   const [textZones, setTextZones] = useState<any[]>([]);
+
+  // Configurer automatiquement les modules logos avec les zones de test
+  useEffect(() => {
+    setCustomizationModules(prev => prev.map(module => {
+      if (module.contentType === 'logos' && !module.logoZoneGroupIds) {
+        return {
+          ...module,
+          logoZoneGroupIds: ['test-group'], // Utiliser notre groupe de test
+          logoPlacementMode: 'zones' // S'assurer que le mode zones est activé
+        };
+      }
+      return module;
+    }));
+  }, []);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
