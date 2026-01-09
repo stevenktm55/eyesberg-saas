@@ -19,65 +19,84 @@ function CameraDebugPanel({ controlsRef }: { controlsRef: React.RefObject<any> }
   const [cameraData, setCameraData] = useState({
     position: { x: 0, y: 0, z: 0 },
     target: { x: 0, y: 0, z: 0 },
-    distance: 0
+    distance: 0,
+    loaded: false
   });
 
   useEffect(() => {
+    console.log('🔧 CameraDebugPanel mounted, controlsRef:', controlsRef);
+    
     const updateCameraData = () => {
-      if (controlsRef.current) {
-        const controls = controlsRef.current;
-        const camera = controls.object;
-        const target = controls.target;
-        
-        // Calculer la distance entre la caméra et le target
-        const distance = Math.sqrt(
-          Math.pow(camera.position.x - target.x, 2) +
-          Math.pow(camera.position.y - target.y, 2) +
-          Math.pow(camera.position.z - target.z, 2)
-        );
+      try {
+        if (controlsRef?.current) {
+          const controls = controlsRef.current;
+          const camera = controls.object;
+          const target = controls.target;
+          
+          console.log('🔧 Updating camera data:', { camera: camera?.position, target });
+          
+          // Calculer la distance entre la caméra et le target
+          const distance = Math.sqrt(
+            Math.pow(camera.position.x - target.x, 2) +
+            Math.pow(camera.position.y - target.y, 2) +
+            Math.pow(camera.position.z - target.z, 2)
+          );
 
-        setCameraData({
-          position: {
-            x: Math.round(camera.position.x * 100) / 100,
-            y: Math.round(camera.position.y * 100) / 100,
-            z: Math.round(camera.position.z * 100) / 100
-          },
-          target: {
-            x: Math.round(target.x * 100) / 100,
-            y: Math.round(target.y * 100) / 100,
-            z: Math.round(target.z * 100) / 100
-          },
-          distance: Math.round(distance * 100) / 100
-        });
+          setCameraData({
+            position: {
+              x: Math.round(camera.position.x * 100) / 100,
+              y: Math.round(camera.position.y * 100) / 100,
+              z: Math.round(camera.position.z * 100) / 100
+            },
+            target: {
+              x: Math.round(target.x * 100) / 100,
+              y: Math.round(target.y * 100) / 100,
+              z: Math.round(target.z * 100) / 100
+            },
+            distance: Math.round(distance * 100) / 100,
+            loaded: true
+          });
+        } else {
+          console.log('🔧 Controls not ready yet');
+        }
+      } catch (error) {
+        console.error('🔧 Error updating camera data:', error);
       }
     };
 
     // Mettre à jour immédiatement
     updateCameraData();
 
-    // Mettre à jour toutes les 100ms
-    const interval = setInterval(updateCameraData, 100);
+    // Mettre à jour toutes les 500ms (plus lent pour debug)
+    const interval = setInterval(updateCameraData, 500);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('🔧 CameraDebugPanel unmounting');
+      clearInterval(interval);
+    };
   }, [controlsRef]);
 
+  console.log('🔧 CameraDebugPanel render, cameraData:', cameraData);
+
+  // Toujours afficher le modal, même si les données ne sont pas prêtes
   return (
     <div style={{
       position: 'fixed',
       bottom: '20px',
       right: '20px',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      backgroundColor: 'rgba(255, 0, 0, 0.9)', // Rouge pour être sûr qu'on le voit
       color: 'white',
       padding: '12px',
       borderRadius: '8px',
       fontSize: '12px',
       fontFamily: 'monospace',
-      zIndex: 10000,
+      zIndex: 99999, // Z-index très élevé
       minWidth: '200px',
-      border: '1px solid #333'
+      border: '2px solid yellow', // Bordure jaune pour debug
+      boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
     }}>
-      <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#8eff36' }}>
-        📷 Camera Debug
+      <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'yellow' }}>
+        📷 Camera Debug {cameraData.loaded ? '✅' : '⏳'}
       </div>
       <div>
         <strong>Position:</strong>
@@ -99,6 +118,9 @@ function CameraDebugPanel({ controlsRef }: { controlsRef: React.RefObject<any> }
       </div>
       <div style={{ marginTop: '8px' }}>
         <strong>Distance:</strong> {cameraData.distance}
+      </div>
+      <div style={{ marginTop: '8px', fontSize: '10px', opacity: 0.8 }}>
+        Controls: {controlsRef?.current ? '✅' : '❌'}
       </div>
     </div>
   );
