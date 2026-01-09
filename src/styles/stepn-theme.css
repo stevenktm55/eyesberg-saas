@@ -222,13 +222,14 @@ body:not(.product-builder) select,
 /* Ajoutons une règle qui force le texte blanc si backgroundColor est noir (mais cela ne fonctionnera pas directement) */
 /* Solution: Utiliser des classes CSS spécifiques */
 
-/* Inputs dans .product-builder - FORCER fond blanc et texte gris */
+/* Inputs dans .product-builder - FORCER fond blanc et texte gris avec spécificité maximale */
 .product-builder input[type="text"],
 .product-builder input[type="email"],
 .product-builder input[type="password"],
 .product-builder input[type="file"],
 .product-builder input[type="number"],
 .product-builder input[type="search"],
+.product-builder input,
 .product-builder textarea,
 .product-builder select {
   font-family: inherit !important;
@@ -237,9 +238,14 @@ body:not(.product-builder) select,
   font-feature-settings: normal !important;
   font-variant: normal !important;
   background-color: #ffffff !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
   border-color: #e5e7eb !important;
   border-width: 1px !important;
   border-style: solid !important;
+  /* Override tous les styles stepn-theme.css */
+  --stepn-input-bg: #ffffff !important;
+  --stepn-text: #6b7280 !important;
 }
 
 .product-builder input[type="text"]::placeholder,
