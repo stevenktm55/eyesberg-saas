@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
+import '@/styles/configurator-theme.css';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -2224,23 +2225,19 @@ export default function ProductBuilderPage() {
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #d1d5db',
-                color: '#6b7280',
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'inherit',
+                fontFamily: 'var(--stepn-font-body)',
                 outline: 'none',
-                padding: '8px 12px',
-                borderRadius: '6px',
+                padding: '4px 8px',
+                borderRadius: '4px',
                 minWidth: '200px'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#8eff36';
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#d1d5db';
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
               }}
               onBlur={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
@@ -2576,10 +2573,7 @@ export default function ProductBuilderPage() {
                     style={{
                       width: '100%',
                       padding: '8px 12px',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #d1d5db',
-                      color: '#6b7280',
-                      fontFamily: 'inherit',
+                      backgroundColor: '#1a1a1a',
                       border: '1px solid #2a2a2a',
                       borderRadius: '4px',
                       color: '#ffffff',
@@ -2589,11 +2583,11 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="" style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
+                    <option value="" style={{ backgroundColor: '#1a1a1a' }}>
                       {models3D.length === 0 ? 'Aucun modèle disponible' : 'Sélectionner un modèle'}
                     </option>
                     {models3D.map(model => (
-                      <option key={model.id} value={model.id} style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
+                      <option key={model.id} value={model.id} style={{ backgroundColor: '#1a1a1a' }}>
                         {model.name}
                       </option>
                     ))}
@@ -4679,17 +4673,15 @@ export default function ProductBuilderPage() {
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.backgroundColor = '#dc2626';
-                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.backgroundColor = '#ef4444';
-                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                   >
                                     <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    <span style={{ color: '#ffffff' }}>Supprimer</span>
+                                    Supprimer
                                   </button>
                                 )}
                                 
@@ -4716,17 +4708,15 @@ export default function ProductBuilderPage() {
                                   }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#1a1a1a';
-                                    e.currentTarget.style.color = '#ffffff';
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = '#000000';
-                                    e.currentTarget.style.color = '#ffffff';
                                   }}
                                 >
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
+                                  {activeModule.importLogoButtonLabel || 'Importer un logo'}
                                 </button>
                               </div>
                             )}
@@ -5059,15 +5049,13 @@ export default function ProductBuilderPage() {
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = '#1a1a1a';
-                              e.currentTarget.style.color = '#ffffff';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = '#000000';
-                              e.currentTarget.style.color = '#ffffff';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
-                            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
+                            {buttonLabel}
                           </button>
                           )}
                           
@@ -5101,96 +5089,83 @@ export default function ProductBuilderPage() {
                                 return (
                                   <div
                                     key={logo.id}
+                                    onClick={() => {
+                                      setSelectedLogoId(logo.id);
+                                    }}
                                     style={{
-                                      padding: '12px 16px',
-                                      backgroundColor: '#ffffff',
-                                      border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e5e7eb',
+                                      padding: '14px',
+                                      backgroundColor: selectedLogoId === logo.id ? '#fafafa' : '#fafafa',
+                                      border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e0e0e0',
                                       borderRadius: '8px',
-                                      cursor: 'default',
+                                      cursor: 'pointer',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
-                                      gap: '12px',
-                                      transition: 'all 0.2s',
-                                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (selectedLogoId !== logo.id) {
+                                        e.currentTarget.style.backgroundColor = '#f5f5f5';
+                                        e.currentTarget.style.borderColor = '#000000';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (selectedLogoId !== logo.id) {
+                                        e.currentTarget.style.backgroundColor = '#fafafa';
+                                        e.currentTarget.style.borderColor = '#e0e0e0';
+                                      }
                                     }}
                                   >
-                                    <div 
-                                      onClick={() => {
-                                        setSelectedLogoId(logo.id);
-                                      }}
-                                      style={{
-                                        flex: 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        cursor: 'pointer'
-                                      }}
-                                    >
+                                    <div style={{
+                                      flex: 1,
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '4px'
+                                    }}>
                                       <div style={{
-                                        fontSize: '15px',
-                                        color: '#111827',
-                                        fontFamily: 'inherit',
-                                        fontWeight: '500',
-                                        lineHeight: '1.4'
+                                        fontSize: '14px',
+                                        color: '#000000',
+                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontWeight: selectedLogoId === logo.id ? '600' : '400'
                                       }}>
                                         {logoName}
                                       </div>
+                                      <div style={{
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        fontFamily: 'var(--stepn-font-body)'
+                                      }}>
+                                        {logo.category === 'torse' ? 'Torse' : 
+                                         logo.category === 'dos' ? 'Dos' : 
+                                         logo.category === 'bras-gauche' ? 'Bras gauche' : 
+                                         'Bras droit'}
+                                        {logo.locked && ' 🔒'}
+                                      </div>
                                     </div>
-                                    <button
-                                      onClick={() => {
-                                        setSelectedLogoId(logo.id);
-                                      }}
-                                      style={{
-                                        padding: '8px',
-                                        backgroundColor: '#f3f4f6',
-                                        border: 'none',
-                                        borderRadius: '6px',
-                                        color: '#6b7280',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '32px',
-                                        height: '32px',
-                                        flexShrink: 0,
-                                        transition: 'all 0.2s'
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#e5e7eb';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                      }}
-                                      title="Éditer"
-                                    >
-                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                      </svg>
-                                    </button>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         confirmDeleteLogo(logo.id);
                                       }}
                                       style={{
-                                        padding: '0',
-                                        backgroundColor: 'transparent',
+                                        padding: '4px 8px',
+                                        backgroundColor: '#ff4444',
                                         border: 'none',
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        fontSize: '12px',
+                                        fontFamily: 'var(--stepn-font-body)',
                                         cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '24px',
-                                        height: '24px',
-                                        flexShrink: 0,
-                                        transition: 'all 0.2s'
+                                        fontWeight: '500'
                                       }}
-                                      title="Supprimer"
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#ff3333';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#ff4444';
+                                      }}
                                     >
-                                      <svg width="18" height="18" fill="none" stroke="#ef4444" viewBox="0 0 24 24" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
+                                      ×
                                     </button>
                                   </div>
                                 );
@@ -5398,26 +5373,22 @@ export default function ProductBuilderPage() {
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
-                              fontFamily: 'inherit',
+                              fontFamily: 'var(--stepn-font-body)',
                               color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
                               transition: 'all 0.2s',
-                              textTransform: 'none',
-                              letterSpacing: 'normal'
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
-                              e.currentTarget.style.color = '#ffffff';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#000000';
-                              e.currentTarget.style.color = '#ffffff';
                             }}
                           >
-                            <span style={{ color: '#ffffff' }}>
-                              {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
-                            </span>
+                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                           </button>
                         )}
                         
@@ -5442,90 +5413,77 @@ export default function ProductBuilderPage() {
                               <div
                                 key={text.id}
                                 style={{
-                                  padding: '12px 16px',
-                                  backgroundColor: '#ffffff',
+                                  padding: '16px',
+                                  backgroundColor: '#000000',
                                   border: '1px solid #e5e7eb',
-                                  borderRadius: '8px',
+                                  borderRadius: '12px',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
                                   gap: '12px',
                                   transition: 'all 0.2s',
-                                  cursor: 'default',
-                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                                  cursor: 'default'
                                 }}
                               >
                                 <div 
                                   onClick={() => selectText(text.id)}
                                   style={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                    gap: '6px',
                                     cursor: 'pointer'
                                   }}
                                 >
                                   <div style={{
                                     fontSize: '15px',
-                                    color: '#111827',
-                                    fontFamily: 'inherit',
+                                    color: '#ffffff',
+                                    fontFamily: 'var(--stepn-font-body)',
                                     fontWeight: '500',
                                     lineHeight: '1.4'
                                   }}>
                                     {text.content || '(Texte vide)'}
                                   </div>
+                                  <div style={{
+                                    fontSize: '12px',
+                                    color: '#9ca3af',
+                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontStyle: 'italic'
+                                  }}>
+                                    {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
+                                    {text.locked && ' 🔒'}
+                                  </div>
                                 </div>
-                                <button
-                                  onClick={() => selectText(text.id)}
-                                  style={{
-                                    padding: '8px',
-                                    backgroundColor: '#f3f4f6',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    color: '#6b7280',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '32px',
-                                    height: '32px',
-                                    flexShrink: 0,
-                                    transition: 'all 0.2s'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#e5e7eb';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                  }}
-                                  title="Éditer"
-                                >
-                                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     confirmDeleteText(text.id);
                                   }}
                                   style={{
-                                    padding: '0',
-                                    backgroundColor: 'transparent',
+                                    padding: '8px',
+                                    backgroundColor: '#ef4444',
                                     border: 'none',
+                                    borderRadius: '8px',
+                                    color: '#ffffff',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    width: '24px',
-                                    height: '24px',
+                                    width: '36px',
+                                    height: '36px',
                                     flexShrink: 0,
                                     transition: 'all 0.2s'
                                   }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#dc2626';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#ef4444';
+                                  }}
                                   title="Supprimer"
                                 >
-                                  <svg width="18" height="18" fill="none" stroke="#ef4444" viewBox="0 0 24 24" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                   </svg>
                                 </button>
                               </div>
@@ -5661,13 +5619,12 @@ export default function ProductBuilderPage() {
                                         backgroundColor: '#ffffff',
                                         border: '1px solid #d1d5db',
                                         borderRadius: '8px',
-                                        color: '#6b7280',
+                                        color: '#111827',
                                         fontSize: '14px',
-                                        fontFamily: 'inherit',
+                                        fontFamily: 'var(--stepn-font-body)',
                                         outline: 'none',
                                         transition: 'border-color 0.2s'
                                       }}
-                                      placeholder="Saisir le texte..."
                                       onFocus={(e) => e.target.style.borderColor = '#8eff36'}
                                       onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     />
@@ -6197,9 +6154,9 @@ export default function ProductBuilderPage() {
                                           backgroundColor: '#ffffff',
                                           border: '1px solid #d1d5db',
                                           borderRadius: '8px',
-                                          color: '#6b7280',
+                                          color: '#111827',
                                           fontSize: '14px',
-                                          fontFamily: 'inherit',
+                                          fontFamily: 'var(--stepn-font-body)',
                                           cursor: 'pointer',
                                           outline: 'none',
                                           marginBottom: selectedText.deformation ? '20px' : '0',

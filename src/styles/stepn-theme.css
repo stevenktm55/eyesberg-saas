@@ -92,10 +92,8 @@ body {
 }
 
 /* Typographie STEPN */
-/* EXCLURE le configurateur (product-builder) des styles globaux */
-/* Les styles ne s'appliquent que si l'élément n'est PAS dans .product-builder */
-body:not(.product-builder) h1,
-body:not(.product-builder) h2,
+/* EXCLURE totalement le configurateur (product-builder) des styles globaux stepn-theme */
+/* Le configurateur a son propre thème dans configurator-theme.css */
 :not(.product-builder) h1,
 :not(.product-builder) h2 {
   font-family: var(--stepn-font-heading-ultrabold) !important;
@@ -112,8 +110,6 @@ body:not(.product-builder) h2,
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-body:not(.product-builder) h3,
-body:not(.product-builder) h4,
 :not(.product-builder) h3,
 :not(.product-builder) h4 {
   font-family: var(--stepn-font-heading-regular);
@@ -123,8 +119,6 @@ body:not(.product-builder) h4,
   color: var(--stepn-text);
 }
 
-body:not(.product-builder) h5,
-body:not(.product-builder) h6,
 :not(.product-builder) h5,
 :not(.product-builder) h6 {
   font-family: var(--stepn-font-heading-light);
@@ -134,13 +128,6 @@ body:not(.product-builder) h6,
   color: var(--stepn-text);
 }
 
-body:not(.product-builder) p,
-body:not(.product-builder) span,
-body:not(.product-builder) label,
-body:not(.product-builder) a,
-body:not(.product-builder) input,
-body:not(.product-builder) textarea,
-body:not(.product-builder) select,
 :not(.product-builder) p,
 :not(.product-builder) span,
 :not(.product-builder) label,
@@ -157,152 +144,11 @@ body:not(.product-builder) select,
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Réinitialiser les styles pour les éléments dans .product-builder */
-/* Par défaut, les textes dans .product-builder sont foncés (noir/gris foncé) */
-.product-builder {
-  color: #111827 !important;
-}
-
-.product-builder h1,
-.product-builder h2,
-.product-builder h3,
-.product-builder h4,
-.product-builder h5,
-.product-builder h6 {
-  font-family: inherit !important;
-  color: #111827 !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  font-style: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  -webkit-text-fill-color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-.product-builder p,
-.product-builder span,
-.product-builder label,
-.product-builder div {
-  font-family: inherit !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-transform: none !important;
-}
-
-.product-builder a {
-  font-family: inherit !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-}
-
-.product-builder button {
-  font-family: inherit !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-}
-
-/* Boutons avec fond noir dans .product-builder - texte blanc */
-.product-builder button[style*="background-color: #000000"],
-.product-builder button[style*="backgroundColor: #000000"],
-.product-builder button[style*="background-color: black"],
-.product-builder button[style*="backgroundColor: black"] {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-.product-builder button[style*="background-color: #000000"] span,
-.product-builder button[style*="backgroundColor: #000000"] span,
-.product-builder button[style*="background-color: black"] span,
-.product-builder button[style*="backgroundColor: black"] span {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-/* Boutons avec fond rouge dans .product-builder - texte blanc */
-.product-builder button[style*="background-color: #ef4444"],
-.product-builder button[style*="backgroundColor: #ef4444"],
-.product-builder button[style*="background-color: #dc2626"],
-.product-builder button[style*="backgroundColor: #dc2626"],
-.product-builder button[style*="background-color: red"],
-.product-builder button[style*="backgroundColor: red"] {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-.product-builder button[style*="background-color: #ef4444"] svg,
-.product-builder button[style*="backgroundColor: #ef4444"] svg,
-.product-builder button[style*="background-color: #dc2626"] svg,
-.product-builder button[style*="backgroundColor: #dc2626"] svg {
-  stroke: #ffffff !important;
-  fill: #ffffff !important;
-  color: #ffffff !important;
-}
-
-.product-builder input,
-.product-builder textarea,
-.product-builder select {
-  font-family: inherit !important;
-  background-color: #ffffff !important;
-  color: #6b7280 !important;
-  -webkit-text-fill-color: #6b7280 !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  border: 1px solid #d1d5db !important;
-}
-
-.product-builder input::placeholder,
-.product-builder textarea::placeholder {
-  color: #9ca3af !important;
-  -webkit-text-fill-color: #9ca3af !important;
-  opacity: 1 !important;
-}
-
-/* Modaux dans .product-builder - forcer les couleurs correctes */
-.product-builder .modal-override h1,
-.product-builder .modal-override h2,
-.product-builder .modal-override h3,
-.product-builder .modal-override h4,
-.product-builder .modal-override h5,
-.product-builder .modal-override h6 {
-  color: #111827 !important;
-  text-transform: none !important;
-  font-family: inherit !important;
-  -webkit-text-fill-color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-.product-builder .modal-override p,
-.product-builder .modal-override span,
-.product-builder .modal-override label,
-.product-builder .modal-override div {
-  color: #4b5563 !important;
-  -webkit-text-fill-color: #4b5563 !important;
-  font-family: inherit !important;
-}
-
-.product-builder .modal-override button {
-  text-transform: none !important;
-  font-family: inherit !important;
-}
-
-.product-builder .modal-override button.bg-white,
-.product-builder .modal-override button[style*="background-color: #ffffff"],
-.product-builder .modal-override button[style*="backgroundColor: #ffffff"] {
-  background-color: #ffffff !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-}
-
-.product-builder .modal-override button:disabled,
-.product-builder .modal-override button.disabled {
-  background-color: #d1d5db !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+/* Isolation totale : aucun style stepn-theme ne doit s'appliquer à .product-builder */
+.product-builder,
+.product-builder * {
+  /* Les styles sont définis dans configurator-theme.css */
+  /* On réinitialise complètement pour éviter tout conflit */
 }
 
 /* Inputs */
