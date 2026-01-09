@@ -69,7 +69,7 @@ export function LinkedProductPromptModal({
               console.log('🟩 LinkedProductPromptModal -> Oui, personnaliser');
               onAccept();
             }}
-            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium"
+            className="flex-1 px-4 py-3 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors text-sm font-medium"
           >
             Oui, personnaliser
           </button>

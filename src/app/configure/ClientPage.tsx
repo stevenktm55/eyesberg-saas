@@ -3798,17 +3798,17 @@ function TextTab({
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={() => setShowZoneSelector(false)}>
           <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Titre */}
-            <h3 className="text-xl font-bold mb-6">{labels.title}</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-6">{labels.title}</h3>
             
             {filteredZones.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-600">
                 Aucune zone disponible pour cette catégorie
               </div>
             ) : (
               <>
                 {/* Section de sélection de zone avec images */}
                 <div className="mb-6">
-                  <p className="mb-3 text-black">Choisissez une position standard</p>
+                  <p className="mb-3 text-gray-900">Choisissez une position standard</p>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredZones.map((zone) => (
                       <button
@@ -3854,7 +3854,7 @@ function TextTab({
 
                 {/* Section du contenu du texte */}
                 <div className="mb-6">
-                  <p className="mb-2 text-black">Contenu du texte</p>
+                  <p className="mb-2 text-gray-900">Contenu du texte</p>
                   <input
                     type="text"
                     placeholder="Saisir l'inscription ici..."
@@ -3934,14 +3934,14 @@ function TextTab({
                     </label>
               
               {isLoadingZones ? (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="animate-spin w-6 h-6 border-2 border-black border-t-transparent rounded-full mx-auto mb-2"></div>
-                  Chargement des zones...
+                <div className="text-center py-8 text-gray-600">
+                  <div className="animate-spin w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  <p className="text-gray-900">Chargement des zones...</p>
                 </div>
               ) : filteredZones.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Aucune zone définie pour cette catégorie</p>
-                  <p className="text-xs mt-1">Configurez des zones via l'interface admin</p>
+                <div className="text-center py-8 text-gray-600">
+                  <p className="text-gray-900">Aucune zone définie pour cette catégorie</p>
+                  <p className="text-xs mt-1 text-gray-600">Configurez des zones via l'interface admin</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
@@ -4523,7 +4523,7 @@ function LogoTab({
             </div>
 
             {selectedFile && (
-              <div className="text-sm text-black">
+              <div className="text-sm text-gray-900">
                 Fichier sélectionné : {selectedFile.name}
               </div>
             )}
@@ -4614,7 +4614,7 @@ function LogoTab({
             ))}
           </div>
             ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
+              <div className="text-center py-4 text-gray-600 text-sm">
                 Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
           </div>
         )}
