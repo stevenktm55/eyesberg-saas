@@ -7722,13 +7722,16 @@ export default function ProductBuilderPage() {
                                     </p>
                                   ) : (
                                     <div>
-                                      <h3 style={{
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        marginBottom: '12px'
-                                      }}>
+                                      <h3
+                                        className="modal-override"
+                                        style={{
+                                          fontSize: '14px',
+                                          fontWeight: '600',
+                                          color: '#111827',
+                                          fontFamily: 'inherit',
+                                          marginBottom: '12px'
+                                        }}
+                                      >
                                         Choisissez une position standard
                                       </h3>
                                       <div style={{
@@ -8046,13 +8049,16 @@ export default function ProductBuilderPage() {
                                     </p>
                                   ) : (
                                     <div>
-                                      <h3 style={{
-                                        fontSize: '14px',
-                                        fontWeight: '600',
-                                        color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        marginBottom: '12px'
-                                      }}>
+                                      <h3
+                                        className="modal-override"
+                                        style={{
+                                          fontSize: '14px',
+                                          fontWeight: '600',
+                                          color: '#111827',
+                                          fontFamily: 'inherit',
+                                          marginBottom: '12px'
+                                        }}
+                                      >
                                         Choisissez une position standard
                                       </h3>
                                       <div style={{
@@ -13454,13 +13460,16 @@ export default function ProductBuilderPage() {
                   <div>
                     {/* Section: Choisissez une position standard */}
                     <div style={{ marginBottom: '32px' }}>
-                      <h3 style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
-                        marginBottom: '16px'
-                      }}>
+                      <h3
+                        className="modal-override"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#111827',
+                          fontFamily: 'inherit',
+                          marginBottom: '16px'
+                        }}
+                      >
                         Choisissez une position standard
                       </h3>
                       <div style={{
