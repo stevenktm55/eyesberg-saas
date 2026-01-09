@@ -1,0 +1,246 @@
+/**
+ * Thème dédié au ConfiguratorPanel
+ * Ce thème s'applique uniquement à la zone de configuration visible par les clients
+ * (Sidebar blanche + Viewer 3D)
+ * Sépare du thème stepn-theme.css qui est pour l'interface admin
+ */
+
+.configurator-panel {
+  /* Variables de couleurs pour le ConfiguratorPanel */
+  --config-panel-bg: #ffffff;
+  --config-panel-sidebar-bg: #ffffff;
+  --config-panel-sidebar-border: #e5e7eb;
+  --config-panel-viewer-bg: #f9fafb;
+  --config-panel-text-primary: #111827;
+  --config-panel-text-secondary: #6b7280;
+  --config-panel-accent: #000000;
+  --config-panel-accent-hover: #1f2937;
+  --config-panel-border: #e5e7eb;
+  --config-panel-input-bg: #ffffff;
+  --config-panel-input-border: #d1d5db;
+  --config-panel-input-border-focus: #000000;
+  --config-panel-button-primary-bg: #000000;
+  --config-panel-button-primary-text: #ffffff;
+  --config-panel-button-primary-hover: #1f2937;
+  --config-panel-button-secondary-bg: #ffffff;
+  --config-panel-button-secondary-text: #111827;
+  --config-panel-button-secondary-border: #d1d5db;
+  --config-panel-button-secondary-hover: #f9fafb;
+  
+  /* Typographie */
+  --config-panel-font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --config-panel-font-size-base: 14px;
+  --config-panel-font-size-sm: 12px;
+  --config-panel-font-size-lg: 16px;
+  --config-panel-font-size-xl: 18px;
+  --config-panel-font-size-2xl: 20px;
+  
+  /* Espacements */
+  --config-panel-spacing-xs: 4px;
+  --config-panel-spacing-sm: 8px;
+  --config-panel-spacing-md: 16px;
+  --config-panel-spacing-lg: 24px;
+  --config-panel-spacing-xl: 32px;
+  
+  /* Ombres */
+  --config-panel-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --config-panel-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --config-panel-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Border radius */
+  --config-panel-radius-sm: 4px;
+  --config-panel-radius-md: 8px;
+  --config-panel-radius-lg: 12px;
+  
+  /* Transitions */
+  --config-panel-transition: all 0.2s ease-in-out;
+}
+
+/* Reset et base pour le ConfiguratorPanel */
+.configurator-panel * {
+  box-sizing: border-box;
+}
+
+/* Sidebar blanche */
+.configurator-panel .sidebar-white {
+  background-color: var(--config-panel-sidebar-bg);
+  border-right: 1px solid var(--config-panel-sidebar-border);
+  color: var(--config-panel-text-primary);
+  font-family: var(--config-panel-font-family);
+}
+
+/* Viewer 3D */
+.configurator-panel .viewer-3d {
+  background-color: var(--config-panel-viewer-bg);
+  background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+}
+
+/* Titres dans la sidebar */
+.configurator-panel h1,
+.configurator-panel h2,
+.configurator-panel h3,
+.configurator-panel h4,
+.configurator-panel h5,
+.configurator-panel h6 {
+  color: var(--config-panel-text-primary);
+  font-family: var(--config-panel-font-family);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Textes */
+.configurator-panel p,
+.configurator-panel span,
+.configurator-panel div {
+  color: var(--config-panel-text-primary);
+  font-family: var(--config-panel-font-family);
+}
+
+/* Textes secondaires */
+.configurator-panel .text-secondary,
+.configurator-panel .text-gray-500,
+.configurator-panel .text-gray-600 {
+  color: var(--config-panel-text-secondary);
+}
+
+/* Inputs */
+.configurator-panel input,
+.configurator-panel textarea,
+.configurator-panel select {
+  background-color: var(--config-panel-input-bg);
+  border: 1px solid var(--config-panel-input-border);
+  color: var(--config-panel-text-primary);
+  font-family: var(--config-panel-font-family);
+  border-radius: var(--config-panel-radius-md);
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
+  transition: var(--config-panel-transition);
+}
+
+.configurator-panel input:focus,
+.configurator-panel textarea:focus,
+.configurator-panel select:focus {
+  outline: none;
+  border-color: var(--config-panel-input-border-focus);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Boutons primaires */
+.configurator-panel button.bg-black,
+.configurator-panel .btn-primary {
+  background-color: var(--config-panel-button-primary-bg);
+  color: var(--config-panel-button-primary-text);
+  border: none;
+  border-radius: var(--config-panel-radius-md);
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
+  font-family: var(--config-panel-font-family);
+  font-weight: 500;
+  transition: var(--config-panel-transition);
+  cursor: pointer;
+}
+
+.configurator-panel button.bg-black:hover,
+.configurator-panel .btn-primary:hover {
+  background-color: var(--config-panel-button-primary-hover);
+}
+
+/* Boutons secondaires */
+.configurator-panel button.bg-white,
+.configurator-panel .btn-secondary {
+  background-color: var(--config-panel-button-secondary-bg);
+  color: var(--config-panel-button-secondary-text);
+  border: 1px solid var(--config-panel-button-secondary-border);
+  border-radius: var(--config-panel-radius-md);
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
+  font-family: var(--config-panel-font-family);
+  font-weight: 500;
+  transition: var(--config-panel-transition);
+  cursor: pointer;
+}
+
+.configurator-panel button.bg-white:hover,
+.configurator-panel .btn-secondary:hover {
+  background-color: var(--config-panel-button-secondary-hover);
+}
+
+/* Cards et conteneurs */
+.configurator-panel .card,
+.configurator-panel .bg-white {
+  background-color: var(--config-panel-sidebar-bg);
+  border: 1px solid var(--config-panel-border);
+  border-radius: var(--config-panel-radius-lg);
+  box-shadow: var(--config-panel-shadow-sm);
+}
+
+/* Onglets/Tabs */
+.configurator-panel .tab {
+  color: var(--config-panel-text-secondary);
+  transition: var(--config-panel-transition);
+}
+
+.configurator-panel .tab:hover {
+  color: var(--config-panel-text-primary);
+}
+
+.configurator-panel .tab-active {
+  color: var(--config-panel-text-primary);
+  font-weight: 600;
+}
+
+/* Bordures */
+.configurator-panel .border-gray-200,
+.configurator-panel .border-gray-300 {
+  border-color: var(--config-panel-border);
+}
+
+/* Scrollbar personnalisée pour le ConfiguratorPanel */
+.configurator-panel ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.configurator-panel ::-webkit-scrollbar-track {
+  background: var(--config-panel-viewer-bg);
+}
+
+.configurator-panel ::-webkit-scrollbar-thumb {
+  background: var(--config-panel-text-secondary);
+  border-radius: 4px;
+}
+
+.configurator-panel ::-webkit-scrollbar-thumb:hover {
+  background: var(--config-panel-text-primary);
+}
+
+/* Responsive - Ajustements pour mobile */
+@media (max-width: 768px) {
+  .configurator-panel {
+    --config-panel-font-size-base: 14px;
+    --config-panel-spacing-md: 12px;
+    --config-panel-spacing-lg: 20px;
+  }
+}
+
+/* Mode sombre optionnel (pour future implémentation) */
+@media (prefers-color-scheme: dark) {
+  .configurator-panel[data-theme="dark"] {
+    --config-panel-bg: #111827;
+    --config-panel-sidebar-bg: #1f2937;
+    --config-panel-sidebar-border: #374151;
+    --config-panel-viewer-bg: #0f172a;
+    --config-panel-text-primary: #f9fafb;
+    --config-panel-text-secondary: #9ca3af;
+    --config-panel-accent: #ffffff;
+    --config-panel-accent-hover: #e5e7eb;
+    --config-panel-border: #374151;
+    --config-panel-input-bg: #1f2937;
+    --config-panel-input-border: #4b5563;
+    --config-panel-input-border-focus: #ffffff;
+    --config-panel-button-primary-bg: #ffffff;
+    --config-panel-button-primary-text: #111827;
+    --config-panel-button-primary-hover: #e5e7eb;
+    --config-panel-button-secondary-bg: #1f2937;
+    --config-panel-button-secondary-text: #f9fafb;
+    --config-panel-button-secondary-border: #4b5563;
+    --config-panel-button-secondary-hover: #374151;
+  }
+}

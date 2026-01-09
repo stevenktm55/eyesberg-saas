@@ -12,6 +12,7 @@ import { useCameraViews, CameraView } from "@/hooks/useCameraViews";
 import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
 import Image from "next/image";
+import "@/styles/configurator-panel-theme.css";
 
 // Interface pour les zones de texte
 interface TextZone {
@@ -1472,7 +1473,7 @@ function Viewer3D({
     <div className="h-full flex flex-col bg-white">
       {/* Canvas 3D - prend tout l'espace */}
       <div 
-        className="flex-1 bg-gray-100 relative"
+        className="viewer-3d flex-1 bg-gray-100 relative"
         onContextMenu={(e) => e.preventDefault()}
       >
         <Canvas 
@@ -7912,10 +7913,10 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           </div>
       )}
       
-      {/* Contenu principal */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Contenu principal - ConfiguratorPanel */}
+      <div className="configurator-panel flex-1 flex overflow-hidden">
         {/* Sidebar Desktop uniquement */}
-        <div className="hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
+        <div className="sidebar-white hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
           <div className="flex-1 overflow-hidden">
             <Sidebar 
               selectedDesign={selectedDesign} 
@@ -8007,7 +8008,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         </div>
 
         {/* Viewer 3D - prend tout l'espace restant */}
-        <div className="flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
+        <div className="viewer-3d flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
             <Viewer3D 
               key={`${modelId}-${modelUrl}`}
               designTexture={selectedDesign.svgUrl} 
