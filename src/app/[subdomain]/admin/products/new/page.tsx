@@ -13948,6 +13948,7 @@ export default function ProductBuilderPage() {
                             setTextInputValue('');
                           }
                         }}
+                        className={(!textInputValue.trim() || !selectedZoneId) ? "" : "btn-black"}
                         disabled={!textInputValue.trim() || !selectedZoneId}
                         style={{
                           padding: '12px 24px',
