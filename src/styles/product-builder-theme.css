@@ -25,130 +25,168 @@
 /* Ces règles override toutes les règles globales de stepn-theme.css */
 
 /* Reset et styles de base pour le configurateur */
+/* Utiliser !important pour override complètement stepn-theme.css */
 .product-builder {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: var(--configurator-text);
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  color: var(--configurator-text) !important;
   background-color: var(--configurator-bg);
 }
 
-/* Typographie */
+/* Typographie - Override FORCE avec !important */
 .product-builder h1,
-.product-builder h2,
-.product-builder h3,
-.product-builder h4,
-.product-builder h5,
-.product-builder h6 {
-  font-family: inherit;
-  font-weight: 600;
-  color: var(--configurator-text);
-  margin: 0;
-  text-transform: none;
-  letter-spacing: normal;
-  line-height: 1.5;
-  -webkit-text-fill-color: var(--configurator-text);
+.product-builder h2 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  margin: 0 !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 .product-builder h1 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
 }
 
 .product-builder h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+.product-builder h3,
+.product-builder h4 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  margin: 0 !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 .product-builder h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.25rem !important;
 }
 
 .product-builder h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.125rem !important;
+}
+
+.product-builder h5,
+.product-builder h6 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  margin: 0 !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 .product-builder h5 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1rem !important;
 }
 
 .product-builder h6 {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.875rem !important;
 }
 
 .product-builder p,
 .product-builder span,
 .product-builder div,
 .product-builder label {
-  font-family: inherit;
-  color: var(--configurator-text);
-  -webkit-text-fill-color: var(--configurator-text);
-  text-transform: none;
-  letter-spacing: normal;
-  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  color: #111827 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 .product-builder p {
-  margin: 0;
-  font-size: 0.875rem;
+  margin: 0 !important;
+  font-size: 0.875rem !important;
 }
 
 .product-builder label {
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--configurator-text);
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  color: #111827 !important;
 }
 
 /* Liens */
 .product-builder a {
-  color: var(--configurator-accent);
-  text-decoration: none;
-  transition: color 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  color: var(--configurator-accent) !important;
+  text-decoration: none !important;
+  transition: color 0.2s !important;
+  -webkit-text-fill-color: var(--configurator-accent) !important;
 }
 
 .product-builder a:hover {
-  color: var(--configurator-accent);
-  opacity: 0.8;
+  color: var(--configurator-accent) !important;
+  opacity: 0.8 !important;
 }
 
 /* Boutons */
 .product-builder button {
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: normal;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.375rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  line-height: 1.5 !important;
 }
 
 .product-builder button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 /* Inputs */
 .product-builder input,
 .product-builder textarea,
 .product-builder select {
-  font-family: inherit;
-  font-size: 0.875rem;
-  color: var(--configurator-text);
-  background-color: #ffffff;
-  border: 1px solid var(--configurator-border);
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  -webkit-text-fill-color: var(--configurator-text);
-  transition: border-color 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  font-size: 0.875rem !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border: 1px solid var(--configurator-border) !important;
+  border-radius: 0.375rem !important;
+  padding: 0.5rem 0.75rem !important;
+  -webkit-text-fill-color: #111827 !important;
+  transition: border-color 0.2s !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 .product-builder input:focus,
