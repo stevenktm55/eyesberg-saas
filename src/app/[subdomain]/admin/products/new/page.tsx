@@ -187,6 +187,38 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
   }, [camera, controlsRef]);
 
+  // Charger les zones depuis l'API
+  useEffect(() => {
+    async function loadZones() {
+      if (!productId || !shop) return;
+      
+      try {
+        console.log('🔍 Chargement des zones pour le produit:', productId);
+        const response = await fetch(`/api/zones?shop=${encodeURIComponent(shop)}`);
+        if (response.ok) {
+          const zones = await response.json();
+          console.log('🔍 Zones chargées:', zones.length, 'zones');
+          zones.forEach((zone: any, index: number) => {
+            console.log(`🔍 Zone ${index + 1}:`, {
+              name: zone.name,
+              id: zone.id,
+              view: zone.view,
+              is_logo: zone.is_logo,
+              categories: zone.categories
+            });
+          });
+          setTextZones(zones);
+        } else {
+          console.error('❌ Erreur lors du chargement des zones:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement des zones:', error);
+      }
+    }
+
+    loadZones();
+  }, [productId, shop]);
+
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
 
@@ -825,6 +857,7 @@ export default function ProductBuilderPage() {
   const [isResizingText, setIsResizingText] = useState(false);
   const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
   const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number]; thumbnailUrl?: string; rotation?: number; width?: number; height?: number }> }>>([]);
+  const [textZones, setTextZones] = useState<any[]>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
@@ -6868,7 +6901,7 @@ export default function ProductBuilderPage() {
                                     isResizingText={isResizingText}
                                     setIsResizingText={setIsResizingText}
                                     isPlacingText={isPlacingText}
-                                    textZones={[]} // Pas de zones prédéfinies dans le builder
+                                    textZones={textZones} // Zones chargées depuis l'API
                                     onTextPlaced={handleTextPlaced}
                                     onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
                                     textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
