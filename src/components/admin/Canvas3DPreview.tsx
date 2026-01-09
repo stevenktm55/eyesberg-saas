@@ -1,16 +1,12 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, PerspectiveCamera } from "@react-three/drei";
-import { ProductQuestion, ProductLayer } from "./ProductEditor3D";
-import { Simple3DViewer } from "./Simple3DViewer";
+import { useState } from "react";
 import ConfiguratorViewer from "@/components/ConfiguratorViewer";
 
 interface Canvas3DPreviewProps {
   modelUrl: string | null;
-  questions: ProductQuestion[];
-  layers: ProductLayer[];
+  questions: any[];
+  layers: any[];
   onModelUrlChange: (url: string | null) => void;
   productId?: string;
   shop?: string;
@@ -318,7 +314,7 @@ export function Canvas3DPreview({
             </div>
           </div>
 
-          {/* 3D Canvas - Mode desktop */}
+          {/* 3D Canvas - Mode desktop - Utilise ConfiguratorViewer pour la même échelle */}
           <div 
             className="flex-1 relative"
             style={{
@@ -328,32 +324,13 @@ export function Canvas3DPreview({
               overflow: 'hidden'
             }}
           >
-            {modelUrl ? (
-              <Canvas
-                gl={{ antialias: true, alpha: true }}
-                camera={{ position: [0, 0, 15], fov: 50 }}
-                className="bg-gray-900"
-                style={{ width: '100%', height: '100%' }}
-              >
-                <Suspense fallback={null}>
-                  <PerspectiveCamera makeDefault position={[0, 0, 15]} />
-                  <ambientLight intensity={0.5} />
-                  <directionalLight position={[10, 10, 5]} intensity={1} />
-                  <Simple3DViewer
-                    url={modelUrl}
-                    questions={questions}
-                    layers={layers}
-                  />
-                  <OrbitControls
-                    enablePan={true}
-                    enableZoom={true}
-                    enableRotate={true}
-                    minDistance={2}
-                    maxDistance={20}
-                  />
-                  <Environment preset="studio" />
-                </Suspense>
-              </Canvas>
+            {productId && shop ? (
+              <ConfiguratorViewer
+                productId={productId}
+                shopDomain={shop}
+                forceMobileLayout={false}
+                preview={true}
+              />
             ) : (
               <div className="h-full flex items-center justify-center bg-gray-900">
                 <div className="text-center text-gray-400">
@@ -367,11 +344,13 @@ export function Canvas3DPreview({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-sm">No 3D model loaded</p>
-                  <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
+                  <p className="text-sm">Configurateur requis pour la prévisualisation</p>
+                  <p className="text-xs mt-1">ProductId et shop requis</p>
+                  <p className="text-xs mt-2">productId: {String(productId)}</p>
+                  <p className="text-xs mt-2">shop: {String(shop)}</p>
                 </div>
               </div>
             )}
