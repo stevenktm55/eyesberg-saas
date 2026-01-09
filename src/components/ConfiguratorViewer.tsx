@@ -14,6 +14,96 @@ import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal"
 import Image from "next/image";
 import { useThree } from "@react-three/fiber";
 
+// Composant pour afficher les coordonnées de la caméra en temps réel
+function CameraDebugPanel({ controlsRef }: { controlsRef: React.RefObject<any> }) {
+  const [cameraData, setCameraData] = useState({
+    position: { x: 0, y: 0, z: 0 },
+    target: { x: 0, y: 0, z: 0 },
+    distance: 0
+  });
+
+  useEffect(() => {
+    const updateCameraData = () => {
+      if (controlsRef.current) {
+        const controls = controlsRef.current;
+        const camera = controls.object;
+        const target = controls.target;
+        
+        // Calculer la distance entre la caméra et le target
+        const distance = Math.sqrt(
+          Math.pow(camera.position.x - target.x, 2) +
+          Math.pow(camera.position.y - target.y, 2) +
+          Math.pow(camera.position.z - target.z, 2)
+        );
+
+        setCameraData({
+          position: {
+            x: Math.round(camera.position.x * 100) / 100,
+            y: Math.round(camera.position.y * 100) / 100,
+            z: Math.round(camera.position.z * 100) / 100
+          },
+          target: {
+            x: Math.round(target.x * 100) / 100,
+            y: Math.round(target.y * 100) / 100,
+            z: Math.round(target.z * 100) / 100
+          },
+          distance: Math.round(distance * 100) / 100
+        });
+      }
+    };
+
+    // Mettre à jour immédiatement
+    updateCameraData();
+
+    // Mettre à jour toutes les 100ms
+    const interval = setInterval(updateCameraData, 100);
+
+    return () => clearInterval(interval);
+  }, [controlsRef]);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      color: 'white',
+      padding: '12px',
+      borderRadius: '8px',
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      zIndex: 10000,
+      minWidth: '200px',
+      border: '1px solid #333'
+    }}>
+      <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#8eff36' }}>
+        📷 Camera Debug
+      </div>
+      <div>
+        <strong>Position:</strong>
+        <br />
+        X: {cameraData.position.x}
+        <br />
+        Y: {cameraData.position.y}
+        <br />
+        Z: {cameraData.position.z}
+      </div>
+      <div style={{ marginTop: '8px' }}>
+        <strong>Target:</strong>
+        <br />
+        X: {cameraData.target.x}
+        <br />
+        Y: {cameraData.target.y}
+        <br />
+        Z: {cameraData.target.z}
+      </div>
+      <div style={{ marginTop: '8px' }}>
+        <strong>Distance:</strong> {cameraData.distance}
+      </div>
+    </div>
+  );
+}
+
 
 // Composant pour écouter les changements de vue de caméra
 function CameraViewListener({ controlsRef }: { controlsRef: React.RefObject<any> }) {
@@ -4388,6 +4478,8 @@ export default function ConfiguratorViewer({
         flexDirection: isMobileMode ? 'column' : 'row'
       }}
     >
+      {/* Camera Debug Panel */}
+      <CameraDebugPanel controlsRef={controlsRef} />
       {/* Sidebar gauche avec icônes des modules - Cachée en mobile, remplacée par barre horizontale en bas */}
       {!isMobileMode && shouldShowLeftSidebar ? (
         <div className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 z-10" data-testid="left-sidebar">
