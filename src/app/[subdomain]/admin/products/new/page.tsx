@@ -153,8 +153,21 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         controls.minDistance = 0;
         controls.maxDistance = Infinity;
         
-        // Mettre à jour la position et le target
-        camera.position.set(position.x, position.y, position.z);
+        // Appliquer le facteur de correction d'échelle pour l'admin
+        // Si Z:2.14 est trop zoomé et devrait être Z≈10, facteur = 10/2.14 ≈ 4.67
+        const scaleFactor = 4.67;
+        
+        const correctedPosition = {
+          x: position.x * scaleFactor,
+          y: position.y * scaleFactor,
+          z: position.z * scaleFactor
+        };
+        
+        console.log('🔧 [ADMIN] Position originale:', position);
+        console.log('🔧 [ADMIN] Position corrigée (x' + scaleFactor + '):', correctedPosition);
+        
+        // Mettre à jour la position et le target avec correction
+        camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
         controls.target.set(target.x, target.y, target.z);
         controls.update();
         
@@ -169,9 +182,10 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
           z-index: 99999; font-family: monospace; font-size: 14px; border: 3px solid orange;
         `;
         modalDiv.innerHTML = `
-          <div><strong>🎯 ADMIN - Vue appliquée</strong></div>
-          <div>Position: X:${position.x} Y:${position.y} Z:${position.z}</div>
-          <div>Target: X:${target.x} Y:${target.y} Z:${target.z}</div>
+          <div><strong>🎯 ADMIN - Vue appliquée avec correction</strong></div>
+          <div>Position originale: X:${position.x} Y:${position.y} Z:${position.z}</div>
+          <div>Position corrigée: X:${correctedPosition.x.toFixed(2)} Y:${correctedPosition.y.toFixed(2)} Z:${correctedPosition.z.toFixed(2)}</div>
+          <div>Facteur: ${scaleFactor}</div>
         `;
         document.body.appendChild(modalDiv);
         setTimeout(() => document.body.removeChild(modalDiv), 3000);
