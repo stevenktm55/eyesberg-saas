@@ -171,10 +171,13 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         
         // Utiliser le target personnalisé s'il est fourni, sinon utiliser le target par défaut
         const finalTarget = event.detail.target || target;
+        console.log('🎯 Target final utilisé:', finalTarget);
+        console.log('🎯 Target avant:', { x: controls.target.x, y: controls.target.y, z: controls.target.z });
+        
         controls.target.set(finalTarget.x, finalTarget.y, finalTarget.z);
         controls.update();
         
-        console.log('🎯 Target final utilisé:', finalTarget);
+        console.log('🎯 Target après:', { x: controls.target.x, y: controls.target.y, z: controls.target.z });
         
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
@@ -7976,13 +7979,15 @@ export default function ProductBuilderPage() {
                                                   console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
                                                   
                                                   // Calculer la position 3D approximative du logo pour centrer la caméra
+                                                  console.log('🎯 zonePosition UV mobile originale:', zonePosition);
+                                                  
                                                   const logoWorldPosition = {
-                                                    x: (zonePosition[0] - 0.5) * 2, // Centrer autour de 0, échelle approximative
-                                                    y: (zonePosition[1] - 0.5) * 2, // Centrer autour de 0, échelle approximative  
+                                                    x: (zonePosition[0] - 0.5) * 4, // Échelle plus grande pour test
+                                                    y: (zonePosition[1] - 0.5) * 4, // Échelle plus grande pour test
                                                     z: zonePosition[2] || 0
                                                   };
                                                   
-                                                  console.log('🎯 Position logo mobile calculée:', logoWorldPosition);
+                                                  console.log('🎯 Position logo mobile calculée (échelle x4):', logoWorldPosition);
                                                   
                                                   // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
                                                   window.dispatchEvent(new CustomEvent('setCameraView', { 
@@ -14392,13 +14397,16 @@ export default function ProductBuilderPage() {
                                 
                                 // Calculer la position 3D approximative du logo pour centrer la caméra
                                 // Convertir les coordonnées UV (0-1) en coordonnées 3D approximatives
+                                console.log('🎯 zonePosition UV originale:', zonePosition);
+                                
+                                // Essayons différentes échelles pour voir ce qui fonctionne mieux
                                 const logoWorldPosition = {
-                                  x: (zonePosition[0] - 0.5) * 2, // Centrer autour de 0, échelle approximative
-                                  y: (zonePosition[1] - 0.5) * 2, // Centrer autour de 0, échelle approximative  
+                                  x: (zonePosition[0] - 0.5) * 4, // Échelle plus grande pour test
+                                  y: (zonePosition[1] - 0.5) * 4, // Échelle plus grande pour test
                                   z: zonePosition[2] || 0
                                 };
                                 
-                                console.log('🎯 Position logo calculée:', logoWorldPosition);
+                                console.log('🎯 Position logo calculée (échelle x4):', logoWorldPosition);
                                 
                                 // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
                                 window.dispatchEvent(new CustomEvent('setCameraView', { 
