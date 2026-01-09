@@ -7,40 +7,114 @@ import { Suspense } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
-import '@/styles/configurator-theme.css';
+import '@/styles/product-builder-theme.css';
 
-// Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = `
-    .customizer-tab-name {
-      color: #000000 !important;
-      -webkit-text-fill-color: #000000 !important;
-      -webkit-text-stroke-color: #000000 !important;
+// Annuler complètement stepn-theme.css pour le configurateur
+useEffect(() => {
+  if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.id = 'product-builder-override';
+    style.textContent = `
+      /* Désactiver complètement stepn-theme.css pour .product-builder */
+      .product-builder * {
+        /* Réinitialiser toutes les propriétés stepn-theme */
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+        color: inherit !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        font-style: normal !important;
+        font-feature-settings: normal !important;
+        font-variant: normal !important;
+        -webkit-text-fill-color: inherit !important;
+        --stepn-accent: initial !important;
+        --stepn-text: initial !important;
+        --stepn-font-body: initial !important;
+        --stepn-font-heading-ultrabold: initial !important;
+      }
+      
+      /* Override spécifique pour les éléments stepn-theme.css */
+      .product-builder h1,
+      .product-builder h2,
+      .product-builder h3,
+      .product-builder h4,
+      .product-builder h5,
+      .product-builder h6 {
+        font-family: inherit !important;
+        color: #111827 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        font-weight: 600 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      
+      .product-builder p,
+      .product-builder span,
+      .product-builder label,
+      .product-builder div {
+        font-family: inherit !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        text-transform: none !important;
+      }
+      
+      .product-builder button {
+        font-family: inherit !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+      }
+      
+      .product-builder input,
+      .product-builder textarea,
+      .product-builder select {
+        font-family: inherit !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      
+      /* Classes utilitaires */
+      .customizer-tab-name {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      .color-class-card-label {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      .typography-back-button,
+      .typography-back-button * {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      .mobile-action-btn-black,
+      .mobile-action-btn-black * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
+    `;
+    
+    // Supprimer l'ancien style si il existe
+    const existingStyle = document.getElementById('customizer-tab-style');
+    if (existingStyle) {
+      existingStyle.remove();
     }
-    .color-class-card-label {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
+    
+    // Supprimer l'ancien style si il existe
+    const existingOverride = document.getElementById('product-builder-override');
+    if (existingOverride) {
+      existingOverride.remove();
     }
-    .typography-back-button,
-    .typography-back-button * {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .mobile-action-btn-black,
-    .mobile-action-btn-black * {
-      color: #ffffff !important;
-      -webkit-text-fill-color: #ffffff !important;
-      -webkit-text-stroke-color: #ffffff !important;
-    }
-  `;
-  if (!document.getElementById('customizer-tab-style')) {
-    style.id = 'customizer-tab-style';
+    
     document.head.appendChild(style);
+    
+    return () => {
+      const styleElement = document.getElementById('product-builder-override');
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
   }
-}
+}, []);
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
@@ -414,7 +488,7 @@ function ConnectTabContent({
       }}>
         <h2 style={{
           fontSize: '24px',
-          fontFamily: 'var(--stepn-font-body)',
+          fontFamily: 'inherit',
           color: '#ffffff',
           marginBottom: '8px',
           fontWeight: '600'
@@ -423,7 +497,7 @@ function ConnectTabContent({
         </h2>
         <p style={{
           fontSize: '14px',
-          fontFamily: 'var(--stepn-font-body)',
+          fontFamily: 'inherit',
           color: '#a0a0a0',
           marginBottom: '32px'
         }}>
@@ -457,7 +531,7 @@ function ConnectTabContent({
                 borderRadius: '6px',
                 color: loading ? '#666666' : '#000000',
                 fontSize: '12px',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s'
@@ -527,7 +601,7 @@ function ConnectTabContent({
           <div>
             <h3 style={{
               fontSize: '18px',
-              fontFamily: 'var(--stepn-font-body)',
+              fontFamily: 'inherit',
               color: '#ffffff',
               marginBottom: '16px',
               fontWeight: '600'
@@ -611,7 +685,7 @@ function ConnectTabContent({
                     <div style={{ flex: 1 }}>
                       <h4 style={{
                         fontSize: '16px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#ffffff',
                         margin: '0 0 8px 0',
                         fontWeight: '600'
@@ -621,7 +695,7 @@ function ConnectTabContent({
                       {product.vendor && (
                         <p style={{
                           fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: '#a0a0a0',
                           margin: '0 0 8px 0'
                         }}>
@@ -633,7 +707,7 @@ function ConnectTabContent({
                           <label style={{
                             display: 'block',
                             fontSize: '12px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: 'inherit',
                             color: '#a0a0a0',
                             marginBottom: '8px'
                           }}>
@@ -653,7 +727,7 @@ function ConnectTabContent({
                               borderRadius: '6px',
                               color: '#ffffff',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               outline: 'none',
                               cursor: 'pointer'
                             }}
@@ -675,7 +749,7 @@ function ConnectTabContent({
                       bottom: '12px',
                       right: '16px',
                       fontSize: '11px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       color: '#888888',
                       textAlign: 'right',
                       backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -712,7 +786,7 @@ function ConnectTabContent({
                     borderRadius: '8px',
                     color: '#000000',
                     fontSize: '16px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     fontWeight: '600',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
@@ -734,7 +808,7 @@ function ConnectTabContent({
         {!loading && products.length === 0 && shopDomain && (
           <p style={{
             fontSize: '14px',
-            fontFamily: 'var(--stepn-font-body)',
+            fontFamily: 'inherit',
             color: '#a0a0a0',
             textAlign: 'center',
             padding: '32px'
@@ -2031,7 +2105,7 @@ export default function ProductBuilderPage() {
       minHeight: '100vh', 
       backgroundColor: '#000000',
       display: 'flex',
-      fontFamily: 'var(--stepn-font-body), sans-serif',
+      fontFamily: 'inherit',
       flexDirection: 'column'
     }}>
       {/* Animations CSS pour le mobile */}
@@ -2139,7 +2213,7 @@ export default function ProductBuilderPage() {
                 <span style={{
                   color: '#111827',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   fontWeight: '600'
                 }}>
                   Mode Prévisualisation
@@ -2154,7 +2228,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
@@ -2230,7 +2304,7 @@ export default function ProductBuilderPage() {
                 color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 outline: 'none',
                 padding: '4px 8px',
                 borderRadius: '4px',
@@ -2270,7 +2344,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 fontWeight: activeTab === 'build' ? '600' : '400'
               }}
             >
@@ -2286,7 +2360,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 fontWeight: activeTab === 'pricing' ? '600' : '400'
               }}
             >
@@ -2302,7 +2376,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 fontWeight: activeTab === 'variants' ? '600' : '400',
                 display: 'flex',
                 alignItems: 'center',
@@ -2322,7 +2396,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 fontWeight: activeTab === 'connect' ? '600' : '400'
               }}
             >
@@ -2494,7 +2568,7 @@ export default function ProductBuilderPage() {
                   padding: '16px 24px',
                   zIndex: 10,
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   textAlign: 'center'
                 }}>
                   <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#8eff36' }}>
@@ -2531,7 +2605,7 @@ export default function ProductBuilderPage() {
                   fontSize: '18px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   margin: 0,
                   marginBottom: '8px'
                 }}>
@@ -2540,7 +2614,7 @@ export default function ProductBuilderPage() {
                 <p style={{
                   fontSize: '12px',
                   color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   margin: 0,
                   marginBottom: '16px'
                 }}>
@@ -2553,7 +2627,7 @@ export default function ProductBuilderPage() {
                     display: 'block',
                     fontSize: '11px',
                     color: '#a0a0a0',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     marginBottom: '6px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
@@ -2578,7 +2652,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '13px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -2596,7 +2670,7 @@ export default function ProductBuilderPage() {
                     <p style={{
                       fontSize: '11px',
                       color: '#666',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       marginTop: '6px',
                       fontStyle: 'italic'
                     }}>
@@ -2706,7 +2780,7 @@ export default function ProductBuilderPage() {
                         color: '#ffffff',
                         fontSize: '12px',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         fontWeight: '500',
                         transition: 'all 0.2s'
                       }}
@@ -2745,7 +2819,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2797,7 +2871,7 @@ export default function ProductBuilderPage() {
                         fontSize: '13px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -2990,7 +3064,7 @@ export default function ProductBuilderPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   fontWeight: '600'
                 }}
               >
@@ -3042,7 +3116,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <div style={{
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     color: '#ffffff',
                     marginBottom: '20px',
                     fontWeight: '600'
@@ -3060,14 +3134,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Zoom Speed
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3115,14 +3189,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Rotate Speed
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3170,14 +3244,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Min Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3225,14 +3299,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Max Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3280,14 +3354,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Initial Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3335,14 +3409,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         Initial Rotation Angle
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3402,7 +3476,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <p style={{
                     fontSize: '16px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     marginBottom: '12px',
                     color: '#ffffff',
                     fontWeight: '600'
@@ -3411,7 +3485,7 @@ export default function ProductBuilderPage() {
                   </p>
                   <p style={{
                     fontSize: '13px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     marginBottom: '24px',
                     color: '#a0a0a0',
                     maxWidth: '400px'
@@ -3429,7 +3503,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -3458,7 +3532,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <p style={{
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     marginBottom: '8px',
                     color: '#ff6b6b'
                   }}>
@@ -3466,7 +3540,7 @@ export default function ProductBuilderPage() {
                   </p>
                   <p style={{
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     marginBottom: '24px',
                     color: '#a0a0a0'
                   }}>
@@ -3483,7 +3557,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -3603,7 +3677,7 @@ export default function ProductBuilderPage() {
                       </div>
                       <div style={{
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#ffffff',
                         flex: 1
                       }}>
@@ -3631,7 +3705,7 @@ export default function ProductBuilderPage() {
                     >
                       <div style={{
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#ffffff',
                         marginBottom: '4px'
                       }}>
@@ -3639,7 +3713,7 @@ export default function ProductBuilderPage() {
                       </div>
                       <div style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         color: '#a0a0a0'
                       }}>
                         {question.type}
@@ -3664,7 +3738,7 @@ export default function ProductBuilderPage() {
                 <label style={{
                   display: 'block',
                   fontSize: '11px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   color: '#a0a0a0',
                   marginBottom: '6px'
                 }}>
@@ -3681,7 +3755,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -3700,7 +3774,7 @@ export default function ProductBuilderPage() {
                 <label style={{
                   display: 'block',
                   fontSize: '11px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   color: '#a0a0a0',
                   marginBottom: '6px'
                 }}>
@@ -3717,7 +3791,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -3967,7 +4041,7 @@ export default function ProductBuilderPage() {
                       style={{ 
                         color: '#000000',
                         fontSize: '14px', 
-                        fontFamily: 'var(--stepn-font-body)', 
+                        fontFamily: 'inherit', 
                         fontWeight: '500',
                         display: 'block',
                         lineHeight: '1.2'
@@ -4066,7 +4140,7 @@ export default function ProductBuilderPage() {
                                   fontWeight: '500',
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: 'inherit',
                                   transition: 'color 0.2s'
                                 }}
                                 className="color-class-card-label"
@@ -4272,7 +4346,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '14px',
                                       fontWeight: '500',
                                       color: '#111827',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: 'inherit',
                                       textAlign: 'center'
                                     }} className="color-class-card-label">
                                       {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
@@ -4357,7 +4431,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '16px',
                                   fontWeight: '600',
                                   color: '#000000',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: 'inherit',
                                   margin: 0
                                 }}>
                                   {selectedLogoForVariants.name}
@@ -5069,7 +5143,7 @@ export default function ProductBuilderPage() {
                               <div style={{
                                 fontSize: '14px',
                                 color: '#000000',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: 'inherit',
                                 fontWeight: '600',
                                 marginBottom: '4px'
                               }}>
@@ -5125,7 +5199,7 @@ export default function ProductBuilderPage() {
                                       <div style={{
                                         fontSize: '14px',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         fontWeight: selectedLogoId === logo.id ? '600' : '400'
                                       }}>
                                         {logoName}
@@ -5154,7 +5228,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '4px',
                                         color: '#ffffff',
                                         fontSize: '12px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         cursor: 'pointer',
                                         fontWeight: '500'
                                       }}
@@ -5188,7 +5262,7 @@ export default function ProductBuilderPage() {
                               border: '1px solid #e0e0e0',
                               borderRadius: '4px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               color: '#111827',
                               cursor: 'pointer'
                             }}>
@@ -5302,7 +5376,7 @@ export default function ProductBuilderPage() {
                                       style={{
                                         color: '#000000',
                                         fontSize: '12px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         fontWeight: isSelected ? '600' : '400',
                                         textAlign: 'center',
                                         margin: 0,
@@ -5332,7 +5406,7 @@ export default function ProductBuilderPage() {
                               border: '1px solid #e0e0e0',
                               borderRadius: '4px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               color: '#111827',
                               cursor: 'pointer'
                             }}>
@@ -5373,7 +5447,7 @@ export default function ProductBuilderPage() {
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
@@ -5403,7 +5477,7 @@ export default function ProductBuilderPage() {
                             <div style={{
                               fontSize: '14px',
                               color: '#000000',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               marginBottom: '4px',
                               fontWeight: '600'
                             }}>
@@ -5438,7 +5512,7 @@ export default function ProductBuilderPage() {
                                   <div style={{
                                     fontSize: '15px',
                                     color: '#ffffff',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: 'inherit',
                                     fontWeight: '500',
                                     lineHeight: '1.4'
                                   }}>
@@ -5447,7 +5521,7 @@ export default function ProductBuilderPage() {
                                   <div style={{
                                     fontSize: '12px',
                                     color: '#9ca3af',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: 'inherit',
                                     fontStyle: 'italic'
                                   }}>
                                     {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
@@ -5572,7 +5646,7 @@ export default function ProductBuilderPage() {
                                       color: activeTextTab === tab.id ? '#111827' : '#6b7280',
                                       fontSize: '12px',
                                       fontWeight: activeTextTab === tab.id ? '600' : '400',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: 'inherit',
                                       cursor: 'pointer',
                                       whiteSpace: 'nowrap',
                                       transition: 'all 0.2s',
@@ -5621,7 +5695,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '8px',
                                         color: '#111827',
                                         fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         outline: 'none',
                                         transition: 'border-color 0.2s'
                                       }}
@@ -5678,7 +5752,7 @@ export default function ProductBuilderPage() {
                                         <p style={{ 
                                           color: '#6b7280', 
                                           fontSize: '12px', 
-                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontFamily: 'inherit',
                                           padding: '12px',
                                           backgroundColor: '#f9fafb',
                                           borderRadius: '8px'
@@ -5737,7 +5811,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   color: '#111827',
                                                   WebkitTextFillColor: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: 'inherit',
                                                   textAlign: 'center',
                                                   fontWeight: '500',
                                                   backgroundColor: 'transparent'
@@ -5773,7 +5847,7 @@ export default function ProductBuilderPage() {
                                         fontWeight: '500',
                                         color: '#111827',
                                         marginBottom: '8px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         display: 'flex',
                                         justifyContent: 'space-between'
                                       }}>
@@ -5877,7 +5951,7 @@ export default function ProductBuilderPage() {
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: 'inherit',
                                                   textAlign: 'center'
                                                 }}>
                                                   {color?.name || (color?.hex || '#000000').toUpperCase()}
@@ -5962,7 +6036,7 @@ export default function ProductBuilderPage() {
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: 'inherit',
                                                   textAlign: 'center'
                                                 }}>
                                                   {color?.name || (color?.hex || '#000000').toUpperCase()}
@@ -5973,7 +6047,7 @@ export default function ProductBuilderPage() {
                                         </div>
                                       );
                                     })() : (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit', marginBottom: '20px' }}>
                                         Sélectionnez une palette de contours dans les réglages du module.
                                       </p>
                                     )}
@@ -6096,7 +6170,7 @@ export default function ProductBuilderPage() {
                                               marginTop: '6px',
                                               paddingTop: '4px',
                                               fontSize: '11px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: 'inherit',
                                               fontWeight: '400'
                                             }}>
                                               <span style={{ 
@@ -6156,7 +6230,7 @@ export default function ProductBuilderPage() {
                                           borderRadius: '8px',
                                           color: '#111827',
                                           fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontFamily: 'inherit',
                                           cursor: 'pointer',
                                           outline: 'none',
                                           marginBottom: selectedText.deformation ? '20px' : '0',
@@ -6229,7 +6303,7 @@ export default function ProductBuilderPage() {
                                               fontSize: '13px',
                                               fontWeight: '600',
                                               color: '#111827',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: 'inherit',
                                               minWidth: '60px',
                                               textAlign: 'right'
                                             }}>
@@ -6299,7 +6373,7 @@ export default function ProductBuilderPage() {
                                             marginTop: '6px',
                                             paddingTop: '4px',
                                             fontSize: '11px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: 'inherit',
                                             fontWeight: '400'
                                           }}>
                                             <span style={{ 
@@ -7223,7 +7297,7 @@ export default function ProductBuilderPage() {
                                         fontSize: '18px',
                                         fontWeight: '600',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         margin: 0
                                       }}>
                                         {selectedLogoForVariants.name}
@@ -7253,7 +7327,7 @@ export default function ProductBuilderPage() {
                                     
                                     {/* Liste des variantes */}
                                     {allVariants.length === 0 ? (
-                                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                                         Aucune variante disponible
                                       </p>
                                     ) : (
@@ -7341,7 +7415,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '11px',
                                                 fontWeight: '500',
                                                 color: '#111827',
-                                                fontFamily: 'var(--stepn-font-body)',
+                                                fontFamily: 'inherit',
                                                 textAlign: 'center'
                                               }}>
                                                 {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
@@ -7445,7 +7519,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '18px',
                                       fontWeight: '600',
                                       color: '#000000',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: 'inherit',
                                       margin: 0
                                     }}>
                                       {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
@@ -7475,7 +7549,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {allLogos.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                                       Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
                                     </p>
                                   ) : (
@@ -7576,7 +7650,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '11px',
                                             fontWeight: '500',
                                             color: '#111827',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: 'inherit',
                                             textAlign: 'center'
                                           }}>
                                             {logo.name}
@@ -7718,7 +7792,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {availableZones.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                                     </p>
                                   ) : (
@@ -8045,7 +8119,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {availableZones.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                                     </p>
                                   ) : (
@@ -8178,7 +8252,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '14px',
                                             fontWeight: '500',
                                             color: '#000000',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: 'inherit',
                                             marginBottom: '8px'
                                           }}>
                                             Entrez le texte
@@ -8250,7 +8324,7 @@ export default function ProductBuilderPage() {
                                               border: '1px solid #e0e0e0',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: 'inherit',
                                               color: '#111827',
                                               outline: 'none',
                                               boxSizing: 'border-box',
@@ -8322,7 +8396,7 @@ export default function ProductBuilderPage() {
                                               border: 'none',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: 'inherit',
                                               color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                                               color: '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
@@ -8682,7 +8756,7 @@ export default function ProductBuilderPage() {
                                             border: '1px solid #e5e7eb',
                                             borderRadius: '8px',
                                             fontSize: '13px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: 'inherit',
                                             color: '#111827',
                                             backgroundColor: '#ffffff'
                                           }}
@@ -8693,7 +8767,7 @@ export default function ProductBuilderPage() {
                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             {/* Titre centré sans bouton retour (le bouton retour principal du header suffit) */}
                                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)', textAlign: 'center' }}>
+                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'inherit', textAlign: 'center' }}>
                                                 {selectedLogoForVariants.name}
                                               </h3>
                                             </div>
@@ -8903,7 +8977,7 @@ export default function ProductBuilderPage() {
                                                             fontSize: '10px',
                                                             fontWeight: '500',
                                                             color: '#111827',
-                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            fontFamily: 'inherit',
                                                             textAlign: 'center'
                                                           }}>
                                                             {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
@@ -9134,7 +9208,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '10px',
                                                         fontWeight: '500',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)',
+                                                        fontFamily: 'inherit',
                                                         textAlign: 'center'
                                                       }}>
                                                         {logo.name}
@@ -9242,7 +9316,7 @@ export default function ProductBuilderPage() {
                                                 color: activeTextTab === tab.id ? '#111827' : '#6b7280',
                                                 fontSize: '11px',
                                                 fontWeight: activeTextTab === tab.id ? '600' : '400',
-                                                fontFamily: 'var(--stepn-font-body)',
+                                                fontFamily: 'inherit',
                                                 cursor: 'pointer',
                                                 whiteSpace: 'nowrap'
                                               }}
@@ -9277,7 +9351,7 @@ export default function ProductBuilderPage() {
                                                   border: '1px solid #d1d5db',
                                                   borderRadius: '6px',
                                                   fontSize: '14px',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: 'inherit',
                                                   color: '#111827',
                                                   outline: 'none',
                                                   boxSizing: 'border-box'
@@ -9339,7 +9413,7 @@ export default function ProductBuilderPage() {
                                                   <p style={{ 
                                                     color: '#6b7280', 
                                                     fontSize: '12px', 
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: 'inherit',
                                                     padding: '12px',
                                                     backgroundColor: '#f9fafb',
                                                     borderRadius: '8px'
@@ -9422,7 +9496,7 @@ export default function ProductBuilderPage() {
                                                             <span style={{
                                                               fontSize: '11px',
                                                               color: '#111827',
-                                                              fontFamily: 'var(--stepn-font-body)',
+                                                              fontFamily: 'inherit',
                                                               textAlign: 'center',
                                                               fontWeight: '500'
                                                             }}>
@@ -9458,7 +9532,7 @@ export default function ProductBuilderPage() {
                                                     fontWeight: '500',
                                                     color: '#111827',
                                                     marginBottom: '8px',
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: 'inherit',
                                                     display: 'flex',
                                                     justifyContent: 'space-between'
                                                   }}>
@@ -9811,7 +9885,7 @@ export default function ProductBuilderPage() {
                                                   </div>
                                                 );
                                               })() : (
-                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit', marginBottom: '16px' }}>
                                                   Sélectionnez une palette de contours dans les réglages du module.
                                                 </p>
                                               )}
@@ -9941,7 +10015,7 @@ export default function ProductBuilderPage() {
                                                     borderRadius: '6px',
                                                     color: '#111827',
                                                     fontSize: '14px',
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: 'inherit',
                                                     cursor: 'pointer',
                                                     outline: 'none',
                                                     marginBottom: selectedText.deformation ? '16px' : '0'
@@ -10007,7 +10081,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '13px',
                                                         fontWeight: '600',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)',
+                                                        fontFamily: 'inherit',
                                                         minWidth: '60px',
                                                         textAlign: 'right'
                                                       }}>
@@ -10658,7 +10732,7 @@ export default function ProductBuilderPage() {
                                       border: 'none',
                                       borderRadius: '6px',
                                       fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: 'inherit',
                                       color: '#ffffff',
                                       cursor: 'pointer',
                                       fontWeight: '500',
@@ -10849,7 +10923,7 @@ export default function ProductBuilderPage() {
                 fontSize: '16px',
                 fontWeight: '600',
                 color: '#ffffff',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 marginBottom: '24px'
               }}>
                 Module settings
@@ -10883,7 +10957,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     outline: 'none'
                   }}
                 />
@@ -10980,7 +11054,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       outline: 'none',
                       cursor: 'pointer'
                     }}
@@ -11009,7 +11083,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     outline: 'none'
                   }}
                 />
@@ -11047,7 +11121,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -11127,7 +11201,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           cursor: 'pointer',
                           outline: 'none'
                         }}
@@ -11159,7 +11233,7 @@ export default function ProductBuilderPage() {
                               fontSize: '11px',
                               color: '#888',
                               marginBottom: '4px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: 'inherit',
                               textTransform: 'capitalize'
                             }}>
                               {colorClass}
@@ -11189,7 +11263,7 @@ export default function ProductBuilderPage() {
                                 borderRadius: '4px',
                                 color: '#ffffff',
                                 fontSize: '14px',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: 'inherit',
                                 outline: 'none'
                               }}
                             />
@@ -11234,7 +11308,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -11345,7 +11419,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -11384,7 +11458,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -11423,7 +11497,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -11442,7 +11516,7 @@ export default function ProductBuilderPage() {
                       fontSize: '13px',
                       color: '#8eff36',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       fontWeight: '600'
                     }}>
                       📷 Vues de caméra personnalisées
@@ -11535,7 +11609,7 @@ export default function ProductBuilderPage() {
                                     fontSize: '11px',
                                     color: '#666',
                                     textAlign: 'center',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: 'inherit',
                                     fontStyle: 'italic'
                                   }}>
                                     Aucun label configuré
@@ -11579,7 +11653,7 @@ export default function ProductBuilderPage() {
                                               borderRadius: '4px',
                                               color: '#ffffff',
                                               fontSize: '12px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: 'inherit',
                                               outline: 'none'
                                             }}
                                           />
@@ -11631,7 +11705,7 @@ export default function ProductBuilderPage() {
                                             borderRadius: '4px',
                                             color: '#ffffff',
                                             fontSize: '11px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: 'inherit',
                                             cursor: 'pointer',
                                             outline: 'none'
                                           }}
@@ -11670,7 +11744,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '11px',
                                   color: '#a0a0a0',
                                   marginBottom: '8px',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: 'inherit',
                                   fontWeight: '500'
                                 }}>
                                   Vues disponibles du modèle 3D:
@@ -11805,7 +11879,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -11929,7 +12003,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -11977,7 +12051,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12020,7 +12094,7 @@ export default function ProductBuilderPage() {
                                 gap: '8px',
                                 padding: '8px',
                                 cursor: 'pointer',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: 'inherit',
                                 fontSize: '14px',
                                 color: '#ffffff'
                               }}
@@ -12084,7 +12158,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -12123,7 +12197,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -12162,7 +12236,7 @@ export default function ProductBuilderPage() {
                             alignItems: 'center',
                             gap: '8px',
                             cursor: 'pointer',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: 'inherit',
                             fontSize: '14px',
                             color: '#ffffff'
                           }}
@@ -12218,7 +12292,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12270,7 +12344,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12327,7 +12401,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           outline: 'none'
                         }}
                       />
@@ -12356,7 +12430,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           outline: 'none'
                         }}
                       />
@@ -12408,7 +12482,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           outline: 'none'
                         }}
                       />
@@ -12438,7 +12512,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           outline: 'none'
                         }}
                       />
@@ -12469,7 +12543,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none'
                       }}
                     />
@@ -12522,7 +12596,7 @@ export default function ProductBuilderPage() {
                             borderRadius: '4px',
                             color: '#ffffff',
                             fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: 'inherit',
                             outline: 'none'
                           }}
                         />
@@ -12564,7 +12638,7 @@ export default function ProductBuilderPage() {
                             borderRadius: '4px',
                             color: '#ffffff',
                             fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: 'inherit',
                             outline: 'none'
                           }}
                         />
@@ -12695,7 +12769,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         outline: 'none',
                         cursor: 'pointer'
                       }}
@@ -12889,7 +12963,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
@@ -12909,7 +12983,7 @@ export default function ProductBuilderPage() {
                 fontSize: '16px',
                 fontWeight: '600',
                 color: '#ffffff',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 marginBottom: '24px'
               }}>
                 Question settings
@@ -12937,7 +13011,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     outline: 'none'
                   }}
                 />
@@ -12964,7 +13038,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -12984,7 +13058,7 @@ export default function ProductBuilderPage() {
                   gap: '8px',
                   fontSize: '12px',
                   color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   cursor: 'pointer'
                 }}>
                   <input
@@ -13026,7 +13100,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       outline: 'none',
                       resize: 'vertical'
                     }}
@@ -13044,7 +13118,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
@@ -13070,14 +13144,14 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   marginBottom: '8px'
                 }}>
                   Module settings
                 </h3>
                 <p style={{
                   fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   lineHeight: '1.5'
                 }}>
                   Sélectionnez un module dans la sidebar de gauche pour voir ses réglages.
@@ -13151,7 +13225,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     outline: 'none',
                     boxSizing: 'border-box'
                   }}
@@ -13226,7 +13300,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: 'inherit',
                       outline: 'none',
                       boxSizing: 'border-box',
                       cursor: 'pointer'
@@ -13246,7 +13320,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     outline: 'none',
                     boxSizing: 'border-box'
                   }}
@@ -13281,7 +13355,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: 'inherit',
                     cursor: 'pointer',
                     outline: 'none',
                     boxSizing: 'border-box'
@@ -13326,7 +13400,7 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   transition: 'all 0.2s'
                 }}
               >
@@ -13344,7 +13418,7 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: (!newModule.tabName || !newModule.icon || !newModule.contentType) ? 'not-allowed' : 'pointer',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   transition: 'all 0.2s'
                 }}
               >
@@ -13614,7 +13688,7 @@ export default function ProductBuilderPage() {
                         fontSize: '14px',
                         fontWeight: '600',
                         color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: 'inherit',
                         marginBottom: '12px'
                       }}>
                         Contenu du texte
@@ -13714,7 +13788,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: '#000000',
                           outline: 'none'
                         }}
@@ -13739,7 +13813,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: '#000000',
                           cursor: 'pointer',
                           fontWeight: '500',
@@ -13843,7 +13917,7 @@ export default function ProductBuilderPage() {
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                           cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
@@ -14166,7 +14240,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: '#000000',
                           cursor: 'pointer',
                           fontWeight: '500',
@@ -14293,7 +14367,7 @@ export default function ProductBuilderPage() {
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: 'inherit',
                           color: '#ffffff',
                           cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
                           fontWeight: '500',
@@ -14468,7 +14542,7 @@ export default function ProductBuilderPage() {
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',
