@@ -3798,7 +3798,7 @@ function TextTab({
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={() => setShowZoneSelector(false)}>
           <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Titre */}
-            <h3 className="text-xl font-bold text-gray-900 mb-6">{labels.title}</h3>
+            <h3 className="text-xl font-bold mb-6" style={{ color: '#111827' }}>{labels.title}</h3>
             
             {filteredZones.length === 0 ? (
               <div className="text-center py-8 text-gray-600">
@@ -3925,7 +3925,7 @@ function TextTab({
       {isAddingText && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
           <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{labels.title}</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{labels.title}</h3>
             
             {/* Sélecteur de zone avec vignettes */}
             <div className="mb-4">
@@ -4507,7 +4507,7 @@ function LogoTab({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
         <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Importer un logo</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Importer un logo</h3>
           
           <div className="space-y-4">
             <div>
@@ -4542,7 +4542,25 @@ function LogoTab({
             <button
               onClick={handleUploadLogo}
               disabled={!selectedFile || isUploading}
-              className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 rounded-lg disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: (!selectedFile || isUploading) ? '#d1d5db' : '#000000',
+                color: (!selectedFile || isUploading) ? '#111827' : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                if (!e.currentTarget.disabled) {
+                  e.currentTarget.style.backgroundColor = '#1f2937';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (e.currentTarget.disabled) {
+                  e.currentTarget.style.backgroundColor = '#d1d5db';
+                  e.currentTarget.style.color = '#111827';
+                } else {
+                  e.currentTarget.style.backgroundColor = '#000000';
+                  e.currentTarget.style.color = '#ffffff';
+                }
+              }}
             >
               {isUploading ? 'Upload...' : 'Importer'}
             </button>
@@ -4557,7 +4575,7 @@ function LogoTab({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Choisir une zone de placement</h3>
           
           {/* Sélection de zone par vignettes */}
           <div className="mb-6">
@@ -4631,7 +4649,25 @@ function LogoTab({
             <button
               onClick={handleZoneSelect}
               disabled={!selectedZone}
-              className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 rounded-lg disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: !selectedZone ? '#d1d5db' : '#000000',
+                color: !selectedZone ? '#111827' : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                if (!e.currentTarget.disabled) {
+                  e.currentTarget.style.backgroundColor = '#1f2937';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (e.currentTarget.disabled) {
+                  e.currentTarget.style.backgroundColor = '#d1d5db';
+                  e.currentTarget.style.color = '#111827';
+                } else {
+                  e.currentTarget.style.backgroundColor = '#000000';
+                  e.currentTarget.style.color = '#ffffff';
+                }
+              }}
             >
               Confirmer
             </button>
@@ -8344,20 +8380,21 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               </div>
               
               {/* Titre */}
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium mb-2" style={{ color: '#111827' }}>
                 Supprimer l'élément ?
               </h3>
               
               {/* Message */}
-              <p className="text-sm text-gray-500 mb-6">
-                Êtes-vous sûr de vouloir supprimer le texte <span className="font-medium text-gray-900">"{deleteConfirmation.textContent}"</span> ? Cette action ne peut pas être annulée.
+              <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
+                Êtes-vous sûr de vouloir supprimer le texte <span style={{ color: '#111827', fontWeight: '500' }}>"{deleteConfirmation.textContent}"</span> ? Cette action ne peut pas être annulée.
               </p>
               
               {/* Boutons */}
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  style={{ color: '#111827', backgroundColor: '#ffffff' }}
                 >
                   Non
                 </button>
@@ -8396,20 +8433,21 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               </div>
               
               {/* Titre */}
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium mb-2" style={{ color: '#111827' }}>
                 Supprimer l'élément ?
               </h3>
               
               {/* Message */}
-              <p className="text-sm text-gray-500 mb-6">
-                Êtes-vous sûr de vouloir supprimer le logo <span className="font-medium text-gray-900">"{logoDeleteConfirmation.logoName}"</span> ? Cette action ne peut pas être annulée.
+              <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
+                Êtes-vous sûr de vouloir supprimer le logo <span style={{ color: '#111827', fontWeight: '500' }}>"{logoDeleteConfirmation.logoName}"</span> ? Cette action ne peut pas être annulée.
               </p>
               
               {/* Boutons */}
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={cancelLogoDelete}
-                  className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  style={{ color: '#111827', backgroundColor: '#ffffff' }}
                 >
                   Non
                 </button>
