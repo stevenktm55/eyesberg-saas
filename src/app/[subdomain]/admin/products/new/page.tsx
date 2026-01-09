@@ -828,7 +828,7 @@ export default function ProductBuilderPage() {
   const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
   const [zoneGroups, setZoneGroups] = useState<Array<{ id: string; name: string; zones: Array<{ id: string; name: string; view?: string; position: [number, number, number]; thumbnailUrl?: string; rotation?: number; width?: number; height?: number }> }>>([
     {
-      id: 'test-group',
+      id: 'f9f8c4fa-66a3-4f59-9296-6466dda70f24', // Utiliser le vrai ID du groupe
       name: 'Zones Test',
       zones: [
         {
@@ -852,19 +852,6 @@ export default function ProductBuilderPage() {
   ]);
   const [textZones, setTextZones] = useState<any[]>([]);
 
-  // Configurer automatiquement les modules logos avec les zones de test
-  useEffect(() => {
-    setCustomizationModules(prev => prev.map(module => {
-      if (module.contentType === 'logos' && !module.logoZoneGroupIds) {
-        return {
-          ...module,
-          logoZoneGroupIds: ['test-group'], // Utiliser notre groupe de test
-          logoPlacementMode: 'zones' // S'assurer que le mode zones est activé
-        };
-      }
-      return module;
-    }));
-  }, []);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [textInputValue, setTextInputValue] = useState<string>('');
   const [showZoneSelectionModal, setShowZoneSelectionModal] = useState(false);
@@ -14021,6 +14008,19 @@ export default function ProductBuilderPage() {
                 console.log('🔍 Modal zones - zoneGroups disponibles:', zoneGroups);
                 console.log('🔍 Modal zones - activeLogoView:', activeLogoView);
                 
+                // Chercher la vue active dans customViews pour obtenir son label
+                const customViews = [
+                  { id: 'front', label: 'Face', cameraViewId: null },
+                  { id: 'back', label: 'Dos', cameraViewId: null },
+                  { id: 'left', label: 'Gauche', cameraViewId: null },
+                  { id: 'right', label: 'Droite', cameraViewId: null }
+                ];
+                
+                // Trouver la vue active
+                const activeViewConfig = customViews.find(v => v.id === activeLogoView);
+                const activeViewLabel = activeViewConfig?.label || activeLogoView;
+                console.log('🔍 Modal zones - activeViewLabel calculé:', activeViewLabel);
+                
                 // Récupérer les zones des groupes sélectionnés
                 const availableZones = zoneGroups
                   .filter(group => activeModule.logoZoneGroupIds?.includes(group.id))
@@ -14037,9 +14037,9 @@ export default function ProductBuilderPage() {
                 };
                 
                 const filteredZones = availableZones.filter(zone => {
-                  const zoneView = zone.view ? viewLabels[zone.view] : undefined;
-                  console.log('🔍 Zone filtrage:', zone.name, 'view:', zone.view, 'zoneView:', zoneView, 'activeLogoView:', activeLogoView);
-                  if (zoneView && zoneView !== activeLogoView) return false;
+                  // Comparer directement avec le label de la vue de la zone
+                  console.log('🔍 Zone filtrage:', zone.name, 'zone.view:', zone.view, 'activeViewLabel:', activeViewLabel);
+                  if (zone.view && zone.view !== activeViewLabel) return false;
                   return true;
                 });
                 
