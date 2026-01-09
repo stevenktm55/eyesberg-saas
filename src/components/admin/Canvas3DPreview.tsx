@@ -331,12 +331,12 @@ export function Canvas3DPreview({
             {modelUrl ? (
               <Canvas
                 gl={{ antialias: true, alpha: true }}
-                camera={{ position: [0, 0, 5], fov: 50 }}
+                camera={{ position: [0, 0, 15], fov: 50 }}
                 className="bg-gray-900"
                 style={{ width: '100%', height: '100%' }}
               >
                 <Suspense fallback={null}>
-                  <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+                  <PerspectiveCamera makeDefault position={[0, 0, 15]} />
                   <ambientLight intensity={0.5} />
                   <directionalLight position={[10, 10, 5]} intensity={1} />
                   <Simple3DViewer
@@ -349,7 +349,7 @@ export function Canvas3DPreview({
                     enableZoom={true}
                     enableRotate={true}
                     minDistance={2}
-                    maxDistance={10}
+                    maxDistance={20}
                   />
                   <Environment preset="studio" />
                 </Suspense>
