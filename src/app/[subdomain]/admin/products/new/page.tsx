@@ -7934,19 +7934,8 @@ export default function ProductBuilderPage() {
                                               // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
                                               if (cameraView) {
                                                 setTimeout(() => {
-                                                  // Appliquer le facteur de correction d'échelle (même que pour les vues caméra)
-                                                  const scaleFactor = 4.67;
-                                                  const correctedCameraView = {
-                                                    ...cameraView,
-                                                    position: {
-                                                      x: cameraView.position.x * scaleFactor,
-                                                      y: cameraView.position.y * scaleFactor,
-                                                      z: cameraView.position.z * scaleFactor
-                                                    }
-                                                  };
-                                                  console.log('🔧 Vue caméra zone - Position originale:', cameraView.position);
-                                                  console.log('🔧 Vue caméra zone - Position corrigée (x' + scaleFactor + '):', correctedCameraView.position);
-                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: correctedCameraView }));
+                                                  console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                                                 }, 100);
                                               }
                                               
@@ -14303,6 +14292,50 @@ export default function ProductBuilderPage() {
                               zoneHeight,
                               zoneRotation
                             );
+                            
+                            // Positionner la caméra selon la vue de la zone (comme dans le mobile)
+                            const viewToCameraView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                              'Face': 'front',
+                              'Dos': 'back',
+                              'Gauche': 'left',
+                              'Droite': 'right',
+                              'front': 'front',
+                              'back': 'back',
+                              'left': 'left',
+                              'right': 'right'
+                            };
+                            
+                            // Déterminer la vue de la caméra
+                            let cameraView: 'front' | 'back' | 'left' | 'right' | null = null;
+                            
+                            // Si la zone a une vue, l'utiliser directement
+                            if (selectedZone.view) {
+                              const zoneView = String(selectedZone.view);
+                              if (viewToCameraView[zoneView]) {
+                                cameraView = viewToCameraView[zoneView];
+                              }
+                            }
+                            
+                            // Sinon, mapper la catégorie à une vue
+                            if (!cameraView && zoneCategory) {
+                              const categoryToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                'torse': 'front',
+                                'dos': 'back',
+                                'bras-gauche': 'left',
+                                'bras-droit': 'right'
+                              };
+                              if (categoryToView[zoneCategory]) {
+                                cameraView = categoryToView[zoneCategory];
+                              }
+                            }
+                            
+                            // Déclencher l'événement avec un délai pour éviter qu'il soit écrasé
+                            if (cameraView && viewportMode !== 'mobile') {
+                              setTimeout(() => {
+                                console.log('🔧 Vue caméra zone desktop - cameraView:', cameraView);
+                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
+                              }, 100);
+                            }
                             
                             // Ne pas réinitialiser la caméra en mode mobile
                             if (zoneCategory && viewportMode !== 'mobile') {
