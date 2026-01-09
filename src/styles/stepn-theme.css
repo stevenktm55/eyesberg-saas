@@ -198,27 +198,17 @@ body:not(.product-builder) select,
   -webkit-text-fill-color: #111827 !important;
 }
 
+/* Reset des styles globaux pour les boutons dans .product-builder - NE PAS forcer background-color et color */
+/* Les styles inline doivent prévaloir */
 .product-builder button {
   font-family: inherit !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
-  /* Ne pas override les couleurs et backgrounds définis inline ou via classes */
-  background-color: inherit !important;
-  color: inherit !important;
-}
-
-/* Reset des styles globaux pour les boutons dans .product-builder - NE PAS forcer background-color et color */
-/* Les styles inline doivent prévaloir */
-.product-builder button {
-  /* Reset uniquement les propriétés qui ne concernent pas les couleurs */
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  /* NE PAS mettre background-color: inherit !important ni color: inherit !important */
-  /* car cela override les styles inline */
+  /* IMPORTANT: NE PAS mettre background-color: inherit !important ni color: inherit !important */
+  /* car cela override les styles inline qui définissent backgroundColor: '#000000' et color: '#ffffff' */
+  /* Les couleurs doivent venir des styles inline ou des classes btn-black/btn-red */
 }
 
 /* Inputs dans .product-builder - FORCER fond blanc et texte gris avec spécificité maximale */
