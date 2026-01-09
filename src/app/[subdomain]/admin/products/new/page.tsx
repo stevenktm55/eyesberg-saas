@@ -14519,6 +14519,21 @@ export default function ProductBuilderPage() {
       )}
 
       </div>
+      
+      {/* TEST MODAL ADMIN - devrait être visible */}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        left: '20px',
+        backgroundColor: 'purple',
+        color: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        zIndex: 99999,
+        border: '3px solid orange'
+      }}>
+        🔧 ADMIN TEST MODAL - Si vous voyez ceci, le code admin fonctionne !
+      </div>
     </div>
   );
 }
