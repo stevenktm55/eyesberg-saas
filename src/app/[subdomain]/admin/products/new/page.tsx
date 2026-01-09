@@ -155,6 +155,7 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         if (defaultPositions[view]) {
           const coords = defaultPositions[view];
           console.log('🎬 CameraController - Conversion vue legacy:', view, '→', coords);
+          console.log('⚠️ ATTENTION: Vue legacy utilisée au lieu de vue sauvegardée!');
           
           // Créer un nouvel événement avec les coordonnées
           const convertedEvent = {
@@ -168,6 +169,9 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
           const { position, target } = convertedEvent.detail;
           processPositionAndTarget(position, target);
           return;
+        } else {
+          console.log('❌ CameraController - Vue legacy inconnue:', view);
+          console.log('🔍 Vues disponibles:', Object.keys(defaultPositions));
         }
       }
       
