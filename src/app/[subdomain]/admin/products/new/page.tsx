@@ -187,8 +187,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
   }, [camera, controlsRef]);
 
-  // TODO: Charger les zones depuis l'API une fois le problème productId résolu
-  console.log('🔍 ProductId disponible:', !!productId, 'Shop disponible:', !!searchParams.get('shop'));
 
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
@@ -708,8 +706,6 @@ export default function ProductBuilderPage() {
   const [productId, setProductId] = useState<string | null>(null);
   const [productName, setProductName] = useState('Untitled Product');
   
-  // Debug: Vérifier que productId est bien défini
-  console.log('🔍 ProductBuilderPage - productId state:', productId);
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [customizationModules, setCustomizationModules] = useState<CustomizationModule[]>([]);
@@ -6875,7 +6871,24 @@ export default function ProductBuilderPage() {
                                     isResizingText={isResizingText}
                                     setIsResizingText={setIsResizingText}
                                     isPlacingText={isPlacingText}
-                                    textZones={textZones} // Zones chargées depuis l'API
+                                    textZones={[
+                                      {
+                                        id: 'test-zone-face',
+                                        name: 'Zone Face Test',
+                                        position: [0.5, 0.5, 0],
+                                        view: 'Face',
+                                        is_logo: true,
+                                        categories: ['logo-torse']
+                                      },
+                                      {
+                                        id: 'test-zone-dos',
+                                        name: 'Zone Dos Test', 
+                                        position: [0.5, 0.3, 0],
+                                        view: 'Dos',
+                                        is_logo: true,
+                                        categories: ['logo-dos']
+                                      }
+                                    ]} // Zones de test pour vérifier le système
                                     onTextPlaced={handleTextPlaced}
                                     onCanvasReady={(canvas: HTMLCanvasElement | null) => setUv2Canvas(canvas)}
                                     textSizeLimits={{ min: textConstraints.minFontSizePx, max: textConstraints.maxFontSizePx }}
