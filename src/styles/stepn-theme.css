@@ -212,6 +212,7 @@ body:not(.product-builder) select,
 }
 
 /* Inputs dans .product-builder - FORCER fond blanc et texte gris avec spécificité maximale */
+/* Ces règles doivent override les règles globales pour body:not(.product-builder) input */
 .product-builder input[type="text"],
 .product-builder input[type="email"],
 .product-builder input[type="password"],
@@ -219,8 +220,23 @@ body:not(.product-builder) select,
 .product-builder input[type="number"],
 .product-builder input[type="search"],
 .product-builder input,
+.product-builder input[type="text"]:focus,
+.product-builder input[type="email"]:focus,
+.product-builder input[type="password"]:focus,
+.product-builder input[type="file"]:focus,
+.product-builder input[type="number"]:focus,
+.product-builder input[type="search"]:focus,
+.product-builder input:focus,
+.product-builder input[type="text"]:active,
+.product-builder input[type="email"]:active,
+.product-builder input[type="password"]:active,
+.product-builder input:active,
 .product-builder textarea,
-.product-builder select {
+.product-builder textarea:focus,
+.product-builder textarea:active,
+.product-builder select,
+.product-builder select:focus,
+.product-builder select:active {
   font-family: inherit !important;
   color: #6b7280 !important;
   -webkit-text-fill-color: #6b7280 !important;
@@ -232,7 +248,7 @@ body:not(.product-builder) select,
   border-color: #e5e7eb !important;
   border-width: 1px !important;
   border-style: solid !important;
-  /* Override tous les styles stepn-theme.css */
+  /* Override tous les styles stepn-theme.css avec spécificité maximale */
   --stepn-input-bg: #ffffff !important;
   --stepn-text: #6b7280 !important;
 }
