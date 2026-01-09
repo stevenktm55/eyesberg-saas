@@ -15,79 +15,108 @@ useEffect(() => {
     const style = document.createElement('style');
     style.id = 'product-builder-override';
     style.textContent = `
-      /* Désactiver complètement stepn-theme.css pour .product-builder */
-      .product-builder * {
-        /* Réinitialiser toutes les propriétés stepn-theme */
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-        color: inherit !important;
-        text-transform: none !important;
+      /* Annuler TOUTES les règles stepn-theme.css pour .product-builder */
+      /* Utiliser une spécificité maximale pour override les règles globales */
+      .product-builder h1,
+      .product-builder h2 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+        font-weight: 600 !important;
         letter-spacing: normal !important;
+        margin: 0 !important;
+        color: #111827 !important;
+        text-transform: none !important;
         font-style: normal !important;
         font-feature-settings: normal !important;
         font-variant: normal !important;
-        -webkit-text-fill-color: inherit !important;
+        text-rendering: auto !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        -webkit-text-fill-color: #111827 !important;
+        /* Annuler les variables stepn */
         --stepn-accent: initial !important;
         --stepn-text: initial !important;
         --stepn-font-body: initial !important;
         --stepn-font-heading-ultrabold: initial !important;
       }
       
-      /* Override spécifique pour les éléments stepn-theme.css */
-      .product-builder h1,
-      .product-builder h2,
       .product-builder h3,
-      .product-builder h4,
-      .product-builder h5,
-      .product-builder h6 {
-        font-family: inherit !important;
+      .product-builder h4 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: normal !important;
+        margin: 0 !important;
         color: #111827 !important;
         text-transform: none !important;
-        letter-spacing: normal !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      
+      .product-builder h5,
+      .product-builder h6 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
         font-weight: 600 !important;
+        letter-spacing: normal !important;
+        margin: 0 !important;
+        color: #111827 !important;
+        text-transform: none !important;
         -webkit-text-fill-color: #111827 !important;
       }
       
       .product-builder p,
       .product-builder span,
       .product-builder label,
+      .product-builder a,
       .product-builder div {
-        font-family: inherit !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
         color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
         text-transform: none !important;
+        letter-spacing: normal !important;
+        font-feature-settings: normal !important;
+        font-variant: normal !important;
+        text-rendering: auto !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        -webkit-text-fill-color: #111827 !important;
+        --stepn-text: initial !important;
+        --stepn-font-body: initial !important;
       }
       
       .product-builder button {
-        font-family: inherit !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+        font-weight: 500 !important;
         text-transform: none !important;
         letter-spacing: normal !important;
+        --stepn-font-body: initial !important;
       }
       
       .product-builder input,
       .product-builder textarea,
       .product-builder select {
-        font-family: inherit !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
         color: #111827 !important;
         -webkit-text-fill-color: #111827 !important;
+        font-feature-settings: normal !important;
+        font-variant: normal !important;
+        text-rendering: auto !important;
+        --stepn-text: initial !important;
+        --stepn-font-body: initial !important;
       }
       
       /* Classes utilitaires */
-      .customizer-tab-name {
+      .product-builder .customizer-tab-name {
         color: #111827 !important;
         -webkit-text-fill-color: #111827 !important;
       }
-      .color-class-card-label {
+      .product-builder .color-class-card-label {
         color: #111827 !important;
         -webkit-text-fill-color: #111827 !important;
       }
-      .typography-back-button,
-      .typography-back-button * {
+      .product-builder .typography-back-button,
+      .product-builder .typography-back-button * {
         color: #111827 !important;
         -webkit-text-fill-color: #111827 !important;
       }
-      .mobile-action-btn-black,
-      .mobile-action-btn-black * {
+      .product-builder .mobile-action-btn-black,
+      .product-builder .mobile-action-btn-black * {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
       }
@@ -547,7 +576,7 @@ function ConnectTabContent({
             padding: '24px',
             textAlign: 'center',
             color: '#a0a0a0',
-            fontFamily: 'var(--stepn-font-body)'
+            fontFamily: 'inherit'
           }}>
             Chargement de la boutique connectée...
           </div>
@@ -2321,11 +2350,11 @@ export default function ProductBuilderPage() {
             {/* Auto-save indicator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px' }}>
               {saving ? (
-                <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'inherit' }}>
                   Saving...
                 </span>
               ) : lastSaved ? (
-                <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'inherit' }}>
                   Saved {lastSaved.toLocaleTimeString()}
                 </span>
               ) : null}
@@ -2436,7 +2465,7 @@ export default function ProductBuilderPage() {
               cursor: 'pointer'
             }}>
               <span style={{ color: '#a0a0a0', fontSize: '12px' }}>?</span>
-              <span style={{ color: '#ffffff', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Logic</span>
+              <span style={{ color: '#ffffff', fontSize: '12px', fontFamily: 'inherit' }}>Logic</span>
             </div>
             <div style={{
               display: 'flex',
@@ -2449,7 +2478,7 @@ export default function ProductBuilderPage() {
               cursor: 'pointer'
             }}>
               <span style={{ color: '#8eff36', fontSize: '12px' }}>👁</span>
-              <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Published</span>
+              <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'inherit' }}>Published</span>
             </div>
             <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▼</span>
           </div>
@@ -2695,7 +2724,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '8px',
                       padding: '16px',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}
                   >
                     <div style={{
@@ -2852,7 +2881,7 @@ export default function ProductBuilderPage() {
                         fontSize: '13px',
                         fontWeight: '500',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: 'inherit'
                       }}
                     >
                       Annuler
@@ -2935,7 +2964,7 @@ export default function ProductBuilderPage() {
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                 `;
                 successModal.innerHTML = `
-                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                  <div style="text-align: center; color: #ffffff; font-family: inherit;">
                     <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #8eff36;">Produit lié avec succès !</div>
                     <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
@@ -2950,7 +2979,7 @@ export default function ProductBuilderPage() {
                       font-size: 14px;
                       font-weight: 600;
                       cursor: pointer;
-                      font-family: var(--stepn-font-body);
+                      font-family: inherit;
                     ">Fermer</button>
                   </div>
                 `;
@@ -2980,7 +3009,7 @@ export default function ProductBuilderPage() {
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                 `;
                 errorModal.innerHTML = `
-                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                  <div style="text-align: center; color: #ffffff; font-family: inherit;">
                     <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #ef4444;">Erreur</div>
                     <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
@@ -2995,7 +3024,7 @@ export default function ProductBuilderPage() {
                       font-size: 14px;
                       font-weight: 600;
                       cursor: pointer;
-                      font-family: var(--stepn-font-body);
+                      font-family: inherit;
                     ">Fermer</button>
                   </div>
                 `;
@@ -4060,7 +4089,7 @@ export default function ProductBuilderPage() {
                   }}>
                     {!activeModule.contentType ? (
                       <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                           Configurez le module dans les settings pour afficher du contenu.
                         </p>
                       </div>
@@ -4169,7 +4198,7 @@ export default function ProductBuilderPage() {
                                   fontWeight: '500',
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: 'inherit'
                                 }} className="color-class-card-label">
                                   {currentColorName || activeModule.colorClassLabels?.[selectedColorClass] || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
                                 </span>
@@ -4281,7 +4310,7 @@ export default function ProductBuilderPage() {
                       return (
                         <div>
                           {!activeModule.selectedItems?.colorPaletteId ? (
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                               Veuillez sélectionner une palette dans les paramètres du module.
                             </p>
                           ) : (
@@ -4370,7 +4399,7 @@ export default function ProductBuilderPage() {
                       if (!hasSelectedLibraries) {
                         return (
                           <div>
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                               Sélectionnez des bibliothèques de logos dans les settings du module.
                             </p>
                           </div>
@@ -4440,7 +4469,7 @@ export default function ProductBuilderPage() {
                               
                               {/* Liste des variantes */}
                               {allVariants.length === 0 ? (
-                                <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                                <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                                   Aucune variante disponible
                                 </p>
                               ) : (
@@ -4797,7 +4826,7 @@ export default function ProductBuilderPage() {
                             
                             {/* Bibliothèque de logos */}
                             {allLogos.length === 0 ? (
-                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                                 Aucun logo disponible dans les bibliothèques sélectionnées
                               </p>
                             ) : (
@@ -5207,7 +5236,7 @@ export default function ProductBuilderPage() {
                                       <div style={{
                                         fontSize: '11px',
                                         color: '#666',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: 'inherit'
                                       }}>
                                         {logo.category === 'torse' ? 'Torse' : 
                                          logo.category === 'dos' ? 'Dos' : 
@@ -5287,7 +5316,7 @@ export default function ProductBuilderPage() {
                       return (
                         <div>
                           {visibleDesigns.length === 0 ? (
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                               Aucun design disponible. Cochez des designs dans les settings du module.
                             </p>
                           ) : (
@@ -5607,7 +5636,7 @@ export default function ProductBuilderPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '4px',
-                                    fontFamily: 'var(--stepn-font-body)'
+                                    fontFamily: 'inherit'
                                   }}
                                   className="typography-back-button"
                                 >
@@ -5618,7 +5647,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '14px',
                                   fontWeight: '600',
                                   color: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: 'inherit'
                                 }}>
                                   Typographie
                                 </div>
@@ -5679,7 +5708,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: 'inherit'
                                     }}>
                                       Contenu du texte
                                     </div>
@@ -5744,7 +5773,7 @@ export default function ProductBuilderPage() {
                                         fontWeight: '500',
                                         color: '#111827',
                                         marginBottom: '12px',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: 'inherit'
                                       }}>
                                         Police
                                       </div>
@@ -5875,7 +5904,7 @@ export default function ProductBuilderPage() {
                                           color: '#111827',
                                           minWidth: '48px',
                                           textAlign: 'right',
-                                          fontFamily: 'var(--stepn-font-body)'
+                                          fontFamily: 'inherit'
                                         }}>
                                           {Math.round(selectedText.fontSize)} px
                                         </span>
@@ -5893,7 +5922,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: 'inherit'
                                     }}>
                                       Couleur
                                     </div>
@@ -5901,7 +5930,7 @@ export default function ProductBuilderPage() {
                                       const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
                                       if (!palette) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                             Palette introuvable. Veuillez en sélectionner une autre.
                                           </p>
                                         );
@@ -5909,7 +5938,7 @@ export default function ProductBuilderPage() {
                                       const paletteColors = palette.colors || [];
                                       if (paletteColors.length === 0) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                             La palette sélectionnée ne contient aucune couleur.
                                           </p>
                                         );
@@ -5962,7 +5991,7 @@ export default function ProductBuilderPage() {
                                         </div>
                                       );
                                     })() : (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                         Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                       </p>
                                     )}
@@ -5977,7 +6006,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: 'inherit'
                                     }}>
                                       Contour
                                     </div>
@@ -5985,7 +6014,7 @@ export default function ProductBuilderPage() {
                                       const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
                                       if (!palette) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                             Palette introuvable. Veuillez en sélectionner une autre.
                                           </p>
                                         );
@@ -5993,7 +6022,7 @@ export default function ProductBuilderPage() {
                                       const paletteColors = palette.colors || [];
                                       if (paletteColors.length === 0) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                             La palette sélectionnée ne contient aucune couleur.
                                           </p>
                                         );
@@ -6085,7 +6114,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '13px',
                                                 fontWeight: '500',
                                                 color: '#111827',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}>
                                                 Épaisseur {currentPxValue}
                                               </div>
@@ -6199,7 +6228,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: 'inherit'
                                     }}>
                                       Type de déformation
                                     </div>
@@ -6295,7 +6324,7 @@ export default function ProductBuilderPage() {
                                               fontSize: '13px',
                                               fontWeight: '500',
                                               color: '#111827',
-                                              fontFamily: 'var(--stepn-font-body)'
+                                              fontFamily: 'inherit'
                                             }}>
                                               Intensité
                                             </div>
@@ -6404,7 +6433,7 @@ export default function ProductBuilderPage() {
                       </div>
                     ) : (
                       <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'inherit' }}>
                           Sélectionnez un élément dans les settings du module.
                         </p>
                       </div>
@@ -7870,7 +7899,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   fontWeight: '500',
                                                   color: '#111827',
-                                fontFamily: 'var(--stepn-font-body)'
+                                fontFamily: 'inherit'
                               }}>
                                                   {zone.name}
                                                   {zone.view && ` (${zone.view})`}
@@ -7978,7 +8007,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '14px',
                                             fontWeight: '600',
                                             cursor: 'pointer',
-                                            fontFamily: 'var(--stepn-font-body)'
+                                            fontFamily: 'inherit'
                                           }}
                                         >
                                           Placer le logo
@@ -8233,7 +8262,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   fontWeight: '500',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: 'inherit'
                                                 }}>
                                                   {zone.name}
                                                   {zone.view && ` (${zone.view})`}
@@ -8651,7 +8680,7 @@ export default function ProductBuilderPage() {
                                                 window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
                                               }
                                             }} 
-                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'inherit' }}
                                           >
                                             {viewConfig.label}
                                           </button>
@@ -8704,7 +8733,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '13px', 
                                                   fontWeight: '500', 
                                                   cursor: 'pointer', 
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: 'inherit'
                                                 }}
                                               >
                                                 <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -8734,7 +8763,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '13px', 
                                                 fontWeight: '500', 
                                                 cursor: 'pointer', 
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}
                                               className="mobile-action-btn-black"
                                             >
@@ -8994,11 +9023,11 @@ export default function ProductBuilderPage() {
                                           <>
                                             {/* Bibliothèque de logos en scroll horizontal */}
                                             {allLogos.length === 0 ? (
-                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'inherit' }}>
                                                 Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
                                               </p>
                                             ) : filteredLogos.length === 0 ? (
-                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'inherit' }}>
                                                 Aucun logo trouvé pour "{logoSearchQuery}"
                                               </p>
                                             ) : (
@@ -9230,7 +9259,7 @@ export default function ProductBuilderPage() {
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
-                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'inherit' }}
                                           className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -9238,12 +9267,12 @@ export default function ProductBuilderPage() {
                                     </button>
                                     {/* Logos placés */}
                                     <div>
-                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>{activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})</h3>
+                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'inherit' }}>{activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})</h3>
                                       {modulePlacedLogos.length === 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
                                           <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                              <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo ajouté</p>
-                                              <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
+                                              <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'inherit' }}>Aucun logo ajouté</p>
+                                              <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'inherit' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
                                         </div>
                                       ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -9336,7 +9365,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}>
                                                 Contenu du texte
                                               </div>
@@ -9405,7 +9434,7 @@ export default function ProductBuilderPage() {
                                                   fontWeight: '500',
                                                   color: '#111827',
                                                   marginBottom: '12px',
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: 'inherit'
                                                 }}>
                                                   Police
                                                 </div>
@@ -9560,7 +9589,7 @@ export default function ProductBuilderPage() {
                                                       color: '#111827',
                                                       minWidth: '48px',
                                                       textAlign: 'right',
-                                                      fontFamily: 'var(--stepn-font-body)'
+                                                      fontFamily: 'inherit'
                                                     }}>
                                                       {Math.round(selectedText.fontSize)} px
                                                     </span>
@@ -9578,7 +9607,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}>
                                                 Couleur
                                               </div>
@@ -9586,7 +9615,7 @@ export default function ProductBuilderPage() {
                                                 const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
                                                 if (!palette) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                                       Palette introuvable. Veuillez en sélectionner une autre.
                                                     </p>
                                                   );
@@ -9594,7 +9623,7 @@ export default function ProductBuilderPage() {
                                                 const paletteColors = palette.colors || [];
                                                 if (paletteColors.length === 0) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                                       La palette sélectionnée ne contient aucune couleur.
                                                     </p>
                                                   );
@@ -9723,7 +9752,7 @@ export default function ProductBuilderPage() {
                                                   </div>
                                                 );
                                               })() : (
-                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                                   Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                                 </p>
                                               )}
@@ -9738,7 +9767,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}>
                                                 Contour
                                               </div>
@@ -9746,7 +9775,7 @@ export default function ProductBuilderPage() {
                                                 const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
                                                 if (!palette) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                                       Palette introuvable. Veuillez en sélectionner une autre.
                                                     </p>
                                                   );
@@ -9754,7 +9783,7 @@ export default function ProductBuilderPage() {
                                                 const paletteColors = palette.colors || [];
                                                 if (paletteColors.length === 0) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'inherit' }}>
                                                       La palette sélectionnée ne contient aucune couleur.
                                                     </p>
                                                   );
@@ -9916,7 +9945,7 @@ export default function ProductBuilderPage() {
                                                           fontSize: '13px',
                                                           fontWeight: '500',
                                                           color: '#111827',
-                                                          fontFamily: 'var(--stepn-font-body)'
+                                                          fontFamily: 'inherit'
                                                         }}>
                                                           Épaisseur {currentPxValue}
                                                         </div>
@@ -9987,7 +10016,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: 'inherit'
                                               }}>
                                                 Type de déformation
                                               </div>
@@ -10073,7 +10102,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '13px',
                                                         fontWeight: '500',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)'
+                                                        fontFamily: 'inherit'
                                                       }}>
                                                         Intensité
                                                       </div>
@@ -10168,7 +10197,7 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                       }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'inherit' }}
                                       className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -10465,7 +10494,7 @@ export default function ProductBuilderPage() {
                                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'inherit' }}>
                                           Retour
                                         </span>
                                       </button>
@@ -10478,7 +10507,7 @@ export default function ProductBuilderPage() {
                                           <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
                                         )}
                                       </div>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'inherit' }}>
                                         {activeModule.tabName || 'Module'}
                                       </span>
                                     </div>
@@ -10838,7 +10867,7 @@ export default function ProductBuilderPage() {
                                             <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
                                           )}
                                         </div>
-                                        <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: 'inherit' }}>
                                           {module.tabName || 'Module'}
                                         </span>
                                       </button>
@@ -10849,7 +10878,7 @@ export default function ProductBuilderPage() {
                                     {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
                                       <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px', color: '#111827' }}>
                                         <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
-                                        <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'var(--stepn-font-body)' }}>{name}</span>
+                                        <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'inherit' }}>{name}</span>
                                       </div>
                                     ))}
                                   </>
@@ -10857,11 +10886,11 @@ export default function ProductBuilderPage() {
                               </div>
                               {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
                               <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: 'inherit' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: 'inherit' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                   Ajouter au panier
                                 </button>
@@ -10878,7 +10907,7 @@ export default function ProductBuilderPage() {
                 <div style={{
                   textAlign: 'center',
                   color: '#666',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   <div style={{
                     width: '400px',
@@ -10901,7 +10930,7 @@ export default function ProductBuilderPage() {
                   <p style={{
                     color: '#999',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: 'inherit'
                   }}>
                     Sélectionnez un modèle 3D dans "Behind the scene"
                   </p>
@@ -10935,7 +10964,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Nom de l'onglet
                 </label>
@@ -10970,7 +10999,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Icône
                 </label>
@@ -11096,7 +11125,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Type de contenu à afficher
                 </label>
@@ -11174,7 +11203,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: 'inherit'
                       }}>
                         Palette de couleurs
                       </label>
@@ -11221,7 +11250,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '12px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: 'inherit'
                       }}>
                         Noms des classes de couleurs
                       </label>
@@ -11284,7 +11313,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Mode de placement
                     </label>
@@ -11326,7 +11355,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: 'inherit'
                       }}>
                         Groupes de zones
                       </label>
@@ -11393,7 +11422,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Texte du bouton "Ajouter un logo"
                     </label>
@@ -11432,7 +11461,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Texte du bouton "Importer un logo"
                     </label>
@@ -11471,7 +11500,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Texte de l'en-tête "Logos placés"
                     </label>
@@ -11527,7 +11556,7 @@ export default function ProductBuilderPage() {
                       color: '#a0a0a0',
                       marginBottom: '16px',
                       lineHeight: '1.5',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Sélectionnez les vues créées dans le modèle 3D et associez-les à des labels pour les afficher dans le builder client.
                     </p>
@@ -11547,7 +11576,7 @@ export default function ProductBuilderPage() {
                               fontSize: '12px',
                               color: '#666',
                               textAlign: 'center',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: 'inherit'
                             }}>
                               Aucune vue disponible. Créez des vues dans le modèle 3D.
                             </div>
@@ -11565,7 +11594,7 @@ export default function ProductBuilderPage() {
                                     fontSize: '12px',
                                     color: '#ffffff',
                                     fontWeight: '500',
-                                    fontFamily: 'var(--stepn-font-body)'
+                                    fontFamily: 'inherit'
                                   }}>
                                     Labels configurés ({moduleViewLabels.length})
                                   </span>
@@ -11594,7 +11623,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '11px',
                                       fontWeight: '600',
                                       cursor: 'pointer',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: 'inherit'
                                     }}
                                   >
                                     + Ajouter un label
@@ -11676,7 +11705,7 @@ export default function ProductBuilderPage() {
                                               color: '#ef4444',
                                               fontSize: '11px',
                                               cursor: 'pointer',
-                                              fontFamily: 'var(--stepn-font-body)'
+                                              fontFamily: 'inherit'
                                             }}
                                             title="Supprimer"
                                           >
@@ -11722,7 +11751,7 @@ export default function ProductBuilderPage() {
                                             marginTop: '6px',
                                             fontSize: '10px',
                                             color: '#8eff36',
-                                            fontFamily: 'var(--stepn-font-body)'
+                                            fontFamily: 'inherit'
                                           }}>
                                             ✓ Vue associée
                                           </div>
@@ -11759,7 +11788,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '4px',
                                         fontSize: '10px',
                                         color: '#ffffff',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: 'inherit'
                                       }}
                                     >
                                       👁️ {view.name}
@@ -11781,7 +11810,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Bibliothèques de logos
                     </label>
@@ -11852,7 +11881,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: 'inherit'
                   }}>
                     Groupe de fonts
                   </label>
@@ -11901,7 +11930,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: 'inherit'
                   }}>
                     Designs 2D à proposer dans ce bloc
                   </label>
@@ -11917,7 +11946,7 @@ export default function ProductBuilderPage() {
                     gap: '6px'
                   }}>
                     {designs2D.length === 0 ? (
-                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>
+                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: 'inherit' }}>
                         Aucun design 2D disponible.
                       </span>
                     ) : (
@@ -11933,7 +11962,7 @@ export default function ProductBuilderPage() {
                               fontSize: '12px',
                               color: '#ffffff',
                               cursor: 'pointer',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: 'inherit'
                             }}
                           >
                             <input
@@ -11976,7 +12005,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: 'inherit'
                   }}>
                     Groupe de tailles
                   </label>
@@ -12026,7 +12055,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Mode de placement
                     </label>
@@ -12068,7 +12097,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: 'inherit'
                       }}>
                         Groupes de zones
                       </label>
@@ -12081,7 +12110,7 @@ export default function ProductBuilderPage() {
                         backgroundColor: '#1a1a1a'
                       }}>
                         {zoneGroups.length === 0 ? (
-                          <p style={{ color: '#666', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                          <p style={{ color: '#666', fontSize: '12px', fontFamily: 'inherit' }}>
                             Aucun groupe de zones disponible. Créez-en dans My Configurations → Zones.
                           </p>
                         ) : (
@@ -12132,7 +12161,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Texte du bouton
                     </label>
@@ -12171,7 +12200,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Texte de l'en-tête "Textes ajoutés"
                     </label>
@@ -12209,7 +12238,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Options d'édition de texte
                     </label>
@@ -12268,7 +12297,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Palette couleur du texte
                     </label>
@@ -12308,7 +12337,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Cette palette s'affichera dans l'onglet "Couleur" du texte.
                     </p>
@@ -12320,7 +12349,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Palette couleur du contour
                     </label>
@@ -12360,7 +12389,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Cette palette s'affichera dans l'onglet "Contour" du texte.
                     </p>
@@ -12371,7 +12400,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Tailles du texte (min / max)
                     </label>
@@ -12439,7 +12468,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Ces valeurs sont utilisées pour limiter le redimensionnement des textes sur le 3D.
                     </p>
@@ -12451,7 +12480,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Épaisseur du contour (min / max / valeur par défaut)
                     </label>
@@ -12555,7 +12584,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Couleurs par défaut
                     </label>
@@ -12600,7 +12629,7 @@ export default function ProductBuilderPage() {
                             outline: 'none'
                           }}
                         />
-                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Texte</span>
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'inherit' }}>Texte</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ position: 'relative', width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
@@ -12642,7 +12671,7 @@ export default function ProductBuilderPage() {
                             outline: 'none'
                           }}
                         />
-                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Contour</span>
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'inherit' }}>Contour</span>
                       </div>
                     </div>
                   </div>
@@ -12653,7 +12682,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Groupes de polices disponibles
                     </label>
@@ -12729,7 +12758,7 @@ export default function ProductBuilderPage() {
                             <span style={{
                               color: '#ffffff',
                               fontSize: '13px',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: 'inherit'
                             }}>
                               {group.name || group.id}
                             </span>
@@ -12745,7 +12774,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Police par défaut
                     </label>
@@ -12804,7 +12833,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       La police sélectionnée sera utilisée par défaut pour les nouveaux textes.
                     </p>
@@ -12816,7 +12845,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Déformations disponibles
                     </label>
@@ -12932,7 +12961,7 @@ export default function ProductBuilderPage() {
                             <span style={{
                               fontSize: '12px',
                               color: '#ffffff',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: 'inherit'
                             }}>
                               {def.name}
                             </span>
@@ -12944,7 +12973,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: 'inherit'
                     }}>
                       Cochez les déformations que vous souhaitez rendre disponibles dans le configurateur.
                     </p>
@@ -12995,7 +13024,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Question Label
                 </label>
@@ -13023,7 +13052,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Question Type
                 </label>
@@ -13082,7 +13111,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: 'inherit'
                   }}>
                     Options (one per line)
                   </label>
@@ -13195,7 +13224,7 @@ export default function ProductBuilderPage() {
               fontWeight: '600',
               color: '#ffffff',
               marginBottom: '20px',
-              fontFamily: 'var(--stepn-font-body)'
+              fontFamily: 'inherit'
             }}>
               Créer un module de personnalisation
             </h2>
@@ -13208,7 +13237,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Nom de l'onglet
                 </label>
@@ -13245,7 +13274,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Icône
                 </label>
@@ -13340,7 +13369,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: 'inherit'
                 }}>
                   Type de module
                 </label>
@@ -13670,7 +13699,7 @@ export default function ProductBuilderPage() {
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   WebkitTextStrokeColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: 'inherit'
                                 }}>
                                   {zone.name}
                                   {zone.view && ` (${zone.view})`}
@@ -14209,7 +14238,7 @@ export default function ProductBuilderPage() {
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   WebkitTextStrokeColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: 'inherit'
                                 }}>
                                   {zone.name}
                                   {zone.view && ` (${zone.view})`}
