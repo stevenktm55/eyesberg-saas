@@ -4966,10 +4966,6 @@ export default function ProductBuilderPage() {
                                 <button
                                   key={viewConfig.id}
                                   onClick={() => {
-                                      viewConfig,
-                                      modelCameraViews,
-                                      customViews
-                                    });
                                     setActiveLogoView(viewConfig.id as any);
                                     
                                     // Si une vue de caméra personnalisée est configurée, l'utiliser
@@ -8546,10 +8542,6 @@ export default function ProductBuilderPage() {
                                           <button 
                                             key={viewConfig.id} 
                                             onClick={() => {
-                                                viewConfig,
-                                                modelCameraViews,
-                                                customViews
-                                              });
                                               setActiveLogoView(viewConfig.id as any);
                                               
                                               // Si une vue de caméra personnalisée est configurée, l'utiliser
