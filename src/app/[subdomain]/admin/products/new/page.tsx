@@ -4654,6 +4654,8 @@ export default function ProductBuilderPage() {
                                         setShowDeleteModal(true);
                                       }
                                     }}
+                                    className="btn-red"
+                                    className="btn-red"
                                     style={{
                                       flex: 1,
                                       padding: '12px 24px',
@@ -4672,9 +4674,11 @@ export default function ProductBuilderPage() {
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.backgroundColor = '#dc2626';
+                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.backgroundColor = '#ef4444';
+                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                   >
                                     <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -4689,6 +4693,7 @@ export default function ProductBuilderPage() {
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
                                   }}
+                                  className="btn-black"
                                   style={{
                                     flex: 1,
                                     padding: '12px 24px',
@@ -4707,9 +4712,11 @@ export default function ProductBuilderPage() {
                                   }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                    e.currentTarget.style.color = '#ffffff';
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = '#000000';
+                                    e.currentTarget.style.color = '#ffffff';
                                   }}
                                 >
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -5030,6 +5037,7 @@ export default function ProductBuilderPage() {
                             onClick={() => {
                               setShowLogoLibrary(true);
                             }}
+                            className="btn-black"
                             style={{
                               width: '100%',
                               padding: '13px 20px',
@@ -5048,12 +5056,14 @@ export default function ProductBuilderPage() {
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = '#1a1a1a';
+                              e.currentTarget.style.color = '#ffffff';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = '#000000';
+                              e.currentTarget.style.color = '#ffffff';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff !important' }}>+</span>
                             {buttonLabel}
                           </button>
                           )}
@@ -5365,6 +5375,7 @@ export default function ProductBuilderPage() {
                                 }
                               }
                             }}
+                            className={isPlacingText ? "" : "btn-black"}
                             style={{
                               width: '100%',
                               padding: '14px 20px',
@@ -5372,19 +5383,21 @@ export default function ProductBuilderPage() {
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
-                              color: '#ffffff',
+                              fontFamily: 'inherit',
+                              color: isPlacingText ? '#111827' : '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
                               transition: 'all 0.2s',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
+                              textTransform: 'none',
+                              letterSpacing: 'normal'
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
+                              e.currentTarget.style.color = isPlacingText ? '#111827' : '#ffffff';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#000000';
+                              e.currentTarget.style.color = isPlacingText ? '#111827' : '#ffffff';
                             }}
                           >
                             {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
@@ -10724,6 +10737,7 @@ export default function ProductBuilderPage() {
                                     Non
                                   </button>
                                   <button
+                                    className="btn-red"
                                     onClick={handleConfirmDelete}
                                     style={{
                                       flex: 1,
@@ -10732,7 +10746,7 @@ export default function ProductBuilderPage() {
                                       border: 'none',
                                       borderRadius: '6px',
                                       fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: 'inherit',
                                       color: '#ffffff',
                                       cursor: 'pointer',
                                       fontWeight: '500',
@@ -10740,9 +10754,11 @@ export default function ProductBuilderPage() {
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.backgroundColor = '#dc2626';
+                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.backgroundColor = '#ef4444';
+                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                   >
                                     Oui
@@ -14560,6 +14576,7 @@ export default function ProductBuilderPage() {
                 Non
               </button>
               <button
+                className="btn-red"
                 onClick={handleConfirmDelete}
                 style={{
                   flex: 1,
@@ -14568,7 +14585,7 @@ export default function ProductBuilderPage() {
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: 'inherit',
                   color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',
@@ -14576,9 +14593,11 @@ export default function ProductBuilderPage() {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#dc2626';
+                  e.currentTarget.style.color = '#ffffff';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = '#ef4444';
+                  e.currentTarget.style.color = '#ffffff';
                 }}
               >
                 Oui
