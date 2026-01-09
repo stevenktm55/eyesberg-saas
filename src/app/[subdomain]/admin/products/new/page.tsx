@@ -2224,24 +2224,22 @@ export default function ProductBuilderPage() {
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'transparent',
+                border: 'none',
                 color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'inherit',
+                fontFamily: 'var(--stepn-font-body)',
                 outline: 'none',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 minWidth: '200px'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#9ca3af';
-                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.backgroundColor = '#ffffff';
+                e.currentTarget.style.backgroundColor = 'transparent';
               }}
             />
             <span style={{ color: '#a0a0a0', fontSize: '14px' }}>▼</span>
@@ -4656,8 +4654,6 @@ export default function ProductBuilderPage() {
                                         setShowDeleteModal(true);
                                       }
                                     }}
-                                    className="btn-red"
-                                    className="btn-red"
                                     style={{
                                       flex: 1,
                                       padding: '12px 24px',
@@ -4686,7 +4682,7 @@ export default function ProductBuilderPage() {
                                     <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
-                                    Supprimer
+                                    <span style={{ color: '#ffffff' }}>Supprimer</span>
                                   </button>
                                 )}
                                 
@@ -4695,7 +4691,6 @@ export default function ProductBuilderPage() {
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
                                   }}
-                                  className="btn-black"
                                   style={{
                                     flex: 1,
                                     padding: '12px 24px',
@@ -4724,7 +4719,7 @@ export default function ProductBuilderPage() {
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  {activeModule.importLogoButtonLabel || 'Importer un logo'}
+                                  <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                                 </button>
                               </div>
                             )}
@@ -5039,8 +5034,6 @@ export default function ProductBuilderPage() {
                             onClick={() => {
                               setShowLogoLibrary(true);
                             }}
-                            className="btn-black"
-                            className="btn-black"
                             style={{
                               width: '100%',
                               padding: '13px 20px',
@@ -5066,8 +5059,8 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.color = '#ffffff';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff !important' }}>+</span>
-                            {buttonLabel}
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
+                            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
                           </button>
                           )}
                           
@@ -5101,83 +5094,96 @@ export default function ProductBuilderPage() {
                                 return (
                                   <div
                                     key={logo.id}
-                                    onClick={() => {
-                                      setSelectedLogoId(logo.id);
-                                    }}
                                     style={{
-                                      padding: '14px',
-                                      backgroundColor: selectedLogoId === logo.id ? '#fafafa' : '#fafafa',
-                                      border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e0e0e0',
+                                      padding: '12px 16px',
+                                      backgroundColor: '#ffffff',
+                                      border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e5e7eb',
                                       borderRadius: '8px',
-                                      cursor: 'pointer',
+                                      cursor: 'default',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
-                                      transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (selectedLogoId !== logo.id) {
-                                        e.currentTarget.style.backgroundColor = '#f5f5f5';
-                                        e.currentTarget.style.borderColor = '#000000';
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (selectedLogoId !== logo.id) {
-                                        e.currentTarget.style.backgroundColor = '#fafafa';
-                                        e.currentTarget.style.borderColor = '#e0e0e0';
-                                      }
+                                      gap: '12px',
+                                      transition: 'all 0.2s',
+                                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                                     }}
                                   >
-                                    <div style={{
-                                      flex: 1,
-                                      display: 'flex',
-                                      flexDirection: 'column',
-                                      gap: '4px'
-                                    }}>
+                                    <div 
+                                      onClick={() => {
+                                        setSelectedLogoId(logo.id);
+                                      }}
+                                      style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
                                       <div style={{
-                                        fontSize: '14px',
-                                        color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
-                                        fontWeight: selectedLogoId === logo.id ? '600' : '400'
+                                        fontSize: '15px',
+                                        color: '#111827',
+                                        fontFamily: 'inherit',
+                                        fontWeight: '500',
+                                        lineHeight: '1.4'
                                       }}>
                                         {logoName}
                                       </div>
-                                      <div style={{
-                                        fontSize: '11px',
-                                        color: '#666',
-                                        fontFamily: 'var(--stepn-font-body)'
-                                      }}>
-                                        {logo.category === 'torse' ? 'Torse' : 
-                                         logo.category === 'dos' ? 'Dos' : 
-                                         logo.category === 'bras-gauche' ? 'Bras gauche' : 
-                                         'Bras droit'}
-                                        {logo.locked && ' 🔒'}
-                                      </div>
                                     </div>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedLogoId(logo.id);
+                                      }}
+                                      style={{
+                                        padding: '8px',
+                                        backgroundColor: '#f3f4f6',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        color: '#6b7280',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '32px',
+                                        height: '32px',
+                                        flexShrink: 0,
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#e5e7eb';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                      }}
+                                      title="Éditer"
+                                    >
+                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </button>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         confirmDeleteLogo(logo.id);
                                       }}
                                       style={{
-                                        padding: '4px 8px',
-                                        backgroundColor: '#ff4444',
+                                        padding: '0',
+                                        backgroundColor: 'transparent',
                                         border: 'none',
-                                        borderRadius: '4px',
-                                        color: '#ffffff',
-                                        fontSize: '12px',
-                                        fontFamily: 'var(--stepn-font-body)',
                                         cursor: 'pointer',
-                                        fontWeight: '500'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '24px',
+                                        height: '24px',
+                                        flexShrink: 0,
+                                        transition: 'all 0.2s'
                                       }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#ff3333';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#ff4444';
-                                      }}
+                                      title="Supprimer"
                                     >
-                                      ×
+                                      <svg width="18" height="18" fill="none" stroke="#ef4444" viewBox="0 0 24 24" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
                                     </button>
                                   </div>
                                 );
@@ -5378,8 +5384,6 @@ export default function ProductBuilderPage() {
                                 }
                               }
                             }}
-                            className={isPlacingText ? "" : "btn-black"}
-                            className={isPlacingText ? "" : "btn-black"}
                             style={{
                               width: '100%',
                               padding: '14px 20px',
@@ -5388,7 +5392,7 @@ export default function ProductBuilderPage() {
                               borderRadius: '8px',
                               fontSize: '14px',
                               fontFamily: 'inherit',
-                              color: isPlacingText ? '#111827' : '#ffffff',
+                              color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
                               transition: 'all 0.2s',
@@ -5397,14 +5401,16 @@ export default function ProductBuilderPage() {
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
-                              e.currentTarget.style.color = isPlacingText ? '#111827' : '#ffffff';
+                              e.currentTarget.style.color = '#ffffff';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#000000';
-                              e.currentTarget.style.color = isPlacingText ? '#111827' : '#ffffff';
+                              e.currentTarget.style.color = '#ffffff';
                             }}
                           >
-                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            <span style={{ color: '#ffffff' }}>
+                              {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            </span>
                           </button>
                         )}
                         
@@ -5448,9 +5454,8 @@ export default function ProductBuilderPage() {
                                     flex: 1,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '12px',
-                                    cursor: 'pointer',
-                                    minWidth: 0
+                                    gap: '8px',
+                                    cursor: 'pointer'
                                   }}
                                 >
                                   <div style={{
@@ -5458,77 +5463,62 @@ export default function ProductBuilderPage() {
                                     color: '#111827',
                                     fontFamily: 'inherit',
                                     fontWeight: '500',
-                                    lineHeight: '1.4',
-                                    WebkitTextStroke: '1px #111827',
-                                    WebkitTextFillColor: 'transparent',
-                                    textStroke: '1px #111827',
-                                    textShadow: 'none'
+                                    lineHeight: '1.4'
                                   }}>
                                     {text.content || '(Texte vide)'}
                                   </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      selectText(text.id);
-                                    }}
-                                    style={{
-                                      padding: '6px 8px',
-                                      backgroundColor: '#f3f4f6',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      color: '#6b7280',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      width: '24px',
-                                      height: '24px',
-                                      flexShrink: 0,
-                                      transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#e5e7eb';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                    }}
-                                    title="Voir détails"
-                                  >
-                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                  </button>
                                 </div>
+                                <button
+                                  onClick={() => selectText(text.id)}
+                                  style={{
+                                    padding: '8px',
+                                    backgroundColor: '#f3f4f6',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    color: '#6b7280',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '32px',
+                                    height: '32px',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#e5e7eb';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                  }}
+                                  title="Éditer"
+                                >
+                                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </button>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     confirmDeleteText(text.id);
                                   }}
                                   style={{
-                                    padding: '8px',
-                                    backgroundColor: '#ef4444',
+                                    padding: '0',
+                                    backgroundColor: 'transparent',
                                     border: 'none',
-                                    borderRadius: '8px',
-                                    color: '#ffffff',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    width: '36px',
-                                    height: '36px',
+                                    width: '24px',
+                                    height: '24px',
                                     flexShrink: 0,
                                     transition: 'all 0.2s'
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#dc2626';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#ef4444';
-                                  }}
                                   title="Supprimer"
                                 >
-                                  <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  <svg width="18" height="18" fill="none" stroke="#ef4444" viewBox="0 0 24 24" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                   </svg>
                                 </button>
                               </div>
@@ -5662,22 +5652,17 @@ export default function ProductBuilderPage() {
                                         width: '100%',
                                         padding: '12px 16px',
                                         backgroundColor: '#ffffff',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid #d1d5db',
                                         borderRadius: '8px',
                                         color: '#6b7280',
                                         fontSize: '14px',
                                         fontFamily: 'inherit',
                                         outline: 'none',
-                                        transition: 'border-color 0.2s, color 0.2s'
+                                        transition: 'border-color 0.2s'
                                       }}
-                                      onFocus={(e) => {
-                                        e.target.style.borderColor = '#9ca3af';
-                                        e.target.style.color = '#111827';
-                                      }}
-                                      onBlur={(e) => {
-                                        e.target.style.borderColor = '#e5e7eb';
-                                        e.target.style.color = '#6b7280';
-                                      }}
+                                      placeholder="Saisir le texte..."
+                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
+                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
                                     />
                                   </div>
                                 )}
@@ -6205,9 +6190,9 @@ export default function ProductBuilderPage() {
                                           backgroundColor: '#ffffff',
                                           border: '1px solid #d1d5db',
                                           borderRadius: '8px',
-                                          color: '#111827',
+                                          color: '#6b7280',
                                           fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontFamily: 'inherit',
                                           cursor: 'pointer',
                                           outline: 'none',
                                           marginBottom: selectedText.deformation ? '20px' : '0',
@@ -8239,25 +8224,6 @@ export default function ProductBuilderPage() {
                                             value={textInputValue}
                                             onChange={(e) => setTextInputValue(e.target.value)}
                                             placeholder="Votre texte ici"
-                                            style={{
-                                              width: '100%',
-                                              padding: '10px 12px',
-                                              backgroundColor: '#ffffff',
-                                              border: '1px solid #e5e7eb',
-                                              borderRadius: '8px',
-                                              fontSize: '14px',
-                                              fontFamily: 'inherit',
-                                              color: '#6b7280',
-                                              outline: 'none'
-                                            }}
-                                            onFocus={(e) => {
-                                              e.currentTarget.style.borderColor = '#9ca3af';
-                                              e.currentTarget.style.color = '#111827';
-                                            }}
-                                            onBlur={(e) => {
-                                              e.currentTarget.style.borderColor = '#e5e7eb';
-                                              e.currentTarget.style.color = '#6b7280';
-                                            }}
                                             onKeyDown={(e) => {
                                               if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                                                 const selectedZone = availableZones.find(z => z.id === selectedZoneId);
@@ -8388,27 +8354,15 @@ export default function ProductBuilderPage() {
                                             style={{
                                               width: '100%',
                                               padding: '12px',
-                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#d1d5db' : '#000000',
+                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
                                               border: 'none',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'inherit',
-                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#111827' : '#ffffff',
+                                              fontFamily: 'var(--stepn-font-body)',
+                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
+                                              color: '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
-                                              fontWeight: '500',
-                                              transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                              if (textInputValue.trim() && selectedZoneId) {
-                                                e.currentTarget.style.backgroundColor = '#333333';
-                                                e.currentTarget.style.color = '#ffffff';
-                                              }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                              if (textInputValue.trim() && selectedZoneId) {
-                                                e.currentTarget.style.backgroundColor = '#000000';
-                                                e.currentTarget.style.color = '#ffffff';
-                                              }
+                                              fontWeight: '500'
                                             }}
                                           >
                                             Ajouter
@@ -8764,18 +8718,9 @@ export default function ProductBuilderPage() {
                                             border: '1px solid #e5e7eb',
                                             borderRadius: '8px',
                                             fontSize: '13px',
-                                            fontFamily: 'inherit',
-                                            color: '#6b7280',
-                                            backgroundColor: '#ffffff',
-                                            outline: 'none'
-                                          }}
-                                          onFocus={(e) => {
-                                            e.currentTarget.style.borderColor = '#9ca3af';
-                                            e.currentTarget.style.color = '#111827';
-                                          }}
-                                          onBlur={(e) => {
-                                            e.currentTarget.style.borderColor = '#e5e7eb';
-                                            e.currentTarget.style.color = '#6b7280';
+                                            fontFamily: 'var(--stepn-font-body)',
+                                            color: '#111827',
+                                            backgroundColor: '#ffffff'
                                           }}
                                         />
                                         
@@ -10741,7 +10686,6 @@ export default function ProductBuilderPage() {
                                     Non
                                   </button>
                                   <button
-                                    className="btn-red"
                                     onClick={handleConfirmDelete}
                                     style={{
                                       flex: 1,
@@ -10750,7 +10694,7 @@ export default function ProductBuilderPage() {
                                       border: 'none',
                                       borderRadius: '6px',
                                       fontSize: '14px',
-                                      fontFamily: 'inherit',
+                                      fontFamily: 'var(--stepn-font-body)',
                                       color: '#ffffff',
                                       cursor: 'pointer',
                                       fontWeight: '500',
@@ -10758,11 +10702,9 @@ export default function ProductBuilderPage() {
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.backgroundColor = '#dc2626';
-                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.backgroundColor = '#ef4444';
-                                      e.currentTarget.style.color = '#ffffff';
                                     }}
                                   >
                                     Oui
@@ -13704,16 +13646,13 @@ export default function ProductBuilderPage() {
 
                     {/* Section: Contenu du texte */}
                     <div style={{ marginBottom: '32px' }}>
-                      <h3
-                        className="modal-override"
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          color: '#111827',
-                          fontFamily: 'inherit',
-                          marginBottom: '12px'
-                        }}
-                      >
+                      <h3 style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#000000',
+                        fontFamily: 'var(--stepn-font-body)',
+                        marginBottom: '12px'
+                      }}>
                         Contenu du texte
                       </h3>
                       <input
@@ -13721,25 +13660,6 @@ export default function ProductBuilderPage() {
                         value={textInputValue}
                         onChange={(e) => setTextInputValue(e.target.value)}
                         placeholder="Saisir l'inscription ici..."
-                        style={{
-                          width: '100%',
-                          padding: '10px 12px',
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          fontFamily: 'inherit',
-                          color: '#6b7280',
-                          outline: 'none'
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#9ca3af';
-                          e.currentTarget.style.color = '#111827';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.borderColor = '#e5e7eb';
-                          e.currentTarget.style.color = '#6b7280';
-                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                             const selectedZone = availableZones.find(z => z.id === selectedZoneId);
@@ -13952,16 +13872,15 @@ export default function ProductBuilderPage() {
                             setTextInputValue('');
                           }
                         }}
-                        className={(!textInputValue.trim() || !selectedZoneId) ? "" : "btn-black"}
                         disabled={!textInputValue.trim() || !selectedZoneId}
                         style={{
                           padding: '12px 24px',
-                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#d1d5db' : '#000000',
+                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'inherit',
-                          color: (!textInputValue.trim() || !selectedZoneId) ? '#111827' : '#ffffff',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                           cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
                           transition: 'all 0.2s'
@@ -13969,13 +13888,11 @@ export default function ProductBuilderPage() {
                         onMouseEnter={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
                             e.currentTarget.style.backgroundColor = '#333333';
-                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
                             e.currentTarget.style.backgroundColor = '#000000';
-                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                       >
@@ -14405,16 +14322,15 @@ export default function ProductBuilderPage() {
                             setShowLogoLibrary(false);
                           }
                         }}
-                        className={selectedLogoZoneId ? "btn-black" : ""}
                         disabled={!selectedLogoZoneId}
                         style={{
                           padding: '12px 24px',
-                          backgroundColor: selectedLogoZoneId ? '#000000' : '#d1d5db',
+                          backgroundColor: selectedLogoZoneId ? '#000000' : '#cccccc',
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'inherit',
-                          color: selectedLogoZoneId ? '#ffffff' : '#111827',
+                          fontFamily: 'var(--stepn-font-body)',
+                          color: '#ffffff',
                           cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
                           fontWeight: '500',
                           transition: 'all 0.2s'
@@ -14422,13 +14338,11 @@ export default function ProductBuilderPage() {
                         onMouseEnter={(e) => {
                           if (selectedLogoZoneId) {
                             e.currentTarget.style.backgroundColor = '#333333';
-                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (selectedLogoZoneId) {
                             e.currentTarget.style.backgroundColor = '#000000';
-                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                       >
@@ -14582,7 +14496,6 @@ export default function ProductBuilderPage() {
                 Non
               </button>
               <button
-                className="btn-red"
                 onClick={handleConfirmDelete}
                 style={{
                   flex: 1,
@@ -14591,7 +14504,7 @@ export default function ProductBuilderPage() {
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--stepn-font-body)',
                   color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',
@@ -14599,11 +14512,9 @@ export default function ProductBuilderPage() {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#dc2626';
-                  e.currentTarget.style.color = '#ffffff';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = '#ef4444';
-                  e.currentTarget.style.color = '#ffffff';
                 }}
               >
                 Oui

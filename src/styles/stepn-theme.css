@@ -198,190 +198,68 @@ body:not(.product-builder) select,
   -webkit-text-fill-color: #111827 !important;
 }
 
-/* Reset des styles globaux pour les boutons dans .product-builder - NE PAS forcer background-color et color */
-/* Les styles inline doivent prévaloir */
 .product-builder button {
   font-family: inherit !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
-  /* IMPORTANT: NE PAS mettre background-color: inherit !important ni color: inherit !important */
-  /* car cela override les styles inline qui définissent backgroundColor: '#000000' et color: '#ffffff' */
-  /* Les couleurs doivent venir des styles inline ou des classes btn-black/btn-red */
 }
 
-/* Inputs dans .product-builder - FORCER fond blanc et texte gris avec spécificité maximale */
-/* Ces règles doivent override les règles globales pour body:not(.product-builder) input */
-.product-builder input[type="text"],
-.product-builder input[type="email"],
-.product-builder input[type="password"],
-.product-builder input[type="file"],
-.product-builder input[type="number"],
-.product-builder input[type="search"],
-.product-builder input,
-.product-builder input[type="text"]:focus,
-.product-builder input[type="email"]:focus,
-.product-builder input[type="password"]:focus,
-.product-builder input[type="file"]:focus,
-.product-builder input[type="number"]:focus,
-.product-builder input[type="search"]:focus,
-.product-builder input:focus,
-.product-builder input[type="text"]:active,
-.product-builder input[type="email"]:active,
-.product-builder input[type="password"]:active,
-.product-builder input:active,
-.product-builder textarea,
-.product-builder textarea:focus,
-.product-builder textarea:active,
-.product-builder select,
-.product-builder select:focus,
-.product-builder select:active {
-  font-family: inherit !important;
-  color: #6b7280 !important;
-  -webkit-text-fill-color: #6b7280 !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  background-color: #ffffff !important;
-  -webkit-box-shadow: none !important;
-  box-shadow: none !important;
-  border-color: #e5e7eb !important;
-  border-width: 1px !important;
-  border-style: solid !important;
-  /* Override tous les styles stepn-theme.css avec spécificité maximale */
-  --stepn-input-bg: #ffffff !important;
-  --stepn-text: #6b7280 !important;
-}
-
-.product-builder input[type="text"]::placeholder,
-.product-builder input[type="email"]::placeholder,
-.product-builder input[type="password"]::placeholder,
-.product-builder input[type="search"]::placeholder,
-.product-builder textarea::placeholder {
-  color: #9ca3af !important;
-  -webkit-text-fill-color: #9ca3af !important;
-  opacity: 1 !important;
-}
-
-.product-builder input[type="text"]:focus,
-.product-builder input[type="email"]:focus,
-.product-builder input[type="password"]:focus,
-.product-builder input[type="file"]:focus,
-.product-builder input[type="number"]:focus,
-.product-builder input[type="search"]:focus,
-.product-builder textarea:focus,
-.product-builder select:focus {
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-  border-color: #9ca3af !important;
-  background-color: #ffffff !important;
-  outline: none !important;
-}
-
-.product-builder input[type="text"]:-webkit-autofill,
-.product-builder input[type="email"]:-webkit-autofill,
-.product-builder input[type="password"]:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-  -webkit-text-fill-color: #111827 !important;
-  color: #111827 !important;
-}
-
-/* Boutons noirs - texte blanc - Utiliser une classe CSS avec spécificité maximale */
-.product-builder button.btn-black,
-.product-builder .btn-black,
-.product-builder .mobile-action-btn-black,
-.product-builder button.mobile-action-btn-black {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  background-color: #000000 !important;
-}
-
-.product-builder button.btn-black,
-.product-builder .btn-black {
-  /* Forcer tous les éléments enfants à être blancs */
-}
-
-.product-builder button.btn-black span,
-.product-builder .btn-black span,
-.product-builder .btn-black *:not(button),
-.product-builder .mobile-action-btn-black span,
-.product-builder .mobile-action-btn-black *:not(button) {
+/* Boutons avec fond noir dans .product-builder - texte blanc */
+.product-builder button[style*="background-color: #000000"],
+.product-builder button[style*="backgroundColor: #000000"],
+.product-builder button[style*="background-color: black"],
+.product-builder button[style*="backgroundColor: black"] {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
-.product-builder button.btn-black svg,
-.product-builder .btn-black svg,
-.product-builder .mobile-action-btn-black svg {
-  stroke: #ffffff !important;
-  fill: none !important;
-  color: #ffffff !important;
-}
-
-.product-builder button.btn-black svg path,
-.product-builder button.btn-black svg *,
-.product-builder .btn-black svg path,
-.product-builder .btn-black svg *,
-.product-builder .mobile-action-btn-black svg path,
-.product-builder .mobile-action-btn-black svg * {
-  stroke: #ffffff !important;
-  fill: none !important;
-}
-
-/* Boutons rouges - texte blanc */
-.product-builder button.btn-red,
-.product-builder .btn-red {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  background-color: #ef4444 !important;
-}
-
-.product-builder button.btn-red span,
-.product-builder .btn-red span,
-.product-builder .btn-red *:not(button) {
+.product-builder button[style*="background-color: #000000"] span,
+.product-builder button[style*="backgroundColor: #000000"] span,
+.product-builder button[style*="background-color: black"] span,
+.product-builder button[style*="backgroundColor: black"] span {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
-.product-builder button.btn-red svg,
-.product-builder .btn-red svg {
-  stroke: #ffffff !important;
-  fill: none !important;
-  color: #ffffff !important;
-}
-
-.product-builder button.btn-red svg path,
-.product-builder button.btn-red svg *,
-.product-builder .btn-red svg path,
-.product-builder .btn-red svg * {
-  stroke: #ffffff !important;
-  fill: none !important;
-}
-
-/* Forcer le texte blanc dans tous les boutons avec backgroundColor: #000000 via inline style */
-/* Note: Les sélecteurs d'attributs style ne fonctionnent pas bien en CSS, donc on utilise des classes */
-
-/* Boutons rouges - texte blanc */
+/* Boutons avec fond rouge dans .product-builder - texte blanc */
 .product-builder button[style*="background-color: #ef4444"],
 .product-builder button[style*="backgroundColor: #ef4444"],
-.product-builder button[style*="background-color: '#ef4444'"],
-.product-builder button[style*="backgroundColor: '#ef4444'"],
+.product-builder button[style*="background-color: #dc2626"],
+.product-builder button[style*="backgroundColor: #dc2626"],
 .product-builder button[style*="background-color: red"],
-.product-builder button[style*="backgroundColor: red"],
-.product-builder button[style*="background-color: '#ef44"]:not([style*="color:"]),
-.product-builder button[style*="backgroundColor: '#ef44"]:not([style*="color:"]) {
+.product-builder button[style*="backgroundColor: red"] {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
 .product-builder button[style*="background-color: #ef4444"] svg,
 .product-builder button[style*="backgroundColor: #ef4444"] svg,
-.product-builder button[style*="background-color: '#ef4444'"] svg,
-.product-builder button[style*="backgroundColor: '#ef4444'"] svg,
-.product-builder button[style*="background-color: #ef4444"] svg path,
-.product-builder button[style*="backgroundColor: #ef4444"] svg path {
+.product-builder button[style*="background-color: #dc2626"] svg,
+.product-builder button[style*="backgroundColor: #dc2626"] svg {
   stroke: #ffffff !important;
-  fill: none !important;
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.product-builder input,
+.product-builder textarea,
+.product-builder select {
+  font-family: inherit !important;
+  background-color: #ffffff !important;
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.product-builder input::placeholder,
+.product-builder textarea::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1 !important;
 }
 
 /* Modaux dans .product-builder - forcer les couleurs correctes */
@@ -427,19 +305,16 @@ body:not(.product-builder) select,
   -webkit-text-fill-color: #111827 !important;
 }
 
-/* Inputs - EXCLURE .product-builder */
-body:not(.product-builder) input[type="text"],
-body:not(.product-builder) input[type="email"],
-body:not(.product-builder) input[type="password"],
-body:not(.product-builder) input[type="text"]:focus,
-body:not(.product-builder) input[type="email"]:focus,
-body:not(.product-builder) input[type="password"]:focus,
-body:not(.product-builder) input[type="text"]:active,
-body:not(.product-builder) input[type="email"]:active,
-body:not(.product-builder) input[type="password"]:active,
-:not(.product-builder) input[type="text"],
-:not(.product-builder) input[type="email"],
-:not(.product-builder) input[type="password"] {
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="password"]:active {
   background-color: var(--stepn-input-bg) !important;
   border: 1px solid var(--stepn-input-border);
   color: var(--stepn-text) !important;
@@ -452,40 +327,30 @@ body:not(.product-builder) input[type="password"]:active,
   -webkit-opacity: 1 !important;
 }
 
-body:not(.product-builder) input[type="text"]:focus,
-body:not(.product-builder) input[type="email"]:focus,
-body:not(.product-builder) input[type="password"]:focus,
-:not(.product-builder) input[type="text"]:focus,
-:not(.product-builder) input[type="email"]:focus,
-:not(.product-builder) input[type="password"]:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
   outline: none;
   border-color: var(--stepn-input-border-focus);
 }
 
-body:not(.product-builder) input[type="text"]::placeholder,
-body:not(.product-builder) input[type="email"]::placeholder,
-body:not(.product-builder) input[type="password"]::placeholder,
-:not(.product-builder) input[type="text"]::placeholder,
-:not(.product-builder) input[type="email"]::placeholder,
-:not(.product-builder) input[type="password"]::placeholder {
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
   color: var(--stepn-text-secondary);
   opacity: 1;
 }
 
-body:not(.product-builder) input[type="text"]:-webkit-autofill,
-body:not(.product-builder) input[type="email"]:-webkit-autofill,
-body:not(.product-builder) input[type="password"]:-webkit-autofill,
-:not(.product-builder) input[type="text"]:-webkit-autofill,
-:not(.product-builder) input[type="email"]:-webkit-autofill,
-:not(.product-builder) input[type="password"]:-webkit-autofill {
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px var(--stepn-input-bg) inset !important;
   -webkit-text-fill-color: var(--stepn-text) !important;
   color: var(--stepn-text) !important;
 }
 
-/* Boutons - EXCLURE .product-builder - Les règles globales ne s'appliquent PAS aux boutons dans .product-builder */
-body:not(.product-builder) button,
-:not(.product-builder) button {
+/* Boutons */
+button {
   background-color: var(--stepn-button-bg);
   color: var(--stepn-button-text);
   border: none;
@@ -500,20 +365,15 @@ body:not(.product-builder) button,
   letter-spacing: 0.05em;
 }
 
-body:not(.product-builder) button:hover:not(:disabled),
-:not(.product-builder) button:hover:not(:disabled) {
+button:hover:not(:disabled) {
   background-color: var(--stepn-button-hover);
 }
 
-body:not(.product-builder) button:disabled,
-:not(.product-builder) button:disabled {
+button:disabled {
   background-color: var(--stepn-button-disabled);
   color: var(--stepn-text-secondary);
   cursor: not-allowed;
 }
-
-/* IMPORTANT: S'assurer que les boutons dans .product-builder héritent de RIEN des règles globales */
-/* Les styles inline doivent prévaloir complètement */
 
 /* Liens */
 a {

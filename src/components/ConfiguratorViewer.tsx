@@ -2385,11 +2385,11 @@ function LogoTab({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
       <div className="modal-override bg-white rounded-lg shadow-2xl max-w-md w-full">
         <div className="p-6">
-          <h3 className="modal-override text-lg font-semibold mb-4" style={{ color: '#111827', fontFamily: 'inherit' }}>Importer un logo</h3>
+          <h3 className="modal-override text-lg font-semibold mb-4">Importer un logo</h3>
           
           <div className="space-y-4">
             <div>
-              <label className="modal-override block text-sm font-medium mb-2" style={{ color: '#111827', fontFamily: 'inherit' }}>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Nom du logo
               </label>
               <input
@@ -2397,58 +2397,24 @@ function LogoTab({
                 value={logoName}
                 onChange={(e) => setLogoName(e.target.value)}
                 placeholder="Ex: Mon logo"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  color: '#6b7280',
-                  outline: 'none'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#9ca3af';
-                  e.currentTarget.style.color = '#111827';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.color = '#6b7280';
-                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
             <div>
-              <label className="modal-override block text-sm font-medium mb-2" style={{ color: '#111827', fontFamily: 'inherit' }}>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Fichier (SVG, PNG, JPG, JPEG)
               </label>
               <input
                 type="file"
                 accept=".svg,.png,.jpg,.jpeg"
                 onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  color: '#6b7280',
-                  outline: 'none'
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#9ca3af';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
             {selectedFile && (
-              <div className="modal-override text-sm" style={{ color: '#6b7280', fontFamily: 'inherit' }}>
+              <div className="text-sm text-gray-600">
                 Fichier sélectionné : {selectedFile.name}
               </div>
             )}
@@ -2461,19 +2427,7 @@ function LogoTab({
                 setSelectedFile(null);
                 setLogoName('');
               }}
-              className="modal-override flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-              style={{
-                backgroundColor: '#ffffff',
-                borderColor: '#e5e7eb',
-                color: '#111827',
-                fontFamily: 'inherit'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f5f5f5';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-              }}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
             >
               Annuler
             </button>
