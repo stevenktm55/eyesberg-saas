@@ -7045,104 +7045,104 @@ export default function ProductBuilderPage() {
                                 
                                 // Ne pas maintenir la distance de force - laisser la caméra libre
                                 
-                                // Écouter l'événement setCameraView pour positionner la caméra
-                                useEffect(() => {
-                                  const handleSetCameraView = (event: CustomEvent) => {
-                                    if (!controlsRef.current) {
-                                      return;
-                                    }
-                                    
-                                    // Marquer qu'une vue a été définie pour empêcher CameraInitializer de réinitialiser
-                                    viewHasBeenSetRef.current = true;
-                                    
-                                    const camera = controlsRef.current.object;
-                                    const target = controlsRef.current.target;
-                                    const maxDistance = maxZoom;
-                                    
-                                    const view = event.detail as 'front' | 'back' | 'left' | 'right';
-                                    
-                                    // Mapper la vue à la catégorie pour utiliser la bonne distance
-                                    const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                      'front': 'torse',
-                                      'back': 'dos',
-                                      'left': 'bras-gauche',
-                                      'right': 'bras-droit'
-                                    };
-                                    
-                                    const category = viewToCategory[view];
-                                    const distance = viewDistance[category] || maxDistance;
-                                    
-                                    if (view === 'front') {
-                                      camera.position.set(0, 0, distance);
-                                      target.set(0, 0, 0);
-                                    } else if (view === 'back') {
-                                      camera.position.set(0, 0, -distance);
-                                      target.set(0, 0, 0);
-                                    } else if (view === 'left') {
-                                      camera.position.set(-distance, 0, 0);
-                                      target.set(0, 0, 0);
-                                    } else if (view === 'right') {
-                                      camera.position.set(distance, 0, 0);
-                                      target.set(0, 0, 0);
-                                    }
-                                    
-                                    camera.rotation.set(0, 0, 0);
-                                    camera.updateProjectionMatrix();
-                                    controlsRef.current.update();
-                                    
-                                    // Forcer la mise à jour plusieurs fois pour s'assurer que ça prend
-                                    requestAnimationFrame(() => {
-                                        if (controlsRef.current) {
-                                          controlsRef.current.update();
-                                          requestAnimationFrame(() => {
-                                            if (controlsRef.current) {
-                                              controlsRef.current.update();
-                                            }
-                                          });
-                                        }
-                                      });
-                                  };
-                                  
-                                  window.addEventListener('setCameraView', handleSetCameraView as EventListener);
-                                  return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
-                                }, [viewDistance, maxZoom, viewportMode, mobileActivePanel, viewHasBeenSetRef]);
+                                // DÉSACTIVÉ - Conflit avec le CameraController principal qui gère le facteur 4.67x
+                                // useEffect(() => {
+                                //   const handleSetCameraView = (event: CustomEvent) => {
+                                //     if (!controlsRef.current) {
+                                //       return;
+                                //     }
+                                //     
+                                //     // Marquer qu'une vue a été définie pour empêcher CameraInitializer de réinitialiser
+                                //     viewHasBeenSetRef.current = true;
+                                //     
+                                //     const camera = controlsRef.current.object;
+                                //     const target = controlsRef.current.target;
+                                //     const maxDistance = maxZoom;
+                                //     
+                                //     const view = event.detail as 'front' | 'back' | 'left' | 'right';
+                                //     
+                                //     // Mapper la vue à la catégorie pour utiliser la bonne distance
+                                //     const viewToCategory: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                //       'front': 'torse',
+                                //       'back': 'dos',
+                                //       'left': 'bras-gauche',
+                                //       'right': 'bras-droit'
+                                //     };
+                                //     
+                                //     const category = viewToCategory[view];
+                                //     const distance = viewDistance[category] || maxDistance;
+                                //     
+                                //     if (view === 'front') {
+                                //       camera.position.set(0, 0, distance);
+                                //       target.set(0, 0, 0);
+                                //     } else if (view === 'back') {
+                                //       camera.position.set(0, 0, -distance);
+                                //       target.set(0, 0, 0);
+                                //     } else if (view === 'left') {
+                                //       camera.position.set(-distance, 0, 0);
+                                //       target.set(0, 0, 0);
+                                //     } else if (view === 'right') {
+                                //       camera.position.set(distance, 0, 0);
+                                //       target.set(0, 0, 0);
+                                //     }
+                                //     
+                                //     camera.rotation.set(0, 0, 0);
+                                //     camera.updateProjectionMatrix();
+                                //     controlsRef.current.update();
+                                //     
+                                //     // Forcer la mise à jour plusieurs fois pour s'assurer que ça prend
+                                //     requestAnimationFrame(() => {
+                                //         if (controlsRef.current) {
+                                //           controlsRef.current.update();
+                                //           requestAnimationFrame(() => {
+                                //             if (controlsRef.current) {
+                                //               controlsRef.current.update();
+                                //             }
+                                //           });
+                                //         }
+                                //       });
+                                //   };
+                                //   
+                                //   window.addEventListener('setCameraView', handleSetCameraView as EventListener);
+                                //   return () => window.removeEventListener('setCameraView', handleSetCameraView as EventListener);
+                                // }, [viewDistance, maxZoom, viewportMode, mobileActivePanel, viewHasBeenSetRef]);
                                 
-                                // Gérer le changement de vue (sans appliquer la rotation initiale)
-                                useEffect(() => {
-                                  if (controlsRef.current && targetView) {
-                                    // Marquer qu'une vue a été définie (persistant, ne se réinitialise jamais)
-                                    viewHasBeenSetRef.current = true;
-                                    
-                                    const camera = controlsRef.current.object;
-                                    const distance = viewDistance[targetView] || initialZoom;
-                                    
-                                    // Positionner la caméra aux positions standard (sans rotation initiale)
-                                    switch (targetView) {
-                                      case 'torse':
-                                        camera.position.set(0, 0, distance);
-                                        controlsRef.current.target.set(0, 0, 0);
-                                        break;
-                                      case 'dos':
-                                        camera.position.set(0, 0, -distance);
-                                        controlsRef.current.target.set(0, 0, 0);
-                                        break;
-                                      case 'bras-gauche':
-                                        camera.position.set(-distance, 0, 0);
-                                        controlsRef.current.target.set(0, 0, 0);
-                                        break;
-                                      case 'bras-droit':
-                                        camera.position.set(distance, 0, 0);
-                                        controlsRef.current.target.set(0, 0, 0);
-                                        break;
-                                    }
-                                    // S'assurer que la rotation de la caméra est réinitialisée (pas de rotation initiale lors du changement de vue)
-                                    camera.rotation.set(0, 0, 0);
-                                    controlsRef.current.update();
-                                    setTimeout(() => {
-                                      setTargetView(null);
-                                    }, 100);
-                                  }
-                                }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
+                                // DÉSACTIVÉ - Conflit avec CameraController principal qui gère le facteur 4.67x
+                                // useEffect(() => {
+                                //   if (controlsRef.current && targetView) {
+                                //     // Marquer qu'une vue a été définie (persistant, ne se réinitialise jamais)
+                                //     viewHasBeenSetRef.current = true;
+                                //     
+                                //     const camera = controlsRef.current.object;
+                                //     const distance = viewDistance[targetView] || initialZoom;
+                                //     
+                                //     // Positionner la caméra aux positions standard (sans rotation initiale)
+                                //     switch (targetView) {
+                                //       case 'torse':
+                                //         camera.position.set(0, 0, distance);
+                                //         controlsRef.current.target.set(0, 0, 0);
+                                //         break;
+                                //       case 'dos':
+                                //         camera.position.set(0, 0, -distance);
+                                //         controlsRef.current.target.set(0, 0, 0);
+                                //         break;
+                                //       case 'bras-gauche':
+                                //         camera.position.set(-distance, 0, 0);
+                                //         controlsRef.current.target.set(0, 0, 0);
+                                //         break;
+                                //       case 'bras-droit':
+                                //         camera.position.set(distance, 0, 0);
+                                //         controlsRef.current.target.set(0, 0, 0);
+                                //         break;
+                                //     }
+                                //     // S'assurer que la rotation de la caméra est réinitialisée (pas de rotation initiale lors du changement de vue)
+                                //     camera.rotation.set(0, 0, 0);
+                                //     controlsRef.current.update();
+                                //     setTimeout(() => {
+                                //       setTargetView(null);
+                                //     }, 100);
+                                //   }
+                                // }, [targetView, viewDistance, initialZoom, setTargetView, viewHasBeenSetRef]);
                                 
                                 // Désactiver OrbitControls quand un texte est sélectionné en mode mobile pour permettre ModelViewer de gérer les événements
                                 const shouldDisableOrbitControls = viewportMode === 'mobile' && selectedTextId && mobileActivePanel;
