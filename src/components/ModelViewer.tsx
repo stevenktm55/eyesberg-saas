@@ -4037,27 +4037,28 @@ export function ModelViewer({ url, color, designTexture, modelId, textureMaps, m
   }, [updateLogoRotation]);
 
   // Écouter les événements de changement de vue de caméra depuis le builder
-  useEffect(() => {
-    const handleGoToCameraView = (event: any) => {
-      const { position, target } = event.detail;
-      console.log('🎬 [ModelViewer] Événement goToCameraView reçu:', event.detail);
-      
-      if (position && target) {
-        // Dispatcher un autre événement que le Canvas écoutera
-        window.dispatchEvent(new CustomEvent('setCameraView', { 
-          detail: { 
-            type: 'custom',
-            position, 
-            target 
-          } 
-        }));
-        console.log('📤 [ModelViewer] Événement setCameraView dispatché');
-      }
-    };
+  // DÉSACTIVÉ - Le CameraController gère déjà goToCameraView directement
+  // useEffect(() => {
+  //   const handleGoToCameraView = (event: any) => {
+  //     const { position, target } = event.detail;
+  //     console.log('🎬 [ModelViewer] Événement goToCameraView reçu:', event.detail);
+  //     
+  //     if (position && target) {
+  //       // Dispatcher un autre événement que le Canvas écoutera
+  //       window.dispatchEvent(new CustomEvent('setCameraView', { 
+  //         detail: { 
+  //           type: 'custom',
+  //           position, 
+  //           target 
+  //         } 
+  //       }));
+  //       console.log('📤 [ModelViewer] Événement setCameraView dispatché');
+  //     }
+  //   };
 
-    window.addEventListener('goToCameraView', handleGoToCameraView);
-    return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
-  }, []);
+  //   window.addEventListener('goToCameraView', handleGoToCameraView);
+  //   return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
+  // }, []);
 
   return <SimpleViewer 
     url={url} 
