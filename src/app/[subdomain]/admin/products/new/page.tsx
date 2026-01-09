@@ -14386,10 +14386,10 @@ export default function ProductBuilderPage() {
                               console.log('🔧 Desktop - Condition non remplie, pas de changement de vue');
                             }
                             
-                            // Ne pas réinitialiser la caméra en mode mobile
-                            if (zoneCategory && viewportMode !== 'mobile') {
-                              setTargetView(zoneCategory);
-                            }
+                            // Ne pas réinitialiser la caméra - notre setCameraView s'en occupe déjà
+                            // if (zoneCategory && viewportMode !== 'mobile') {
+                            //   setTargetView(zoneCategory);
+                            // }
                             
                             setShowLogoZoneModal(false);
                             setSelectedLogoForZone(null);
