@@ -9,201 +9,7 @@ import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
 import '@/styles/product-builder-theme.css';
 
-// Annuler complètement stepn-theme.css pour le configurateur
-useEffect(() => {
-  if (typeof document !== 'undefined') {
-    const style = document.createElement('style');
-    style.id = 'product-builder-override';
-    style.textContent = `
-      /* FORCER l'annulation complète de stepn-theme.css pour .product-builder */
-      /* Ce style est ajouté dynamiquement et sera le dernier, donc prioritaire */
-      
-      /* Réinitialiser TOUTES les variables stepn */
-      .product-builder,
-      .product-builder * {
-        --stepn-accent: initial !important;
-        --stepn-text: initial !important;
-        --stepn-font-body: initial !important;
-        --stepn-font-heading-ultrabold: initial !important;
-        --stepn-font-heading-regular: initial !important;
-        --stepn-font-heading-light: initial !important;
-        --stepn-button-bg: initial !important;
-        --stepn-button-text: initial !important;
-      }
-      
-      /* Override FORCE pour tous les éléments dans .product-builder */
-      .product-builder h1,
-      .product-builder h2,
-      .product-builder h3,
-      .product-builder h4,
-      .product-builder h5,
-      .product-builder h6 {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-        font-weight: 600 !important;
-        letter-spacing: normal !important;
-        margin: 0 !important;
-        color: #111827 !important;
-        text-transform: none !important;
-        font-style: normal !important;
-        font-feature-settings: normal !important;
-        font-variant: normal !important;
-        text-rendering: auto !important;
-        -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        -webkit-text-fill-color: #111827 !important;
-        line-height: 1.5 !important;
-      }
-      
-      .product-builder h1 { font-size: 2rem !important; font-weight: 700 !important; }
-      .product-builder h2 { font-size: 1.5rem !important; font-weight: 600 !important; }
-      .product-builder h3 { font-size: 1.25rem !important; font-weight: 600 !important; }
-      .product-builder h4 { font-size: 1.125rem !important; font-weight: 600 !important; }
-      .product-builder h5 { font-size: 1rem !important; font-weight: 600 !important; }
-      .product-builder h6 { font-size: 0.875rem !important; font-weight: 600 !important; }
-      
-      .product-builder p,
-      .product-builder span,
-      .product-builder label,
-      .product-builder div,
-      .product-builder a,
-      .product-builder li {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-        color: #111827 !important;
-        text-transform: none !important;
-        letter-spacing: normal !important;
-        font-feature-settings: normal !important;
-        font-variant: normal !important;
-        text-rendering: auto !important;
-        -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        -webkit-text-fill-color: #111827 !important;
-        line-height: 1.5 !important;
-      }
-      
-      .product-builder p {
-        margin: 0 !important;
-        font-size: 0.875rem !important;
-      }
-      
-      .product-builder label {
-        font-weight: 500 !important;
-        font-size: 0.875rem !important;
-      }
-      
-      .product-builder button {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-        font-weight: 500 !important;
-        font-size: 0.875rem !important;
-        text-transform: none !important;
-        letter-spacing: normal !important;
-        line-height: 1.5 !important;
-      }
-      
-      .product-builder input,
-      .product-builder textarea,
-      .product-builder select {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-        color: #111827 !important;
-        background-color: #ffffff !important;
-        -webkit-text-fill-color: #111827 !important;
-        font-feature-settings: normal !important;
-        font-variant: normal !important;
-        text-rendering: auto !important;
-        -webkit-font-smoothing: antialiased !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        font-size: 0.875rem !important;
-      }
-      
-      /* Modaux - Override FORCE */
-      .product-builder .modal-override h1,
-      .product-builder .modal-override h2,
-      .product-builder .modal-override h3,
-      .product-builder .modal-override h4,
-      .product-builder .modal-override h5,
-      .product-builder .modal-override h6 {
-        font-family: inherit !important;
-        color: #111827 !important;
-        text-transform: none !important;
-        font-weight: 600 !important;
-        -webkit-text-fill-color: #111827 !important;
-      }
-      
-      .product-builder .modal-override p,
-      .product-builder .modal-override span,
-      .product-builder .modal-override label,
-      .product-builder .modal-override div {
-        font-family: inherit !important;
-        color: #6b7280 !important;
-        -webkit-text-fill-color: #6b7280 !important;
-      }
-      
-      .product-builder .modal-override button {
-        font-family: inherit !important;
-        text-transform: none !important;
-        font-weight: 500 !important;
-      }
-      
-      .product-builder .modal-override button.bg-white,
-      .product-builder .modal-override button[style*="background-color: #ffffff"],
-      .product-builder .modal-override button[style*="backgroundColor: #ffffff"] {
-        background-color: #ffffff !important;
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-      }
-      
-      .product-builder .modal-override button:disabled,
-      .product-builder .modal-override button.disabled {
-        background-color: #d1d5db !important;
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-      }
-      
-      /* Classes utilitaires */
-      .product-builder .customizer-tab-name,
-      .product-builder .color-class-card-label {
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-      }
-      .product-builder .typography-back-button,
-      .product-builder .typography-back-button * {
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-      }
-      .product-builder .mobile-action-btn-black,
-      .product-builder .mobile-action-btn-black * {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-      }
-    `;
-    
-    // Supprimer l'ancien style si il existe
-    const existingStyle = document.getElementById('customizer-tab-style');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    
-    // Supprimer l'ancien style si il existe
-    const existingOverride = document.getElementById('product-builder-override');
-    if (existingOverride) {
-      existingOverride.remove();
-    }
-    
-    // Insérer le style en dernier dans le head pour qu'il soit prioritaire
-    // S'assurer qu'il est après tous les autres styles (y compris stepn-theme.css)
-    document.head.appendChild(style);
-    
-    // Forcer la mise à jour des styles en ajoutant une petite classe
-    document.body.classList.add('product-builder-loaded');
-    
-    return () => {
-      const styleElement = document.getElementById('product-builder-override');
-      if (styleElement) {
-        styleElement.remove();
-      }
-      document.body.classList.remove('product-builder-loaded');
-    };
-  }
-}, []);
+type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
 type Tab = 'build' | 'pricing' | 'variants' | 'connect';
 
@@ -915,6 +721,202 @@ export default function ProductBuilderPage() {
   const searchParams = useSearchParams();
   const [productId, setProductId] = useState<string | null>(null);
   const [productName, setProductName] = useState('Untitled Product');
+  
+  // Annuler complètement stepn-theme.css pour le configurateur
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const style = document.createElement('style');
+      style.id = 'product-builder-override';
+      style.textContent = `
+        /* FORCER l'annulation complète de stepn-theme.css pour .product-builder */
+        /* Ce style est ajouté dynamiquement et sera le dernier, donc prioritaire */
+        
+        /* Réinitialiser TOUTES les variables stepn */
+        .product-builder,
+        .product-builder * {
+          --stepn-accent: initial !important;
+          --stepn-text: initial !important;
+          --stepn-font-body: initial !important;
+          --stepn-font-heading-ultrabold: initial !important;
+          --stepn-font-heading-regular: initial !important;
+          --stepn-font-heading-light: initial !important;
+          --stepn-button-bg: initial !important;
+          --stepn-button-text: initial !important;
+        }
+        
+        /* Override FORCE pour tous les éléments dans .product-builder */
+        .product-builder h1,
+        .product-builder h2,
+        .product-builder h3,
+        .product-builder h4,
+        .product-builder h5,
+        .product-builder h6 {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+          font-weight: 600 !important;
+          letter-spacing: normal !important;
+          margin: 0 !important;
+          color: #111827 !important;
+          text-transform: none !important;
+          font-style: normal !important;
+          font-feature-settings: normal !important;
+          font-variant: normal !important;
+          text-rendering: auto !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          -webkit-text-fill-color: #111827 !important;
+          line-height: 1.5 !important;
+        }
+        
+        .product-builder h1 { font-size: 2rem !important; font-weight: 700 !important; }
+        .product-builder h2 { font-size: 1.5rem !important; font-weight: 600 !important; }
+        .product-builder h3 { font-size: 1.25rem !important; font-weight: 600 !important; }
+        .product-builder h4 { font-size: 1.125rem !important; font-weight: 600 !important; }
+        .product-builder h5 { font-size: 1rem !important; font-weight: 600 !important; }
+        .product-builder h6 { font-size: 0.875rem !important; font-weight: 600 !important; }
+        
+        .product-builder p,
+        .product-builder span,
+        .product-builder label,
+        .product-builder div,
+        .product-builder a,
+        .product-builder li {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+          color: #111827 !important;
+          text-transform: none !important;
+          letter-spacing: normal !important;
+          font-feature-settings: normal !important;
+          font-variant: normal !important;
+          text-rendering: auto !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          -webkit-text-fill-color: #111827 !important;
+          line-height: 1.5 !important;
+        }
+        
+        .product-builder p {
+          margin: 0 !important;
+          font-size: 0.875rem !important;
+        }
+        
+        .product-builder label {
+          font-weight: 500 !important;
+          font-size: 0.875rem !important;
+        }
+        
+        .product-builder button {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+          font-weight: 500 !important;
+          font-size: 0.875rem !important;
+          text-transform: none !important;
+          letter-spacing: normal !important;
+          line-height: 1.5 !important;
+        }
+        
+        .product-builder input,
+        .product-builder textarea,
+        .product-builder select {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+          color: #111827 !important;
+          background-color: #ffffff !important;
+          -webkit-text-fill-color: #111827 !important;
+          font-feature-settings: normal !important;
+          font-variant: normal !important;
+          text-rendering: auto !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          font-size: 0.875rem !important;
+        }
+        
+        /* Modaux - Override FORCE */
+        .product-builder .modal-override h1,
+        .product-builder .modal-override h2,
+        .product-builder .modal-override h3,
+        .product-builder .modal-override h4,
+        .product-builder .modal-override h5,
+        .product-builder .modal-override h6 {
+          font-family: inherit !important;
+          color: #111827 !important;
+          text-transform: none !important;
+          font-weight: 600 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
+        
+        .product-builder .modal-override p,
+        .product-builder .modal-override span,
+        .product-builder .modal-override label,
+        .product-builder .modal-override div {
+          font-family: inherit !important;
+          color: #6b7280 !important;
+          -webkit-text-fill-color: #6b7280 !important;
+        }
+        
+        .product-builder .modal-override button {
+          font-family: inherit !important;
+          text-transform: none !important;
+          font-weight: 500 !important;
+        }
+        
+        .product-builder .modal-override button.bg-white,
+        .product-builder .modal-override button[style*="background-color: #ffffff"],
+        .product-builder .modal-override button[style*="backgroundColor: #ffffff"] {
+          background-color: #ffffff !important;
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
+        
+        .product-builder .modal-override button:disabled,
+        .product-builder .modal-override button.disabled {
+          background-color: #d1d5db !important;
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
+        
+        /* Classes utilitaires */
+        .product-builder .customizer-tab-name,
+        .product-builder .color-class-card-label {
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
+        .product-builder .typography-back-button,
+        .product-builder .typography-back-button * {
+          color: #111827 !important;
+          -webkit-text-fill-color: #111827 !important;
+        }
+        .product-builder .mobile-action-btn-black,
+        .product-builder .mobile-action-btn-black * {
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+        }
+      `;
+      
+      // Supprimer l'ancien style si il existe
+      const existingStyle = document.getElementById('customizer-tab-style');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+      
+      // Supprimer l'ancien style si il existe
+      const existingOverride = document.getElementById('product-builder-override');
+      if (existingOverride) {
+        existingOverride.remove();
+      }
+      
+      // Insérer le style en dernier dans le head pour qu'il soit prioritaire
+      // S'assurer qu'il est après tous les autres styles (y compris stepn-theme.css)
+      document.head.appendChild(style);
+      
+      // Forcer la mise à jour des styles en ajoutant une petite classe
+      document.body.classList.add('product-builder-loaded');
+      
+      return () => {
+        const styleElement = document.getElementById('product-builder-override');
+        if (styleElement) {
+          styleElement.remove();
+        }
+        document.body.classList.remove('product-builder-loaded');
+      };
+    }
+  }, []);
   
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
