@@ -4327,17 +4327,6 @@ export default function ProductBuilderPage() {
                           };
                           const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
                           
-                            logoId: selectedLogoForVariants.id,
-                            logoName: selectedLogoForVariants.name,
-                            baseFile: baseVariant.file_url,
-                            variantsCount: selectedLogoForVariants.variants?.length || 0,
-                            allVariants: allVariants.map(v => ({ 
-                              id: v.id, 
-                              file_url: v.file_url, 
-                              name: v.name 
-                            }))
-                          });
-                          
                           return (
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                               {/* Bouton retour */}
