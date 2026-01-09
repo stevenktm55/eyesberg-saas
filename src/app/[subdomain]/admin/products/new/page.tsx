@@ -5053,7 +5053,7 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = '#000000';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
                             {buttonLabel}
                           </button>
                           )}
