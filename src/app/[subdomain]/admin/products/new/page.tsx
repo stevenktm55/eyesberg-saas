@@ -137,8 +137,51 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
 
   useEffect(() => {
     const handleGoToCameraView = (event: any) => {
-      const { position, target } = event.detail;
       console.log('🎬 CameraController - Événement goToCameraView reçu:', event.detail);
+      
+      // Si l'événement contient juste une string (vue legacy), convertir en coordonnées
+      if (typeof event.detail === 'string') {
+        const view = event.detail;
+        console.log('🎬 CameraController - Vue legacy détectée:', view);
+        
+        // Positions hardcodées pour les vues de base
+        const defaultPositions: Record<string, {position: {x: number, y: number, z: number}, target: {x: number, y: number, z: number}}> = {
+          'front': { position: { x: 0, y: 0, z: 2.14 }, target: { x: 0, y: 0, z: 0 } },
+          'back': { position: { x: 0, y: 0, z: -2.14 }, target: { x: 0, y: 0, z: 0 } },
+          'left': { position: { x: -2.14, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+          'right': { position: { x: 2.14, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } }
+        };
+        
+        if (defaultPositions[view]) {
+          const coords = defaultPositions[view];
+          console.log('🎬 CameraController - Conversion vue legacy:', view, '→', coords);
+          
+          // Créer un nouvel événement avec les coordonnées
+          const convertedEvent = {
+            detail: {
+              position: coords.position,
+              target: coords.target
+            }
+          };
+          
+          // Traiter comme un événement normal
+          const { position, target } = convertedEvent.detail;
+          processPositionAndTarget(position, target);
+          return;
+        }
+      }
+      
+      // Traitement normal pour les événements avec position/target
+      const { position, target } = event.detail;
+      if (!position || !target) {
+        console.log('🎬 CameraController - Événement invalide, position ou target manquant');
+        return;
+      }
+      
+      processPositionAndTarget(position, target);
+    };
+    
+    const processPositionAndTarget = (position: any, target: any) => {
       
       if (camera && position && target && controlsRef?.current) {
         const controls = controlsRef.current;
