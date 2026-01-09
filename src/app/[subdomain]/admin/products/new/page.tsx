@@ -169,15 +169,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         // Mettre à jour la position et le target avec correction
         camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
         
-        // Utiliser le target personnalisé s'il est fourni, sinon utiliser le target par défaut
-        const finalTarget = event.detail.target || target;
-        console.log('🎯 Target final utilisé:', finalTarget);
-        console.log('🎯 Target avant:', { x: controls.target.x, y: controls.target.y, z: controls.target.z });
-        
-        controls.target.set(finalTarget.x, finalTarget.y, finalTarget.z);
+        controls.target.set(target.x, target.y, target.z);
         controls.update();
-        
-        console.log('🎯 Target après:', { x: controls.target.x, y: controls.target.y, z: controls.target.z });
         
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
@@ -194,42 +187,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     // Listener pour setCameraView (utilisé par les zones)
     const handleSetCameraView = (event: any) => {
       console.log('🎬 CameraController - Événement setCameraView reçu:', event.detail);
-      
-      // Si l'événement contient un target personnalisé (pour centrer sur logo)
-      if (event.detail && typeof event.detail === 'object' && event.detail.target) {
-        console.log('🎯 CameraController - Target personnalisé détecté:', event.detail.target);
-        
-        // Récupérer la position de la vue correspondante
-        const viewName = event.detail.view; // 'back', 'front', etc.
-        let cameraPosition = { x: 0, y: 0, z: 2.14 }; // Position par défaut
-        
-        // Positions hardcodées pour les vues de base (sera remplacé par les vraies vues sauvegardées)
-        const defaultPositions: Record<string, {x: number, y: number, z: number}> = {
-          'front': { x: 0, y: 0, z: 2.14 },
-          'back': { x: 0, y: 0, z: -2.14 },
-          'left': { x: -2.14, y: 0, z: 0 },
-          'right': { x: 2.14, y: 0, z: 0 }
-        };
-        
-        if (viewName && defaultPositions[viewName]) {
-          cameraPosition = defaultPositions[viewName];
-          console.log('🎯 Position caméra pour vue', viewName, ':', cameraPosition);
-        }
-        
-        // Créer un événement goToCameraView avec le target personnalisé
-        const customEvent = {
-          detail: {
-            position: cameraPosition,
-            target: event.detail.target,
-            view: event.detail.view
-          }
-        };
-        
-        handleGoToCameraView(customEvent);
-      } else {
-        // Rediriger vers handleGoToCameraView pour traitement unifié
-        handleGoToCameraView(event);
-      }
+      // Rediriger vers handleGoToCameraView pour traitement unifié
+      handleGoToCameraView(event);
     };
 
     window.addEventListener('goToCameraView', handleGoToCameraView);
@@ -7978,24 +7937,8 @@ export default function ProductBuilderPage() {
                                                 setTimeout(() => {
                                                   console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
                                                   
-                                                  // Calculer la position 3D approximative du logo pour centrer la caméra
-                                                  console.log('🎯 zonePosition UV mobile originale:', zonePosition);
-                                                  
-                                                  const logoWorldPosition = {
-                                                    x: (zonePosition[0] - 0.5) * 4, // Échelle plus grande pour test
-                                                    y: (zonePosition[1] - 0.5) * 4, // Échelle plus grande pour test
-                                                    z: zonePosition[2] || 0
-                                                  };
-                                                  
-                                                  console.log('🎯 Position logo mobile calculée (échelle x4):', logoWorldPosition);
-                                                  
-                                                  // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
-                                                  window.dispatchEvent(new CustomEvent('setCameraView', { 
-                                                    detail: {
-                                                      view: cameraView,
-                                                      target: logoWorldPosition // Centrer sur le logo
-                                                    }
-                                                  }));
+                                                  console.log('🔧 Vue caméra zone mobile - cameraView:', cameraView);
+                                                  window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                                                 }, 100);
                                               }
                                               
@@ -14394,27 +14337,7 @@ export default function ProductBuilderPage() {
                             if (cameraView && viewportMode !== 'mobile') {
                               setTimeout(() => {
                                 console.log('🔧 Vue caméra zone desktop - cameraView:', cameraView);
-                                
-                                // Calculer la position 3D approximative du logo pour centrer la caméra
-                                // Convertir les coordonnées UV (0-1) en coordonnées 3D approximatives
-                                console.log('🎯 zonePosition UV originale:', zonePosition);
-                                
-                                // Essayons différentes échelles pour voir ce qui fonctionne mieux
-                                const logoWorldPosition = {
-                                  x: (zonePosition[0] - 0.5) * 4, // Échelle plus grande pour test
-                                  y: (zonePosition[1] - 0.5) * 4, // Échelle plus grande pour test
-                                  z: zonePosition[2] || 0
-                                };
-                                
-                                console.log('🎯 Position logo calculée (échelle x4):', logoWorldPosition);
-                                
-                                // Dispatcher l'événement avec target personnalisé pour centrer sur le logo
-                                window.dispatchEvent(new CustomEvent('setCameraView', { 
-                                  detail: {
-                                    view: cameraView,
-                                    target: logoWorldPosition // Centrer sur le logo
-                                  }
-                                }));
+                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView }));
                               }, 100);
                             } else {
                               console.log('🔧 Desktop - Condition non remplie, pas de changement de vue');

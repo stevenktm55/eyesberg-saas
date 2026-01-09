@@ -3314,18 +3314,6 @@ export default function ConfiguratorViewer({
   const textZones = snapshot?.textZones || [];
   const fonts = snapshot?.fonts || [];
   
-  // Debug: Vérifier les zones et leurs propriétés view
-  console.log('🔍 DEBUG ZONES - Total zones dans snapshot:', textZones.length);
-  textZones.forEach((zone: any, index: number) => {
-    console.log(`🔍 Zone ${index + 1}:`, {
-      name: zone.name,
-      id: zone.id,
-      view: zone.view,
-      categories: zone.categories,
-      is_logo: (zone as any).is_logo,
-      zoneCategory: zone.zoneCategory
-    });
-  });
   
   const { selectedDesign, selectDesign } = useDesignSelection();
   const { colors, updateColor, replaceColors, resetColors } = useColorSelection();
