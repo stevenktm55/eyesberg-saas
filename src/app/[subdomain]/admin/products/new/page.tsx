@@ -13930,8 +13930,13 @@ export default function ProductBuilderPage() {
 
       {/* Modal de sélection de zones pour les logos */}
       {showLogoZoneModal && selectedLogoForZone && (() => {
+        console.log('🔍 Modal zones - Rendu du modal, showLogoZoneModal:', showLogoZoneModal, 'selectedLogoForZone:', selectedLogoForZone);
         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
-        if (!activeModule || activeModule.contentType !== 'logos') return null;
+        console.log('🔍 Modal zones - activeModule trouvé:', activeModule);
+        if (!activeModule || activeModule.contentType !== 'logos') {
+          console.log('🔍 Modal zones - Pas de module actif ou pas de type logos');
+          return null;
+        }
         
         return (
           <div
@@ -14010,10 +14015,18 @@ export default function ProductBuilderPage() {
               </div>
 
               {(() => {
+                // Debug: Vérifier la configuration du module
+                console.log('🔍 Modal zones - activeModule:', activeModule);
+                console.log('🔍 Modal zones - logoZoneGroupIds:', activeModule.logoZoneGroupIds);
+                console.log('🔍 Modal zones - zoneGroups disponibles:', zoneGroups);
+                console.log('🔍 Modal zones - activeLogoView:', activeLogoView);
+                
                 // Récupérer les zones des groupes sélectionnés
                 const availableZones = zoneGroups
                   .filter(group => activeModule.logoZoneGroupIds?.includes(group.id))
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+              
+                console.log('🔍 Modal zones - availableZones après filtrage groupes:', availableZones);
               
                 // Filtrer par vue active
                 const viewLabels: Record<string, string> = {
@@ -14025,9 +14038,12 @@ export default function ProductBuilderPage() {
                 
                 const filteredZones = availableZones.filter(zone => {
                   const zoneView = zone.view ? viewLabels[zone.view] : undefined;
+                  console.log('🔍 Zone filtrage:', zone.name, 'view:', zone.view, 'zoneView:', zoneView, 'activeLogoView:', activeLogoView);
                   if (zoneView && zoneView !== activeLogoView) return false;
                   return true;
                 });
+                
+                console.log('🔍 Modal zones - filteredZones finales:', filteredZones);
               
                 if (filteredZones.length === 0) {
                   return (
