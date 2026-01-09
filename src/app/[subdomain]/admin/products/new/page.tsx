@@ -6680,16 +6680,16 @@ export default function ProductBuilderPage() {
                           {/* Canvas 3D - prend l'espace restant */}
                           <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           {(() => {
-                            // Ajuster les paramètres pour mobile
-                            const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
-                            const mobileFov = viewportMode === 'mobile' ? 65 : 50;
+                            // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
+                            const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
+                            const cameraFov = viewportMode === 'mobile' ? 65 : 50;
                             
                             return (
                               <Canvas
                                 key={`canvas-${selectedModel3DId}`}
                                 camera={{ 
-                                  position: [0, 0, mobileInitialZoom], 
-                                  fov: mobileFov
+                                  position: cameraPosition, 
+                                  fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
                                 style={{ width: '100%', height: '100%' }}
@@ -6806,8 +6806,8 @@ export default function ProductBuilderPage() {
                                 return null;
                               }
                               // Passer le ref persistant pour savoir si une vue a été définie
-                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
-                              return <CameraInitializer initialZoom={mobileInitialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
+                              const alignedInitialZoom = viewportMode === 'mobile' ? 8 : 15; // Aligné avec le configurateur
+                              return <CameraInitializer initialZoom={alignedInitialZoom} initialRotation={initialRotation} viewHasBeenSetRef={viewHasBeenSetRef} />;
                             })()}
                             <ambientLight intensity={0.4} color="#f5f5f5" />
                             <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
@@ -7104,8 +7104,8 @@ export default function ProductBuilderPage() {
                                 );
                               }
                               
-                              // Ajuster tous les paramètres pour mobile
-                              const mobileInitialZoom = viewportMode === 'mobile' ? (initialZoom || 5) * 1.5 : (initialZoom || 5);
+                              // Ajuster tous les paramètres pour mobile - alignés avec le configurateur
+                              const alignedInitialZoom = viewportMode === 'mobile' ? 8 : 15; // Même que le configurateur
                               const adjustedMinZoom = viewportMode === 'mobile' ? minZoom * 1.5 : minZoom;
                               const adjustedMaxZoom = viewportMode === 'mobile' ? maxZoom * 1.5 : maxZoom;
                               // Ajuster viewDistance pour mobile
@@ -7121,7 +7121,7 @@ export default function ProductBuilderPage() {
                                   <ControlsManager
                                     targetView={targetView}
                                     viewDistance={adjustedViewDistance}
-                                    initialZoom={mobileInitialZoom}
+                                    initialZoom={alignedInitialZoom}
                                     initialRotation={initialRotation}
                                     zoomSpeed={zoomSpeed}
                                     rotateSpeed={rotateSpeed}
