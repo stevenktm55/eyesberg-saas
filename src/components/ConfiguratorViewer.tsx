@@ -1654,11 +1654,25 @@ function Viewer3D({
     controls.maxDistance = Infinity;
     
     if (savedView) {
-      // Utiliser la vue sauvegardée
+      // Utiliser la vue sauvegardée avec facteur de correction d'échelle
       console.log('📸 Utilisation de la vue sauvegardée:', savedView);
-      camera.position.set(savedView.position.x, savedView.position.y, savedView.position.z);
+      
+      // Facteur de correction pour adapter l'échelle admin vers configurateur
+      // Si admin Z=2.14 = bonne vue, et configurateur devrait être Z≈10, ratio ≈ 4.67
+      const scaleFactor = 4.67;
+      
+      const correctedPosition = {
+        x: savedView.position.x * scaleFactor,
+        y: savedView.position.y * scaleFactor,
+        z: savedView.position.z * scaleFactor
+      };
+      
+      console.log('🔧 Position originale:', savedView.position);
+      console.log('🔧 Position corrigée (x' + scaleFactor + '):', correctedPosition);
+      
+      camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
       target.set(savedView.target.x, savedView.target.y, savedView.target.z);
-      console.log(`📍 Positionnée caméra en ${view} avec vue sauvegardée - pos: [${savedView.position.x}, ${savedView.position.y}, ${savedView.position.z}]`);
+      console.log(`📍 Positionnée caméra en ${view} avec vue sauvegardée corrigée - pos: [${correctedPosition.x}, ${correctedPosition.y}, ${correctedPosition.z}]`);
     } else {
       // Fallback vers les positions par défaut
       console.log('⚠️ Pas de vue sauvegardée, utilisation du fallback');
