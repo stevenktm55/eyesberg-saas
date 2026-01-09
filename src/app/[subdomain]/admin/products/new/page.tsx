@@ -2576,7 +2576,10 @@ export default function ProductBuilderPage() {
                     style={{
                       width: '100%',
                       padding: '8px 12px',
-                      backgroundColor: '#1a1a1a',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #d1d5db',
+                      color: '#6b7280',
+                      fontFamily: 'inherit',
                       border: '1px solid #2a2a2a',
                       borderRadius: '4px',
                       color: '#ffffff',
@@ -2586,11 +2589,11 @@ export default function ProductBuilderPage() {
                       outline: 'none'
                     }}
                   >
-                    <option value="" style={{ backgroundColor: '#1a1a1a' }}>
+                    <option value="" style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
                       {models3D.length === 0 ? 'Aucun modèle disponible' : 'Sélectionner un modèle'}
                     </option>
                     {models3D.map(model => (
-                      <option key={model.id} value={model.id} style={{ backgroundColor: '#1a1a1a' }}>
+                      <option key={model.id} value={model.id} style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
                         {model.name}
                       </option>
                     ))}
