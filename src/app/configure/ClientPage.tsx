@@ -405,11 +405,11 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
           
           // Charger les texture maps et material maps du modèle
           if (forcedModelId) {
-            const res = await fetch('/api/models-3d');
+            const res = await fetch('/api/models');
             const models = await res.json();
             const selectedModel = models.find((m: any) => m.id === forcedModelId);
             if (selectedModel) {
-              // Modèle trouvé
+              console.log('✅ Modèle trouvé - ID:', selectedModel.id, 'materialMaps:', Object.keys(selectedModel.materialMaps || {}));
               setTextureMaps(selectedModel.textureMaps || null);
               setMaterialMaps(selectedModel.materialMaps || null);
               setModelId(selectedModel.id);
@@ -429,7 +429,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         }
         
         // Charger tous les modèles
-        const response = await fetch('/api/models-3d');
+        const response = await fetch('/api/models');
         const models = await response.json();
         
         let chosen = null;
@@ -475,7 +475,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
     let mounted = true;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/models-3d');
+        const res = await fetch('/api/models');
         const models = await res.json();
         const current = models.find((m: any) => m.id === modelId);
         if (!current) return;
@@ -487,7 +487,7 @@ function useAutoLoadModel(forcedModelId?: string | null, forcedModelUrl?: string
         const tmChanged = JSON.stringify(nextTextureMaps) !== JSON.stringify(textureMaps);
 
         if (mounted && (mmChanged || tmChanged)) {
-          // Sync materialMaps/textureMaps depuis API
+          console.log('🔄 Sync materialMaps/textureMaps depuis API (configure)');
           if (tmChanged) setTextureMaps(nextTextureMaps);
           if (mmChanged) setMaterialMaps(nextMaterialMaps);
         }
@@ -519,7 +519,7 @@ function useDesignSelection() {
     if (design) {
       console.log('🎯 model_type du design reçu:', design.model_type);
       setSelectedDesign({ id: design.id, svgUrl: design.svgUrl, model_type: design.model_type });
-      // selectedDesign mis à jour
+      console.log('✅ selectedDesign mis à jour avec model_type:', design.model_type);
     } else {
       setSelectedDesign({ id: null, svgUrl: null });
       // selectedDesign mis à jour vers null
@@ -917,7 +917,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const updateLogoPosition = (id: string, position: [number, number, number]) => {
-    // updateLogoPosition called
+    console.log('🔄 updateLogoPosition called:', { id, position });
     // Create a new position array to avoid reference sharing
     const newPosition: [number, number, number] = [position[0], position[1], position[2] || 0];
     setPlacedLogos(prev => prev.map(logo => 
@@ -926,7 +926,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const updateLogoRotation = (id: string, rotation: number) => {
-    // updateLogoRotation called
+    console.log('🔄 updateLogoRotation called:', { id, rotation });
     setPlacedLogos(prev => prev.map(logo => 
       logo.id === id ? { ...logo, rotation } : logo
     ));
@@ -940,7 +940,7 @@ function useLogoSelection(onLogoSelectionChange?: (logoId: string | null) => voi
   };
 
   const selectLogo = (id: string | null) => {
-    // selectLogo appelé
+    console.log('🔄 selectLogo appelé:', { id, stack: new Error().stack });
     setSelectedLogoId(id);
     
     if (onLogoSelectionChange) {
@@ -1253,20 +1253,20 @@ function Viewer3D({
     
     switch (direction) {
       case 'back':
-        camera.position.set(0, 0, -maxDistance);
-        target.set(0, 0, 0);
+        camera.position.set(0, 1, -maxDistance);
+        target.set(0, 1, 0);
         break;
       case 'left':
-        camera.position.set(-maxDistance, 0, 0);
-        target.set(0, 0, 0);
+        camera.position.set(-maxDistance, 1, 0);
+        target.set(0, 1, 0);
         break;
       case 'right':
-        camera.position.set(maxDistance, 0, 0);
-        target.set(0, 0, 0);
+        camera.position.set(maxDistance, 1, 0);
+        target.set(0, 1, 0);
         break;
       default: // front
-        camera.position.set(0, 0, maxDistance);
-        target.set(0, 0, 0);
+        camera.position.set(0, 1, maxDistance);
+        target.set(0, 1, 0);
     }
     
     controls.update();
@@ -1311,19 +1311,19 @@ function Viewer3D({
       const maxDistance = cameraSettings.maxDistance;
       
       if (view === 'front') {
-        camera.position.set(0, 0, maxDistance);
+        camera.position.set(0, 1, maxDistance);
         target.set(0, isMobile ? -1.5 : 0, 0);
         console.log('📍 Positionnée caméra en front (fallback)');
       } else if (view === 'back') {
-        camera.position.set(0, 0, -maxDistance);
+        camera.position.set(0, 1, -maxDistance);
         target.set(0, isMobile ? -1.5 : 0, 0);
         console.log('📍 Positionnée caméra en back (fallback)');
       } else if (view === 'left') {
-        camera.position.set(-maxDistance, 0, 0);
+        camera.position.set(-maxDistance, 1, 0);
         target.set(0, 0, 0);
         console.log('📍 Positionnée caméra en left (fallback)');
       } else if (view === 'right') {
-        camera.position.set(maxDistance, 0, 0);
+        camera.position.set(maxDistance, 1, 0);
         target.set(0, 0, 0);
         console.log('📍 Positionnée caméra en right (fallback)');
       }
@@ -1453,8 +1453,8 @@ function Viewer3D({
   }, []);
 
   // Paramètres de caméra adaptés au mobile - dézoom max sur desktop aussi
-  // IMPORTANT: Utiliser Y=0 pour être cohérent avec Canvas3DPreview où les vues sont enregistrées
-  const cameraPosition: [number, number, number] = [0, 0, cameraSettings.defaultPositionZ];
+  // Utilisation de la fonction de conversion pour maintenir la cohérence
+  const cameraPosition: [number, number, number] = [0, 1, cameraSettings.defaultPositionZ];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
   const minDistance = cameraSettings.minDistance;
   const maxDistance = cameraSettings.maxDistance;
@@ -3796,19 +3796,19 @@ function TextTab({
       {/* Modal de sélection de zone */}
       {showZoneSelector && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onClick={() => setShowZoneSelector(false)}>
-          <div className="modal-override bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             {/* Titre */}
             <h3 className="text-xl font-bold mb-6">{labels.title}</h3>
             
             {filteredZones.length === 0 ? (
-              <div className="text-center py-8 text-gray-600">
+              <div className="text-center py-8 text-gray-500">
                 Aucune zone disponible pour cette catégorie
               </div>
             ) : (
               <>
                 {/* Section de sélection de zone avec images */}
                 <div className="mb-6">
-                  <p className="mb-3 text-gray-900">Choisissez une position standard</p>
+                  <p className="mb-3 text-black">Choisissez une position standard</p>
                   <div className="grid grid-cols-2 gap-3">
                     {filteredZones.map((zone) => (
                       <button
@@ -3854,7 +3854,7 @@ function TextTab({
 
                 {/* Section du contenu du texte */}
                 <div className="mb-6">
-                  <p className="mb-2 text-gray-900">Contenu du texte</p>
+                  <p className="mb-2 text-black">Contenu du texte</p>
                   <input
                     type="text"
                     placeholder="Saisir l'inscription ici..."
@@ -3924,8 +3924,8 @@ function TextTab({
       {/* Modal d'ajout de texte */}
       {isAddingText && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-          <div className="modal-override bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-lg font-semibold mb-4">{labels.title}</h3>
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{labels.title}</h3>
             
             {/* Sélecteur de zone avec vignettes */}
             <div className="mb-4">
@@ -3934,14 +3934,14 @@ function TextTab({
                     </label>
               
               {isLoadingZones ? (
-                <div className="text-center py-8 text-gray-600">
-                  <div className="animate-spin w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full mx-auto mb-2"></div>
-                  <p className="text-gray-900">Chargement des zones...</p>
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin w-6 h-6 border-2 border-black border-t-transparent rounded-full mx-auto mb-2"></div>
+                  Chargement des zones...
                 </div>
               ) : filteredZones.length === 0 ? (
-                <div className="text-center py-8 text-gray-600">
-                  <p className="text-gray-900">Aucune zone définie pour cette catégorie</p>
-                  <p className="text-xs mt-1 text-gray-600">Configurez des zones via l'interface admin</p>
+                <div className="text-center py-8 text-gray-500">
+                  <p>Aucune zone définie pour cette catégorie</p>
+                  <p className="text-xs mt-1">Configurez des zones via l'interface admin</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
@@ -4505,9 +4505,9 @@ function LogoTab({
   // Modal d'import de logo
   const importModal = showImportModal && (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-      <div className="modal-override bg-white rounded-lg shadow-2xl max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
         <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Importer un logo</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Importer un logo</h3>
           
           <div className="space-y-4">
             <div>
@@ -4523,7 +4523,7 @@ function LogoTab({
             </div>
 
             {selectedFile && (
-              <div className="text-sm text-gray-900">
+              <div className="text-sm text-black">
                 Fichier sélectionné : {selectedFile.name}
               </div>
             )}
@@ -4542,25 +4542,7 @@ function LogoTab({
             <button
               onClick={handleUploadLogo}
               disabled={!selectedFile || isUploading}
-              className="flex-1 px-4 py-2 rounded-lg disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: (!selectedFile || isUploading) ? '#d1d5db' : '#000000',
-                color: (!selectedFile || isUploading) ? '#111827' : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#1f2937';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#d1d5db';
-                  e.currentTarget.style.color = '#111827';
-                } else {
-                  e.currentTarget.style.backgroundColor = '#000000';
-                  e.currentTarget.style.color = '#ffffff';
-                }
-              }}
+              className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {isUploading ? 'Upload...' : 'Importer'}
             </button>
@@ -4573,9 +4555,9 @@ function LogoTab({
   // Modal de sélection de zone
   const zoneModal = showZoneSelector && (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-      <div className="modal-override bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Choisir une zone de placement</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choisir une zone de placement</h3>
           
           {/* Sélection de zone par vignettes */}
           <div className="mb-6">
@@ -4632,7 +4614,7 @@ function LogoTab({
             ))}
           </div>
             ) : (
-              <div className="text-center py-4 text-gray-600 text-sm">
+              <div className="text-center py-4 text-gray-500 text-sm">
                 Aucune zone disponible pour cette catégorie. Créez des zones dans l'admin.
           </div>
         )}
@@ -4649,25 +4631,7 @@ function LogoTab({
             <button
               onClick={handleZoneSelect}
               disabled={!selectedZone}
-              className="flex-1 px-4 py-2 rounded-lg disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: !selectedZone ? '#d1d5db' : '#000000',
-                color: !selectedZone ? '#111827' : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#1f2937';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#d1d5db';
-                  e.currentTarget.style.color = '#111827';
-                } else {
-                  e.currentTarget.style.backgroundColor = '#000000';
-                  e.currentTarget.style.color = '#ffffff';
-                }
-              }}
+              className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               Confirmer
             </button>
@@ -5280,8 +5244,6 @@ function TextItem({
   );
 }
 export default function ConfigurePage() {
-  console.log('🚀 ConfigurePage component loading...');
-  
   // Logs de montage supprimés pour éviter les boucles infinies
   useEffect(() => {
     const w = window as typeof window & { __STRETCHMX_BUILD?: string };
@@ -5382,7 +5344,7 @@ useEffect(() => {
         let inferredProductId: string | null = null;
         if (modelUrl) {
           // Associer modelUrl -> model_id -> product mapping
-          const modelsRes = await fetch('/api/models-3d');
+          const modelsRes = await fetch('/api/models');
           if (modelsRes.ok) {
             const models = await modelsRes.json();
             const m = Array.isArray(models) ? models.find((mm: any) => mm.glbUrl === modelUrl) : null;
@@ -5495,20 +5457,8 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   
   const { modelUrl, textureMaps, materialMaps, modelId, isLoading: modelIsLoading } = useAutoLoadModel(configModelId, configModelUrl, productId);
   
-  // DEBUG: Log du modelId reçu
-  console.log('🔍 ClientPage - modelId reçu de useAutoLoadModel:', modelId, 'isLoading:', modelIsLoading);
-  
   // Charger les vues de caméra pour le modèle actuel
   const { cameraViews, isLoading: cameraViewsLoading, saveCameraView } = useCameraViews(modelId);
-  
-  // Log des vues de caméra chargées pour debug
-  useEffect(() => {
-    if (cameraViews.length > 0) {
-      console.log('📷 Vues de caméra chargées:', cameraViews);
-    } else if (!cameraViewsLoading && modelId) {
-      console.log('⚠️ Aucune vue de caméra trouvée pour le modèle:', modelId);
-    }
-  }, [cameraViews, cameraViewsLoading, modelId]);
   
   // État pour suivre la vue de caméra actuellement active
   const [currentCameraView, setCurrentCameraView] = useState<'front' | 'back' | 'left' | 'right'>('front');
@@ -5523,7 +5473,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       // Charger le premier modèle disponible si aucun n'est chargé
       (async () => {
         try {
-          const res = await fetch('/api/models-3d');
+          const res = await fetch('/api/models');
           const models = await res.json();
           if (models && models.length > 0) {
             const firstModel = models[0];
@@ -6872,7 +6822,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         
         // Récupérer les design_ids autorisés pour ce modèle
         try {
-          const response = await fetch('/api/models-3d');
+          const response = await fetch('/api/models');
           const models = await response.json();
           const currentModel = models.find((m: any) => m.glbUrl === configData.modelUrl);
           
@@ -8370,7 +8320,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           />
           
           {/* Modal Content */}
-          <div className="modal-override relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
+          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
             <div className="text-center">
               {/* Icône */}
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -8380,12 +8330,12 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               </div>
               
               {/* Titre */}
-              <h3 className="text-lg font-medium mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Supprimer l'élément ?
               </h3>
               
               {/* Message */}
-              <p className="text-sm mb-6 text-gray-600">
+              <p className="text-sm text-gray-500 mb-6">
                 Êtes-vous sûr de vouloir supprimer le texte <span className="font-medium text-gray-900">"{deleteConfirmation.textContent}"</span> ? Cette action ne peut pas être annulée.
               </p>
               
@@ -8393,7 +8343,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
                   Non
                 </button>
@@ -8420,7 +8370,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           
           {/* Modal Content */}
           <div 
-            className="modal-override relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full"
+            className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center">
@@ -8432,12 +8382,12 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               </div>
               
               {/* Titre */}
-              <h3 className="text-lg font-medium mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Supprimer l'élément ?
               </h3>
               
               {/* Message */}
-              <p className="text-sm mb-6 text-gray-600">
+              <p className="text-sm text-gray-500 mb-6">
                 Êtes-vous sûr de vouloir supprimer le logo <span className="font-medium text-gray-900">"{logoDeleteConfirmation.logoName}"</span> ? Cette action ne peut pas être annulée.
               </p>
               
@@ -8445,7 +8395,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={cancelLogoDelete}
-                  className="px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
                   Non
                 </button>
@@ -8472,7 +8422,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           />
           
           {/* Modal Content */}
-          <div className="modal-override relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
+          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
                 <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -8480,7 +8430,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
                 </svg>
               </div>
               
-              <h3 className="text-lg font-medium mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Avertissement sur les couleurs
               </h3>
               
@@ -8540,7 +8490,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           />
           
           {/* Modal Content */}
-          <div className="modal-override relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
+          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-md w-full">
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
                 <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -8548,7 +8498,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
                 </svg>
               </div>
               
-              <h3 className="text-lg font-medium mb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Avertissement sur les couleurs
               </h3>
               

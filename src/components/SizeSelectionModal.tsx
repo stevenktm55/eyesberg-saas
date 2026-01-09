@@ -81,7 +81,7 @@ export default function SizeSelectionModal({ isOpen, onClose, onSelect, modelTyp
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin w-12 h-12 border-4 border-black border-t-transparent rounded-full mx-auto"></div>
-              <p className="mt-4 text-gray-900">Chargement des tailles...</p>
+              <p className="mt-4 text-gray-500">Chargement des tailles...</p>
             </div>
           ) : (
             <>
@@ -119,7 +119,7 @@ export default function SizeSelectionModal({ isOpen, onClose, onSelect, modelTyp
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2 text-xs sm:text-xs text-gray-700">
+                  <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2 text-xs sm:text-xs text-gray-600">
                     {modelType === 'maillot' ? (
                       <>
                         <p>
@@ -154,7 +154,7 @@ export default function SizeSelectionModal({ isOpen, onClose, onSelect, modelTyp
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 sm:p-6">
-          <div className="text-xs sm:text-sm text-gray-700 mb-3">
+          <div className="text-xs sm:text-sm text-gray-600 mb-3">
             {selectedSize && (
               <span className="font-semibold">
                 Taille sélectionnée : <span className="text-black text-base sm:text-lg">{selectedSize.name}</span>

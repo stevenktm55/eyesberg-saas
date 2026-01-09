@@ -2383,9 +2383,9 @@ function LogoTab({
   // Modal d'import de logo
   const importModal = showImportModal && (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
-      <div className="modal-override bg-white rounded-lg shadow-2xl max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
         <div className="p-6">
-          <h3 className="modal-override text-lg font-semibold mb-4">Importer un logo</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Importer un logo</h3>
           
           <div className="space-y-4">
             <div>
@@ -2434,26 +2434,7 @@ function LogoTab({
             <button
               onClick={handleUploadLogo}
               disabled={!selectedFile || !logoName.trim() || isUploading}
-              className="flex-1 px-4 py-2 rounded-lg disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: (!selectedFile || !logoName.trim() || isUploading) ? '#d1d5db' : '#3b82f6',
-                color: (!selectedFile || !logoName.trim() || isUploading) ? '#111827' : '#ffffff'
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#2563eb';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (e.currentTarget.disabled) {
-                  e.currentTarget.style.backgroundColor = '#d1d5db';
-                  e.currentTarget.style.color = '#111827';
-                } else {
-                  e.currentTarget.style.backgroundColor = '#3b82f6';
-                  e.currentTarget.style.color = '#ffffff';
-                }
-              }}
-              disabled={!selectedFile || !logoName.trim() || isUploading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {isUploading ? 'Upload...' : 'Importer'}
             </button>
@@ -3732,7 +3713,6 @@ export default function ConfiguratorViewer({
         }}
       >
         <div
-          className="modal-override"
           style={{
             backgroundColor: '#ffffff',
             borderRadius: '8px',
@@ -3752,11 +3732,11 @@ export default function ConfiguratorViewer({
             alignItems: 'center',
             marginBottom: '24px'
           }}>
-            <h2 className="modal-override" style={{
+            <h2 style={{
               fontSize: '20px',
               fontWeight: '600',
-              color: '#111827',
-              fontFamily: 'inherit',
+              color: '#000000',
+              fontFamily: 'var(--stepn-font-body)',
               margin: 0
             }}>
               {activeModule?.addLogoButtonLabel || 'Ajouter un logo'}
@@ -3793,11 +3773,11 @@ export default function ConfiguratorViewer({
             <div>
               {/* Section: Choisissez une position standard */}
               <div style={{ marginBottom: '32px' }}>
-                <h3 className="modal-override" style={{
+                <h3 style={{
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: '#111827',
-                  fontFamily: 'inherit',
+                  color: '#000000',
+                  fontFamily: 'var(--stepn-font-body)',
                   marginBottom: '16px'
                 }}>
                   Choisissez une position standard
@@ -3996,11 +3976,10 @@ export default function ConfiguratorViewer({
                 >
                   Annuler
                 </button>
-              <button
-                className="modal-override"
-                onClick={async () => {
-                  const selectedZoneData = filteredZonesForSelector.find((z: any) => z.id === selectedZone);
-                  if (showZoneSelector && selectedZoneData) {
+                <button
+                  onClick={async () => {
+                    const selectedZoneData = filteredZonesForSelector.find((z: any) => z.id === selectedZone);
+                    if (showZoneSelector && selectedZoneData) {
                       // Si pas de variante, utiliser le logo principal
                       let variantId = showZoneSelector.variantId;
                       let variantFile = showZoneSelector.variantFile;
@@ -4124,12 +4103,12 @@ export default function ConfiguratorViewer({
                   disabled={!selectedZone}
                   style={{
                     padding: '12px 24px',
-                    backgroundColor: selectedZone ? '#000000' : '#d1d5db',
+                    backgroundColor: selectedZone ? '#000000' : '#e0e0e0',
                     border: 'none',
                     borderRadius: '4px',
                     fontSize: '14px',
-                    fontFamily: 'inherit',
-                    color: selectedZone ? '#ffffff' : '#111827',
+                    fontFamily: 'var(--stepn-font-body)',
+                    color: selectedZone ? '#ffffff' : '#999999',
                     cursor: selectedZone ? 'pointer' : 'not-allowed',
                     fontWeight: '500',
                     transition: 'all 0.2s'
@@ -7275,7 +7254,6 @@ export default function ConfiguratorViewer({
                           }}
                         >
                           <div
-                            className="modal-override"
                             style={{
                               backgroundColor: '#ffffff',
                               borderRadius: '8px',
@@ -7295,11 +7273,11 @@ export default function ConfiguratorViewer({
                               alignItems: 'center',
                               marginBottom: '24px'
                             }}>
-                              <h2 className="modal-override" style={{
+                              <h2 style={{
                                 fontSize: '20px',
                                 fontWeight: '600',
-                                color: '#111827',
-                                fontFamily: 'inherit',
+                                color: '#000000',
+                                fontFamily: 'var(--stepn-font-body)',
                                 margin: 0
                               }}>
                                 {activeModule.addTextButtonLabel || 'Ajouter un texte'}
@@ -7337,11 +7315,11 @@ export default function ConfiguratorViewer({
                               <div>
                                 {/* Section: Choisissez une position standard */}
                                 <div style={{ marginBottom: '32px' }}>
-                                  <h3 className="modal-override" style={{
+                                  <h3 style={{
                                     fontSize: '14px',
                                     fontWeight: '600',
-                                    color: '#111827',
-                                    fontFamily: 'inherit',
+                                    color: '#000000',
+                                    fontFamily: 'var(--stepn-font-body)',
                                     marginBottom: '16px'
                                   }}>
                                     Choisissez une position standard
@@ -7511,11 +7489,11 @@ export default function ConfiguratorViewer({
 
                                 {/* Section: Contenu du texte */}
                                 <div style={{ marginBottom: '32px' }}>
-                                  <h3 className="modal-override" style={{
+                                  <h3 style={{
                                     fontSize: '14px',
                                     fontWeight: '600',
-                                    color: '#111827',
-                                    fontFamily: 'inherit',
+                                    color: '#000000',
+                                    fontFamily: 'var(--stepn-font-body)',
                                     marginBottom: '12px'
                                   }}>
                                     Contenu du texte
@@ -7625,7 +7603,6 @@ export default function ConfiguratorViewer({
                                   gap: '12px'
                                 }}>
                                   <button
-                                    className="modal-override bg-white"
                                     onClick={() => {
                                       setShowTextZoneSelector(null);
                                       setSelectedZoneId(null);
@@ -7633,12 +7610,12 @@ export default function ConfiguratorViewer({
                                     }}
                                     style={{
                                       padding: '12px 24px',
-                                      backgroundColor: '#ffffff',
+                                      backgroundColor: '#f5f5f5',
                                       border: '1px solid #e0e0e0',
                                       borderRadius: '4px',
                                       fontSize: '14px',
-                                      fontFamily: 'inherit',
-                                      color: '#111827',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      color: '#000000',
                                       cursor: 'pointer',
                                       fontWeight: '500',
                                       transition: 'all 0.2s'
@@ -7653,7 +7630,6 @@ export default function ConfiguratorViewer({
                                     Annuler
                                   </button>
                                   <button
-                                    className="modal-override"
                                     onClick={() => {
                                       const selectedZone = availableZones.find((z: any) => z.id === selectedZoneId);
                                       if (selectedZone && textInputValue.trim()) {
@@ -7728,12 +7704,12 @@ export default function ConfiguratorViewer({
                                     disabled={!textInputValue.trim() || !selectedZoneId}
                                     style={{
                                       padding: '12px 24px',
-                                      backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#d1d5db' : '#000000',
+                                      backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
                                       border: 'none',
                                       borderRadius: '4px',
                                       fontSize: '14px',
-                                      fontFamily: 'inherit',
-                                      color: (!textInputValue.trim() || !selectedZoneId) ? '#111827' : '#ffffff',
+                                      fontFamily: 'var(--stepn-font-body)',
+                                      color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                                       cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                                       fontWeight: '500',
                                       transition: 'all 0.2s'
@@ -8667,7 +8643,6 @@ export default function ConfiguratorViewer({
           onClick={handleCancelDelete}
         >
           <div
-            className="modal-override"
             style={{
               backgroundColor: '#ffffff',
               borderRadius: '8px',
@@ -8678,20 +8653,20 @@ export default function ConfiguratorViewer({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="modal-override" style={{
+            <h3 style={{
               fontSize: '18px',
               fontWeight: '600',
               color: '#111827',
               marginBottom: '16px',
-              fontFamily: 'inherit'
+              fontFamily: 'var(--stepn-font-body)'
             }}>
               Confirmer la suppression
             </h3>
-            <p className="modal-override" style={{
+            <p style={{
               fontSize: '14px',
               color: '#6b7280',
               marginBottom: '24px',
-              fontFamily: 'inherit'
+              fontFamily: 'var(--stepn-font-body)'
             }}>
               Êtes-vous sûr de vouloir supprimer {itemToDelete.type === 'text' ? 'ce texte' : 'ce logo'} ?
             </p>
@@ -8701,18 +8676,17 @@ export default function ConfiguratorViewer({
               gap: '12px'
             }}>
               <button
-                className="modal-override bg-white"
                 onClick={handleCancelDelete}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: '#f3f4f6',
                   border: '1px solid #e5e7eb',
                   borderRadius: '6px',
                   fontSize: '14px',
                   fontWeight: '500',
                   color: '#111827',
                   cursor: 'pointer',
-                  fontFamily: 'inherit',
+                  fontFamily: 'var(--stepn-font-body)',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
