@@ -187,11 +187,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
   }, [camera, controlsRef]);
 
-  // Debug simple pour vérifier les variables
-  useEffect(() => {
-    console.log('🔍 Debug variables - productId:', productId, 'typeof:', typeof productId);
-    console.log('🔍 Debug variables - searchParams shop:', searchParams.get('shop'));
-  }, [productId, searchParams]);
+  // TODO: Charger les zones depuis l'API une fois le problème productId résolu
+  console.log('🔍 ProductId disponible:', !!productId, 'Shop disponible:', !!searchParams.get('shop'));
 
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
@@ -710,6 +707,9 @@ export default function ProductBuilderPage() {
   const searchParams = useSearchParams();
   const [productId, setProductId] = useState<string | null>(null);
   const [productName, setProductName] = useState('Untitled Product');
+  
+  // Debug: Vérifier que productId est bien défini
+  console.log('🔍 ProductBuilderPage - productId state:', productId);
   const [activeTab, setActiveTab] = useState<Tab>('build');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [customizationModules, setCustomizationModules] = useState<CustomizationModule[]>([]);
