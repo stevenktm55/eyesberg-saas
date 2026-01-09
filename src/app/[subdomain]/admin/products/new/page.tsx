@@ -731,6 +731,16 @@ export default function ProductBuilderPage() {
   const [modelSpecificMaterialMaps, setModelSpecificMaterialMaps] = useState<Record<string, any>>({}); // Material maps spécifiques au modèle depuis /api/models/[id]/materials
   const [show3DSettings, setShow3DSettings] = useState(false);
   const [zoomSpeed, setZoomSpeed] = useState(1);
+  
+  // États pour le debug de la caméra
+  const [currentCameraPosition, setCurrentCameraPosition] = useState({ x: 0, y: 0, z: 15 });
+  const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
+  
+  // Callback pour mettre à jour les coordonnées de la caméra
+  const handleCameraChange = useCallback((position: { x: number, y: number, z: number }, target: { x: number, y: number, z: number }) => {
+    setCurrentCameraPosition(position);
+    setCurrentCameraTarget(target);
+  }, []);
   const [rotateSpeed, setRotateSpeed] = useState(1);
   const [minZoom, setMinZoom] = useState(1);
   const [maxZoom, setMaxZoom] = useState(10);
@@ -2415,7 +2425,7 @@ export default function ProductBuilderPage() {
                   minDistance={5}
                   maxDistance={50}
                   onChange={(e) => {
-                    if (captureMode && e?.target) {
+                    if (e?.target) {
                       const camera = (e.target as any).object;
                       const target = (e.target as any).target;
                       setCurrentCameraPosition({
@@ -7069,6 +7079,24 @@ export default function ProductBuilderPage() {
                                       zoomSpeed={zoomSpeed}
                                       rotateSpeed={rotateSpeed}
                                       makeDefault={false}
+                                      onChange={(e) => {
+                                        if (e?.target) {
+                                          const camera = (e.target as any).object;
+                                          const target = (e.target as any).target;
+                                          handleCameraChange(
+                                            {
+                                              x: parseFloat(camera.position.x.toFixed(2)),
+                                              y: parseFloat(camera.position.y.toFixed(2)),
+                                              z: parseFloat(camera.position.z.toFixed(2))
+                                            },
+                                            {
+                                              x: parseFloat(target.x.toFixed(2)),
+                                              y: parseFloat(target.y.toFixed(2)),
+                                              z: parseFloat(target.z.toFixed(2))
+                                            }
+                                          );
+                                        }
+                                      }}
                                     />
                                     
                                     <CameraController controlsRef={controlsRef} />
