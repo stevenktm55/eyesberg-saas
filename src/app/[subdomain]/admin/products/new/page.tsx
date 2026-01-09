@@ -187,45 +187,10 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
   }, [camera, controlsRef]);
 
-  // Charger les zones depuis l'API
+  // Debug simple pour vérifier les variables
   useEffect(() => {
-    async function loadZones() {
-      // Récupérer les valeurs depuis searchParams
-      const currentProductId = productId;
-      const currentShop = searchParams.get('shop');
-      
-      console.log('🔍 loadZones - productId:', currentProductId, 'shop:', currentShop);
-      
-      if (!currentProductId || !currentShop) {
-        console.log('🔍 loadZones - Conditions non remplies, abandon');
-        return;
-      }
-      
-      try {
-        console.log('🔍 Chargement des zones pour le produit:', currentProductId);
-        const response = await fetch(`/api/zones?shop=${encodeURIComponent(currentShop)}`);
-        if (response.ok) {
-          const zones = await response.json();
-          console.log('🔍 Zones chargées:', zones.length, 'zones');
-          zones.forEach((zone: any, index: number) => {
-            console.log(`🔍 Zone ${index + 1}:`, {
-              name: zone.name,
-              id: zone.id,
-              view: zone.view,
-              is_logo: zone.is_logo,
-              categories: zone.categories
-            });
-          });
-          setTextZones(zones);
-        } else {
-          console.error('❌ Erreur lors du chargement des zones:', response.status);
-        }
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des zones:', error);
-      }
-    }
-
-    loadZones();
+    console.log('🔍 Debug variables - productId:', productId, 'typeof:', typeof productId);
+    console.log('🔍 Debug variables - searchParams shop:', searchParams.get('shop'));
   }, [productId, searchParams]);
 
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
