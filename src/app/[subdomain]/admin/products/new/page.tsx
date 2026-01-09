@@ -4479,12 +4479,6 @@ export default function ProductBuilderPage() {
                                             ? selectedLogoForVariants.file_url 
                                             : (variant.file_url || selectedLogoForVariants.file_url);
                                           
-                                            variantId: variant.id,
-                                            variantName: variant.name,
-                                            fileToUse,
-                                            isBase: variant.id === 'base'
-                                          });
-                                          
                                           setSelectedLogoForZone({
                                             logoId: selectedLogoForVariants.id,
                                             variantId: variant.id === 'base' ? undefined : variant.id,
