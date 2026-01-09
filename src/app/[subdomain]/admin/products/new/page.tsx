@@ -130,116 +130,6 @@ type Design2D = {
   color_mappings?: Record<string, string> | null;
 };
 
-// Composant pour afficher les coordonnées de la caméra en temps réel dans l'admin
-function AdminCameraDebugPanel({ controlsRef }: { controlsRef?: React.RefObject<any> }) {
-  const [cameraData, setCameraData] = useState({
-    position: { x: 0, y: 0, z: 0 },
-    target: { x: 0, y: 0, z: 0 },
-    distance: 0,
-    loaded: false
-  });
-
-  useEffect(() => {
-    console.log('🔧 AdminCameraDebugPanel mounted, controlsRef:', controlsRef);
-    
-    const updateCameraData = () => {
-      try {
-        if (controlsRef?.current) {
-          const controls = controlsRef.current;
-          const camera = controls.object;
-          const target = controls.target;
-          
-          console.log('🔧 Admin updating camera data:', { camera: camera?.position, target });
-          
-          // Calculer la distance entre la caméra et le target
-          const distance = Math.sqrt(
-            Math.pow(camera.position.x - target.x, 2) +
-            Math.pow(camera.position.y - target.y, 2) +
-            Math.pow(camera.position.z - target.z, 2)
-          );
-
-          setCameraData({
-            position: {
-              x: Math.round(camera.position.x * 100) / 100,
-              y: Math.round(camera.position.y * 100) / 100,
-              z: Math.round(camera.position.z * 100) / 100
-            },
-            target: {
-              x: Math.round(target.x * 100) / 100,
-              y: Math.round(target.y * 100) / 100,
-              z: Math.round(target.z * 100) / 100
-            },
-            distance: Math.round(distance * 100) / 100,
-            loaded: true
-          });
-        } else {
-          console.log('🔧 Admin controls not ready yet');
-        }
-      } catch (error) {
-        console.error('🔧 Admin error updating camera data:', error);
-      }
-    };
-
-    // Mettre à jour immédiatement
-    updateCameraData();
-
-    // Mettre à jour toutes les 500ms
-    const interval = setInterval(updateCameraData, 500);
-
-    return () => {
-      console.log('🔧 AdminCameraDebugPanel unmounting');
-      clearInterval(interval);
-    };
-  }, [controlsRef]);
-
-  console.log('🔧 AdminCameraDebugPanel render, cameraData:', cameraData);
-
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: 'rgba(0, 100, 200, 0.95)', // Bleu pour l'admin
-      color: 'white',
-      padding: '12px',
-      borderRadius: '8px',
-      fontSize: '12px',
-      fontFamily: 'monospace',
-      zIndex: 99999,
-      minWidth: '200px',
-      border: '2px solid cyan',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
-    }}>
-      <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'cyan' }}>
-        📷 ADMIN Camera Debug {cameraData.loaded ? '✅' : '⏳'}
-      </div>
-      <div>
-        <strong>Position:</strong>
-        <br />
-        X: {cameraData.position.x}
-        <br />
-        Y: {cameraData.position.y}
-        <br />
-        Z: {cameraData.position.z}
-      </div>
-      <div style={{ marginTop: '8px' }}>
-        <strong>Target:</strong>
-        <br />
-        X: {cameraData.target.x}
-        <br />
-        Y: {cameraData.target.y}
-        <br />
-        Z: {cameraData.target.z}
-      </div>
-      <div style={{ marginTop: '8px' }}>
-        <strong>Distance:</strong> {cameraData.distance}
-      </div>
-      <div style={{ marginTop: '8px', fontSize: '10px', opacity: 0.8 }}>
-        Controls: {controlsRef?.current ? '✅' : '❌'}
-      </div>
-    </div>
-  );
-}
 
 // Composant pour contrôler la caméra via événements personnalisés
 function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number }) {
@@ -2542,9 +2432,6 @@ export default function ProductBuilderPage() {
                   }}
                 />
               </Canvas>
-              
-              {/* Camera Debug Panel pour l'admin */}
-              <AdminCameraDebugPanel controlsRef={controlsRef} />
 
               {/* Overlay Info quand mode capture actif */}
               {captureMode && (
@@ -14520,19 +14407,50 @@ export default function ProductBuilderPage() {
 
       </div>
       
-      {/* TEST MODAL ADMIN - devrait être visible */}
+      {/* Camera Debug Panel - Coordonnées en temps réel */}
       <div style={{
         position: 'fixed',
-        top: '20px',
-        left: '20px',
-        backgroundColor: 'purple',
+        bottom: '20px',
+        right: '20px',
+        backgroundColor: 'rgba(0, 100, 200, 0.95)',
         color: 'white',
-        padding: '20px',
+        padding: '12px',
         borderRadius: '8px',
+        fontSize: '12px',
+        fontFamily: 'monospace',
         zIndex: 99999,
-        border: '3px solid orange'
+        minWidth: '200px',
+        border: '2px solid cyan',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
       }}>
-        🔧 ADMIN TEST MODAL - Si vous voyez ceci, le code admin fonctionne !
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'cyan' }}>
+          📷 ADMIN Camera XYZ
+        </div>
+        <div>
+          <strong>Position:</strong>
+          <br />
+          X: {currentCameraPosition.x}
+          <br />
+          Y: {currentCameraPosition.y}
+          <br />
+          Z: {currentCameraPosition.z}
+        </div>
+        <div style={{ marginTop: '8px' }}>
+          <strong>Target:</strong>
+          <br />
+          X: {currentCameraTarget.x}
+          <br />
+          Y: {currentCameraTarget.y}
+          <br />
+          Z: {currentCameraTarget.z}
+        </div>
+        <div style={{ marginTop: '8px' }}>
+          <strong>Distance:</strong> {Math.round(Math.sqrt(
+            Math.pow(currentCameraPosition.x - currentCameraTarget.x, 2) +
+            Math.pow(currentCameraPosition.y - currentCameraTarget.y, 2) +
+            Math.pow(currentCameraPosition.z - currentCameraTarget.z, 2)
+          ) * 100) / 100}
+        </div>
       </div>
     </div>
   );
