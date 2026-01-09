@@ -1673,6 +1673,22 @@ function Viewer3D({
       camera.position.set(correctedPosition.x, correctedPosition.y, correctedPosition.z);
       target.set(savedView.target.x, savedView.target.y, savedView.target.z);
       console.log(`📍 Positionnée caméra en ${view} avec vue sauvegardée corrigée - pos: [${correctedPosition.x}, ${correctedPosition.y}, ${correctedPosition.z}]`);
+      
+      // Afficher un modal temporaire pour vérifier les coordonnées appliquées
+      const modalDiv = document.createElement('div');
+      modalDiv.style.cssText = `
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.9); color: white; padding: 20px; border-radius: 8px;
+        z-index: 99999; font-family: monospace; font-size: 14px; border: 3px solid yellow;
+      `;
+      modalDiv.innerHTML = `
+        <div><strong>🎯 CONFIGURATEUR - Vue appliquée</strong></div>
+        <div>Position originale: X:${savedView.position.x} Y:${savedView.position.y} Z:${savedView.position.z}</div>
+        <div>Position corrigée: X:${correctedPosition.x} Y:${correctedPosition.y} Z:${correctedPosition.z}</div>
+        <div>Facteur: ${scaleFactor}</div>
+      `;
+      document.body.appendChild(modalDiv);
+      setTimeout(() => document.body.removeChild(modalDiv), 3000);
     } else {
       // Fallback vers les positions par défaut
       console.log('⚠️ Pas de vue sauvegardée, utilisation du fallback');
