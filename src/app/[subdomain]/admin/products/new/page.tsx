@@ -1134,17 +1134,6 @@ export default function ProductBuilderPage() {
           const res = await fetch(`/api/product-builder?id=${encodeURIComponent(id)}&for=admin`);
           if (res.ok) {
             const product = await res.json();
-              id: product.id,
-              name: product.name,
-              hasBuilderData: !!product.builder_data,
-              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
-              hasQuestions: !!(product.builder_data?.questions),
-              questionsCount: product.builder_data?.questions?.length || 0,
-              hasCustomizationModules: !!(product.builder_data?.customizationModules),
-              customizationModulesCount: product.builder_data?.customizationModules?.length || 0,
-              hasSettings: !!product.builder_data?.settings,
-              builderDataString: JSON.stringify(product.builder_data).substring(0, 500)
-            });
             setProductId(product.id);
             setProductName(product.name || 'Untitled Product');
             
@@ -1157,16 +1146,6 @@ export default function ProductBuilderPage() {
             // Dans ce cas, on garde les données telles quelles (le builder devrait permettre de créer des modules)
             // Mais si les deux sont vides ET qu'on a un model3DId, c'est un produit nouveau ou réinitialisé
             
-            console.log('📦 État des données chargées:', {
-              questionsCount: loadedQuestions.length,
-              customizationModulesCount: loadedCustomizationModules.length,
-              hasModel3DId: !!product.builder_data?.model3DId,
-              model3DId: product.builder_data?.model3DId,
-              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : [],
-              questionsArray: loadedQuestions,
-              customizationModulesArray: loadedCustomizationModules,
-              builderDataRaw: product.builder_data
-            });
             
             console.log('📦 Questions détaillées:', loadedQuestions);
             console.log('📦 CustomizationModules détaillés:', loadedCustomizationModules);
