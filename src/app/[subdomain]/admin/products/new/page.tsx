@@ -196,10 +196,27 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
       if (event.detail && typeof event.detail === 'object' && event.detail.target) {
         console.log('🎯 CameraController - Target personnalisé détecté:', event.detail.target);
         
+        // Récupérer la position de la vue correspondante
+        const viewName = event.detail.view; // 'back', 'front', etc.
+        let cameraPosition = { x: 0, y: 0, z: 2.14 }; // Position par défaut
+        
+        // Positions hardcodées pour les vues de base (sera remplacé par les vraies vues sauvegardées)
+        const defaultPositions: Record<string, {x: number, y: number, z: number}> = {
+          'front': { x: 0, y: 0, z: 2.14 },
+          'back': { x: 0, y: 0, z: -2.14 },
+          'left': { x: -2.14, y: 0, z: 0 },
+          'right': { x: 2.14, y: 0, z: 0 }
+        };
+        
+        if (viewName && defaultPositions[viewName]) {
+          cameraPosition = defaultPositions[viewName];
+          console.log('🎯 Position caméra pour vue', viewName, ':', cameraPosition);
+        }
+        
         // Créer un événement goToCameraView avec le target personnalisé
         const customEvent = {
           detail: {
-            position: { x: 0, y: 0, z: 2.14 }, // Position de base, sera corrigée par le facteur
+            position: cameraPosition,
             target: event.detail.target,
             view: event.detail.view
           }
