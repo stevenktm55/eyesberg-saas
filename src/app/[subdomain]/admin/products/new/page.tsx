@@ -13426,11 +13426,6 @@ export default function ProductBuilderPage() {
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
                 // Debug: log des zones pour vérifier les thumbnails
-                  id: z.id, 
-                  name: z.name, 
-                  thumbnailUrl: z.thumbnailUrl,
-                  hasThumbnail: !!z.thumbnailUrl && !z.thumbnailUrl.startsWith('blob:')
-                })));
               
                 if (availableZones.length === 0) {
                   return (
