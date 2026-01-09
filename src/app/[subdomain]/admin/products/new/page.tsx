@@ -138,7 +138,7 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
   useEffect(() => {
     const handleGoToCameraView = (event: any) => {
       const { position, target } = event.detail;
-      console.log('🎬 CameraController - Événement reçu:', event.detail);
+      console.log('🎬 CameraController - Événement goToCameraView reçu:', event.detail);
       
       if (camera && position && target && controlsRef?.current) {
         const controls = controlsRef.current;
@@ -183,8 +183,19 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
       }
     };
 
+    // Listener pour setCameraView (utilisé par les zones)
+    const handleSetCameraView = (event: any) => {
+      console.log('🎬 CameraController - Événement setCameraView reçu:', event.detail);
+      // Rediriger vers handleGoToCameraView pour traitement unifié
+      handleGoToCameraView(event);
+    };
+
     window.addEventListener('goToCameraView', handleGoToCameraView);
-    return () => window.removeEventListener('goToCameraView', handleGoToCameraView);
+    window.addEventListener('setCameraView', handleSetCameraView);
+    return () => {
+      window.removeEventListener('goToCameraView', handleGoToCameraView);
+      window.removeEventListener('setCameraView', handleSetCameraView);
+    };
   }, [camera, controlsRef]);
 
 
