@@ -158,25 +158,105 @@ body:not(.product-builder) select,
 }
 
 /* Réinitialiser les styles pour les éléments dans .product-builder */
+/* Par défaut, les textes dans .product-builder sont foncés (noir/gris foncé) */
+.product-builder {
+  color: #111827 !important;
+}
+
 .product-builder h1,
 .product-builder h2,
 .product-builder h3,
 .product-builder h4,
 .product-builder h5,
-.product-builder h6,
-.product-builder p,
-.product-builder span,
-.product-builder label,
-.product-builder a,
-.product-builder button {
+.product-builder h6 {
   font-family: inherit !important;
-  color: inherit !important;
+  color: #111827 !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-style: normal !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
-  -webkit-text-fill-color: inherit !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+.product-builder p,
+.product-builder span,
+.product-builder label,
+.product-builder div {
+  font-family: inherit !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+}
+
+.product-builder a {
+  font-family: inherit !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.product-builder button {
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+}
+
+.product-builder input,
+.product-builder textarea,
+.product-builder select {
+  font-family: inherit !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+}
+
+/* Modaux dans .product-builder - forcer les couleurs correctes */
+.product-builder .modal-override h1,
+.product-builder .modal-override h2,
+.product-builder .modal-override h3,
+.product-builder .modal-override h4,
+.product-builder .modal-override h5,
+.product-builder .modal-override h6 {
+  color: #111827 !important;
+  text-transform: none !important;
+  font-family: inherit !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+.product-builder .modal-override p,
+.product-builder .modal-override span,
+.product-builder .modal-override label,
+.product-builder .modal-override div {
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
+  font-family: inherit !important;
+}
+
+.product-builder .modal-override button {
+  text-transform: none !important;
+  font-family: inherit !important;
+}
+
+.product-builder .modal-override button.bg-white,
+.product-builder .modal-override button[style*="background-color: #ffffff"],
+.product-builder .modal-override button[style*="backgroundColor: #ffffff"] {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.product-builder .modal-override button:disabled,
+.product-builder .modal-override button.disabled {
+  background-color: #d1d5db !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 /* Inputs */

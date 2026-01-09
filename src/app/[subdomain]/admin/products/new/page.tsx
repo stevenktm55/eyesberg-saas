@@ -13450,7 +13450,7 @@ export default function ProductBuilderPage() {
               
                 if (availableZones.length === 0) {
                   return (
-                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                    <p className="modal-override" style={{ color: '#6b7280', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                     </p>
                   );
@@ -13900,6 +13900,7 @@ export default function ProductBuilderPage() {
             }}
           >
             <div
+              className="modal-override"
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '8px',
@@ -13919,13 +13920,16 @@ export default function ProductBuilderPage() {
                 alignItems: 'center',
                 marginBottom: '32px'
               }}>
-                <h2 style={{
-                  fontSize: '20px',
-                  fontWeight: '600',
-                  color: '#000000',
-                  fontFamily: 'var(--stepn-font-body)',
-                  margin: 0
-                }}>
+                <h2
+                  className="modal-override"
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: '600',
+                    color: '#111827',
+                    fontFamily: 'inherit',
+                    margin: 0
+                  }}
+                >
                   {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
                 </h2>
                 <button
@@ -13986,7 +13990,7 @@ export default function ProductBuilderPage() {
               
                 if (filteredZones.length === 0) {
                   return (
-                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                    <p className="modal-override" style={{ color: '#6b7280', fontSize: '14px', fontFamily: 'inherit', padding: '12px' }}>
                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                     </p>
                   );
@@ -13996,13 +14000,16 @@ export default function ProductBuilderPage() {
                   <div>
                     {/* Section: Choisissez une position standard */}
                     <div style={{ marginBottom: '32px' }}>
-                      <h3 style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
-                        marginBottom: '16px'
-                      }}>
+                      <h3
+                        className="modal-override"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#111827',
+                          fontFamily: 'inherit',
+                          marginBottom: '16px'
+                        }}
+                      >
                         Choisissez une position standard
                       </h3>
                       <div style={{
@@ -14336,6 +14343,7 @@ export default function ProductBuilderPage() {
           }}
         >
           <div
+            className="modal-override"
             style={{
               backgroundColor: '#ffffff',
               borderRadius: '12px',
@@ -14368,11 +14376,12 @@ export default function ProductBuilderPage() {
             
             {/* Titre */}
             <h2
+              className="modal-override"
               style={{
                 fontSize: '20px',
                 fontWeight: '600',
-                color: '#000000',
-                fontFamily: 'var(--stepn-font-body)',
+                color: '#111827',
+                fontFamily: 'inherit',
                 margin: 0,
                 textAlign: 'center'
               }}
@@ -14390,20 +14399,22 @@ export default function ProductBuilderPage() {
               }}
             >
               <p
+                className="modal-override"
                 style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#6b7280',
+                  fontFamily: 'inherit',
                   margin: 0
                 }}
               >
                 Êtes-vous sûr de vouloir supprimer {itemToDelete.type === 'logo' ? 'le logo' : 'le texte'} "{itemToDelete.name}" ?
               </p>
               <p
+                className="modal-override"
                 style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  fontFamily: 'var(--stepn-font-body)',
+                  color: '#6b7280',
+                  fontFamily: 'inherit',
                   margin: 0
                 }}
               >
@@ -14420,6 +14431,7 @@ export default function ProductBuilderPage() {
               }}
             >
               <button
+                className="modal-override bg-white"
                 onClick={() => {
                   setShowDeleteModal(false);
                   setItemToDelete(null);
@@ -14431,8 +14443,8 @@ export default function ProductBuilderPage() {
                   border: '1px solid #e0e0e0',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  color: '#000000',
+                  fontFamily: 'inherit',
+                  color: '#111827',
                   cursor: 'pointer',
                   fontWeight: '500',
                   transition: 'all 0.2s'
