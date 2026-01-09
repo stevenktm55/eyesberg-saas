@@ -483,7 +483,7 @@ body:not(.product-builder) input[type="password"]:-webkit-autofill,
   color: var(--stepn-text) !important;
 }
 
-/* Boutons - EXCLURE .product-builder */
+/* Boutons - EXCLURE .product-builder - Les règles globales ne s'appliquent PAS aux boutons dans .product-builder */
 body:not(.product-builder) button,
 :not(.product-builder) button {
   background-color: var(--stepn-button-bg);
@@ -511,6 +511,9 @@ body:not(.product-builder) button:disabled,
   color: var(--stepn-text-secondary);
   cursor: not-allowed;
 }
+
+/* IMPORTANT: S'assurer que les boutons dans .product-builder héritent de RIEN des règles globales */
+/* Les styles inline doivent prévaloir complètement */
 
 /* Liens */
 a {
