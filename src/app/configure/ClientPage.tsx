@@ -5968,15 +5968,27 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
     logosRef.current = logos;
   }, [logos]);
 
+  // Ref pour empêcher la fermeture immédiate du modal après ouverture
+  const logoDeleteModalJustOpenedRef = useRef(false);
+
   // Fonction pour demander la confirmation de suppression de logo
   const requestLogoDeleteConfirmation = (logoId: string) => {
     const logo = placedLogosRef.current.find(l => l.id === logoId);
     if (logo) {
       const libraryLogo = logosRef.current.find(l => l.id === logo.logoId);
-      setLogoDeleteConfirmation({
-        logoId: logoId,
-        logoName: libraryLogo?.name || 'Logo inconnu'
-      });
+      // Utiliser setTimeout pour retarder l'ouverture du modal et éviter que le clic se propage
+      setTimeout(() => {
+        setLogoDeleteConfirmation({
+          logoId: logoId,
+          logoName: libraryLogo?.name || 'Logo inconnu'
+        });
+        // Marquer que le modal vient juste d'être ouvert
+        logoDeleteModalJustOpenedRef.current = true;
+        // Réinitialiser le flag après un court délai
+        setTimeout(() => {
+          logoDeleteModalJustOpenedRef.current = false;
+        }, 100);
+      }, 10);
     }
   };
 
@@ -6012,6 +6024,10 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
 
   // Fonction pour annuler la suppression de logo
   const cancelLogoDelete = () => {
+    // Empêcher la fermeture si le modal vient juste d'être ouvert
+    if (logoDeleteModalJustOpenedRef.current) {
+      return;
+    }
     setLogoDeleteConfirmation(null);
   };
 
@@ -8367,7 +8383,10 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           />
           
           {/* Modal Content */}
-          <div className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
+          <div 
+            className="relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center">
               {/* Icône */}
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
