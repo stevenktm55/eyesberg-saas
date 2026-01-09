@@ -2224,22 +2224,24 @@ export default function ProductBuilderPage() {
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               style={{
-                backgroundColor: 'transparent',
-                border: 'none',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
                 color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 outline: 'none',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 minWidth: '200px'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                e.currentTarget.style.borderColor = '#9ca3af';
+                e.currentTarget.style.backgroundColor = '#ffffff';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = '#e5e7eb';
+                e.currentTarget.style.backgroundColor = '#ffffff';
               }}
             />
             <span style={{ color: '#a0a0a0', fontSize: '14px' }}>▼</span>
