@@ -132,7 +132,7 @@ type Design2D = {
 
 
 // Composant pour contrôler la caméra via événements personnalisés
-function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number }) {
+function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, viewHasBeenSetRef }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number, viewHasBeenSetRef?: React.RefObject<boolean> }) {
   const { camera } = useThree();
 
   useEffect(() => {
@@ -188,6 +188,10 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     const processPositionAndTarget = (position: any, target: any) => {
       
       if (camera && position && target && controlsRef?.current) {
+        // Marquer qu'une vue a été définie pour empêcher les systèmes d'initialisation
+        if (viewHasBeenSetRef) {
+          viewHasBeenSetRef.current = true;
+        }
         const controls = controlsRef.current;
         
         // Sauvegarder les limites actuelles
@@ -7188,7 +7192,7 @@ export default function ProductBuilderPage() {
                                       makeDefault={false}
                                     />
                                     
-                                    <CameraController controlsRef={controlsRef} />
+                                    <CameraController controlsRef={controlsRef} viewHasBeenSetRef={viewHasBeenSetRef} />
                                   </>
                                 );
                               }
