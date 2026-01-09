@@ -2026,7 +2026,7 @@ export default function ProductBuilderPage() {
   }
 
   return (
-    <div style={{ 
+    <div className="product-builder" style={{ 
       minHeight: '100vh', 
       backgroundColor: '#000000',
       display: 'flex',

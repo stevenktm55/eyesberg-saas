@@ -92,7 +92,12 @@ body {
 }
 
 /* Typographie STEPN */
-h1, h2 {
+/* EXCLURE le configurateur (product-builder) des styles globaux */
+/* Les styles ne s'appliquent que si l'élément n'est PAS dans .product-builder */
+body:not(.product-builder) h1,
+body:not(.product-builder) h2,
+:not(.product-builder) h1,
+:not(.product-builder) h2 {
   font-family: var(--stepn-font-heading-ultrabold) !important;
   font-weight: 400 !important;
   letter-spacing: -2.32px !important;
@@ -107,7 +112,10 @@ h1, h2 {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-h3, h4 {
+body:not(.product-builder) h3,
+body:not(.product-builder) h4,
+:not(.product-builder) h3,
+:not(.product-builder) h4 {
   font-family: var(--stepn-font-heading-regular);
   font-weight: 400;
   letter-spacing: -1px;
@@ -115,7 +123,10 @@ h3, h4 {
   color: var(--stepn-text);
 }
 
-h5, h6 {
+body:not(.product-builder) h5,
+body:not(.product-builder) h6,
+:not(.product-builder) h5,
+:not(.product-builder) h6 {
   font-family: var(--stepn-font-heading-light);
   font-weight: 300;
   letter-spacing: -0.5px;
@@ -123,7 +134,20 @@ h5, h6 {
   color: var(--stepn-text);
 }
 
-p, span, label, a, input, textarea, select {
+body:not(.product-builder) p,
+body:not(.product-builder) span,
+body:not(.product-builder) label,
+body:not(.product-builder) a,
+body:not(.product-builder) input,
+body:not(.product-builder) textarea,
+body:not(.product-builder) select,
+:not(.product-builder) p,
+:not(.product-builder) span,
+:not(.product-builder) label,
+:not(.product-builder) a,
+:not(.product-builder) input,
+:not(.product-builder) textarea,
+:not(.product-builder) select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
@@ -131,6 +155,28 @@ p, span, label, a, input, textarea, select {
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Réinitialiser les styles pour les éléments dans .product-builder */
+.product-builder h1,
+.product-builder h2,
+.product-builder h3,
+.product-builder h4,
+.product-builder h5,
+.product-builder h6,
+.product-builder p,
+.product-builder span,
+.product-builder label,
+.product-builder a,
+.product-builder button {
+  font-family: inherit !important;
+  color: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  -webkit-text-fill-color: inherit !important;
 }
 
 /* Inputs */
