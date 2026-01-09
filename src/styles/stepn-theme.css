@@ -210,10 +210,61 @@ body:not(.product-builder) select,
 .product-builder textarea,
 .product-builder select {
   font-family: inherit !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
+  background-color: #ffffff !important;
+}
+
+.product-builder input::placeholder,
+.product-builder textarea::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+.product-builder input:focus,
+.product-builder textarea:focus,
+.product-builder select:focus {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Boutons noirs - texte blanc */
+.product-builder button[style*="background-color: #000000"],
+.product-builder button[style*="backgroundColor: #000000"],
+.product-builder button[style*="background-color: '#000000'"],
+.product-builder button[style*="backgroundColor: '#000000'"],
+.product-builder button[style*="background-color: black"],
+.product-builder button[style*="backgroundColor: black"],
+.product-builder .mobile-action-btn-black {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.product-builder button[style*="background-color: #000000"] svg,
+.product-builder button[style*="backgroundColor: #000000"] svg,
+.product-builder .mobile-action-btn-black svg {
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Boutons rouges - texte blanc */
+.product-builder button[style*="background-color: #ef4444"],
+.product-builder button[style*="backgroundColor: #ef4444"],
+.product-builder button[style*="background-color: '#ef4444'"],
+.product-builder button[style*="backgroundColor: '#ef4444'"],
+.product-builder button[style*="background-color: red"],
+.product-builder button[style*="backgroundColor: red"] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.product-builder button[style*="background-color: #ef4444"] svg,
+.product-builder button[style*="backgroundColor: #ef4444"] svg {
+  stroke: #ffffff !important;
+  fill: none !important;
 }
 
 /* Modaux dans .product-builder - forcer les couleurs correctes */

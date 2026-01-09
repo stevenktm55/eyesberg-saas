@@ -5412,46 +5412,75 @@ export default function ProductBuilderPage() {
                               <div
                                 key={text.id}
                                 style={{
-                                  padding: '16px',
-                                  backgroundColor: '#000000',
+                                  padding: '12px 16px',
+                                  backgroundColor: '#ffffff',
                                   border: '1px solid #e5e7eb',
-                                  borderRadius: '12px',
+                                  borderRadius: '8px',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
                                   gap: '12px',
                                   transition: 'all 0.2s',
-                                  cursor: 'default'
+                                  cursor: 'default',
+                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
                                 }}
                               >
                                 <div 
                                   onClick={() => selectText(text.id)}
                                   style={{
-                                  flex: 1,
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                    gap: '6px',
-                                    cursor: 'pointer'
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    minWidth: 0
                                   }}
                                 >
                                   <div style={{
                                     fontSize: '15px',
-                                    color: '#ffffff',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    color: '#111827',
+                                    fontFamily: 'inherit',
                                     fontWeight: '500',
-                                    lineHeight: '1.4'
+                                    lineHeight: '1.4',
+                                    WebkitTextStroke: '1px #111827',
+                                    WebkitTextFillColor: 'transparent',
+                                    textStroke: '1px #111827',
+                                    textShadow: 'none'
                                   }}>
                                     {text.content || '(Texte vide)'}
                                   </div>
-                                  <div style={{
-                                    fontSize: '12px',
-                                    color: '#9ca3af',
-                                    fontFamily: 'var(--stepn-font-body)',
-                                    fontStyle: 'italic'
-                                  }}>
-                                    {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
-                                    {text.locked && ' 🔒'}
-                                  </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectText(text.id);
+                                    }}
+                                    style={{
+                                      padding: '6px 8px',
+                                      backgroundColor: '#f3f4f6',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      color: '#6b7280',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: '24px',
+                                      height: '24px',
+                                      flexShrink: 0,
+                                      transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#e5e7eb';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                    }}
+                                    title="Voir détails"
+                                  >
+                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </button>
                                 </div>
                                 <button
                                   onClick={(e) => {
@@ -5481,7 +5510,7 @@ export default function ProductBuilderPage() {
                                   }}
                                   title="Supprimer"
                                 >
-                                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                   </svg>
                                 </button>
@@ -5616,16 +5645,22 @@ export default function ProductBuilderPage() {
                                         width: '100%',
                                         padding: '12px 16px',
                                         backgroundColor: '#ffffff',
-                                        border: '1px solid #d1d5db',
+                                        border: '1px solid #e5e7eb',
                                         borderRadius: '8px',
-                                        color: '#111827',
+                                        color: '#6b7280',
                                         fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: 'inherit',
                                         outline: 'none',
-                                        transition: 'border-color 0.2s'
+                                        transition: 'border-color 0.2s, color 0.2s'
                                       }}
-                                      onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                                      onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                                      onFocus={(e) => {
+                                        e.target.style.borderColor = '#9ca3af';
+                                        e.target.style.color = '#111827';
+                                      }}
+                                      onBlur={(e) => {
+                                        e.target.style.borderColor = '#e5e7eb';
+                                        e.target.style.color = '#6b7280';
+                                      }}
                                     />
                                   </div>
                                 )}
@@ -8187,6 +8222,25 @@ export default function ProductBuilderPage() {
                                             value={textInputValue}
                                             onChange={(e) => setTextInputValue(e.target.value)}
                                             placeholder="Votre texte ici"
+                                            style={{
+                                              width: '100%',
+                                              padding: '10px 12px',
+                                              backgroundColor: '#ffffff',
+                                              border: '1px solid #e5e7eb',
+                                              borderRadius: '8px',
+                                              fontSize: '14px',
+                                              fontFamily: 'inherit',
+                                              color: '#6b7280',
+                                              outline: 'none'
+                                            }}
+                                            onFocus={(e) => {
+                                              e.currentTarget.style.borderColor = '#9ca3af';
+                                              e.currentTarget.style.color = '#111827';
+                                            }}
+                                            onBlur={(e) => {
+                                              e.currentTarget.style.borderColor = '#e5e7eb';
+                                              e.currentTarget.style.color = '#6b7280';
+                                            }}
                                             onKeyDown={(e) => {
                                               if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                                                 const selectedZone = availableZones.find(z => z.id === selectedZoneId);
@@ -8681,9 +8735,18 @@ export default function ProductBuilderPage() {
                                             border: '1px solid #e5e7eb',
                                             borderRadius: '8px',
                                             fontSize: '13px',
-                                            fontFamily: 'var(--stepn-font-body)',
-                                            color: '#111827',
-                                            backgroundColor: '#ffffff'
+                                            fontFamily: 'inherit',
+                                            color: '#6b7280',
+                                            backgroundColor: '#ffffff',
+                                            outline: 'none'
+                                          }}
+                                          onFocus={(e) => {
+                                            e.currentTarget.style.borderColor = '#9ca3af';
+                                            e.currentTarget.style.color = '#111827';
+                                          }}
+                                          onBlur={(e) => {
+                                            e.currentTarget.style.borderColor = '#e5e7eb';
+                                            e.currentTarget.style.color = '#6b7280';
                                           }}
                                         />
                                         
@@ -13609,13 +13672,16 @@ export default function ProductBuilderPage() {
 
                     {/* Section: Contenu du texte */}
                     <div style={{ marginBottom: '32px' }}>
-                      <h3 style={{
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
-                        marginBottom: '12px'
-                      }}>
+                      <h3
+                        className="modal-override"
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          color: '#111827',
+                          fontFamily: 'inherit',
+                          marginBottom: '12px'
+                        }}
+                      >
                         Contenu du texte
                       </h3>
                       <input
@@ -13623,6 +13689,25 @@ export default function ProductBuilderPage() {
                         value={textInputValue}
                         onChange={(e) => setTextInputValue(e.target.value)}
                         placeholder="Saisir l'inscription ici..."
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: 'inherit',
+                          color: '#6b7280',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = '#9ca3af';
+                          e.currentTarget.style.color = '#111827';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#e5e7eb';
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                             const selectedZone = availableZones.find(z => z.id === selectedZoneId);
