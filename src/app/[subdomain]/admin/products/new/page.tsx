@@ -161,6 +161,21 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
         
+        // Modal de debug pour vérifier les coordonnées appliquées dans l'admin
+        const modalDiv = document.createElement('div');
+        modalDiv.style.cssText = `
+          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          background: rgba(0, 200, 0, 0.9); color: white; padding: 20px; border-radius: 8px;
+          z-index: 99999; font-family: monospace; font-size: 14px; border: 3px solid orange;
+        `;
+        modalDiv.innerHTML = `
+          <div><strong>🎯 ADMIN - Vue appliquée</strong></div>
+          <div>Position: X:${position.x} Y:${position.y} Z:${position.z}</div>
+          <div>Target: X:${target.x} Y:${target.y} Z:${target.z}</div>
+        `;
+        document.body.appendChild(modalDiv);
+        setTimeout(() => document.body.removeChild(modalDiv), 3000);
+        
         // Restaurer les limites après un délai (utiliser les paramètres du composant)
         setTimeout(() => {
           controls.minDistance = minDistance;
