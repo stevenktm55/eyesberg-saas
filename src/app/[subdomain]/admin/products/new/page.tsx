@@ -2224,19 +2224,23 @@ export default function ProductBuilderPage() {
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: '#111827',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                color: '#6b7280',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: 'inherit',
                 outline: 'none',
-                padding: '4px 8px',
-                borderRadius: '4px',
+                padding: '8px 12px',
+                borderRadius: '6px',
                 minWidth: '200px'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                e.currentTarget.style.borderColor = '#8eff36';
+                e.currentTarget.style.backgroundColor = '#ffffff';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = '#d1d5db';
               }}
               onBlur={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
