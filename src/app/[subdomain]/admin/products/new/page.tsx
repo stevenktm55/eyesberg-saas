@@ -8324,9 +8324,9 @@ export default function ProductBuilderPage() {
                                                   );
                                                   
                                                   // Pivoter la caméra vers l'emplacement du texte (même en mobile)
-                                                  if (zoneCategory) {
-                                                    setTargetView(zoneCategory);
-                                                  }
+                                                  // if (zoneCategory) {
+                                                  //   setTargetView(zoneCategory);
+                                                  // }
                                                   
                                                   setShowZoneSelectionModal(false);
                                                   setSelectedZoneId(null);
@@ -8395,9 +8395,9 @@ export default function ProductBuilderPage() {
                                                 );
                                                 
                                                 // Pivoter la caméra vers l'emplacement du texte (même en mobile)
-                                                if (zoneCategory) {
-                                                  setTargetView(zoneCategory);
-                                                }
+                                                // if (zoneCategory) {
+                                                //   setTargetView(zoneCategory);
+                                                // }
                                                 
                                                 setShowZoneSelectionModal(false);
                                                 setSelectedZoneId(null);
@@ -13799,9 +13799,9 @@ export default function ProductBuilderPage() {
                               );
                               
                               // Pivoter la caméra vers l'emplacement du texte (même en mobile)
-                              if (zoneCategory) {
-                                setTargetView(zoneCategory);
-                              }
+                              // if (zoneCategory) {
+                              //   setTargetView(zoneCategory);
+                              // }
                               
                               setShowZoneSelectionModal(false);
                               setSelectedZoneId(null);
@@ -13928,10 +13928,10 @@ export default function ProductBuilderPage() {
                               zoneRotation
                             );
                             
-                            // Ne pas réinitialiser la caméra en mode mobile
-                            if (zoneCategory && viewportMode !== 'mobile') {
-                              setTargetView(zoneCategory);
-                            }
+                            // Ne pas réinitialiser la caméra en mode mobile - notre setCameraView s'en occupe
+                            // if (zoneCategory && viewportMode !== 'mobile') {
+                            //   setTargetView(zoneCategory);
+                            // }
                             
                             setShowZoneSelectionModal(false);
                             setSelectedZoneId(null);
