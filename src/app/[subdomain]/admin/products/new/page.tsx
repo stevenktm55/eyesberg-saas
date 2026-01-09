@@ -8371,15 +8371,27 @@ export default function ProductBuilderPage() {
                                             style={{
                                               width: '100%',
                                               padding: '12px',
-                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
+                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#d1d5db' : '#000000',
                                               border: 'none',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'var(--stepn-font-body)',
-                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
-                                              color: '#ffffff',
+                                              fontFamily: 'inherit',
+                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#111827' : '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
-                                              fontWeight: '500'
+                                              fontWeight: '500',
+                                              transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              if (textInputValue.trim() && selectedZoneId) {
+                                                e.currentTarget.style.backgroundColor = '#333333';
+                                                e.currentTarget.style.color = '#ffffff';
+                                              }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              if (textInputValue.trim() && selectedZoneId) {
+                                                e.currentTarget.style.backgroundColor = '#000000';
+                                                e.currentTarget.style.color = '#ffffff';
+                                              }
                                             }}
                                           >
                                             Ajouter
@@ -13923,12 +13935,12 @@ export default function ProductBuilderPage() {
                         disabled={!textInputValue.trim() || !selectedZoneId}
                         style={{
                           padding: '12px 24px',
-                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
+                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#d1d5db' : '#000000',
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
+                          fontFamily: 'inherit',
+                          color: (!textInputValue.trim() || !selectedZoneId) ? '#111827' : '#ffffff',
                           cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
                           transition: 'all 0.2s'
@@ -13936,11 +13948,13 @@ export default function ProductBuilderPage() {
                         onMouseEnter={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
                             e.currentTarget.style.backgroundColor = '#333333';
+                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
                             e.currentTarget.style.backgroundColor = '#000000';
+                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                       >
@@ -14373,12 +14387,12 @@ export default function ProductBuilderPage() {
                         disabled={!selectedLogoZoneId}
                         style={{
                           padding: '12px 24px',
-                          backgroundColor: selectedLogoZoneId ? '#000000' : '#cccccc',
+                          backgroundColor: selectedLogoZoneId ? '#000000' : '#d1d5db',
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          color: '#ffffff',
+                          fontFamily: 'inherit',
+                          color: selectedLogoZoneId ? '#ffffff' : '#111827',
                           cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
                           fontWeight: '500',
                           transition: 'all 0.2s'
@@ -14386,11 +14400,13 @@ export default function ProductBuilderPage() {
                         onMouseEnter={(e) => {
                           if (selectedLogoZoneId) {
                             e.currentTarget.style.backgroundColor = '#333333';
+                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (selectedLogoZoneId) {
                             e.currentTarget.style.backgroundColor = '#000000';
+                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                       >

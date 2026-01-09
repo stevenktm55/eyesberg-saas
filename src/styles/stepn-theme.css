@@ -238,14 +238,20 @@ body:not(.product-builder) select,
 .product-builder button[style*="backgroundColor: '#000000'"],
 .product-builder button[style*="background-color: black"],
 .product-builder button[style*="backgroundColor: black"],
-.product-builder .mobile-action-btn-black {
+.product-builder .mobile-action-btn-black,
+.product-builder button[style*="background-color: '#000"]:not([style*="color:"]),
+.product-builder button[style*="backgroundColor: '#000"]:not([style*="color:"]) {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
 .product-builder button[style*="background-color: #000000"] svg,
 .product-builder button[style*="backgroundColor: #000000"] svg,
-.product-builder .mobile-action-btn-black svg {
+.product-builder button[style*="background-color: '#000000'"] svg,
+.product-builder button[style*="backgroundColor: '#000000'"] svg,
+.product-builder .mobile-action-btn-black svg,
+.product-builder button[style*="background-color: #000000"] svg path,
+.product-builder button[style*="backgroundColor: #000000"] svg path {
   stroke: #ffffff !important;
   fill: none !important;
 }
@@ -256,13 +262,19 @@ body:not(.product-builder) select,
 .product-builder button[style*="background-color: '#ef4444'"],
 .product-builder button[style*="backgroundColor: '#ef4444'"],
 .product-builder button[style*="background-color: red"],
-.product-builder button[style*="backgroundColor: red"] {
+.product-builder button[style*="backgroundColor: red"],
+.product-builder button[style*="background-color: '#ef44"]:not([style*="color:"]),
+.product-builder button[style*="backgroundColor: '#ef44"]:not([style*="color:"]) {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
 .product-builder button[style*="background-color: #ef4444"] svg,
-.product-builder button[style*="backgroundColor: #ef4444"] svg {
+.product-builder button[style*="backgroundColor: #ef4444"] svg,
+.product-builder button[style*="background-color: '#ef4444'"] svg,
+.product-builder button[style*="backgroundColor: '#ef4444'"] svg,
+.product-builder button[style*="background-color: #ef4444"] svg path,
+.product-builder button[style*="backgroundColor: #ef4444"] svg path {
   stroke: #ffffff !important;
   fill: none !important;
 }
