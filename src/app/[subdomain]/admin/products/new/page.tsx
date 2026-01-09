@@ -190,11 +190,20 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
   // Charger les zones depuis l'API
   useEffect(() => {
     async function loadZones() {
-      if (!productId || !shop) return;
+      // Récupérer les valeurs depuis searchParams
+      const currentProductId = productId;
+      const currentShop = searchParams.get('shop');
+      
+      console.log('🔍 loadZones - productId:', currentProductId, 'shop:', currentShop);
+      
+      if (!currentProductId || !currentShop) {
+        console.log('🔍 loadZones - Conditions non remplies, abandon');
+        return;
+      }
       
       try {
-        console.log('🔍 Chargement des zones pour le produit:', productId);
-        const response = await fetch(`/api/zones?shop=${encodeURIComponent(shop)}`);
+        console.log('🔍 Chargement des zones pour le produit:', currentProductId);
+        const response = await fetch(`/api/zones?shop=${encodeURIComponent(currentShop)}`);
         if (response.ok) {
           const zones = await response.json();
           console.log('🔍 Zones chargées:', zones.length, 'zones');
@@ -217,7 +226,7 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
     }
 
     loadZones();
-  }, [productId, shop]);
+  }, [productId, searchParams]);
 
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
