@@ -108,25 +108,42 @@ label {
 .modal-override h1 {
   color: #111827 !important;
   text-transform: none !important;
+  font-family: inherit !important;
 }
 
-.modal-override p,
-.modal-override span,
-.modal-override label,
-.modal-override div {
-  color: inherit !important;
+.modal-override p {
+  color: #4b5563 !important;
+}
+
+.modal-override p.text-gray-600 {
+  color: #4b5563 !important;
+}
+
+.modal-override p.text-gray-500 {
+  color: #6b7280 !important;
+}
+
+.modal-override span.font-medium,
+.modal-override span.text-gray-900 {
+  color: #111827 !important;
+}
+
+.modal-override label {
+  color: #111827 !important;
 }
 
 .modal-override button {
   text-transform: none !important;
 }
 
-.modal-override button.bg-white {
+.modal-override button.bg-white,
+.modal-override button:has(.bg-white) {
   background-color: #ffffff !important;
   color: #111827 !important;
 }
 
-.modal-override button.bg-gray-300 {
+.modal-override button.bg-gray-300,
+.modal-override button:disabled.bg-gray-300 {
   background-color: #d1d5db !important;
   color: #111827 !important;
 }
