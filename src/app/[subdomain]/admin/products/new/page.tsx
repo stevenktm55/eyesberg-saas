@@ -174,22 +174,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10 }: { 
         console.log('📸 Position caméra mise à jour:', camera.position);
         console.log('🎯 Target contrôles mis à jour:', controls.target);
         
-        // Modal de debug pour vérifier les coordonnées appliquées dans l'admin
-        const modalDiv = document.createElement('div');
-        modalDiv.style.cssText = `
-          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          background: rgba(0, 200, 0, 0.9); color: white; padding: 20px; border-radius: 8px;
-          z-index: 99999; font-family: monospace; font-size: 14px; border: 3px solid orange;
-        `;
-        modalDiv.innerHTML = `
-          <div><strong>🎯 ADMIN - Vue appliquée avec correction</strong></div>
-          <div>Position originale: X:${position.x} Y:${position.y} Z:${position.z}</div>
-          <div>Position corrigée: X:${correctedPosition.x.toFixed(2)} Y:${correctedPosition.y.toFixed(2)} Z:${correctedPosition.z.toFixed(2)}</div>
-          <div>Facteur: ${scaleFactor}</div>
-        `;
-        document.body.appendChild(modalDiv);
-        setTimeout(() => document.body.removeChild(modalDiv), 3000);
-        
         // Restaurer les limites après un délai (utiliser les paramètres du composant)
         setTimeout(() => {
           controls.minDistance = minDistance;
@@ -761,15 +745,6 @@ export default function ProductBuilderPage() {
   const [show3DSettings, setShow3DSettings] = useState(false);
   const [zoomSpeed, setZoomSpeed] = useState(1);
   
-  // États pour le debug de la caméra
-  const [currentCameraPosition, setCurrentCameraPosition] = useState({ x: 0, y: 0, z: 15 });
-  const [currentCameraTarget, setCurrentCameraTarget] = useState({ x: 0, y: 0, z: 0 });
-  
-  // Callback pour mettre à jour les coordonnées de la caméra
-  const handleCameraChange = useCallback((position: { x: number, y: number, z: number }, target: { x: number, y: number, z: number }) => {
-    setCurrentCameraPosition(position);
-    setCurrentCameraTarget(target);
-  }, []);
   const [rotateSpeed, setRotateSpeed] = useState(1);
   const [minZoom, setMinZoom] = useState(1);
   const [maxZoom, setMaxZoom] = useState(10);
@@ -7108,24 +7083,6 @@ export default function ProductBuilderPage() {
                                       zoomSpeed={zoomSpeed}
                                       rotateSpeed={rotateSpeed}
                                       makeDefault={false}
-                                      onChange={(e) => {
-                                        if (e?.target) {
-                                          const camera = (e.target as any).object;
-                                          const target = (e.target as any).target;
-                                          handleCameraChange(
-                                            {
-                                              x: parseFloat(camera.position.x.toFixed(2)),
-                                              y: parseFloat(camera.position.y.toFixed(2)),
-                                              z: parseFloat(camera.position.z.toFixed(2))
-                                            },
-                                            {
-                                              x: parseFloat(target.x.toFixed(2)),
-                                              y: parseFloat(target.y.toFixed(2)),
-                                              z: parseFloat(target.z.toFixed(2))
-                                            }
-                                          );
-                                        }
-                                      }}
                                     />
                                     
                                     <CameraController controlsRef={controlsRef} />
@@ -14464,51 +14421,6 @@ export default function ProductBuilderPage() {
 
       </div>
       
-      {/* Camera Debug Panel - Coordonnées en temps réel */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        backgroundColor: 'rgba(0, 100, 200, 0.95)',
-        color: 'white',
-        padding: '12px',
-        borderRadius: '8px',
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        zIndex: 99999,
-        minWidth: '200px',
-        border: '2px solid cyan',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'cyan' }}>
-          📷 ADMIN Camera XYZ
-        </div>
-        <div>
-          <strong>Position:</strong>
-          <br />
-          X: {currentCameraPosition.x}
-          <br />
-          Y: {currentCameraPosition.y}
-          <br />
-          Z: {currentCameraPosition.z}
-        </div>
-        <div style={{ marginTop: '8px' }}>
-          <strong>Target:</strong>
-          <br />
-          X: {currentCameraTarget.x}
-          <br />
-          Y: {currentCameraTarget.y}
-          <br />
-          Z: {currentCameraTarget.z}
-        </div>
-        <div style={{ marginTop: '8px' }}>
-          <strong>Distance:</strong> {Math.round(Math.sqrt(
-            Math.pow(currentCameraPosition.x - currentCameraTarget.x, 2) +
-            Math.pow(currentCameraPosition.y - currentCameraTarget.y, 2) +
-            Math.pow(currentCameraPosition.z - currentCameraTarget.z, 2)
-          ) * 100) / 100}
-        </div>
-      </div>
     </div>
   );
 }
