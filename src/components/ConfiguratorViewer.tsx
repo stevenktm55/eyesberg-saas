@@ -1786,11 +1786,11 @@ function Viewer3D({
   const fontSizeSliderMin = 60;
   const fontSizeSliderMax = 750;
 
-  // Paramètres de caméra depuis les props ou valeurs par défaut - ALIGNÉS avec Canvas3DPreview
-  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, 5];
+  // Paramètres de caméra depuis les props ou valeurs par défaut - ALIGNÉS avec l'admin
+  const cameraPosition: [number, number, number] = isMobile ? [0, 0, 8] : [0, 0, 15];
   const cameraTarget: [number, number, number] = isMobile ? [0, -1, 0] : [0, 0, 0];
   const minDistance = 2;
-  const maxDistance = 10;
+  const maxDistance = 20;
   
 
   return (

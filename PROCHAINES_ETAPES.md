@@ -124,9 +124,7 @@ Si vous préférez plus de contrôle, vous pouvez utiliser le snippet Liquid (vo
 2. Vérifiez que l'URL du configurateur est correcte dans le script
 3. Vérifiez les logs dans la console du navigateur
 
-## 📝 Notes importantes
-
-- **Multi-tenant** : Chaque sous-domaine Eyesberg peut avoir sa propre boutique Shopify connectée
+## 📝 Notes importantes- **Multi-tenant** : Chaque sous-domaine Eyesberg peut avoir sa propre boutique Shopify connectée
 - **Sécurité** : L'access token est stocké de manière sécurisée dans Supabase
 - **Webhooks** : Créés automatiquement lors de l'installation
 - **Scopes** : L'app a accès à read_products, write_products, read_orders, write_script_tags## 🎉 C'est tout !Votre intégration Shopify est maintenant complète. Vous pouvez :
