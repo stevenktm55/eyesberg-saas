@@ -101,3 +101,32 @@ label {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* Override stepn-theme.css pour les modaux - forcer les couleurs correctes */
+.modal-override h3,
+.modal-override h2,
+.modal-override h1 {
+  color: #111827 !important;
+  text-transform: none !important;
+}
+
+.modal-override p,
+.modal-override span,
+.modal-override label,
+.modal-override div {
+  color: inherit !important;
+}
+
+.modal-override button {
+  text-transform: none !important;
+}
+
+.modal-override button.bg-white {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+.modal-override button.bg-gray-300 {
+  background-color: #d1d5db !important;
+  color: #111827 !important;
+}
