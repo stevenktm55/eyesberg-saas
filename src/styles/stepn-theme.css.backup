@@ -1,0 +1,261 @@
+/**
+ * Thème inspiré de stepn.com
+ * Design moderne, épuré, fond noir
+ * Fonts et couleurs exactes de stepn.com
+ */
+
+/* Charger toutes les fonts STEPN - Version locale pour éviter les problèmes CORS */
+@font-face {
+  font-family: 'PP Neue Machina Inktrap Ultrabold Italic';
+  src: url('/fonts/pp-neue-machina-ultrabold-italic.woff2') format('woff2'),
+       url('https://framerusercontent.com/assets/rw4IIdWh7wU2XeBwjX6LUdVUJs.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina Inktrap Regular Italic';
+  src: url('/fonts/pp-neue-machina-regular-italic.woff2') format('woff2'),
+       url('https://framerusercontent.com/assets/fIeNE54FZibE88XZiMM5dx9x20.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'PP Neue Machina Inktrap Light Italic';
+  src: url('/fonts/pp-neue-machina-light-italic.woff2') format('woff2'),
+       url('https://framerusercontent.com/assets/QK6K1hfczdtpj0XfotVM82IA.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: block;
+}
+
+/* Charger Inter localement */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-regular.woff2') format('woff2'),
+       url('https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  /* Couleurs principales STEPN */
+  --stepn-bg: #000000;
+  --stepn-bg-secondary: #0a0a0a;
+  --stepn-text: #ffffff;
+  --stepn-text-secondary: #a0a0a0;
+  --stepn-primary: #ffffff;
+  --stepn-accent: #8eff36; /* Vert lime STEPN (rgb(142, 255, 54)) */
+  
+  /* Couleurs pour les inputs */
+  --stepn-input-bg: #1a1a1a;
+  --stepn-input-border: #333333;
+  --stepn-input-border-focus: #ffffff;
+  
+  /* Couleurs pour les boutons */
+  --stepn-button-bg: #ffffff;
+  --stepn-button-text: #000000;
+  --stepn-button-hover: #f0f0f0;
+  --stepn-button-disabled: #333333;
+  
+  /* Espacements */
+  --stepn-spacing-xs: 8px;
+  --stepn-spacing-sm: 16px;
+  --stepn-spacing-md: 24px;
+  --stepn-spacing-lg: 40px;
+  --stepn-spacing-xl: 64px;
+  
+  /* Typographie STEPN */
+  /* Pour coller au site stepn.com sur les modals, on utilise la light italic comme body */
+  --stepn-font-body: 'PP Neue Machina Inktrap Light Italic', 'PP Neue Machina Inktrap Light Italic Placeholder', sans-serif;
+  --stepn-font-heading-ultrabold: 'PP Neue Machina Inktrap Ultrabold Italic', 'PP Neue Machina Inktrap Ultrabold Italic Placeholder', sans-serif;
+  --stepn-font-heading-regular: 'PP Neue Machina Inktrap Regular Italic', 'PP Neue Machina Inktrap Regular Italic Placeholder', sans-serif;
+  --stepn-font-heading-light: 'PP Neue Machina Inktrap Light Italic', 'PP Neue Machina Inktrap Light Italic Placeholder', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--stepn-bg);
+  color: var(--stepn-text);
+  font-family: var(--stepn-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typographie STEPN */
+h1, h2 {
+  font-family: var(--stepn-font-heading-ultrabold) !important;
+  font-weight: 400 !important;
+  letter-spacing: -2.32px !important;
+  margin: 0;
+  color: var(--stepn-accent) !important;
+  text-transform: uppercase !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+h3, h4 {
+  font-family: var(--stepn-font-heading-regular);
+  font-weight: 400;
+  letter-spacing: -1px;
+  margin: 0;
+  color: var(--stepn-text);
+}
+
+h5, h6 {
+  font-family: var(--stepn-font-heading-light);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--stepn-text);
+}
+
+p, span, label, a, input, textarea, select {
+  font-family: var(--stepn-font-body) !important;
+  color: var(--stepn-text) !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="password"]:active {
+  background-color: var(--stepn-input-bg) !important;
+  border: 1px solid var(--stepn-input-border);
+  color: var(--stepn-text) !important;
+  font-family: var(--stepn-font-body);
+  font-size: 14px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+  -webkit-text-fill-color: var(--stepn-text) !important;
+  -webkit-opacity: 1 !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: var(--stepn-input-border-focus);
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: var(--stepn-text-secondary);
+  opacity: 1;
+}
+
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--stepn-input-bg) inset !important;
+  -webkit-text-fill-color: var(--stepn-text) !important;
+  color: var(--stepn-text) !important;
+}
+
+/* Boutons */
+button {
+  background-color: var(--stepn-button-bg);
+  color: var(--stepn-button-text);
+  border: none;
+  font-family: var(--stepn-font-body) !important;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--stepn-button-hover);
+}
+
+button:disabled {
+  background-color: var(--stepn-button-disabled);
+  color: var(--stepn-text-secondary);
+  cursor: not-allowed;
+}
+
+/* Liens */
+a {
+  color: var(--stepn-primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* Cards */
+.stepn-card {
+  background-color: var(--stepn-bg-secondary);
+  border: 1px solid var(--stepn-input-border);
+  border-radius: 8px;
+  padding: var(--stepn-spacing-lg);
+}
+
+/* Classes utilitaires STEPN */
+.stepn-title-ultrabold {
+  font-family: var(--stepn-font-heading-ultrabold) !important;
+  font-weight: 400 !important;
+  letter-spacing: -2.32px !important;
+  text-transform: uppercase !important;
+  color: var(--stepn-accent) !important;
+  font-style: italic !important;
+}
+
+.stepn-title-regular {
+  font-family: var(--stepn-font-heading-regular);
+  font-weight: 400;
+  letter-spacing: -1px;
+  color: var(--stepn-text);
+}
+
+.stepn-title-light {
+  font-family: var(--stepn-font-heading-light);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  color: var(--stepn-text);
+}
+
+/* Override pour les spans dans les boutons verts - force la couleur noire */
+/* Cible les boutons avec backgroundColor en camelCase (React) */
+button[style*="backgroundColor: #8eff36"] > span,
+button[style*="background-color: #8eff36"] > span,
+button[style*="#8eff36"] > span {
+  color: #000000 !important;
+}
+
+/* Classe utilitaire pour forcer la couleur noire sur les spans */
+.green-button-icon {
+  color: #000000 !important;
+}
+
