@@ -7914,7 +7914,10 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       )}
       
       {/* Contenu principal - ConfiguratorPanel */}
-      <div className="configurator-panel flex-1 flex overflow-hidden">
+      <div 
+        className="configurator-panel flex-1 flex overflow-hidden"
+        style={{ border: '10px solid red', backgroundColor: 'yellow' } as React.CSSProperties}
+      >
         {/* Sidebar Desktop uniquement */}
         <div className="sidebar-white hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
           <div className="flex-1 overflow-hidden">
