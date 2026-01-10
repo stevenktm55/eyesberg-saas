@@ -82,7 +82,7 @@
   box-sizing: border-box;
 }
 
-body:not(:has(.configurator-panel)) {
+body {
   margin: 0;
   padding: 0;
   background-color: var(--stepn-bg);
@@ -92,9 +92,8 @@ body:not(:has(.configurator-panel)) {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typographie STEPN - Exclure ConfiguratorPanel */
-h1:not(.configurator-panel h1):not(.configurator-panel *),
-h2:not(.configurator-panel h2):not(.configurator-panel *) {
+/* Typographie STEPN */
+h1, h2 {
   font-family: var(--stepn-font-heading-ultrabold) !important;
   font-weight: 400 !important;
   letter-spacing: -2.32px !important;
@@ -109,8 +108,7 @@ h2:not(.configurator-panel h2):not(.configurator-panel *) {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-h3:not(.configurator-panel h3):not(.configurator-panel *),
-h4:not(.configurator-panel h4):not(.configurator-panel *) {
+h3, h4 {
   font-family: var(--stepn-font-heading-regular);
   font-weight: 400;
   letter-spacing: -1px;
@@ -118,8 +116,7 @@ h4:not(.configurator-panel h4):not(.configurator-panel *) {
   color: var(--stepn-text);
 }
 
-h5:not(.configurator-panel h5):not(.configurator-panel *),
-h6:not(.configurator-panel h6):not(.configurator-panel *) {
+h5, h6 {
   font-family: var(--stepn-font-heading-light);
   font-weight: 300;
   letter-spacing: -0.5px;
@@ -127,13 +124,7 @@ h6:not(.configurator-panel h6):not(.configurator-panel *) {
   color: var(--stepn-text);
 }
 
-p:not(.configurator-panel p):not(.configurator-panel *),
-span:not(.configurator-panel span):not(.configurator-panel *),
-label:not(.configurator-panel label):not(.configurator-panel *),
-a:not(.configurator-panel a):not(.configurator-panel *),
-input:not(.configurator-panel input):not(.configurator-panel *),
-textarea:not(.configurator-panel textarea):not(.configurator-panel *),
-select:not(.configurator-panel select):not(.configurator-panel *) {
+p, span, label, a, input, textarea, select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
@@ -143,16 +134,16 @@ select:not(.configurator-panel select):not(.configurator-panel *) {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Inputs - Exclure ConfiguratorPanel */
-input[type="text"]:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]:not(.configurator-panel input):not(.configurator-panel *),
-input[type="text"]:focus:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]:focus:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]:focus:not(.configurator-panel input):not(.configurator-panel *),
-input[type="text"]:active:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]:active:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]:active:not(.configurator-panel input):not(.configurator-panel *) {
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="password"]:active {
   background-color: var(--stepn-input-bg) !important;
   border: 1px solid var(--stepn-input-border);
   color: var(--stepn-text) !important;
@@ -165,30 +156,30 @@ input[type="password"]:active:not(.configurator-panel input):not(.configurator-p
   -webkit-opacity: 1 !important;
 }
 
-input[type="text"]:focus:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]:focus:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]:focus:not(.configurator-panel input):not(.configurator-panel *) {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
   outline: none;
   border-color: var(--stepn-input-border-focus);
 }
 
-input[type="text"]::placeholder:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]::placeholder:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]::placeholder:not(.configurator-panel input):not(.configurator-panel *) {
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
   color: var(--stepn-text-secondary);
   opacity: 1;
 }
 
-input[type="text"]:-webkit-autofill:not(.configurator-panel input):not(.configurator-panel *),
-input[type="email"]:-webkit-autofill:not(.configurator-panel input):not(.configurator-panel *),
-input[type="password"]:-webkit-autofill:not(.configurator-panel input):not(.configurator-panel *) {
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px var(--stepn-input-bg) inset !important;
   -webkit-text-fill-color: var(--stepn-text) !important;
   color: var(--stepn-text) !important;
 }
 
-/* Boutons - Exclure ConfiguratorPanel */
-button:not(.configurator-panel button):not(.configurator-panel *) {
+/* Boutons */
+button {
   background-color: var(--stepn-button-bg);
   color: var(--stepn-button-text);
   border: none;
@@ -203,24 +194,24 @@ button:not(.configurator-panel button):not(.configurator-panel *) {
   letter-spacing: 0.05em;
 }
 
-button:hover:not(:disabled):not(.configurator-panel button):not(.configurator-panel *) {
+button:hover:not(:disabled) {
   background-color: var(--stepn-button-hover);
 }
 
-button:disabled:not(.configurator-panel button):not(.configurator-panel *) {
+button:disabled {
   background-color: var(--stepn-button-disabled);
   color: var(--stepn-text-secondary);
   cursor: not-allowed;
 }
 
-/* Liens - Exclure ConfiguratorPanel */
-a:not(.configurator-panel a):not(.configurator-panel *) {
+/* Liens */
+a {
   color: var(--stepn-primary);
   text-decoration: none;
   transition: opacity 0.2s;
 }
 
-a:hover:not(.configurator-panel a):not(.configurator-panel *) {
+a:hover {
   opacity: 0.8;
 }
 
@@ -258,36 +249,38 @@ a:hover:not(.configurator-panel a):not(.configurator-panel *) {
 
 /* Override pour les spans dans les boutons verts - force la couleur noire */
 /* Cible les boutons avec backgroundColor en camelCase (React) */
-button[style*="backgroundColor: #8eff36"] > span:not(.configurator-panel *),
-button[style*="background-color: #8eff36"] > span:not(.configurator-panel *),
-button[style*="#8eff36"] > span:not(.configurator-panel *) {
+button[style*="backgroundColor: #8eff36"] > span,
+button[style*="background-color: #8eff36"] > span,
+button[style*="#8eff36"] > span {
   color: #000000 !important;
 }
 
 /* Classe utilitaire pour forcer la couleur noire sur les spans */
-.green-button-icon:not(.configurator-panel *) {
+.green-button-icon {
   color: #000000 !important;
 }
 
 /* ============================================
    EXCLUSION COMPLÈTE DU CONFIGURATOR PANEL DU THÈME STEPN
    ============================================
-   Tous les styles stepn sont complètement annulés pour le ConfiguratorPanel
+   Cette section DOIT être à la fin du fichier pour surcharger tous les styles stepn
    Le ConfiguratorPanel utilise son propre thème (configurator-panel-theme.css)
    
-   Utilisation de "all: revert" pour réinitialiser tous les styles à leurs valeurs par défaut
-   puis "all: unset" pour certains éléments critiques
+   Utilisation de "all: unset !important" pour réinitialiser COMPLÈTEMENT tous les styles
+   Cela annule tous les styles stepn, y compris ceux avec !important
 */
 
-/* Réinitialiser COMPLÈTEMENT tous les styles stepn pour le ConfiguratorPanel et ses enfants */
+/* Réinitialiser COMPLÈTEMENT tous les styles stepn pour le ConfiguratorPanel et tous ses enfants */
 .configurator-panel,
-.configurator-panel * {
-  /* Réinitialiser toutes les propriétés à leurs valeurs par défaut */
-  all: revert;
-  box-sizing: border-box;
+.configurator-panel *,
+.configurator-panel *::before,
+.configurator-panel *::after {
+  all: unset !important;
+  display: revert !important;
+  box-sizing: border-box !important;
 }
 
-/* Réinitialiser spécifiquement les propriétés qui ont !important dans stepn-theme */
+/* Réinitialiser spécifiquement les éléments critiques qui ont beaucoup de styles stepn */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
@@ -298,89 +291,25 @@ button[style*="#8eff36"] > span:not(.configurator-panel *) {
 .configurator-panel span,
 .configurator-panel label,
 .configurator-panel a,
-.configurator-panel div {
-  font-family: revert !important;
-  color: revert !important;
-  font-weight: revert !important;
-  letter-spacing: revert !important;
-  text-transform: revert !important;
-  font-style: revert !important;
-  font-feature-settings: revert !important;
-  font-variant: revert !important;
-  text-rendering: revert !important;
-  -webkit-font-smoothing: revert !important;
-  -moz-osx-font-smoothing: revert !important;
-  margin: revert !important;
+.configurator-panel div,
+.configurator-panel li,
+.configurator-panel ul,
+.configurator-panel ol {
+  all: unset !important;
+  display: revert !important;
+  box-sizing: border-box !important;
 }
 
-/* Réinitialiser les inputs */
-.configurator-panel input[type="text"],
-.configurator-panel input[type="email"],
-.configurator-panel input[type="password"],
-.configurator-panel input[type="number"],
-.configurator-panel input[type="search"],
+.configurator-panel input,
 .configurator-panel textarea,
 .configurator-panel select {
-  background-color: revert !important;
-  border: revert !important;
-  color: revert !important;
-  font-family: revert !important;
-  font-size: revert !important;
-  padding: revert !important;
-  border-radius: revert !important;
-  transition: revert !important;
-  -webkit-text-fill-color: revert !important;
-  -webkit-opacity: revert !important;
+  all: unset !important;
+  display: revert !important;
+  box-sizing: border-box !important;
 }
 
-.configurator-panel input::placeholder,
-.configurator-panel textarea::placeholder {
-  color: revert !important;
-  opacity: revert !important;
-}
-
-.configurator-panel input:-webkit-autofill,
-.configurator-panel textarea:-webkit-autofill,
-.configurator-panel select:-webkit-autofill {
-  -webkit-box-shadow: revert !important;
-  -webkit-text-fill-color: revert !important;
-  color: revert !important;
-}
-
-/* Réinitialiser les boutons */
 .configurator-panel button {
-  background-color: revert !important;
-  color: revert !important;
-  border: revert !important;
-  font-family: revert !important;
-  font-size: revert !important;
-  font-weight: revert !important;
-  padding: revert !important;
-  border-radius: revert !important;
-  cursor: revert !important;
-  transition: revert !important;
-  text-transform: revert !important;
-  letter-spacing: revert !important;
-}
-
-.configurator-panel button:hover {
-  background-color: revert !important;
-  opacity: revert !important;
-}
-
-.configurator-panel button:disabled {
-  background-color: revert !important;
-  color: revert !important;
-  cursor: revert !important;
-}
-
-/* Réinitialiser les liens */
-.configurator-panel a {
-  color: revert !important;
-  text-decoration: revert !important;
-  transition: revert !important;
-}
-
-.configurator-panel a:hover {
-  opacity: revert !important;
+  all: unset !important;
+  display: revert !important;
+  box-sizing: border-box !important;
 }
