@@ -270,46 +270,120 @@ button[style*="#8eff36"] > span {
    Cela annule tous les styles stepn, y compris ceux avec !important
 */
 
-/* Réinitialiser COMPLÈTEMENT tous les styles stepn pour le ConfiguratorPanel et tous ses enfants */
+/* Réinitialiser TOUS les styles stepn pour le ConfiguratorPanel avec des valeurs par défaut */
+/* On réinitialise spécifiquement chaque propriété stepn pour permettre à configurator-panel-theme.css de prendre le relais */
 .configurator-panel,
-.configurator-panel *,
-.configurator-panel *::before,
-.configurator-panel *::after {
-  all: unset !important;
-  display: revert !important;
+.configurator-panel * {
   box-sizing: border-box !important;
+  /* Réinitialiser les styles stepn typographie avec des valeurs par défaut */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  font-weight: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  -webkit-font-smoothing: auto !important;
+  -moz-osx-font-smoothing: auto !important;
 }
 
-/* Réinitialiser spécifiquement les éléments critiques qui ont beaucoup de styles stepn */
+/* Réinitialiser spécifiquement les éléments critiques */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
 .configurator-panel h4,
 .configurator-panel h5,
-.configurator-panel h6,
+.configurator-panel h6 {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  margin: 0 !important;
+}
+
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
 .configurator-panel a,
-.configurator-panel div,
-.configurator-panel li,
-.configurator-panel ul,
-.configurator-panel ol {
-  all: unset !important;
-  display: revert !important;
-  box-sizing: border-box !important;
+.configurator-panel div {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
 }
 
+/* Réinitialiser les inputs */
 .configurator-panel input,
 .configurator-panel textarea,
 .configurator-panel select {
-  all: unset !important;
-  display: revert !important;
-  box-sizing: border-box !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #111827 !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-opacity: 1 !important;
+  -webkit-box-shadow: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
 }
 
+.configurator-panel input::placeholder,
+.configurator-panel textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+.configurator-panel input:-webkit-autofill,
+.configurator-panel textarea:-webkit-autofill,
+.configurator-panel select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* Réinitialiser les boutons */
 .configurator-panel button {
-  all: unset !important;
-  display: revert !important;
-  box-sizing: border-box !important;
+  background-color: transparent !important;
+  color: #111827 !important;
+  border: none !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.configurator-panel button:hover {
+  background-color: transparent !important;
+  opacity: 1 !important;
+}
+
+.configurator-panel button:disabled {
+  background-color: transparent !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+/* Réinitialiser les liens */
+.configurator-panel a {
+  color: #111827 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease-in-out !important;
+  cursor: pointer !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.configurator-panel a:hover {
+  opacity: 1 !important;
+  color: #1f2937 !important;
 }
