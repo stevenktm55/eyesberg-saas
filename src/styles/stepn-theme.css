@@ -266,15 +266,16 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
    Cette section DOIT être à la fin du fichier pour surcharger tous les styles stepn
    Le ConfiguratorPanel utilise son propre thème (configurator-panel-theme.css)
    
-   On réinitialise spécifiquement chaque propriété stepn avec des valeurs neutres
-   qui seront surchargées par configurator-panel-theme.css
+   IMPORTANT: Ces règles ont la MÊME spécificité que les sélecteurs généraux mais viennent APRÈS
+   et utilisent !important pour surcharger les styles stepn généraux
 */
 
 /* Réinitialiser TOUS les styles stepn pour le ConfiguratorPanel avec des valeurs spécifiques */
+/* Ces règles doivent surcharger les sélecteurs généraux stepn grâce à !important */
 .configurator-panel,
 .configurator-panel * {
   box-sizing: border-box !important;
-  /* Réinitialiser les styles stepn typographie avec des valeurs par défaut */
+  /* Réinitialiser les styles stepn typographie avec des valeurs par défaut - IMPORTANT pour surcharger les sélecteurs généraux */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   color: #111827 !important;
   font-weight: normal !important;
