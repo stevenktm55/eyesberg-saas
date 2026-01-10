@@ -1,9 +1,8 @@
 @import "tailwindcss";
 
-/* IMPORTANT: Importer stepn-theme.css et configurator-panel-theme.css ici
-   car globals.css est bundlé par Next.js, contrairement aux imports dans layout.tsx "use client" */
-@import "../styles/stepn-theme.css";
-@import "../styles/configurator-panel-theme.css";
+/* NOTE: stepn-theme.css et configurator-panel-theme.css sont chargés via <link> dans layout.tsx
+   car les imports CSS dans "use client" et les @import dans globals.css ne fonctionnent pas correctement
+   Les fichiers sont copiés dans public/styles/ pour être servis statiquement */
 
 /* Police Space Grotesk - Variable Font */
 @font-face {
