@@ -5,32 +5,6 @@
  * NOTE: Le ConfiguratorPanel est exclu de ce thème - voir section en bas
  */
 
-/* ============================================
-   RÉINITIALISATION COMPLÈTE DE CONFIGURATOR-PANEL AU DÉBUT
-   Cette section DOIT être au tout début pour réinitialiser AVANT d'appliquer les styles stepn
-   ============================================ */
-
-/* Réinitialiser COMPLÈTEMENT configurator-panel AVANT que les sélecteurs généraux stepn ne s'appliquent */
-.configurator-panel,
-.configurator-panel *,
-.configurator-panel *::before,
-.configurator-panel *::after {
-  /* Réinitialiser TOUS les styles hérités */
-  all: unset !important;
-  /* Réappliquer les valeurs essentielles */
-  display: revert !important;
-  box-sizing: border-box !important;
-  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  color: #111827 !important;
-  font-weight: normal !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-style: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
 /* Charger toutes les fonts STEPN - Version locale pour éviter les problèmes CORS */
 @font-face {
   font-family: 'PP Neue Machina Inktrap Ultrabold Italic';
@@ -288,24 +262,39 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 /* ============================================
    EXCLUSION COMPLÈTE DU CONFIGURATOR PANEL
    Cette section DOIT être à la TRÈS FIN du fichier pour surcharger TOUT
-   Utilise des règles avec la MÊME spécificité que les sélecteurs généraux mais avec !important
-   et une spécificité PLUS ÉLEVÉE grâce à .configurator-panel
+   Utilise all: unset pour réinitialiser COMPLÈTEMENT, puis réapplique les valeurs de base
    ============================================ */
 
-/* IMPORTANT: Ces règles sont chargées APRÈS les sélecteurs généraux stepn
-   et ont une spécificité PLUS ÉLEVÉE (.configurator-panel p > p)
-   donc elles devraient gagner même avec !important des deux côtés */
+/* IMPORTANT: Cette section est à la FIN du fichier pour surcharger TOUS les sélecteurs généraux stepn
+   Utilise all: unset pour réinitialiser COMPLÈTEMENT tous les styles, puis réapplique les valeurs essentielles */
 
-/* Réinitialiser TOUS les éléments avec une spécificité maximale */
+/* Réinitialiser COMPLÈTEMENT avec all: unset - Cela surcharge TOUS les styles précédents */
 .configurator-panel,
-.configurator-panel * {
+.configurator-panel *,
+.configurator-panel *::before,
+.configurator-panel *::after {
+  /* Réinitialiser TOUS les styles hérités de stepn */
+  all: unset !important;
+  /* Réappliquer immédiatement les valeurs essentielles pour préserver le layout */
+  display: revert !important;
   box-sizing: border-box !important;
+  position: revert !important;
+  width: revert !important;
+  height: revert !important;
+  margin: revert !important;
+  padding: revert !important;
+  border: revert !important;
+  background: revert !important;
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   color: #111827 !important;
   font-weight: normal !important;
   letter-spacing: normal !important;
   text-transform: none !important;
   font-style: normal !important;
+  font-size: revert !important;
+  line-height: revert !important;
+  text-align: revert !important;
+  text-decoration: revert !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
   text-rendering: optimizeLegibility !important;
