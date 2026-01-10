@@ -3,6 +3,7 @@
  * Ce thème s'applique uniquement à la zone de configuration visible par les clients
  * (Sidebar blanche + Viewer 3D)
  * Sépare du thème stepn-theme.css qui est pour l'interface admin
+ * IMPORTANT: Utilise !important pour surcharger stepn-theme.css qui est appliqué globalement
  */
 
 .configurator-panel {
@@ -54,161 +55,239 @@
   
   /* Transitions */
   --config-panel-transition: all 0.2s ease-in-out;
+  
+  /* Réinitialiser les styles de stepn-theme */
+  background-color: var(--config-panel-bg) !important;
+  color: var(--config-panel-text-primary) !important;
 }
 
-/* Reset et base pour le ConfiguratorPanel */
+/* Reset et base pour le ConfiguratorPanel - Surcharge stepn-theme.css */
 .configurator-panel * {
   box-sizing: border-box;
 }
 
+/* Surcharge globale du thème stepn pour le ConfiguratorPanel */
+.configurator-panel,
+.configurator-panel * {
+  /* Réinitialiser les couleurs et fonts de stepn-theme */
+  font-family: var(--config-panel-font-family) !important;
+}
+
 /* Sidebar blanche */
 .configurator-panel .sidebar-white {
-  background-color: var(--config-panel-sidebar-bg);
-  border-right: 1px solid var(--config-panel-sidebar-border);
-  color: var(--config-panel-text-primary);
-  font-family: var(--config-panel-font-family);
+  background-color: var(--config-panel-sidebar-bg) !important;
+  border-right: 1px solid var(--config-panel-sidebar-border) !important;
+  color: var(--config-panel-text-primary) !important;
+  font-family: var(--config-panel-font-family) !important;
 }
 
 /* Viewer 3D */
 .configurator-panel .viewer-3d {
-  background-color: var(--config-panel-viewer-bg);
-  background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+  background-color: var(--config-panel-viewer-bg) !important;
+  background: linear-gradient(to bottom, #f8fafc, #e2e8f0) !important;
 }
 
-/* Titres dans la sidebar */
+/* Titres dans la sidebar - Surcharge stepn-theme avec spécificité élevée */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
 .configurator-panel h4,
 .configurator-panel h5,
 .configurator-panel h6 {
-  color: var(--config-panel-text-primary);
-  font-family: var(--config-panel-font-family);
-  font-weight: 600;
-  margin: 0;
+  color: var(--config-panel-text-primary) !important;
+  font-family: var(--config-panel-font-family) !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Textes */
+/* Textes - Surcharge stepn-theme avec !important */
 .configurator-panel p,
 .configurator-panel span,
+.configurator-panel label,
+.configurator-panel a,
 .configurator-panel div {
-  color: var(--config-panel-text-primary);
-  font-family: var(--config-panel-font-family);
+  color: var(--config-panel-text-primary) !important;
+  font-family: var(--config-panel-font-family) !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 /* Textes secondaires */
 .configurator-panel .text-secondary,
 .configurator-panel .text-gray-500,
-.configurator-panel .text-gray-600 {
-  color: var(--config-panel-text-secondary);
+.configurator-panel .text-gray-600,
+.configurator-panel [class*="text-gray"] {
+  color: var(--config-panel-text-secondary) !important;
 }
 
-/* Inputs */
-.configurator-panel input,
+/* Inputs - Surcharge stepn-theme avec spécificité élevée */
+.configurator-panel input[type="text"],
+.configurator-panel input[type="email"],
+.configurator-panel input[type="password"],
+.configurator-panel input[type="number"],
+.configurator-panel input[type="search"],
 .configurator-panel textarea,
 .configurator-panel select {
-  background-color: var(--config-panel-input-bg);
-  border: 1px solid var(--config-panel-input-border);
-  color: var(--config-panel-text-primary);
-  font-family: var(--config-panel-font-family);
-  border-radius: var(--config-panel-radius-md);
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
-  transition: var(--config-panel-transition);
+  background-color: var(--config-panel-input-bg) !important;
+  border: 1px solid var(--config-panel-input-border) !important;
+  color: var(--config-panel-text-primary) !important;
+  font-family: var(--config-panel-font-family) !important;
+  border-radius: var(--config-panel-radius-md) !important;
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
+  transition: var(--config-panel-transition) !important;
+  font-size: var(--config-panel-font-size-base) !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 .configurator-panel input:focus,
+.configurator-panel input:active,
 .configurator-panel textarea:focus,
-.configurator-panel select:focus {
-  outline: none;
-  border-color: var(--config-panel-input-border-focus);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+.configurator-panel textarea:active,
+.configurator-panel select:focus,
+.configurator-panel select:active {
+  outline: none !important;
+  border-color: var(--config-panel-input-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+  background-color: var(--config-panel-input-bg) !important;
+  color: var(--config-panel-text-primary) !important;
 }
 
-/* Boutons primaires */
+/* Placeholders */
+.configurator-panel input::placeholder,
+.configurator-panel textarea::placeholder {
+  color: var(--config-panel-text-secondary) !important;
+}
+
+/* Boutons primaires - Surcharge stepn-theme */
 .configurator-panel button.bg-black,
-.configurator-panel .btn-primary {
-  background-color: var(--config-panel-button-primary-bg);
-  color: var(--config-panel-button-primary-text);
-  border: none;
-  border-radius: var(--config-panel-radius-md);
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
-  font-family: var(--config-panel-font-family);
-  font-weight: 500;
-  transition: var(--config-panel-transition);
-  cursor: pointer;
+.configurator-panel .btn-primary,
+.configurator-panel button[class*="bg-black"],
+.configurator-panel button[class*="bg-red"],
+.configurator-panel button[class*="bg-green"] {
+  background-color: var(--config-panel-button-primary-bg) !important;
+  color: var(--config-panel-button-primary-text) !important;
+  border: none !important;
+  border-radius: var(--config-panel-radius-md) !important;
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
+  font-family: var(--config-panel-font-family) !important;
+  font-weight: 500 !important;
+  transition: var(--config-panel-transition) !important;
+  cursor: pointer !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 .configurator-panel button.bg-black:hover,
-.configurator-panel .btn-primary:hover {
-  background-color: var(--config-panel-button-primary-hover);
+.configurator-panel .btn-primary:hover,
+.configurator-panel button[class*="bg-black"]:hover {
+  background-color: var(--config-panel-button-primary-hover) !important;
 }
 
-/* Boutons secondaires */
+/* Boutons secondaires - Surcharge stepn-theme */
 .configurator-panel button.bg-white,
-.configurator-panel .btn-secondary {
-  background-color: var(--config-panel-button-secondary-bg);
-  color: var(--config-panel-button-secondary-text);
-  border: 1px solid var(--config-panel-button-secondary-border);
-  border-radius: var(--config-panel-radius-md);
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md);
-  font-family: var(--config-panel-font-family);
-  font-weight: 500;
-  transition: var(--config-panel-transition);
-  cursor: pointer;
+.configurator-panel .btn-secondary,
+.configurator-panel button[class*="bg-white"] {
+  background-color: var(--config-panel-button-secondary-bg) !important;
+  color: var(--config-panel-button-secondary-text) !important;
+  border: 1px solid var(--config-panel-button-secondary-border) !important;
+  border-radius: var(--config-panel-radius-md) !important;
+  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
+  font-family: var(--config-panel-font-family) !important;
+  font-weight: 500 !important;
+  transition: var(--config-panel-transition) !important;
+  cursor: pointer !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 .configurator-panel button.bg-white:hover,
-.configurator-panel .btn-secondary:hover {
-  background-color: var(--config-panel-button-secondary-hover);
+.configurator-panel .btn-secondary:hover,
+.configurator-panel button[class*="bg-white"]:hover {
+  background-color: var(--config-panel-button-secondary-hover) !important;
 }
 
 /* Cards et conteneurs */
 .configurator-panel .card,
-.configurator-panel .bg-white {
-  background-color: var(--config-panel-sidebar-bg);
-  border: 1px solid var(--config-panel-border);
-  border-radius: var(--config-panel-radius-lg);
-  box-shadow: var(--config-panel-shadow-sm);
+.configurator-panel .bg-white,
+.configurator-panel [class*="bg-white"] {
+  background-color: var(--config-panel-sidebar-bg) !important;
 }
 
-/* Onglets/Tabs */
-.configurator-panel .tab {
-  color: var(--config-panel-text-secondary);
-  transition: var(--config-panel-transition);
+.configurator-panel .card {
+  border: 1px solid var(--config-panel-border) !important;
+  border-radius: var(--config-panel-radius-lg) !important;
+  box-shadow: var(--config-panel-shadow-sm) !important;
 }
 
-.configurator-panel .tab:hover {
-  color: var(--config-panel-text-primary);
+/* Onglets/Tabs - Surcharge stepn-theme */
+.configurator-panel .tab,
+.configurator-panel [class*="tab"] {
+  color: var(--config-panel-text-secondary) !important;
+  transition: var(--config-panel-transition) !important;
+  font-family: var(--config-panel-font-family) !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
 }
 
-.configurator-panel .tab-active {
-  color: var(--config-panel-text-primary);
-  font-weight: 600;
+.configurator-panel .tab:hover,
+.configurator-panel [class*="tab"]:hover {
+  color: var(--config-panel-text-primary) !important;
+}
+
+.configurator-panel .tab-active,
+.configurator-panel [class*="tab-active"],
+.configurator-panel [class*="active"] {
+  color: var(--config-panel-text-primary) !important;
+  font-weight: 600 !important;
+  font-family: var(--config-panel-font-family) !important;
 }
 
 /* Bordures */
 .configurator-panel .border-gray-200,
-.configurator-panel .border-gray-300 {
-  border-color: var(--config-panel-border);
+.configurator-panel .border-gray-300,
+.configurator-panel [class*="border-gray"],
+.configurator-panel [class*="border-"] {
+  border-color: var(--config-panel-border) !important;
 }
 
 /* Scrollbar personnalisée pour le ConfiguratorPanel */
 .configurator-panel ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 8px !important;
+  height: 8px !important;
 }
 
 .configurator-panel ::-webkit-scrollbar-track {
-  background: var(--config-panel-viewer-bg);
+  background: var(--config-panel-viewer-bg) !important;
 }
 
 .configurator-panel ::-webkit-scrollbar-thumb {
-  background: var(--config-panel-text-secondary);
-  border-radius: 4px;
+  background: var(--config-panel-text-secondary) !important;
+  border-radius: 4px !important;
 }
 
 .configurator-panel ::-webkit-scrollbar-thumb:hover {
-  background: var(--config-panel-text-primary);
+  background: var(--config-panel-text-primary) !important;
 }
 
 /* Responsive - Ajustements pour mobile */
