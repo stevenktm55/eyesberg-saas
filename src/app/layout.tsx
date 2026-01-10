@@ -3,10 +3,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "../styles/stepn-theme.css";
-// Import configurator-panel-theme.css après stepn-theme.css pour qu'il puisse surcharger
-// Ce CSS est aussi importé dans ClientPage.tsx mais on l'importe ici pour s'assurer de l'ordre
-import "../styles/configurator-panel-theme.css";
+// stepn-theme.css et configurator-panel-theme.css sont maintenant importés via @import dans globals.css
+// pour s'assurer qu'ils sont bundlés par Next.js (les imports dans "use client" ne sont pas bundlés correctement)
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
