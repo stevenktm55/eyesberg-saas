@@ -92,9 +92,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typographie STEPN - NE S'APPLIQUE PAS aux éléments dans .configurator-panel */
-h1:not(.configurator-panel h1):not(.configurator-panel h2):not(.configurator-panel h3):not(.configurator-panel h4):not(.configurator-panel h5):not(.configurator-panel h6),
-h2:not(.configurator-panel h1):not(.configurator-panel h2):not(.configurator-panel h3):not(.configurator-panel h4):not(.configurator-panel h5):not(.configurator-panel h6) {
+/* Typographie STEPN */
+h1, h2 {
   font-family: var(--stepn-font-heading-ultrabold) !important;
   font-weight: 400 !important;
   letter-spacing: -2.32px !important;
@@ -109,8 +108,7 @@ h2:not(.configurator-panel h1):not(.configurator-panel h2):not(.configurator-pan
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-h3:not(.configurator-panel h3),
-h4:not(.configurator-panel h4) {
+h3, h4 {
   font-family: var(--stepn-font-heading-regular);
   font-weight: 400;
   letter-spacing: -1px;
@@ -118,8 +116,7 @@ h4:not(.configurator-panel h4) {
   color: var(--stepn-text);
 }
 
-h5:not(.configurator-panel h5),
-h6:not(.configurator-panel h6) {
+h5, h6 {
   font-family: var(--stepn-font-heading-light);
   font-weight: 300;
   letter-spacing: -0.5px;
@@ -127,19 +124,7 @@ h6:not(.configurator-panel h6) {
   color: var(--stepn-text);
 }
 
-/* Exclure configurator-panel des styles généraux - Utiliser body comme parent */
-body:not(:has(.configurator-panel)) p,
-body:not(:has(.configurator-panel)) span,
-body:not(:has(.configurator-panel)) label,
-body:not(:has(.configurator-panel)) a,
-body:not(:has(.configurator-panel)) input,
-body:not(:has(.configurator-panel)) textarea,
-body:not(:has(.configurator-panel)) select,
-/* Alternative: exclure les éléments qui sont descendants de configurator-panel */
-:not(.configurator-panel):not(.configurator-panel *) > p,
-:not(.configurator-panel):not(.configurator-panel *) > span,
-:not(.configurator-panel):not(.configurator-panel *) > label,
-:not(.configurator-panel):not(.configurator-panel *) > a {
+p, span, label, a, input, textarea, select {
   font-family: var(--stepn-font-body) !important;
   color: var(--stepn-text) !important;
   font-feature-settings: normal !important;
@@ -149,27 +134,16 @@ body:not(:has(.configurator-panel)) select,
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Fallback pour les navigateurs qui ne supportent pas :has() - Appliquer aux éléments directs */
-body > p:not(.configurator-panel p):not(.configurator-panel *),
-body > span:not(.configurator-panel span):not(.configurator-panel *),
-body > label:not(.configurator-panel label):not(.configurator-panel *),
-body > a:not(.configurator-panel a):not(.configurator-panel *) {
-  font-family: var(--stepn-font-body) !important;
-  color: var(--stepn-text) !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-}
-
-/* Inputs - Exclure configurator-panel */
-body:not(:has(.configurator-panel)) input[type="text"],
-body:not(:has(.configurator-panel)) input[type="email"],
-body:not(:has(.configurator-panel)) input[type="password"],
-input[type="text"]:not(.configurator-panel input),
-input[type="email"]:not(.configurator-panel input),
-input[type="password"]:not(.configurator-panel input) {
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:active,
+input[type="email"]:active,
+input[type="password"]:active {
   background-color: var(--stepn-input-bg) !important;
   border: 1px solid var(--stepn-input-border);
   color: var(--stepn-text) !important;
@@ -182,40 +156,30 @@ input[type="password"]:not(.configurator-panel input) {
   -webkit-opacity: 1 !important;
 }
 
-body:not(:has(.configurator-panel)) input[type="text"]:focus,
-body:not(:has(.configurator-panel)) input[type="email"]:focus,
-body:not(:has(.configurator-panel)) input[type="password"]:focus,
-input[type="text"]:focus:not(.configurator-panel input),
-input[type="email"]:focus:not(.configurator-panel input),
-input[type="password"]:focus:not(.configurator-panel input) {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
   outline: none;
   border-color: var(--stepn-input-border-focus);
 }
 
-body:not(:has(.configurator-panel)) input[type="text"]::placeholder,
-body:not(:has(.configurator-panel)) input[type="email"]::placeholder,
-body:not(:has(.configurator-panel)) input[type="password"]::placeholder,
-input[type="text"]::placeholder:not(.configurator-panel input::placeholder),
-input[type="email"]::placeholder:not(.configurator-panel input::placeholder),
-input[type="password"]::placeholder:not(.configurator-panel input::placeholder) {
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
   color: var(--stepn-text-secondary);
   opacity: 1;
 }
 
-body:not(:has(.configurator-panel)) input[type="text"]:-webkit-autofill,
-body:not(:has(.configurator-panel)) input[type="email"]:-webkit-autofill,
-body:not(:has(.configurator-panel)) input[type="password"]:-webkit-autofill,
-input[type="text"]:-webkit-autofill:not(.configurator-panel input),
-input[type="email"]:-webkit-autofill:not(.configurator-panel input),
-input[type="password"]:-webkit-autofill:not(.configurator-panel input) {
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px var(--stepn-input-bg) inset !important;
   -webkit-text-fill-color: var(--stepn-text) !important;
   color: var(--stepn-text) !important;
 }
 
-/* Boutons - Exclure configurator-panel */
-body:not(:has(.configurator-panel)) button,
-button:not(.configurator-panel button) {
+/* Boutons */
+button {
   background-color: var(--stepn-button-bg);
   color: var(--stepn-button-text);
   border: none;
@@ -230,28 +194,24 @@ button:not(.configurator-panel button) {
   letter-spacing: 0.05em;
 }
 
-body:not(:has(.configurator-panel)) button:hover:not(:disabled),
-button:not(.configurator-panel button):hover:not(:disabled) {
+button:hover:not(:disabled) {
   background-color: var(--stepn-button-hover);
 }
 
-body:not(:has(.configurator-panel)) button:disabled,
-button:not(.configurator-panel button):disabled {
+button:disabled {
   background-color: var(--stepn-button-disabled);
   color: var(--stepn-text-secondary);
   cursor: not-allowed;
 }
 
-/* Liens - Exclure configurator-panel */
-body:not(:has(.configurator-panel)) a,
-a:not(.configurator-panel a) {
+/* Liens */
+a {
   color: var(--stepn-primary);
   text-decoration: none;
   transition: opacity 0.2s;
 }
 
-body:not(:has(.configurator-panel)) a:hover,
-a:not(.configurator-panel a):hover {
+a:hover {
   opacity: 0.8;
 }
 

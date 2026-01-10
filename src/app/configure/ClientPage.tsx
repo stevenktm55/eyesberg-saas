@@ -12,7 +12,8 @@ import { useCameraViews, CameraView } from "@/hooks/useCameraViews";
 import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
 import Image from "next/image";
-// configurator-panel-theme.css est déjà importé dans layout.tsx
+// Réimporter explicitement pour s'assurer que le CSS est chargé pour cette page
+import "@/styles/configurator-panel-theme.css";
 
 // Interface pour les zones de texte
 interface TextZone {
