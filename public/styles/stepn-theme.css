@@ -85,11 +85,17 @@
 body {
   margin: 0;
   padding: 0;
+  /* EXCLURE .configurator-panel : ne pas appliquer le fond noir si on est dans le configurateur */
   background-color: var(--stepn-bg);
   color: var(--stepn-text);
   font-family: var(--stepn-font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Surcharge : Si un .configurator-panel existe, le body ne doit pas avoir de fond noir derrière */
+body:has(.configurator-panel) {
+  background-color: #ffffff !important;
 }
 
 /* Typographie STEPN - EXCLURE .configurator-panel */
@@ -349,16 +355,19 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   -webkit-text-stroke-color: transparent !important;
 }
 
-/* Container lui-même - NE PAS utiliser all: initial ici car ça réinitialise border */
+/* Container lui-même - all: initial réinitialise tout, y compris border, donc on doit réappliquer border après */
 .configurator-panel {
-  /* Ne pas utiliser all: initial sur le container, ça réinitialiserait border */
+  all: initial !important;
   display: flex !important;
   box-sizing: border-box !important;
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
   background-color: #ffffff !important;
-  /* TEST: Bordure bleue très visible pour vérifier que stepn-theme.css est chargé */
-  border: 10px solid #0000ff !important;
+  /* TEST: Bordure bleue très visible pour vérifier que stepn-theme.css est chargé - APRÈS all: initial */
+  border: 5px solid #0000ff !important;
+  border-width: 5px !important;
+  border-style: solid !important;
+  border-color: #0000ff !important;
   min-height: 100px !important;
 }
 

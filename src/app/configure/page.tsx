@@ -14,7 +14,7 @@ export default function Page({
   const preview = searchParams.preview || null;
   
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen" style={{ backgroundColor: '#ffffff' } as React.CSSProperties}>
       <Suspense fallback={<div className="flex items-center justify-center h-full">Chargement...</div>}>
         <ConfiguratorViewer 
           mode="client"
