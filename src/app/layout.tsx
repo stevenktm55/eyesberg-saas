@@ -30,6 +30,7 @@ export default function RootLayout({
     <html lang="fr">
       <head>
         {/* Charger stepn-theme.css et configurator-panel-theme.css directement via link car @import dans globals.css ne fonctionne pas */}
+        {/* IMPORTANT: stepn-theme.css en premier, puis configurator-panel-theme.css pour qu'il puisse surcharger */}
         <link rel="stylesheet" href="/styles/stepn-theme.css" />
         <link rel="stylesheet" href="/styles/configurator-panel-theme.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

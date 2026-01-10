@@ -349,16 +349,16 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   -webkit-text-stroke-color: transparent !important;
 }
 
-/* Container lui-même - pas all: initial car ça casserait le layout */
+/* Container lui-même - NE PAS utiliser all: initial ici car ça réinitialise border */
 .configurator-panel {
-  all: initial !important;
+  /* Ne pas utiliser all: initial sur le container, ça réinitialiserait border */
   display: flex !important;
   box-sizing: border-box !important;
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
   background-color: #ffffff !important;
   /* TEST: Bordure bleue très visible pour vérifier que stepn-theme.css est chargé */
-  border: 5px solid #0000ff !important;
+  border: 10px solid #0000ff !important;
   min-height: 100px !important;
 }
 
