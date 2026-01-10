@@ -8,25 +8,49 @@
  * Utilise !important partout pour surcharger les sélecteurs généraux stepn qui ont aussi !important
  * 
  * Cette version utilise une approche plus agressive avec des réinitialisations complètes
+ * 
+ * TEST: Si ce fichier est chargé, vous devriez voir cette règle dans les DevTools
  */
+/* TEST MARKER - CONFIGURATOR PANEL THEME IS LOADED */
+
+/* ============================================
+   TEST VISIBLE - Si ce fichier est chargé, vous devriez voir un fond rouge temporaire
+   ============================================ */
+.configurator-panel {
+  /* TEST: Fond rouge temporaire pour vérifier que le CSS est chargé */
+  /* background-color: #ff0000 !important; */
+}
 
 /* ============================================
    RÉINITIALISATION COMPLÈTE EN PREMIER
    Surcharge TOUS les styles stepn avant d'appliquer notre thème
+   IMPORTANT: all: unset dans stepn-theme.css a déjà réinitialisé, on réapplique maintenant
    ============================================ */
 .configurator-panel,
 .configurator-panel *,
 .configurator-panel *::before,
 .configurator-panel *::after {
-  /* Box model */
+  /* Box model - Réappliquer après all: unset */
+  display: revert !important;
   box-sizing: border-box !important;
+  position: revert !important;
+  width: revert !important;
+  height: revert !important;
+  margin: revert !important;
+  padding: revert !important;
+  border: revert !important;
+  background: revert !important;
   
   /* Typographie - Surcharge stepn-theme.css ligne 127 */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
   font-weight: normal !important;
+  font-size: revert !important;
+  line-height: revert !important;
   letter-spacing: normal !important;
   text-transform: none !important;
+  text-align: revert !important;
+  text-decoration: revert !important;
   font-style: normal !important;
   font-feature-settings: normal !important;
   font-variant: normal !important;
