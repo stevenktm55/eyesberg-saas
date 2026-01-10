@@ -5,6 +5,32 @@
  * NOTE: Le ConfiguratorPanel est exclu de ce thème - voir section en bas
  */
 
+/* ============================================
+   RÉINITIALISATION COMPLÈTE DE CONFIGURATOR-PANEL AU DÉBUT
+   Cette section DOIT être au tout début pour réinitialiser AVANT d'appliquer les styles stepn
+   ============================================ */
+
+/* Réinitialiser COMPLÈTEMENT configurator-panel AVANT que les sélecteurs généraux stepn ne s'appliquent */
+.configurator-panel,
+.configurator-panel *,
+.configurator-panel *::before,
+.configurator-panel *::after {
+  /* Réinitialiser TOUS les styles hérités */
+  all: unset !important;
+  /* Réappliquer les valeurs essentielles */
+  display: revert !important;
+  box-sizing: border-box !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  font-weight: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
 /* Charger toutes les fonts STEPN - Version locale pour éviter les problèmes CORS */
 @font-face {
   font-family: 'PP Neue Machina Inktrap Ultrabold Italic';
