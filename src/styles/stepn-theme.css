@@ -249,14 +249,14 @@ a:hover {
 
 /* Override pour les spans dans les boutons verts - force la couleur noire */
 /* Cible les boutons avec backgroundColor en camelCase (React) */
-button[style*="backgroundColor: #8eff36"] > span,
-button[style*="background-color: #8eff36"] > span,
-button[style*="#8eff36"] > span {
+button[style*="backgroundColor: #8eff36"] > span:not(.configurator-panel span),
+button[style*="background-color: #8eff36"] > span:not(.configurator-panel span),
+button[style*="#8eff36"] > span:not(.configurator-panel span) {
   color: #000000 !important;
 }
 
 /* Classe utilitaire pour forcer la couleur noire sur les spans */
-.green-button-icon {
+.green-button-icon:not(.configurator-panel .green-button-icon) {
   color: #000000 !important;
 }
 
@@ -266,12 +266,11 @@ button[style*="#8eff36"] > span {
    Cette section DOIT être à la fin du fichier pour surcharger tous les styles stepn
    Le ConfiguratorPanel utilise son propre thème (configurator-panel-theme.css)
    
-   Utilisation de "all: unset !important" pour réinitialiser COMPLÈTEMENT tous les styles
-   Cela annule tous les styles stepn, y compris ceux avec !important
+   On réinitialise spécifiquement chaque propriété stepn avec des valeurs neutres
+   qui seront surchargées par configurator-panel-theme.css
 */
 
-/* Réinitialiser TOUS les styles stepn pour le ConfiguratorPanel avec des valeurs par défaut */
-/* On réinitialise spécifiquement chaque propriété stepn pour permettre à configurator-panel-theme.css de prendre le relais */
+/* Réinitialiser TOUS les styles stepn pour le ConfiguratorPanel avec des valeurs spécifiques */
 .configurator-panel,
 .configurator-panel * {
   box-sizing: border-box !important;
