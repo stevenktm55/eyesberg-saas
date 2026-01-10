@@ -4444,7 +4444,7 @@ export default function ConfiguratorViewer({
   // Si le snapshot n'est pas disponible, afficher un message d'erreur
   if (isLoadingConfig) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="configurator-panel h-full flex items-center justify-center" style={{ border: '10px solid blue', backgroundColor: 'cyan' } as React.CSSProperties}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement de la configuration...</p>
@@ -4459,7 +4459,7 @@ export default function ConfiguratorViewer({
     // Si pas en mode preview, afficher le message d'erreur
     if (!isPreviewMode) {
       return (
-        <div className="h-full flex items-center justify-center">
+        <div className="configurator-panel h-full flex items-center justify-center" style={{ border: '10px solid orange', backgroundColor: 'yellow' } as React.CSSProperties}>
           <div className="text-center max-w-md mx-auto p-6">
             <div className="text-red-500 text-5xl mb-4">⚠️</div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Configuration non disponible</h2>
@@ -4476,7 +4476,7 @@ export default function ConfiguratorViewer({
     
     // En mode preview, afficher un message d'erreur spécifique
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="configurator-panel h-full flex items-center justify-center" style={{ border: '10px solid purple', backgroundColor: 'pink' } as React.CSSProperties}>
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-yellow-500 text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Snapshot non disponible</h2>
@@ -4512,7 +4512,10 @@ export default function ConfiguratorViewer({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        flexDirection: isMobileMode ? 'column' : 'row'
+        flexDirection: isMobileMode ? 'column' : 'row',
+        // TEST: Style inline pour vérifier que cette div est rendue
+        border: '10px solid red',
+        backgroundColor: 'yellow'
       } as React.CSSProperties}
     >
       {/* Camera Debug Panel */}
