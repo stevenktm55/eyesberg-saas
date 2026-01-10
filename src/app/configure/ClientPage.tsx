@@ -7915,7 +7915,15 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
       )}
       
       {/* Contenu principal - ConfiguratorPanel */}
-      <div className="configurator-panel flex-1 flex overflow-hidden">
+      <div 
+        className="configurator-panel flex-1 flex overflow-hidden"
+        style={{
+          border: '5px solid #00ff00',
+          fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          color: '#111827',
+          backgroundColor: '#ffffff'
+        } as React.CSSProperties}
+      >
         {/* Sidebar Desktop uniquement */}
         <div className="sidebar-white hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
           <div className="flex-1 overflow-hidden">
