@@ -3247,7 +3247,18 @@ export default function ConfiguratorViewer({
   onAddToCart?: () => void;
   forceMobileLayout?: boolean;
 }) {
-  console.log('🚀 ConfiguratorViewer component loading...');
+  console.log('🚀 ConfiguratorViewer component loading...', {
+    mode,
+    propProductId,
+    propShopDomain,
+    propPreview,
+    forceMobileLayout
+  });
+  
+  // FORCER le rendu d'un div avec configurator-panel immédiatement pour tester
+  if (typeof window !== 'undefined') {
+    console.log('✅ ConfiguratorViewer is rendering on client side');
+  }
   
   // Récupérer les paramètres de l'URL si non fournis
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
