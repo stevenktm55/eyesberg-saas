@@ -6964,8 +6964,7 @@ export default function ProductBuilderPage() {
                       
                       return (
                         <div style={{
-                          width: '100%',
-                          height: '100%',
+                          flex: '1 1 0%',
                           minHeight: 0,
                           minWidth: 0,
                           maxHeight: '100%',
@@ -6974,7 +6973,6 @@ export default function ProductBuilderPage() {
                           display: 'flex',
                           flexDirection: 'column',
                           position: 'relative',
-                          flex: '1 1 auto',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '393px',
                             maxHeight: '852px',
@@ -6989,8 +6987,8 @@ export default function ProductBuilderPage() {
                           } : {
                             maxWidth: '100%',
                             maxHeight: '100%',
-                            height: '100%',
                             width: '100%',
+                            height: '100%',
                             margin: '0',
                             overflow: 'hidden'
                           })
