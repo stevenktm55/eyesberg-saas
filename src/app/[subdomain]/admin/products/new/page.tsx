@@ -6598,13 +6598,14 @@ export default function ProductBuilderPage() {
                         // TODO: Implémenter la sauvegarde
                         console.log('Sauvegarder');
                       }}
+                      className="btn-secondary"
                       style={{
                         flex: 1,
-                        padding: '12px 20px',
+                        padding: '10px 20px',
                         backgroundColor: '#f3f4f6',
                         color: '#374151',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '10px',
+                        border: 'none',
+                        borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '500',
                         cursor: 'pointer',
@@ -6613,20 +6614,13 @@ export default function ProductBuilderPage() {
                         justifyContent: 'center',
                         gap: '8px',
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
                         fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#e5e7eb';
-                        e.currentTarget.style.borderColor = '#d1d5db';
-                        e.currentTarget.style.boxShadow = '0 2px 4px 0 rgb(0 0 0 / 0.1)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = '#f3f4f6';
-                        e.currentTarget.style.borderColor = '#e5e7eb';
-                        e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
-                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -6639,13 +6633,14 @@ export default function ProductBuilderPage() {
                         // TODO: Implémenter l'ajout au panier
                         console.log('Ajouter au panier');
                       }}
+                      className="btn-primary"
                       style={{
                         flex: 1,
-                        padding: '12px 20px',
+                        padding: '10px 20px',
                         backgroundColor: '#3b82f6',
                         color: '#ffffff',
                         border: 'none',
-                        borderRadius: '10px',
+                        borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '500',
                         cursor: 'pointer',
@@ -6654,18 +6649,14 @@ export default function ProductBuilderPage() {
                         justifyContent: 'center',
                         gap: '8px',
                         transition: 'all 0.2s ease',
-                        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                         fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#2563eb';
-                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = '#3b82f6';
-                        e.currentTarget.style.boxShadow = '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)';
-                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
