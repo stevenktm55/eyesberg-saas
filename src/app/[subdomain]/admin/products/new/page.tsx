@@ -2450,7 +2450,9 @@ export default function ProductBuilderPage() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        overflow: 'hidden'
+        maxHeight: '100vh',
+        overflow: 'hidden',
+        minHeight: 0
       }}>
         {/* Header */}
         <div style={{
@@ -4007,15 +4009,16 @@ export default function ProductBuilderPage() {
           <div 
             className="configurator-panel"
             style={{
-              flex: 1,
+              flex: '1 1 0%',
               minWidth: 0,
+              minHeight: 0,
               maxWidth: '100%',
               backgroundColor: '#ffffff',
               display: 'flex',
               position: 'relative',
               overflow: 'hidden',
               height: '100%',
-              maxHeight: '100vh'
+              maxHeight: '100%'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -6953,8 +6956,8 @@ export default function ProductBuilderPage() {
                         <div style={{
                           width: '100%',
                           height: '100%',
-                          minHeight: '600px',
-                          maxHeight: '100vh',
+                          minHeight: 0,
+                          maxHeight: '100%',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
@@ -6971,14 +6974,14 @@ export default function ProductBuilderPage() {
                             overflow: 'hidden'
                           } : {
                             maxWidth: '100%',
-                            maxHeight: '100vh',
+                            maxHeight: '100%',
                             height: '100%',
                             margin: '0',
                             overflow: 'hidden'
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', height: '100%', position: 'relative', overflow: 'hidden', width: '100%' }}>
+                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', position: 'relative', overflow: 'hidden', width: '100%' }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -6992,7 +6995,19 @@ export default function ProductBuilderPage() {
                                   fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
-                                style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%', 
+                                  maxWidth: '100%', 
+                                  maxHeight: '100%',
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  minWidth: 0,
+                                  minHeight: 0
+                                }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
