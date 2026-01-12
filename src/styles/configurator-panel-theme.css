@@ -71,6 +71,14 @@
   flex-direction: row !important;
   align-items: stretch !important;
   
+  /* FORCER les dimensions pour restaurer le layout */
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  
   /* S'assurer que le conteneur ne soit pas cassé par des règles CSS globales */
   contain: layout style !important;
 }
