@@ -4024,11 +4024,12 @@ export default function ProductBuilderPage() {
               maxWidth: '100%',
               maxHeight: '100%',
               backgroundColor: '#ffffff',
-              display: 'flex',
-              flexDirection: 'row',
+              display: 'flex !important',
+              flexDirection: 'row !important',
               position: 'relative',
               overflow: 'hidden',
-              alignSelf: 'stretch'
+              alignSelf: 'stretch',
+              boxSizing: 'border-box'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
