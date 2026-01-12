@@ -8,6 +8,9 @@ import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
 
+// Constante pour la font du configurator-panel (Space Grotesk au lieu de stepn-font-body)
+const CONFIGURATOR_PANEL_FONT = "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
@@ -16,23 +19,27 @@ if (typeof document !== 'undefined') {
       color: #000000 !important;
       -webkit-text-fill-color: #000000 !important;
       -webkit-text-stroke-color: #000000 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .color-class-card-label {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .typography-back-button,
     .typography-back-button * {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .mobile-action-btn-black,
     .mobile-action-btn-black * {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff !important;
       -webkit-text-stroke-color: #ffffff !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
   `;
   if (!document.getElementById('customizer-tab-style')) {
@@ -456,7 +463,7 @@ function ConnectTabContent({
                 borderRadius: '6px',
                 color: loading ? '#666666' : '#000000',
                 fontSize: '12px',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 fontWeight: '600',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s'
@@ -610,7 +617,7 @@ function ConnectTabContent({
                     <div style={{ flex: 1 }}>
                       <h4 style={{
                         fontSize: '16px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#ffffff',
                         margin: '0 0 8px 0',
                         fontWeight: '600'
@@ -620,7 +627,7 @@ function ConnectTabContent({
                       {product.vendor && (
                         <p style={{
                           fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#a0a0a0',
                           margin: '0 0 8px 0'
                         }}>
@@ -632,7 +639,7 @@ function ConnectTabContent({
                           <label style={{
                             display: 'block',
                             fontSize: '12px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: CONFIGURATOR_PANEL_FONT,
                             color: '#a0a0a0',
                             marginBottom: '8px'
                           }}>
@@ -652,7 +659,7 @@ function ConnectTabContent({
                               borderRadius: '6px',
                               color: '#ffffff',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               outline: 'none',
                               cursor: 'pointer'
                             }}
@@ -674,7 +681,7 @@ function ConnectTabContent({
                       bottom: '12px',
                       right: '16px',
                       fontSize: '11px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       color: '#888888',
                       textAlign: 'right',
                       backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -711,7 +718,7 @@ function ConnectTabContent({
                     borderRadius: '8px',
                     color: '#000000',
                     fontSize: '16px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     fontWeight: '600',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
@@ -2138,7 +2145,7 @@ export default function ProductBuilderPage() {
                 <span style={{
                   color: '#111827',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   fontWeight: '600'
                 }}>
                   Mode Prévisualisation
@@ -2153,7 +2160,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
@@ -2229,7 +2236,7 @@ export default function ProductBuilderPage() {
                 color: '#111827',
                 fontSize: '16px',
                 fontWeight: '500',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 outline: 'none',
                 padding: '4px 8px',
                 borderRadius: '4px',
@@ -2269,7 +2276,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 fontWeight: activeTab === 'build' ? '600' : '400'
               }}
             >
@@ -2285,7 +2292,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 fontWeight: activeTab === 'pricing' ? '600' : '400'
               }}
             >
@@ -2301,7 +2308,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 fontWeight: activeTab === 'variants' ? '600' : '400',
                 display: 'flex',
                 alignItems: 'center',
@@ -2321,7 +2328,7 @@ export default function ProductBuilderPage() {
                 borderRadius: '4px',
                 fontSize: '14px',
                 cursor: 'pointer',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 fontWeight: activeTab === 'connect' ? '600' : '400'
               }}
             >
@@ -2493,7 +2500,7 @@ export default function ProductBuilderPage() {
                   padding: '16px 24px',
                   zIndex: 10,
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   textAlign: 'center'
                 }}>
                   <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#8eff36' }}>
@@ -2530,7 +2537,7 @@ export default function ProductBuilderPage() {
                   fontSize: '18px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0,
                   marginBottom: '8px'
                 }}>
@@ -2539,7 +2546,7 @@ export default function ProductBuilderPage() {
                 <p style={{
                   fontSize: '12px',
                   color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0,
                   marginBottom: '16px'
                 }}>
@@ -2552,7 +2559,7 @@ export default function ProductBuilderPage() {
                     display: 'block',
                     fontSize: '11px',
                     color: '#a0a0a0',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     marginBottom: '6px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
@@ -2577,7 +2584,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '13px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -2595,7 +2602,7 @@ export default function ProductBuilderPage() {
                     <p style={{
                       fontSize: '11px',
                       color: '#666',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       marginTop: '6px',
                       fontStyle: 'italic'
                     }}>
@@ -2705,7 +2712,7 @@ export default function ProductBuilderPage() {
                         color: '#ffffff',
                         fontSize: '12px',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         fontWeight: '500',
                         transition: 'all 0.2s'
                       }}
@@ -2744,7 +2751,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2796,7 +2803,7 @@ export default function ProductBuilderPage() {
                         fontSize: '13px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -2989,7 +2996,7 @@ export default function ProductBuilderPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   fontWeight: '600'
                 }}
               >
@@ -3041,7 +3048,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <div style={{
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     color: '#ffffff',
                     marginBottom: '20px',
                     fontWeight: '600'
@@ -3059,14 +3066,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Zoom Speed
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3114,14 +3121,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Rotate Speed
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3169,14 +3176,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Min Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3224,14 +3231,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Max Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3279,14 +3286,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Initial Zoom Distance
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3334,14 +3341,14 @@ export default function ProductBuilderPage() {
                     }}>
                       <label style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         Initial Rotation Angle
                       </label>
                       <span style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#8eff36',
                         fontWeight: '600'
                       }}>
@@ -3401,7 +3408,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <p style={{
                     fontSize: '16px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     marginBottom: '12px',
                     color: '#ffffff',
                     fontWeight: '600'
@@ -3410,7 +3417,7 @@ export default function ProductBuilderPage() {
                   </p>
                   <p style={{
                     fontSize: '13px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     marginBottom: '24px',
                     color: '#a0a0a0',
                     maxWidth: '400px'
@@ -3428,7 +3435,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -3457,7 +3464,7 @@ export default function ProductBuilderPage() {
                 }}>
                   <p style={{
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     marginBottom: '8px',
                     color: '#ff6b6b'
                   }}>
@@ -3465,7 +3472,7 @@ export default function ProductBuilderPage() {
                   </p>
                   <p style={{
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     marginBottom: '24px',
                     color: '#a0a0a0'
                   }}>
@@ -3482,7 +3489,7 @@ export default function ProductBuilderPage() {
                       fontSize: '14px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -3602,7 +3609,7 @@ export default function ProductBuilderPage() {
                       </div>
                       <div style={{
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#ffffff',
                         flex: 1
                       }}>
@@ -3630,7 +3637,7 @@ export default function ProductBuilderPage() {
                     >
                       <div style={{
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#ffffff',
                         marginBottom: '4px'
                       }}>
@@ -3638,7 +3645,7 @@ export default function ProductBuilderPage() {
                       </div>
                       <div style={{
                         fontSize: '12px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         color: '#a0a0a0'
                       }}>
                         {question.type}
@@ -3663,7 +3670,7 @@ export default function ProductBuilderPage() {
                 <label style={{
                   display: 'block',
                   fontSize: '11px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   color: '#a0a0a0',
                   marginBottom: '6px'
                 }}>
@@ -3680,7 +3687,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -3699,7 +3706,7 @@ export default function ProductBuilderPage() {
                 <label style={{
                   display: 'block',
                   fontSize: '11px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   color: '#a0a0a0',
                   marginBottom: '6px'
                 }}>
@@ -3716,7 +3723,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '12px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -3969,7 +3976,7 @@ export default function ProductBuilderPage() {
                       style={{ 
                         color: '#000000',
                         fontSize: '14px', 
-                        fontFamily: 'var(--stepn-font-body)', 
+                        fontFamily: CONFIGURATOR_PANEL_FONT, 
                         fontWeight: '500',
                         display: 'block',
                         lineHeight: '1.2'
@@ -4068,7 +4075,7 @@ export default function ProductBuilderPage() {
                                   fontWeight: '500',
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                   transition: 'color 0.2s'
                                 }}
                                 className="color-class-card-label"
@@ -4274,7 +4281,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '14px',
                                       fontWeight: '500',
                                       color: '#111827',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
                                       textAlign: 'center'
                                     }} className="color-class-card-label">
                                       {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
@@ -4359,7 +4366,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '16px',
                                   fontWeight: '600',
                                   color: '#000000',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                   margin: 0
                                 }}>
                                   {selectedLogoForVariants.name}
@@ -5071,7 +5078,7 @@ export default function ProductBuilderPage() {
                               <div style={{
                                 fontSize: '14px',
                                 color: '#000000',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: CONFIGURATOR_PANEL_FONT,
                                 fontWeight: '600',
                                 marginBottom: '4px'
                               }}>
@@ -5127,7 +5134,7 @@ export default function ProductBuilderPage() {
                                       <div style={{
                                         fontSize: '14px',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         fontWeight: selectedLogoId === logo.id ? '600' : '400'
                                       }}>
                                         {logoName}
@@ -5156,7 +5163,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '4px',
                                         color: '#ffffff',
                                         fontSize: '12px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         cursor: 'pointer',
                                         fontWeight: '500'
                                       }}
@@ -5190,7 +5197,7 @@ export default function ProductBuilderPage() {
                               border: '1px solid #e0e0e0',
                               borderRadius: '4px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               color: '#111827',
                               cursor: 'pointer'
                             }}>
@@ -5304,7 +5311,7 @@ export default function ProductBuilderPage() {
                                       style={{
                                         color: '#000000',
                                         fontSize: '12px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         fontWeight: isSelected ? '600' : '400',
                                         textAlign: 'center',
                                         margin: 0,
@@ -5334,7 +5341,7 @@ export default function ProductBuilderPage() {
                               border: '1px solid #e0e0e0',
                               borderRadius: '4px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               color: '#111827',
                               cursor: 'pointer'
                             }}>
@@ -5375,7 +5382,7 @@ export default function ProductBuilderPage() {
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
@@ -5405,7 +5412,7 @@ export default function ProductBuilderPage() {
                             <div style={{
                               fontSize: '14px',
                               color: '#000000',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               marginBottom: '4px',
                               fontWeight: '600'
                             }}>
@@ -5440,7 +5447,7 @@ export default function ProductBuilderPage() {
                                   <div style={{
                                     fontSize: '15px',
                                     color: '#ffffff',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                     fontWeight: '500',
                                     lineHeight: '1.4'
                                   }}>
@@ -5449,7 +5456,7 @@ export default function ProductBuilderPage() {
                                   <div style={{
                                     fontSize: '12px',
                                     color: '#9ca3af',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                     fontStyle: 'italic'
                                   }}>
                                     {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
@@ -5574,7 +5581,7 @@ export default function ProductBuilderPage() {
                                       color: activeTextTab === tab.id ? '#111827' : '#6b7280',
                                       fontSize: '12px',
                                       fontWeight: activeTextTab === tab.id ? '600' : '400',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
                                       cursor: 'pointer',
                                       whiteSpace: 'nowrap',
                                       transition: 'all 0.2s',
@@ -5623,7 +5630,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '8px',
                                         color: '#111827',
                                         fontSize: '14px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         outline: 'none',
                                         transition: 'border-color 0.2s'
                                       }}
@@ -5680,7 +5687,7 @@ export default function ProductBuilderPage() {
                                         <p style={{ 
                                           color: '#6b7280', 
                                           fontSize: '12px', 
-                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontFamily: CONFIGURATOR_PANEL_FONT,
                                           padding: '12px',
                                           backgroundColor: '#f9fafb',
                                           borderRadius: '8px'
@@ -5739,7 +5746,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   color: '#111827',
                                                   WebkitTextFillColor: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                                   textAlign: 'center',
                                                   fontWeight: '500',
                                                   backgroundColor: 'transparent'
@@ -5775,7 +5782,7 @@ export default function ProductBuilderPage() {
                                         fontWeight: '500',
                                         color: '#111827',
                                         marginBottom: '8px',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         display: 'flex',
                                         justifyContent: 'space-between'
                                       }}>
@@ -5879,7 +5886,7 @@ export default function ProductBuilderPage() {
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                                   textAlign: 'center'
                                                 }}>
                                                   {color?.name || (color?.hex || '#000000').toUpperCase()}
@@ -5964,7 +5971,7 @@ export default function ProductBuilderPage() {
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                                   textAlign: 'center'
                                                 }}>
                                                   {color?.name || (color?.hex || '#000000').toUpperCase()}
@@ -6098,7 +6105,7 @@ export default function ProductBuilderPage() {
                                               marginTop: '6px',
                                               paddingTop: '4px',
                                               fontSize: '11px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                               fontWeight: '400'
                                             }}>
                                               <span style={{ 
@@ -6158,7 +6165,7 @@ export default function ProductBuilderPage() {
                                           borderRadius: '8px',
                                           color: '#111827',
                                           fontSize: '14px',
-                                          fontFamily: 'var(--stepn-font-body)',
+                                          fontFamily: CONFIGURATOR_PANEL_FONT,
                                           cursor: 'pointer',
                                           outline: 'none',
                                           marginBottom: selectedText.deformation ? '20px' : '0',
@@ -6231,7 +6238,7 @@ export default function ProductBuilderPage() {
                                               fontSize: '13px',
                                               fontWeight: '600',
                                               color: '#111827',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                               minWidth: '60px',
                                               textAlign: 'right'
                                             }}>
@@ -6301,7 +6308,7 @@ export default function ProductBuilderPage() {
                                             marginTop: '6px',
                                             paddingTop: '4px',
                                             fontSize: '11px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                             fontWeight: '400'
                                           }}>
                                             <span style={{ 
@@ -7225,7 +7232,7 @@ export default function ProductBuilderPage() {
                                         fontSize: '18px',
                                         fontWeight: '600',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         margin: 0
                                       }}>
                                         {selectedLogoForVariants.name}
@@ -7343,7 +7350,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '11px',
                                                 fontWeight: '500',
                                                 color: '#111827',
-                                                fontFamily: 'var(--stepn-font-body)',
+                                                fontFamily: CONFIGURATOR_PANEL_FONT,
                                                 textAlign: 'center'
                                               }}>
                                                 {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
@@ -7447,7 +7454,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '18px',
                                       fontWeight: '600',
                                       color: '#000000',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
                                       margin: 0
                                     }}>
                                       {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
@@ -7578,7 +7585,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '11px',
                                             fontWeight: '500',
                                             color: '#111827',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                             textAlign: 'center'
                                           }}>
                                             {logo.name}
@@ -7687,7 +7694,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '18px',
                                       fontWeight: '600',
                                       color: '#000000',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
                                       margin: 0
                                     }}>
                                       {activeModule.addLogoButtonLabel || 'Placer un logo'}
@@ -7726,7 +7733,7 @@ export default function ProductBuilderPage() {
                                         fontSize: '14px',
                                         fontWeight: '600',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         marginBottom: '12px'
                                       }}>
                                         Choisissez une position standard
@@ -8007,7 +8014,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '18px',
                                       fontWeight: '600',
                                       color: '#000000',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
                                       margin: 0
                                     }}>
                                       {activeModule.addTextButtonLabel || 'Ajouter un texte'}
@@ -8047,7 +8054,7 @@ export default function ProductBuilderPage() {
                                         fontSize: '14px',
                                         fontWeight: '600',
                                         color: '#000000',
-                                        fontFamily: 'var(--stepn-font-body)',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                         marginBottom: '12px'
                                       }}>
                                         Choisissez une position standard
@@ -8168,7 +8175,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '14px',
                                             fontWeight: '500',
                                             color: '#000000',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                             marginBottom: '8px'
                                           }}>
                                             Entrez le texte
@@ -8240,7 +8247,7 @@ export default function ProductBuilderPage() {
                                               border: '1px solid #e0e0e0',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                               color: '#111827',
                                               outline: 'none',
                                               boxSizing: 'border-box',
@@ -8312,7 +8319,7 @@ export default function ProductBuilderPage() {
                                               border: 'none',
                                               borderRadius: '6px',
                                               fontSize: '14px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                               color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                                               color: '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
@@ -8672,7 +8679,7 @@ export default function ProductBuilderPage() {
                                             border: '1px solid #e5e7eb',
                                             borderRadius: '8px',
                                             fontSize: '13px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                             color: '#111827',
                                             backgroundColor: '#ffffff'
                                           }}
@@ -8893,7 +8900,7 @@ export default function ProductBuilderPage() {
                                                             fontSize: '10px',
                                                             fontWeight: '500',
                                                             color: '#111827',
-                                                            fontFamily: 'var(--stepn-font-body)',
+                                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                                             textAlign: 'center'
                                                           }}>
                                                             {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
@@ -9124,7 +9131,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '10px',
                                                         fontWeight: '500',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)',
+                                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                                         textAlign: 'center'
                                                       }}>
                                                         {logo.name}
@@ -9232,7 +9239,7 @@ export default function ProductBuilderPage() {
                                                 color: activeTextTab === tab.id ? '#111827' : '#6b7280',
                                                 fontSize: '11px',
                                                 fontWeight: activeTextTab === tab.id ? '600' : '400',
-                                                fontFamily: 'var(--stepn-font-body)',
+                                                fontFamily: CONFIGURATOR_PANEL_FONT,
                                                 cursor: 'pointer',
                                                 whiteSpace: 'nowrap'
                                               }}
@@ -9267,7 +9274,7 @@ export default function ProductBuilderPage() {
                                                   border: '1px solid #d1d5db',
                                                   borderRadius: '6px',
                                                   fontSize: '14px',
-                                                  fontFamily: 'var(--stepn-font-body)',
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                                   color: '#111827',
                                                   outline: 'none',
                                                   boxSizing: 'border-box'
@@ -9329,7 +9336,7 @@ export default function ProductBuilderPage() {
                                                   <p style={{ 
                                                     color: '#6b7280', 
                                                     fontSize: '12px', 
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                                     padding: '12px',
                                                     backgroundColor: '#f9fafb',
                                                     borderRadius: '8px'
@@ -9412,7 +9419,7 @@ export default function ProductBuilderPage() {
                                                             <span style={{
                                                               fontSize: '11px',
                                                               color: '#111827',
-                                                              fontFamily: 'var(--stepn-font-body)',
+                                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                                               textAlign: 'center',
                                                               fontWeight: '500'
                                                             }}>
@@ -9448,7 +9455,7 @@ export default function ProductBuilderPage() {
                                                     fontWeight: '500',
                                                     color: '#111827',
                                                     marginBottom: '8px',
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                                     display: 'flex',
                                                     justifyContent: 'space-between'
                                                   }}>
@@ -9931,7 +9938,7 @@ export default function ProductBuilderPage() {
                                                     borderRadius: '6px',
                                                     color: '#111827',
                                                     fontSize: '14px',
-                                                    fontFamily: 'var(--stepn-font-body)',
+                                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                                     cursor: 'pointer',
                                                     outline: 'none',
                                                     marginBottom: selectedText.deformation ? '16px' : '0'
@@ -9997,7 +10004,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '13px',
                                                         fontWeight: '600',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)',
+                                                        fontFamily: CONFIGURATOR_PANEL_FONT,
                                                         minWidth: '60px',
                                                         textAlign: 'right'
                                                       }}>
@@ -10836,7 +10843,7 @@ export default function ProductBuilderPage() {
                 fontSize: '16px',
                 fontWeight: '600',
                 color: '#ffffff',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 marginBottom: '24px'
               }}>
                 Module settings
@@ -10870,7 +10877,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     outline: 'none'
                   }}
                 />
@@ -10967,7 +10974,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       outline: 'none',
                       cursor: 'pointer'
                     }}
@@ -10996,7 +11003,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     outline: 'none'
                   }}
                 />
@@ -11034,7 +11041,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -11114,7 +11121,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           cursor: 'pointer',
                           outline: 'none'
                         }}
@@ -11146,7 +11153,7 @@ export default function ProductBuilderPage() {
                               fontSize: '11px',
                               color: '#888',
                               marginBottom: '4px',
-                              fontFamily: 'var(--stepn-font-body)',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
                               textTransform: 'capitalize'
                             }}>
                               {colorClass}
@@ -11176,7 +11183,7 @@ export default function ProductBuilderPage() {
                                 borderRadius: '4px',
                                 color: '#ffffff',
                                 fontSize: '14px',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: CONFIGURATOR_PANEL_FONT,
                                 outline: 'none'
                               }}
                             />
@@ -11221,7 +11228,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -11332,7 +11339,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -11371,7 +11378,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -11410,7 +11417,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -11429,7 +11436,7 @@ export default function ProductBuilderPage() {
                       fontSize: '13px',
                       color: '#8eff36',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       fontWeight: '600'
                     }}>
                       📷 Vues de caméra personnalisées
@@ -11522,7 +11529,7 @@ export default function ProductBuilderPage() {
                                     fontSize: '11px',
                                     color: '#666',
                                     textAlign: 'center',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: CONFIGURATOR_PANEL_FONT,
                                     fontStyle: 'italic'
                                   }}>
                                     Aucun label configuré
@@ -11566,7 +11573,7 @@ export default function ProductBuilderPage() {
                                               borderRadius: '4px',
                                               color: '#ffffff',
                                               fontSize: '12px',
-                                              fontFamily: 'var(--stepn-font-body)',
+                                              fontFamily: CONFIGURATOR_PANEL_FONT,
                                               outline: 'none'
                                             }}
                                           />
@@ -11618,7 +11625,7 @@ export default function ProductBuilderPage() {
                                             borderRadius: '4px',
                                             color: '#ffffff',
                                             fontSize: '11px',
-                                            fontFamily: 'var(--stepn-font-body)',
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
                                             cursor: 'pointer',
                                             outline: 'none'
                                           }}
@@ -11657,7 +11664,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '11px',
                                   color: '#a0a0a0',
                                   marginBottom: '8px',
-                                  fontFamily: 'var(--stepn-font-body)',
+                                  fontFamily: CONFIGURATOR_PANEL_FONT,
                                   fontWeight: '500'
                                 }}>
                                   Vues disponibles du modèle 3D:
@@ -11792,7 +11799,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -11916,7 +11923,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -11964,7 +11971,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12007,7 +12014,7 @@ export default function ProductBuilderPage() {
                                 gap: '8px',
                                 padding: '8px',
                                 cursor: 'pointer',
-                                fontFamily: 'var(--stepn-font-body)',
+                                fontFamily: CONFIGURATOR_PANEL_FONT,
                                 fontSize: '14px',
                                 color: '#ffffff'
                               }}
@@ -12071,7 +12078,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -12110,7 +12117,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -12149,7 +12156,7 @@ export default function ProductBuilderPage() {
                             alignItems: 'center',
                             gap: '8px',
                             cursor: 'pointer',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: CONFIGURATOR_PANEL_FONT,
                             fontSize: '14px',
                             color: '#ffffff'
                           }}
@@ -12205,7 +12212,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12257,7 +12264,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         cursor: 'pointer',
                         outline: 'none'
                       }}
@@ -12314,7 +12321,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           outline: 'none'
                         }}
                       />
@@ -12343,7 +12350,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           outline: 'none'
                         }}
                       />
@@ -12395,7 +12402,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           outline: 'none'
                         }}
                       />
@@ -12425,7 +12432,7 @@ export default function ProductBuilderPage() {
                           borderRadius: '4px',
                           color: '#ffffff',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           outline: 'none'
                         }}
                       />
@@ -12456,7 +12463,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none'
                       }}
                     />
@@ -12509,7 +12516,7 @@ export default function ProductBuilderPage() {
                             borderRadius: '4px',
                             color: '#ffffff',
                             fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: CONFIGURATOR_PANEL_FONT,
                             outline: 'none'
                           }}
                         />
@@ -12551,7 +12558,7 @@ export default function ProductBuilderPage() {
                             borderRadius: '4px',
                             color: '#ffffff',
                             fontSize: '14px',
-                            fontFamily: 'var(--stepn-font-body)',
+                            fontFamily: CONFIGURATOR_PANEL_FONT,
                             outline: 'none'
                           }}
                         />
@@ -12682,7 +12689,7 @@ export default function ProductBuilderPage() {
                         borderRadius: '4px',
                         color: '#ffffff',
                         fontSize: '14px',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         outline: 'none',
                         cursor: 'pointer'
                       }}
@@ -12876,7 +12883,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
@@ -12896,7 +12903,7 @@ export default function ProductBuilderPage() {
                 fontSize: '16px',
                 fontWeight: '600',
                 color: '#ffffff',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 marginBottom: '24px'
               }}>
                 Question settings
@@ -12924,7 +12931,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     outline: 'none'
                   }}
                 />
@@ -12951,7 +12958,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     cursor: 'pointer',
                     outline: 'none'
                   }}
@@ -12971,7 +12978,7 @@ export default function ProductBuilderPage() {
                   gap: '8px',
                   fontSize: '12px',
                   color: '#a0a0a0',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   cursor: 'pointer'
                 }}>
                   <input
@@ -13013,7 +13020,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       outline: 'none',
                       resize: 'vertical'
                     }}
@@ -13031,7 +13038,7 @@ export default function ProductBuilderPage() {
                   borderRadius: '4px',
                   color: '#ffffff',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
@@ -13057,14 +13064,14 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   marginBottom: '8px'
                 }}>
                   Module settings
                 </h3>
                 <p style={{
                   fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   lineHeight: '1.5'
                 }}>
                   Sélectionnez un module dans la sidebar de gauche pour voir ses réglages.
@@ -13138,7 +13145,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     outline: 'none',
                     boxSizing: 'border-box'
                   }}
@@ -13213,7 +13220,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '4px',
                       color: '#ffffff',
                       fontSize: '14px',
-                      fontFamily: 'var(--stepn-font-body)',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
                       outline: 'none',
                       boxSizing: 'border-box',
                       cursor: 'pointer'
@@ -13233,7 +13240,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     outline: 'none',
                     boxSizing: 'border-box'
                   }}
@@ -13268,7 +13275,7 @@ export default function ProductBuilderPage() {
                     borderRadius: '4px',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
                     cursor: 'pointer',
                     outline: 'none',
                     boxSizing: 'border-box'
@@ -13313,7 +13320,7 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: 'pointer',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   transition: 'all 0.2s'
                 }}
               >
@@ -13331,7 +13338,7 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontWeight: '500',
                   cursor: (!newModule.tabName || !newModule.icon || !newModule.contentType) ? 'not-allowed' : 'pointer',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   transition: 'all 0.2s'
                 }}
               >
@@ -13394,7 +13401,7 @@ export default function ProductBuilderPage() {
                   fontSize: '20px',
                   fontWeight: '600',
                   color: '#000000',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}>
                   {activeModule.addTextButtonLabel || 'Ajouter un texte'}
@@ -13448,7 +13455,7 @@ export default function ProductBuilderPage() {
                         fontSize: '14px',
                         fontWeight: '600',
                         color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         marginBottom: '16px'
                       }}>
                         Choisissez une position standard
@@ -13594,7 +13601,7 @@ export default function ProductBuilderPage() {
                         fontSize: '14px',
                         fontWeight: '600',
                         color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         marginBottom: '12px'
                       }}>
                         Contenu du texte
@@ -13694,7 +13701,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#000000',
                           outline: 'none'
                         }}
@@ -13719,7 +13726,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#000000',
                           cursor: 'pointer',
                           fontWeight: '500',
@@ -13823,7 +13830,7 @@ export default function ProductBuilderPage() {
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                           cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
@@ -13904,7 +13911,7 @@ export default function ProductBuilderPage() {
                   fontSize: '20px',
                   fontWeight: '600',
                   color: '#000000',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}>
                   {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
@@ -13981,7 +13988,7 @@ export default function ProductBuilderPage() {
                         fontSize: '14px',
                         fontWeight: '600',
                         color: '#000000',
-                        fontFamily: 'var(--stepn-font-body)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
                         marginBottom: '16px'
                       }}>
                         Choisissez une position standard
@@ -14139,7 +14146,7 @@ export default function ProductBuilderPage() {
                           border: '1px solid #e0e0e0',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#000000',
                           cursor: 'pointer',
                           fontWeight: '500',
@@ -14266,7 +14273,7 @@ export default function ProductBuilderPage() {
                           border: 'none',
                           borderRadius: '4px',
                           fontSize: '14px',
-                          fontFamily: 'var(--stepn-font-body)',
+                          fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#ffffff',
                           cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
                           fontWeight: '500',
