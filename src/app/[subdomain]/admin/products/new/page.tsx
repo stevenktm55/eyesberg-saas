@@ -4111,6 +4111,9 @@ export default function ProductBuilderPage() {
             {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
                 width: '80px',
+                minWidth: '80px',
+                maxWidth: '80px',
+                flexShrink: 0,
                 backgroundColor: '#ffffff',
                 borderRight: '1px solid #d0d0d0',
                 display: 'flex',
@@ -4206,13 +4209,15 @@ export default function ProductBuilderPage() {
               return (
                 <div style={{
                   width: '420px',
+                  minWidth: '420px',
+                  maxWidth: '420px',
+                  flexShrink: 0,
                   backgroundColor: '#ffffff',
                   borderRight: '1px solid #e0e0e0',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
-                  animation: 'slideIn 0.3s ease-out',
-                  marginLeft: '16px'
+                  animation: 'slideIn 0.3s ease-out'
                 }}>
                   {/* Tab Header */}
                   <div style={{
@@ -6744,6 +6749,9 @@ export default function ProductBuilderPage() {
               minHeight: 0,
               minWidth: 0,
               maxHeight: '100%',
+              maxWidth: '100%',
+              width: '100%',
+              height: '100%',
               backgroundColor: '#f8f8f8',
               display: 'flex',
               alignItems: 'center',
