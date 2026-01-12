@@ -85,6 +85,7 @@
 }
 
 /* Éléments texte spécifiques */
+/* IMPORTANT: Ne pas cibler .configurator-panel div car ça casse le layout React */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
@@ -93,7 +94,6 @@
 .configurator-panel h6,
 .configurator-panel p,
 .configurator-panel span,
-.configurator-panel div,
 .configurator-panel label,
 .configurator-panel li,
 .configurator-panel td,
