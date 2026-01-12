@@ -11,6 +11,10 @@ import { ModelViewer } from '@/components/ModelViewer';
 // Constante pour la font du configurator-panel (Inter - style Tailwind moderne)
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
+// Constante pour la couleur primaire des boutons (bleu Tailwind)
+const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
+const CONFIGURATOR_PANEL_PRIMARY_HOVER = '#2563eb';
+
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
@@ -969,7 +973,13 @@ export default function ProductBuilderPage() {
       const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
       const inlineStyle = htmlEl.getAttribute('style') || '';
       
-      if (reactStyleFont && reactStyleFont.includes('Space Grotesk')) {
+      // Forcer Inter si Space Grotesk est détecté OU si la police n'est pas Inter
+      if (reactStyleFont) {
+        if (reactStyleFont.includes('Space Grotesk') || (!reactStyleFont.includes('Inter') && !reactStyleFont.includes('monospace'))) {
+          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
+        }
+      } else if (!inlineStyle.includes('Inter') && !inlineStyle.includes('monospace')) {
+        // Si pas de style inline mais qu'on est dans le panel, forcer Inter
         htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
       }
       
@@ -1002,13 +1012,25 @@ export default function ProductBuilderPage() {
                            inlineStyle.includes('color: #ffffff') ||
                            inlineStyle.includes('color:#ffffff');
         
-        if (isBlackButton && isWhiteText) {
+        // Ne pas changer si c'est un bouton de couleur (qui affiche une couleur réelle)
+        const isColorButton = inlineStyle.includes('color?.hex') || htmlEl.getAttribute('data-color-button') === 'true';
+        
+        if (isBlackButton && isWhiteText && !isColorButton) {
           htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
           // Mettre à jour aussi l'attribut style si présent
           if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
             const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
             htmlEl.setAttribute('style', newStyle);
           }
+        }
+      }
+      
+      // Forcer aussi sur les éléments texte (h1, h2, h3, p, span, div, label)
+      const textElements = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'DIV', 'LABEL'];
+      if (textElements.includes(htmlEl.tagName)) {
+        const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
+        if (reactStyleFont && (reactStyleFont.includes('Space Grotesk') || (!reactStyleFont.includes('Inter') && !reactStyleFont.includes('monospace')))) {
+          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
         }
       }
     });
@@ -1022,14 +1044,23 @@ export default function ProductBuilderPage() {
     // Exécuter immédiatement
     forceConfiguratorPanelStyles();
 
-    // Créer un MutationObserver pour détecter les changements DOM en temps réel
-    const observer = new MutationObserver((mutations) => {
+    // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
+    const isConfiguratorElement = (element: Element): boolean => {
+      return panel.contains(element) || 
+             element.classList.contains('configurator-panel') ||
+             element.classList.contains('configurator-panel-modal') ||
+             element.classList.contains('zone-selection-modal-content') ||
+             (element.closest('.configurator-panel-modal') !== null) ||
+             (element.closest('.zone-selection-modal-content') !== null);
+    };
+
+    // Créer un MutationObserver pour détecter les changements DOM en temps réel dans le panel
+    const panelObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            // Vérifier si le nouvel élément est dans le configurator-panel
-            if (panel.contains(element) || element.classList.contains('configurator-panel')) {
+            if (isConfiguratorElement(element)) {
               forceConfiguratorPanelStyles(element);
             }
           }
@@ -1038,7 +1069,7 @@ export default function ProductBuilderPage() {
         // Vérifier aussi les changements d'attributs (comme style)
         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
           const target = mutation.target as HTMLElement;
-          if (panel.contains(target)) {
+          if (isConfiguratorElement(target)) {
             forceConfiguratorPanelStyles(target);
           }
         }
@@ -1046,20 +1077,55 @@ export default function ProductBuilderPage() {
     });
 
     // Observer les changements dans le panel
-    observer.observe(panel, {
+    panelObserver.observe(panel, {
       childList: true,
       subtree: true,
       attributes: true,
       attributeFilter: ['style']
     });
 
+    // Observer aussi document.body pour capturer les modaux qui sont rendus en dehors du panel
+    const bodyObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            // Vérifier si c'est un modal du configurator
+            if (element.classList.contains('configurator-panel-modal') ||
+                element.classList.contains('zone-selection-modal-content') ||
+                element.querySelector('.configurator-panel-modal') ||
+                element.querySelector('.zone-selection-modal-content')) {
+              // Attendre un peu pour que le modal soit complètement rendu
+              setTimeout(() => {
+                forceConfiguratorPanelStyles(element);
+              }, 50);
+            }
+          }
+        });
+      });
+    });
+
+    // Observer document.body pour les modaux
+    bodyObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+
     // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
     const interval = setInterval(() => {
       forceConfiguratorPanelStyles();
+      // Forcer aussi sur les modaux qui sont en dehors du panel
+      const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
+      modals.forEach(modal => {
+        forceConfiguratorPanelStyles(modal);
+      });
     }, 500);
 
     return () => {
-      observer.disconnect();
+      panelObserver.disconnect();
+      bodyObserver.disconnect();
       clearInterval(interval);
     };
   }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
@@ -2145,7 +2211,7 @@ export default function ProductBuilderPage() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      backgroundColor: '#000000',
+      backgroundColor: '#000000', // Background principal reste noir
       display: 'flex',
       fontFamily: CONFIGURATOR_PANEL_FONT,
       flexDirection: 'column'
@@ -3963,7 +4029,7 @@ export default function ProductBuilderPage() {
                       width: '64px',
                       height: '64px',
                       padding: '0',
-                      backgroundColor: activeCustomizerTab === module.id ? '#000000' : '#ffffff',
+                      backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
                       borderRadius: '8px',
                       display: 'flex',
@@ -3983,7 +4049,7 @@ export default function ProductBuilderPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: activeCustomizerTab === module.id ? '#ffffff' : '#000000',
+                      backgroundColor: activeCustomizerTab === module.id ? '#ffffff' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
                       borderRadius: '4px',
                       overflow: 'hidden'
                     }}>
@@ -4828,7 +4894,7 @@ export default function ProductBuilderPage() {
                                     e.currentTarget.style.backgroundColor = '#1a1a1a';
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#000000';
+                                    e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
                                   }}
                                 >
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -5169,7 +5235,7 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = '#1a1a1a';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#000000';
+                              e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
                             }}
                           >
                             <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
@@ -5487,7 +5553,7 @@ export default function ProductBuilderPage() {
                             style={{
                               width: '100%',
                               padding: '14px 20px',
-                              backgroundColor: isPlacingText ? '#8eff36' : '#000000',
+                              backgroundColor: isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
@@ -5503,7 +5569,7 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#000000';
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR;
                             }}
                           >
                             {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
@@ -8200,7 +8266,7 @@ export default function ProductBuilderPage() {
                                                   right: '8px',
                                                   width: '24px',
                                                   height: '24px',
-                                                  backgroundColor: '#000000',
+                                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
                                                   borderRadius: '50%',
                                                   display: 'flex',
                                                   alignItems: 'center',
@@ -8424,7 +8490,7 @@ export default function ProductBuilderPage() {
                                             style={{
                                               width: '100%',
                                               padding: '12px',
-                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
+                                              backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
                                               border: 'none',
                                               borderRadius: '6px',
                                               fontSize: '14px',
@@ -13610,7 +13676,7 @@ export default function ProductBuilderPage() {
                                   right: '8px',
                                   width: '24px',
                                   height: '24px',
-                                  backgroundColor: '#000000',
+                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
                                   borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -13951,7 +14017,7 @@ export default function ProductBuilderPage() {
                         }}
                         onMouseLeave={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
-                            e.currentTarget.style.backgroundColor = '#000000';
+                            e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
                           }
                         }}
                       >
@@ -14142,7 +14208,7 @@ export default function ProductBuilderPage() {
                                   right: '8px',
                                   width: '24px',
                                   height: '24px',
-                                  backgroundColor: '#000000',
+                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
                                   borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -14394,7 +14460,7 @@ export default function ProductBuilderPage() {
                         }}
                         onMouseLeave={(e) => {
                           if (selectedLogoZoneId) {
-                            e.currentTarget.style.backgroundColor = '#000000';
+                            e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
                           }
                         }}
                       >
