@@ -3733,13 +3733,18 @@ export default function ProductBuilderPage() {
           </div>
 
           {/* Center: Customizer Preview Area */}
-          <div style={{
-            flex: 1,
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
+          <div 
+            className="configurator-panel"
+            style={{
+              flex: 1,
+              backgroundColor: '#ffffff',
+              display: 'flex',
+              position: 'relative',
+              overflow: 'hidden',
+              // TEST: Bordure pour vérifier que la classe est appliquée
+              border: '10px solid red'
+            } as React.CSSProperties}
+          >
             {/* Viewport selector buttons */}
             <div 
               style={{ 
