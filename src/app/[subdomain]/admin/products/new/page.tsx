@@ -1017,6 +1017,7 @@ export default function ProductBuilderPage() {
         if (htmlEl.tagName === 'BUTTON') {
           const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
           const reactTextColor = htmlEl.style.color || htmlEl.style.getPropertyValue('color');
+          const inlineStyle = htmlEl.getAttribute('style') || ''; // Déclarer inlineStyle ici
           
           // Détecter bouton noir (plusieurs méthodes)
           const isBlackButton = reactBgColor === 'rgb(0, 0, 0)' || 
