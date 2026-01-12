@@ -3740,9 +3740,7 @@ export default function ProductBuilderPage() {
               backgroundColor: '#ffffff',
               display: 'flex',
               position: 'relative',
-              overflow: 'hidden',
-              // TEST: Bordure pour vérifier que la classe est appliquée
-              border: '10px solid red'
+              overflow: 'hidden'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
