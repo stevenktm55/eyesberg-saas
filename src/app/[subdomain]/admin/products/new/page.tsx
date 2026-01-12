@@ -4009,16 +4009,18 @@ export default function ProductBuilderPage() {
           <div 
             className="configurator-panel"
             style={{
-              flex: '1 1 0%',
+              flex: '1 1 auto',
               minWidth: 0,
               minHeight: 0,
+              width: '100%',
+              height: '100%',
               maxWidth: '100%',
+              maxHeight: '100%',
               backgroundColor: '#ffffff',
               display: 'flex',
+              flexDirection: 'row',
               position: 'relative',
-              overflow: 'hidden',
-              height: '100%',
-              maxHeight: '100%'
+              overflow: 'hidden'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
