@@ -78,21 +78,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* TEST: Div de test pour vérifier que le layout est rendu */}
-        <div id="layout-test" style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, backgroundColor: 'red', color: 'white', padding: '10px' }}>
-          LAYOUT TEST - Si vous voyez ceci, le layout est rendu
-        </div>
-        {/* TEST: Script pour vérifier si React/Next.js charge les composants */}
-        <script dangerouslySetInnerHTML={{__html: `
-          console.log('🔍 Layout script executed');
-          setTimeout(() => {
-            const testDiv = document.querySelector('.configurator-panel-test');
-            console.log('🔍 configurator-panel-test found:', testDiv);
-            if (!testDiv) {
-              console.error('❌ configurator-panel-test NOT FOUND - Page.tsx did not render!');
-            }
-          }, 1000);
-        `}} />
         {children}
       </body>
     </html>

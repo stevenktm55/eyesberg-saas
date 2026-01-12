@@ -25,18 +25,22 @@
    Surcharge TOUS les styles stepn avant d'appliquer notre thème
    IMPORTANT: all: unset dans stepn-theme.css a déjà réinitialisé, on réapplique maintenant
    ============================================ */
-/* NE PAS utiliser revert sur tous les enfants - ça casse les styles inline React */
-/* On surcharge seulement les propriétés spécifiques qui posent problème avec stepn-theme */
-.configurator-panel * {
-  /* Typographie - Surcharge stepn-theme.css */
+/* Surcharge seulement les propriétés typographiques problématiques de stepn-theme */
+/* NE PAS toucher aux autres styles pour ne pas casser le layout existant */
+.configurator-panel {
+  /* Typographie de base pour le container */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
-  font-weight: normal !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-style: normal !important;
+}
+
+/* Surcharge seulement les éléments texte qui ont des problèmes avec stepn-theme */
+.configurator-panel p,
+.configurator-panel span,
+.configurator-panel div,
+.configurator-panel label {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
-  -webkit-opacity: 1 !important;
   -webkit-text-stroke-width: 0 !important;
   -webkit-text-stroke-color: transparent !important;
 }
