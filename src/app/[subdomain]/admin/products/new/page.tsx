@@ -3223,7 +3223,8 @@ export default function ProductBuilderPage() {
             maxHeight: '100%',
             maxWidth: '100%',
             position: 'relative',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            alignSelf: 'stretch'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
@@ -4037,7 +4038,8 @@ export default function ProductBuilderPage() {
               position: 'relative',
               overflow: 'hidden',
               alignSelf: 'stretch',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              flexShrink: 1
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -6766,7 +6768,9 @@ export default function ProductBuilderPage() {
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+              flexShrink: 1
             }}>
               {selectedModel3DId ? (
                 <div style={{
