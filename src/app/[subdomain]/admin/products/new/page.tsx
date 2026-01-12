@@ -4125,13 +4125,16 @@ export default function ProductBuilderPage() {
                 minWidth: '80px',
                 maxWidth: '80px',
                 flexShrink: 0,
+                flexGrow: 0,
                 backgroundColor: '#ffffff',
                 borderRight: '1px solid #d0d0d0',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 padding: '8px',
-                gap: '8px'
+                gap: '8px',
+                height: '100%',
+                overflowY: 'auto'
               }}>
                 {customizationModules.map((module) => (
                   <button
@@ -4223,12 +4226,14 @@ export default function ProductBuilderPage() {
                   minWidth: '420px',
                   maxWidth: '420px',
                   flexShrink: 0,
+                  flexGrow: 0,
                   backgroundColor: '#ffffff',
                   borderRight: '1px solid #e0e0e0',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
-                  animation: 'slideIn 0.3s ease-out'
+                  animation: 'slideIn 0.3s ease-out',
+                  height: '100%'
                 }}>
                   {/* Tab Header */}
                   <div style={{
@@ -6765,12 +6770,14 @@ export default function ProductBuilderPage() {
               height: '100%',
               backgroundColor: '#f8f8f8',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
               overflow: 'hidden',
               boxSizing: 'border-box',
-              flexShrink: 1
+              flexShrink: 1,
+              flexGrow: 1
             }}>
               {selectedModel3DId ? (
                 <div style={{
