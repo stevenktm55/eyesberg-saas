@@ -7897,7 +7897,7 @@ export default function ProductBuilderPage() {
                                           style={{
                                             width: '100%',
                                             padding: '12px',
-                                            backgroundColor: '#000000',
+                                            backgroundColor: '#3b82f6',
                                             color: '#ffffff',
                                             border: 'none',
                                             borderRadius: '8px',
@@ -8647,7 +8647,7 @@ export default function ProductBuilderPage() {
                                                 justifyContent: 'center', 
                                                 gap: '8px', 
                                                 padding: '12px', 
-                                                backgroundColor: '#000000', 
+                                                backgroundColor: '#3b82f6', 
                                                 color: '#ffffff', 
                                                 border: 'none', 
                                                 borderRadius: '8px', 
