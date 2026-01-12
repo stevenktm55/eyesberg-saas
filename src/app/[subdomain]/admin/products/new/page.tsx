@@ -3209,14 +3209,16 @@ export default function ProductBuilderPage() {
           />
         ) : (
           <div style={{
-            flex: 1,
+            flex: '1 1 0%',
             display: 'flex',
             flexDirection: 'row',
             overflow: 'hidden',
             minWidth: 0,
             minHeight: 0,
+            width: '100%',
             height: '100%',
-            maxHeight: '100%'
+            maxHeight: '100%',
+            position: 'relative'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
@@ -4014,7 +4016,7 @@ export default function ProductBuilderPage() {
           <div 
             className="configurator-panel"
             style={{
-              flex: '1 1 auto',
+              flex: '1 1 0%',
               minWidth: 0,
               minHeight: 0,
               width: '100%',
@@ -4025,7 +4027,8 @@ export default function ProductBuilderPage() {
               display: 'flex',
               flexDirection: 'row',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              alignSelf: 'stretch'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
