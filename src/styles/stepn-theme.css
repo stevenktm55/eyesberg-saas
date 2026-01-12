@@ -318,11 +318,92 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 /* IMPORTANT: Cette section est à la FIN du fichier pour surcharger TOUS les sélecteurs généraux stepn
    Utilise all: unset pour réinitialiser COMPLÈTEMENT tous les styles, puis réapplique les valeurs essentielles */
 
-/* NE PAS utiliser all: initial - ça casse complètement le layout React */
-/* COMPLÈTEMENT RETIRÉ - Laisser configurator-panel-theme.css gérer tout */
-/* Les règles ici interfèrent avec le layout React */
+/* Réinitialisation agressive - Surcharge TOUS les styles stepn avec une spécificité maximale */
+/* EXCLURE les ronds de sélection des couleurs pour qu'ils restent visibles */
+.configurator-panel *:not(.color-selection-indicator):not(.color-selection-indicator *),
+.configurator-panel *:not(.color-selection-indicator):not(.color-selection-indicator *)::before,
+.configurator-panel *:not(.color-selection-indicator):not(.color-selection-indicator *)::after {
+  /* Forcer la réinitialisation avec all: initial (plus fort que unset) */
+  all: initial !important;
+  /* Réappliquer immédiatement les valeurs essentielles pour préserver le layout */
+  display: revert !important;
+  box-sizing: border-box !important;
+  position: revert !important;
+  width: revert !important;
+  height: revert !important;
+  margin: revert !important;
+  padding: revert !important;
+  border: revert !important;
+  background: revert !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  color: #111827 !important;
+  font-weight: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  font-size: revert !important;
+  line-height: revert !important;
+  text-align: revert !important;
+  text-decoration: revert !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-opacity: 1 !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+}
 
-/* TOUTES LES RÈGLES .configurator-panel RETIRÉES - Laisser configurator-panel-theme.css gérer */
+/* Container lui-même - all: initial réinitialise tout, y compris border, donc on doit réappliquer border après */
+.configurator-panel {
+  all: initial !important;
+  display: flex !important;
+  box-sizing: border-box !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* Titres avec spécificité plus élevée */
+.configurator-panel h1,
+.configurator-panel h2,
+.configurator-panel h3,
+.configurator-panel h4,
+.configurator-panel h5,
+.configurator-panel h6 {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  margin: 0 !important;
+}
+
+/* Textes avec spécificité plus élevée que les sélecteurs généraux stepn */
+.configurator-panel p,
+.configurator-panel span,
+.configurator-panel label,
+.configurator-panel a,
+.configurator-panel div,
+.configurator-panel li,
+.configurator-panel ul,
+.configurator-panel ol {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  font-weight: normal !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: #111827 !important;
+}
 
 /* Inputs avec spécificité plus élevée */
 .configurator-panel input,
@@ -478,11 +559,9 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   /* Transitions */
   --config-panel-transition: all 0.2s ease-in-out;
   
-  /* Styles de base - UNIQUEMENT typographie et couleurs, PAS de layout */
-  /* IMPORTANT: Ne pas forcer display, flex, position, width, height, etc. */
-  /* Les styles inline React doivent avoir la priorité pour le layout */
+  /* Styles de base */
+  background-color: var(--config-panel-bg) !important;
   color: var(--config-panel-text-primary) !important;
-  /* NE PAS forcer background-color - laisser React gérer */
 }
 
 /* Titres - Surcharge stepn-theme.css */
@@ -516,10 +595,10 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 }
 
 /* Textes - Surcharge stepn-theme.css */
-/* IMPORTANT: Ne pas cibler .configurator-panel div car ça casse le layout React */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
+.configurator-panel div,
 .configurator-panel li,
 .configurator-panel ul,
 .configurator-panel ol {

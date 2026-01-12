@@ -4389,15 +4389,25 @@ export default function ProductBuilderPage() {
                             <div style={{
                               flex: 1,
                               padding: '16px',
-                              overflowY: 'auto'
+                              overflowY: 'auto',
+                              overflowX: 'visible',
+                              position: 'relative',
+                              zIndex: 1
                             }}>
                               <div style={{ 
                                 display: 'grid', 
                                 gridTemplateColumns: 'repeat(6, 1fr)', 
-                                gap: '12px' 
+                                gap: '12px',
+                                position: 'relative',
+                                zIndex: 1,
+                                overflow: 'visible'
                               }}>
                                 {allColors.map((color) => {
                                   const isSelected = color.id === selectedColorId;
+                                  // Debug: vérifier si la couleur est sélectionnée
+                                  if (isSelected) {
+                                    console.log('🎨 Color selected:', color.name, color.hex, 'selectedColorId:', selectedColorId, 'color.id:', color.id);
+                                  }
                                   return (
                                     <button
                                       key={color.id}
@@ -4429,38 +4439,52 @@ export default function ProductBuilderPage() {
                                         position: 'relative',
                                         aspectRatio: '1',
                                         borderRadius: '50%',
-                                        border: '2px solid #e5e7eb',
+                                        border: isSelected ? '3px solid #3b82f6' : '2px solid #e5e7eb',
                                         backgroundColor: color.hex,
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        overflow: 'hidden',
-                                        padding: 0
+                                        overflow: 'visible',
+                                        padding: 0,
+                                        minWidth: '40px',
+                                        minHeight: '40px',
+                                        isolation: 'isolate'
                                       }}
                                       onMouseEnter={(e) => {
-                                        e.currentTarget.style.borderColor = '#d1d5db';
+                                        if (!isSelected) {
+                                          e.currentTarget.style.borderColor = '#d1d5db';
+                                        }
                                       }}
                                       onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = '#e5e7eb';
+                                        if (!isSelected) {
+                                          e.currentTarget.style.borderColor = '#e5e7eb';
+                                        }
                                       }}
                                     >
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
-                                        <div style={{
-                                          position: 'absolute',
-                                          top: '4px',
-                                          right: '4px',
-                                          width: '20px',
-                                          height: '20px',
-                                          backgroundColor: '#ffffff',
-                                          borderRadius: '50%',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                                          border: '2px solid #3b82f6',
-                                          zIndex: 10
-                                        }}>
-                                          <svg width="12" height="12" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6' }}>
+                                        <div 
+                                          className="color-selection-indicator"
+                                          style={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            width: '32px',
+                                            height: '32px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.4)',
+                                            border: '3px solid #3b82f6',
+                                            zIndex: 9999,
+                                            pointerEvents: 'none',
+                                            opacity: 1,
+                                            visibility: 'visible'
+                                          }}
+                                        >
+                                          <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3, display: 'block' }}>
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>
@@ -10397,8 +10421,8 @@ export default function ProductBuilderPage() {
                                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                       className="mobile-action-btn-black"
                                     >
-                                      <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                      {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
+                                      <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
+                                      <span style={{ color: '#ffffff' }}>{activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}</span>
                                     </button>
                                     
                                     {/* Textes placés */}
@@ -14149,7 +14173,8 @@ export default function ProductBuilderPage() {
                           }
                         }}
                       >
-                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                        <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic', marginRight: '4px' }}>+</span>
+                        <span style={{ color: '#ffffff' }}>{activeModule.addTextButtonLabel || 'Ajouter un texte'}</span>
                       </button>
                     </div>
                   </div>

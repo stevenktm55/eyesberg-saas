@@ -53,28 +53,20 @@
   --config-panel-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --config-panel-shadow-button: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   
-  /* Styles de base pour le container - UNIQUEMENT typographie, pas de layout */
-  /* IMPORTANT: Ne pas toucher à display, flex, position, width, height, background-color, etc. */
-  /* Les styles inline React doivent avoir la priorité pour le layout */
-  /* Typographie seulement */
+  /* Styles de base pour le container */
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
-  
-  /* FORCER le layout flexbox - les styles inline React doivent avoir la priorité */
-  /* Mais on s'assure que le conteneur peut utiliser flex */
-  box-sizing: border-box !important;
-  
-  /* IMPORTANT: Ne pas toucher au layout - laisser React gérer via styles inline */
-  /* Les styles inline React doivent avoir la priorité pour le layout */
-  box-sizing: border-box !important;
+  background-color: var(--config-panel-bg) !important;
 }
 
 /* ============================================
    TYPOGRAPHIE - UNIQUEMENT dans .configurator-panel
    ============================================ */
-/* Règle universelle pour TOUS les éléments dans le panel - UNIQUEMENT typographie */
-/* IMPORTANT: Ne pas toucher aux styles de layout (display, flex, position, width, height, etc.) */
-.configurator-panel * {
+/* Règle universelle pour TOUS les éléments dans le panel */
+.configurator-panel,
+.configurator-panel *,
+.configurator-panel *::before,
+.configurator-panel *::after {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
   -webkit-text-fill-color: var(--config-panel-text) !important;
@@ -94,7 +86,6 @@
 }
 
 /* Éléments texte spécifiques */
-/* IMPORTANT: Ne pas cibler .configurator-panel div car ça casse le layout React */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
@@ -103,6 +94,7 @@
 .configurator-panel h6,
 .configurator-panel p,
 .configurator-panel span,
+.configurator-panel div,
 .configurator-panel label,
 .configurator-panel li,
 .configurator-panel td,
@@ -396,10 +388,12 @@
 
 /* ============================================
    RONDS DE SÉLECTION DES COULEURS - FORCER LA VISIBILITÉ
-   Surcharge all: initial de stepn-theme.css
+   PROTÉGER CONTRE all: initial de stepn-theme.css
    ============================================ */
 .configurator-panel .color-selection-indicator {
-  all: unset !important;
+  /* Réinitialiser all: initial pour ce sélecteur spécifique */
+  all: revert !important;
+  /* Forcer tous les styles nécessaires */
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -414,32 +408,29 @@
   border: 3px solid #3b82f6 !important;
   border-radius: 50% !important;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4) !important;
+  align-items: center !important;
+  justify-content: center !important;
   pointer-events: none !important;
   box-sizing: border-box !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: 'Inter', sans-serif !important;
-  color: #3b82f6 !important;
 }
 
 .configurator-panel .color-selection-indicator svg {
-  all: unset !important;
+  all: revert !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  width: 18px !important;
-  height: 18px !important;
   stroke: #3b82f6 !important;
   fill: none !important;
-  box-sizing: border-box !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: #3b82f6 !important;
 }
 
-.configurator-panel .color-selection-indicator svg path {
-  all: unset !important;
+.configurator-panel .color-selection-indicator path {
+  all: revert !important;
   stroke: #3b82f6 !important;
+  fill: none !important;
   stroke-width: 3 !important;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
-  fill: none !important;
-  d: path("M5 13l4 4L19 7") !important;
 }
