@@ -3224,7 +3224,9 @@ export default function ProductBuilderPage() {
             maxWidth: '100%',
             position: 'relative',
             boxSizing: 'border-box',
-            alignSelf: 'stretch'
+            alignSelf: 'stretch',
+            flexShrink: 1,
+            flexGrow: 1
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
