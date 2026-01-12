@@ -388,25 +388,50 @@
 
 /* ============================================
    RONDS DE SÉLECTION DES COULEURS - FORCER LA VISIBILITÉ
+   Surcharge all: initial de stepn-theme.css
    ============================================ */
 .configurator-panel .color-selection-indicator {
+  all: unset !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   z-index: 9999 !important;
-  background-color: #ffffff !important;
-  border: 3px solid #3b82f6 !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   width: 32px !important;
   height: 32px !important;
-  position: absolute !important;
+  background-color: #ffffff !important;
+  border: 3px solid #3b82f6 !important;
+  border-radius: 50% !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4) !important;
+  pointer-events: none !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Inter', sans-serif !important;
+  color: #3b82f6 !important;
 }
 
 .configurator-panel .color-selection-indicator svg {
+  all: unset !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  stroke: #3b82f6 !important;
-  fill: none !important;
   width: 18px !important;
   height: 18px !important;
+  stroke: #3b82f6 !important;
+  fill: none !important;
+  box-sizing: border-box !important;
+}
+
+.configurator-panel .color-selection-indicator svg path {
+  all: unset !important;
+  stroke: #3b82f6 !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  fill: none !important;
+  d: path("M5 13l4 4L19 7") !important;
 }
