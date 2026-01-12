@@ -4444,10 +4444,7 @@ export default function ProductBuilderPage() {
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
                                         overflow: 'visible',
-                                        padding: 0,
-                                        minWidth: '40px',
-                                        minHeight: '40px',
-                                        isolation: 'isolate'
+                                        padding: 0
                                       }}
                                       onMouseEnter={(e) => {
                                         if (!isSelected) {
@@ -4463,30 +4460,32 @@ export default function ProductBuilderPage() {
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
                                         <div 
-                                          className="color-selection-indicator"
                                           style={{
                                             position: 'absolute',
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: 'translate(-50%, -50%)',
-                                            width: '32px',
-                                            height: '32px',
-                                            backgroundColor: '#ffffff',
-                                            borderRadius: '50%',
+                                            inset: 0,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.4)',
-                                            border: '3px solid #3b82f6',
-                                            zIndex: 9999,
-                                            pointerEvents: 'none',
-                                            opacity: 1,
-                                            visibility: 'visible'
+                                            pointerEvents: 'none'
                                           }}
                                         >
-                                          <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3, display: 'block' }}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                          </svg>
+                                          <div 
+                                            style={{
+                                              width: '28px',
+                                              height: '28px',
+                                              backgroundColor: '#ffffff',
+                                              borderRadius: '50%',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                                              border: '2px solid #3b82f6'
+                                            }}
+                                          >
+                                            <svg width="16" height="16" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ strokeWidth: 3 }}>
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                          </div>
                                         </div>
                                       )}
                                     </button>
