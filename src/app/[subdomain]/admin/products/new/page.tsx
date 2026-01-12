@@ -4118,7 +4118,7 @@ export default function ProductBuilderPage() {
                       width: '64px',
                       height: '64px',
                       padding: '0',
-                      backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
+                      backgroundColor: 'transparent',
                       border: 'none',
                       borderRadius: '8px',
                       display: 'flex',
@@ -4133,34 +4133,35 @@ export default function ProductBuilderPage() {
                     title={module.tabName}
                   >
                     <div style={{
-                      width: '22px',
-                      height: '22px',
+                      width: '48px',
+                      height: '48px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: activeCustomizerTab === module.id ? '#ffffff' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
-                      borderRadius: '4px',
-                      overflow: 'hidden'
+                      backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : 'transparent',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      transition: 'all 0.15s ease'
                     }}>
                     {module.iconUrl ? (
                       <img
                         src={module.iconUrl}
                         alt={module.tabName}
                         style={{
-                            width: '14px',
-                            height: '14px',
-                            maxWidth: '14px',
-                            maxHeight: '14px',
+                            width: '24px',
+                            height: '24px',
+                            maxWidth: '24px',
+                            maxHeight: '24px',
                           objectFit: 'contain',
                             display: 'block',
-                            filter: activeCustomizerTab === module.id ? 'invert(0)' : 'invert(1)'
+                            filter: activeCustomizerTab === module.id ? 'invert(1)' : 'invert(0)'
                         }}
                       />
                     ) : (
                         <span style={{ 
-                          fontSize: '14px', 
+                          fontSize: '24px', 
                           lineHeight: '1',
-                          color: activeCustomizerTab === module.id ? '#000000' : '#ffffff'
+                          color: activeCustomizerTab === module.id ? '#ffffff' : '#111827'
                         }}>
                         {module.icon}
                       </span>
@@ -4442,29 +4443,26 @@ export default function ProductBuilderPage() {
                                         e.currentTarget.style.borderColor = '#e5e7eb';
                                       }}
                                     >
-                                      {/* Coche si couleur sélectionnée */}
+                                      {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
                                         <div style={{
                                           position: 'absolute',
-                                          inset: 0,
+                                          top: '4px',
+                                          right: '4px',
+                                          width: '20px',
+                                          height: '20px',
+                                          backgroundColor: '#ffffff',
+                                          borderRadius: '50%',
                                           display: 'flex',
                                           alignItems: 'center',
-                                          justifyContent: 'center'
+                                          justifyContent: 'center',
+                                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                                          border: '2px solid #3b82f6',
+                                          zIndex: 10
                                         }}>
-                                          <div style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            backgroundColor: '#ffffff',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                                          }}>
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                          </div>
+                                          <svg width="12" height="12" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6' }}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                          </svg>
                                         </div>
                                       )}
                                     </button>
@@ -4988,9 +4986,7 @@ export default function ProductBuilderPage() {
                                     e.currentTarget.style.backgroundColor = '#3b82f6';
                                   }}
                                 >
-                                  <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                  </svg>
+                                  <span style={{ fontSize: '16px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
                                   <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                                 </button>
                               </div>
@@ -5331,7 +5327,7 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = '#3b82f6';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
                             <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
                           </button>
                           )}
@@ -5667,6 +5663,7 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#3b82f6';
                             }}
                           >
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic', marginRight: '4px' }}>+</span>
                             <span style={{ color: '#ffffff' }}>
                               {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
                             </span>
@@ -8944,8 +8941,8 @@ export default function ProductBuilderPage() {
                                                 e.currentTarget.style.backgroundColor = '#3b82f6';
                                               }}
                                             >
-                                              <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                              {activeModule.importLogoButtonLabel || 'Importer un logo'}
+                                              <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
+                                              <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                                             </button>
                                           </div>
                                         )}
@@ -9462,6 +9459,7 @@ export default function ProductBuilderPage() {
                                           }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic', marginRight: '4px' }}>+</span>
                                       <span style={{ color: '#ffffff' }}>{activeModule.addLogoButtonLabel || 'Ajouter un logo'}</span>
                                     </button>
                                     {/* Logos placés */}
