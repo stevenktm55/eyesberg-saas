@@ -54,10 +54,11 @@
   --config-panel-shadow-button: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   
   /* Styles de base pour le container - UNIQUEMENT typographie, pas de layout */
-  font-family: var(--config-panel-font-family) !important;
-  color: var(--config-panel-text) !important;
   /* IMPORTANT: Ne pas toucher à display, flex, position, width, height, background-color, etc. */
   /* Les styles inline React doivent avoir la priorité pour le layout */
+  /* Typographie seulement */
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
 }
 
 /* ============================================
