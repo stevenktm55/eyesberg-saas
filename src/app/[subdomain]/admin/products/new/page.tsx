@@ -4008,10 +4008,14 @@ export default function ProductBuilderPage() {
             className="configurator-panel"
             style={{
               flex: 1,
+              minWidth: 0,
+              maxWidth: '100%',
               backgroundColor: '#ffffff',
               display: 'flex',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              height: '100%',
+              maxHeight: '100vh'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -6950,6 +6954,7 @@ export default function ProductBuilderPage() {
                           width: '100%',
                           height: '100%',
                           minHeight: '600px',
+                          maxHeight: '100vh',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
@@ -6966,13 +6971,14 @@ export default function ProductBuilderPage() {
                             overflow: 'hidden'
                           } : {
                             maxWidth: '100%',
-                            maxHeight: '100%',
+                            maxHeight: '100vh',
+                            height: '100%',
                             margin: '0',
                             overflow: 'hidden'
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
+                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', height: '100%', position: 'relative', overflow: 'hidden', width: '100%' }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -6986,7 +6992,7 @@ export default function ProductBuilderPage() {
                                   fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
-                                style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', position: 'absolute', top: 0, left: 0 }}
+                                style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
