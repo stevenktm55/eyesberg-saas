@@ -67,6 +67,11 @@
   /* IMPORTANT: Ne pas forcer display ou flex-direction ici */
   /* Les styles inline React ont la priorité absolue et doivent gérer le layout */
   /* Forcer ici avec !important pourrait créer des conflits */
+  
+  /* S'assurer que le conteneur ne soit pas cassé par des règles CSS globales */
+  /* Ne pas utiliser !important pour display/flex car les styles inline React doivent gérer */
+  /* Mais on s'assure que le conteneur peut utiliser flexbox */
+  contain: layout style !important;
 }
 
 /* ============================================
