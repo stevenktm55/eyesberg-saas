@@ -5042,7 +5042,7 @@ export default function ProductBuilderPage() {
                               padding: '13px 20px',
                               fontSize: '14px',
                               fontWeight: '500',
-                              backgroundColor: '#000000',
+                              backgroundColor: '#3b82f6',
                               color: '#ffffff',
                               border: 'none',
                               borderRadius: '8px',
@@ -5420,7 +5420,7 @@ export default function ProductBuilderPage() {
                                 key={text.id}
                                 style={{
                                   padding: '16px',
-                                  backgroundColor: '#000000',
+                                  backgroundColor: '#3b82f6',
                                   border: '1px solid #e5e7eb',
                                   borderRadius: '12px',
                                   display: 'flex',
@@ -6394,7 +6394,7 @@ export default function ProductBuilderPage() {
                       style={{
                         flex: 1,
                         padding: '12px 20px',
-                        backgroundColor: '#000000',
+                        backgroundColor: '#3b82f6',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '8px',
