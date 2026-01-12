@@ -4701,7 +4701,7 @@ export default function ProductBuilderPage() {
                                     padding: '12px 24px',
                                     fontSize: '14px',
                                     fontWeight: '500',
-                                    backgroundColor: '#000000',
+                                    backgroundColor: '#3b82f6',
                                     color: '#ffffff',
                                     border: 'none',
                                     borderRadius: '6px',
