@@ -14,11 +14,10 @@
 /* TEST MARKER - CONFIGURATOR PANEL THEME IS LOADED */
 
 /* ============================================
-   TEST VISIBLE - Si ce fichier est chargé, cette bordure verte devrait être visible
+   CONFIGURATOR PANEL - Container principal
    ============================================ */
 .configurator-panel {
-  /* TEST: Bordure verte temporaire pour vérifier que le CSS est chargé */
-  border: 3px solid #00ff00 !important;
+  /* Styles de base pour le container */
 }
 
 /* ============================================
