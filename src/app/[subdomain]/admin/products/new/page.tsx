@@ -2450,7 +2450,6 @@ export default function ProductBuilderPage() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        maxHeight: '100vh',
         overflow: 'hidden'
       }}>
         {/* Header */}
@@ -3210,7 +3209,6 @@ export default function ProductBuilderPage() {
           <div style={{
             flex: 1,
             display: 'flex',
-            flexDirection: 'row',
             overflow: 'hidden'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
@@ -4012,7 +4010,6 @@ export default function ProductBuilderPage() {
               flex: 1,
               backgroundColor: '#ffffff',
               display: 'flex',
-              flexDirection: 'row',
               position: 'relative',
               overflow: 'hidden'
             } as React.CSSProperties}
@@ -4392,25 +4389,15 @@ export default function ProductBuilderPage() {
                             <div style={{
                               flex: 1,
                               padding: '16px',
-                              overflowY: 'auto',
-                              overflowX: 'visible',
-                              position: 'relative',
-                              zIndex: 1
+                              overflowY: 'auto'
                             }}>
                               <div style={{ 
                                 display: 'grid', 
                                 gridTemplateColumns: 'repeat(6, 1fr)', 
-                                gap: '12px',
-                                position: 'relative',
-                                zIndex: 1,
-                                overflow: 'visible'
+                                gap: '12px' 
                               }}>
                                 {allColors.map((color) => {
                                   const isSelected = color.id === selectedColorId;
-                                  // Debug: vérifier si la couleur est sélectionnée
-                                  if (isSelected) {
-                                    console.log('🎨 Color selected:', color.name, color.hex, 'selectedColorId:', selectedColorId, 'color.id:', color.id);
-                                  }
                                   return (
                                     <button
                                       key={color.id}
@@ -4442,51 +4429,39 @@ export default function ProductBuilderPage() {
                                         position: 'relative',
                                         aspectRatio: '1',
                                         borderRadius: '50%',
-                                        border: isSelected ? '3px solid #3b82f6' : '2px solid #e5e7eb',
+                                        border: '2px solid #e5e7eb',
                                         backgroundColor: color.hex,
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        overflow: 'visible',
-                                        padding: 0,
-                                        minWidth: '40px',
-                                        minHeight: '40px',
-                                        isolation: 'isolate'
+                                        overflow: 'hidden',
+                                        padding: 0
                                       }}
                                       onMouseEnter={(e) => {
-                                        if (!isSelected) {
-                                          e.currentTarget.style.borderColor = '#d1d5db';
-                                        }
+                                        e.currentTarget.style.borderColor = '#d1d5db';
                                       }}
                                       onMouseLeave={(e) => {
-                                        if (!isSelected) {
-                                          e.currentTarget.style.borderColor = '#e5e7eb';
-                                        }
+                                        e.currentTarget.style.borderColor = '#e5e7eb';
                                       }}
                                     >
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
-                                        <div 
-                                          className="color-selection-indicator"
-                                          style={{
-                                            position: 'absolute',
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: 'translate(-50%, -50%)',
-                                            width: '32px',
-                                            height: '32px',
-                                            backgroundColor: '#ffffff',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.4)',
-                                            border: '3px solid #3b82f6',
-                                            zIndex: 9999,
-                                            pointerEvents: 'none'
-                                          }}
-                                        >
-                                          <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ display: 'block' }}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" stroke="#3b82f6" fill="none" />
+                                        <div style={{
+                                          position: 'absolute',
+                                          top: '4px',
+                                          right: '4px',
+                                          width: '20px',
+                                          height: '20px',
+                                          backgroundColor: '#ffffff',
+                                          borderRadius: '50%',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                                          border: '2px solid #3b82f6',
+                                          zIndex: 10
+                                        }}>
+                                          <svg width="12" height="12" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6' }}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>
                                       )}
@@ -6732,21 +6707,15 @@ export default function ProductBuilderPage() {
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'auto'
             }}>
               {selectedModel3DId ? (
                 <div style={{
                   width: '100%',
                   height: '100%',
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  minHeight: 0,
-                  minWidth: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden'
+                  justifyContent: 'center'
                 }}>
                   {(() => {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
@@ -6956,7 +6925,9 @@ export default function ProductBuilderPage() {
                       
                       return (
                         <div style={{
-                          flex: 1,
+                          width: '100%',
+                          height: '100%',
+                          minHeight: '600px',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
@@ -6970,28 +6941,16 @@ export default function ProductBuilderPage() {
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                            overflow: 'hidden',
-                            flex: 'none'
+                            overflow: 'hidden'
                           } : {
                             maxWidth: '100%',
                             maxHeight: '100%',
-                            width: '100%',
-                            height: '100%',
                             margin: '0',
                             overflow: 'hidden'
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          <div style={{ 
-                            flex: '1 1 0%', 
-                            minHeight: 0, 
-                            maxHeight: '100%', 
-                            height: '100%',
-                            position: 'relative', 
-                            overflow: 'hidden', 
-                            width: '100%',
-                            maxWidth: '100%'
-                          }}>
+                          <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -7005,25 +6964,7 @@ export default function ProductBuilderPage() {
                                   fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
-                                style={{ 
-                                  width: '100%', 
-                                  height: '100%', 
-                                  maxWidth: '100%', 
-                                  maxHeight: '100%',
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  minWidth: 0,
-                                  minHeight: 0,
-                                  display: 'block'
-                                }}
-                                dpr={[1, 2]}
-                                onCreated={({ gl, size }) => {
-                                  // Empêcher le redimensionnement automatique
-                                  gl.setSize(size.width, size.height, false);
-                                }}
+                                style={{ width: '100%', height: '100%' }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
@@ -10456,8 +10397,8 @@ export default function ProductBuilderPage() {
                                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                       className="mobile-action-btn-black"
                                     >
-                                      <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
-                                      <span style={{ color: '#ffffff' }}>{activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}</span>
+                                      <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                      {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
                                     </button>
                                     
                                     {/* Textes placés */}
@@ -14208,8 +14149,7 @@ export default function ProductBuilderPage() {
                           }
                         }}
                       >
-                        <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic', marginRight: '4px' }}>+</span>
-                        <span style={{ color: '#ffffff' }}>{activeModule.addTextButtonLabel || 'Ajouter un texte'}</span>
+                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
                       </button>
                     </div>
                   </div>
