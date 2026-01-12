@@ -1013,37 +1013,62 @@ export default function ProductBuilderPage() {
         // Le CSS est déjà bien scoped et devrait suffire
         // On force uniquement les couleurs des boutons ici
         
-        // FORCER BLEU sur TOUS les boutons noirs
+        // FORCER BLEU sur TOUS les boutons primaires ET FORCER TEXTE BLANC
         if (htmlEl.tagName === 'BUTTON') {
           const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
-          const reactTextColor = htmlEl.style.color || htmlEl.style.getPropertyValue('color');
-          const inlineStyle = htmlEl.getAttribute('style') || ''; // Déclarer inlineStyle ici
+          const inlineStyle = htmlEl.getAttribute('style') || '';
           
-          // Détecter bouton noir (plusieurs méthodes)
-          const isBlackButton = reactBgColor === 'rgb(0, 0, 0)' || 
-                               reactBgColor === '#000000' || 
-                               reactBgColor === 'black' ||
-                               inlineStyle.includes('backgroundColor: \'#000000\'') ||
-                               inlineStyle.includes('background-color: #000000') ||
-                               inlineStyle.includes('backgroundColor:#000000') ||
-                               inlineStyle.includes('rgb(0, 0, 0)') ||
-                               inlineStyle.includes('rgb(0,0,0)');
-          
-          const isWhiteText = reactTextColor === 'rgb(255, 255, 255)' ||
-                             reactTextColor === '#ffffff' ||
-                             reactTextColor === 'white' ||
-                             inlineStyle.includes('color: \'#ffffff\'') ||
-                             inlineStyle.includes('color: #ffffff') ||
-                             inlineStyle.includes('color:#ffffff');
+          // Détecter bouton primaire (bleu ou noir qui doit être bleu)
+          const isPrimaryButton = reactBgColor === 'rgb(59, 130, 246)' ||
+                                 reactBgColor === '#3b82f6' ||
+                                 reactBgColor === 'rgb(0, 0, 0)' || 
+                                 reactBgColor === '#000000' || 
+                                 reactBgColor === 'black' ||
+                                 htmlEl.classList.contains('btn-primary') ||
+                                 htmlEl.classList.contains('mobile-action-btn-black') ||
+                                 inlineStyle.includes('backgroundColor: \'#3b82f6\'') ||
+                                 inlineStyle.includes('background-color: #3b82f6') ||
+                                 inlineStyle.includes('backgroundColor: \'#000000\'') ||
+                                 inlineStyle.includes('background-color: #000000') ||
+                                 inlineStyle.includes('backgroundColor:#000000') ||
+                                 inlineStyle.includes('rgb(0, 0, 0)') ||
+                                 inlineStyle.includes('rgb(0,0,0)');
           
           // Ne pas changer si c'est un bouton de couleur (qui affiche une couleur réelle)
           const isColorButton = inlineStyle.includes('color?.hex') || 
                                htmlEl.getAttribute('data-color-button') === 'true' ||
                                htmlEl.closest('[class*="color"]') !== null;
           
-          if (isBlackButton && isWhiteText && !isColorButton) {
+          if (isPrimaryButton && !isColorButton) {
+            // Forcer le fond bleu
             htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
             htmlEl.style.setProperty('backgroundColor', '#3b82f6', 'important');
+            
+            // FORCER LE TEXTE EN BLANC sur le bouton
+            htmlEl.style.setProperty('color', '#ffffff', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            
+            // Forcer aussi sur tous les éléments enfants (span, div, p, etc.)
+            const children = htmlEl.querySelectorAll('*');
+            children.forEach((child: Element) => {
+              const childEl = child as HTMLElement;
+              childEl.style.setProperty('color', '#ffffff', 'important');
+              childEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+              
+              // Forcer aussi sur les SVG
+              if (childEl.tagName === 'svg') {
+                childEl.style.setProperty('stroke', '#ffffff', 'important');
+                childEl.style.setProperty('fill', '#ffffff', 'important');
+                childEl.setAttribute('stroke', '#ffffff');
+                childEl.setAttribute('fill', 'none');
+              }
+              
+              // Forcer aussi sur les paths dans les SVG
+              if (childEl.tagName === 'path') {
+                childEl.style.setProperty('stroke', '#ffffff', 'important');
+                childEl.setAttribute('stroke', '#ffffff');
+              }
+            });
             
             // Mettre à jour aussi l'attribut style si présent
             if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
@@ -4966,7 +4991,7 @@ export default function ProductBuilderPage() {
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  {activeModule.importLogoButtonLabel || 'Importer un logo'}
+                                  <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                                 </button>
                               </div>
                             )}
@@ -5307,7 +5332,7 @@ export default function ProductBuilderPage() {
                             }}
                           >
                             <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
-                            {buttonLabel}
+                            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
                           </button>
                           )}
                           
@@ -5642,7 +5667,9 @@ export default function ProductBuilderPage() {
                               e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#3b82f6';
                             }}
                           >
-                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            <span style={{ color: '#ffffff' }}>
+                              {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            </span>
                           </button>
                         )}
                         
@@ -6665,10 +6692,10 @@ export default function ProductBuilderPage() {
                         e.currentTarget.style.backgroundColor = '#3b82f6';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
                       </svg>
-                      Ajouter au panier
+                      <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
                     </button>
                   </div>
                 </div>
@@ -9435,7 +9462,7 @@ export default function ProductBuilderPage() {
                                           }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                      {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                      <span style={{ color: '#ffffff' }}>{activeModule.addLogoButtonLabel || 'Ajouter un logo'}</span>
                                     </button>
                                     {/* Logos placés */}
                                     <div>
