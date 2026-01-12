@@ -109,13 +109,21 @@
 
 /* ============================================
    TITRES - Surcharge stepn-theme.css lignes 96-125
+   Surcharge aussi les styles inline avec fontFamily: 'var(--stepn-font-body)'
    ============================================ */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
 .configurator-panel h4,
 .configurator-panel h5,
-.configurator-panel h6 {
+.configurator-panel h6,
+/* Surcharge aussi les titres avec styles inline stepn-font-body */
+.configurator-panel h1[style*="fontFamily"],
+.configurator-panel h2[style*="fontFamily"],
+.configurator-panel h3[style*="fontFamily"],
+.configurator-panel h4[style*="fontFamily"],
+.configurator-panel h5[style*="fontFamily"],
+.configurator-panel h6[style*="fontFamily"] {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text-primary) !important;
   font-weight: 600 !important;
@@ -127,6 +135,8 @@
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
+  -webkit-text-stroke-width: 0 !important;
   margin: 0 !important;
 }
 
@@ -293,7 +303,14 @@
 .configurator-panel-modal h3,
 .configurator-panel-modal h4,
 .configurator-panel-modal h5,
-.configurator-panel-modal h6 {
+.configurator-panel-modal h6,
+/* Surcharge aussi les titres avec styles inline */
+.configurator-panel-modal h1[style*="fontFamily"],
+.configurator-panel-modal h2[style*="fontFamily"],
+.configurator-panel-modal h3[style*="fontFamily"],
+.configurator-panel-modal h4[style*="fontFamily"],
+.configurator-panel-modal h5[style*="fontFamily"],
+.configurator-panel-modal h6[style*="fontFamily"] {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text-primary) !important;
   font-weight: 600 !important;
@@ -305,7 +322,24 @@
 .configurator-panel-modal span,
 .configurator-panel-modal div,
 .configurator-panel-modal label,
-.configurator-panel-modal button {
+.configurator-panel-modal button,
+/* Surcharge aussi les éléments avec styles inline stepn-font-body */
+.configurator-panel-modal p[style*="fontFamily"],
+.configurator-panel-modal span[style*="fontFamily"],
+.configurator-panel-modal div[style*="fontFamily"],
+.configurator-panel-modal label[style*="fontFamily"],
+.configurator-panel-modal button[style*="fontFamily"] {
+  font-family: var(--config-panel-font-family) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+}
+
+/* ============================================
+   Surcharge globale pour tous les éléments avec fontFamily stepn dans configurator-panel
+   ============================================ */
+.configurator-panel [style*="fontFamily"],
+.configurator-panel [style*="font-family"] {
+  /* Surcharge les styles inline qui utilisent var(--stepn-font-body) */
   font-family: var(--config-panel-font-family) !important;
   -webkit-text-fill-color: inherit !important;
   -webkit-text-stroke-width: 0 !important;
