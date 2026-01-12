@@ -1135,20 +1135,24 @@ export default function ProductBuilderPage() {
     });
 
     // Observer aussi document.body pour capturer les modaux qui sont rendus en dehors du panel
+    // IMPORTANT: Observer UNIQUEMENT les modaux avec les classes spécifiques
     const bodyObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             // Vérifier UNIQUEMENT si c'est un modal du configurator avec les classes spécifiques
+            // Ne pas utiliser querySelector car ça pourrait matcher d'autres éléments
             const isConfiguratorModal = element.classList.contains('configurator-panel-modal') ||
-                element.classList.contains('zone-selection-modal-content') ||
-                element.querySelector('.configurator-panel-modal') ||
-                element.querySelector('.zone-selection-modal-content');
+                element.classList.contains('zone-selection-modal-content');
             
-            // NE PAS utiliser le contenu texte pour détecter les modaux car ça pourrait matcher d'autres modaux
+            // Vérifier aussi si l'élément contient un modal du configurator (mais pas via querySelector qui est trop large)
+            const hasConfiguratorModalChild = Array.from(element.children).some(child => 
+              child.classList.contains('configurator-panel-modal') ||
+              child.classList.contains('zone-selection-modal-content')
+            );
             
-            if (isConfiguratorModal) {
+            if (isConfiguratorModal || hasConfiguratorModalChild) {
               // Attendre un peu pour que le modal soit complètement rendu
               setTimeout(() => {
                 forceConfiguratorPanelStyles(element);
@@ -1162,19 +1166,22 @@ export default function ProductBuilderPage() {
         // Vérifier aussi les changements d'attributs sur les modaux
         if (mutation.type === 'attributes') {
           const target = mutation.target as HTMLElement;
+          // Vérifier UNIQUEMENT les classes spécifiques
           const isConfiguratorModal = target.classList.contains('configurator-panel-modal') ||
-              target.classList.contains('zone-selection-modal-content') ||
-              target.closest('.configurator-panel-modal') ||
-              target.closest('.zone-selection-modal-content');
+              target.classList.contains('zone-selection-modal-content');
           
-          if (isConfiguratorModal) {
+          // Vérifier aussi si l'élément est dans un modal du configurator
+          const isInConfiguratorModal = target.closest('.configurator-panel-modal') !== null ||
+              target.closest('.zone-selection-modal-content') !== null;
+          
+          if (isConfiguratorModal || isInConfiguratorModal) {
             forceConfiguratorPanelStyles(target);
           }
         }
       });
     });
 
-    // Observer document.body pour les modaux avec une observation très large
+    // Observer document.body pour les modaux mais UNIQUEMENT ceux avec les classes spécifiques
     bodyObserver.observe(document.body, {
       childList: true,
       subtree: true,
