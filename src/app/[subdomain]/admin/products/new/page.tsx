@@ -6740,21 +6740,30 @@ export default function ProductBuilderPage() {
 
             {/* Center: 3D Model Display */}
             <div style={{
-              flex: 1,
+              flex: '1 1 0%',
+              minHeight: 0,
+              minWidth: 0,
+              maxHeight: '100%',
               backgroundColor: '#f8f8f8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              overflow: 'auto'
+              overflow: 'hidden'
             }}>
               {selectedModel3DId ? (
                 <div style={{
                   width: '100%',
                   height: '100%',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  minHeight: 0,
+                  minWidth: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
                   {(() => {
                     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
