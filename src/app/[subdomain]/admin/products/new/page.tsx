@@ -4402,6 +4402,10 @@ export default function ProductBuilderPage() {
                               }}>
                                 {allColors.map((color) => {
                                   const isSelected = color.id === selectedColorId;
+                                  // Debug: vérifier si la couleur est sélectionnée
+                                  if (isSelected) {
+                                    console.log('🎨 Color selected:', color.name, color.hex, 'selectedColorId:', selectedColorId, 'color.id:', color.id);
+                                  }
                                   return (
                                     <button
                                       key={color.id}
