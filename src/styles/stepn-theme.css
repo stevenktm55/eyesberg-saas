@@ -320,6 +320,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 
 /* NE PAS utiliser all: initial - ça casse complètement le layout React */
 /* On surcharge seulement la typographie problématique de stepn-theme */
+/* IMPORTANT: Ne pas toucher aux styles de layout (display, flex, position, width, height, etc.) */
 .configurator-panel * {
   /* Typographie seulement - NE PAS toucher au layout */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
@@ -331,9 +332,9 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 
 /* Container lui-même - NE PAS forcer display: flex - laisser les styles inline React gérer le layout */
 .configurator-panel {
+  /* NE PAS toucher aux styles de layout - laisser React gérer */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
-  /* NE PAS forcer background-color - laisser les styles inline React gérer */
 }
 
 /* Titres avec spécificité plus élevée */
