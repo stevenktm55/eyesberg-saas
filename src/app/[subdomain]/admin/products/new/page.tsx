@@ -420,7 +420,7 @@ function ConnectTabContent({
       }}>
         <h2 style={{
           fontSize: '24px',
-          fontFamily: 'var(--stepn-font-body)',
+          fontFamily: CONFIGURATOR_PANEL_FONT,
           color: '#ffffff',
           marginBottom: '8px',
           fontWeight: '600'
@@ -429,7 +429,7 @@ function ConnectTabContent({
         </h2>
         <p style={{
           fontSize: '14px',
-          fontFamily: 'var(--stepn-font-body)',
+          fontFamily: CONFIGURATOR_PANEL_FONT,
           color: '#a0a0a0',
           marginBottom: '32px'
         }}>
@@ -479,7 +479,7 @@ function ConnectTabContent({
             padding: '24px',
             textAlign: 'center',
             color: '#a0a0a0',
-            fontFamily: 'var(--stepn-font-body)'
+            fontFamily: CONFIGURATOR_PANEL_FONT
           }}>
             Chargement de la boutique connectée...
           </div>
@@ -533,7 +533,7 @@ function ConnectTabContent({
           <div>
             <h3 style={{
               fontSize: '18px',
-              fontFamily: 'var(--stepn-font-body)',
+              fontFamily: CONFIGURATOR_PANEL_FONT,
               color: '#ffffff',
               marginBottom: '16px',
               fontWeight: '600'
@@ -740,7 +740,7 @@ function ConnectTabContent({
         {!loading && products.length === 0 && shopDomain && (
           <p style={{
             fontSize: '14px',
-            fontFamily: 'var(--stepn-font-body)',
+            fontFamily: CONFIGURATOR_PANEL_FONT,
             color: '#a0a0a0',
             textAlign: 'center',
             padding: '32px'
@@ -2037,7 +2037,7 @@ export default function ProductBuilderPage() {
       minHeight: '100vh', 
       backgroundColor: '#000000',
       display: 'flex',
-      fontFamily: 'var(--stepn-font-body), sans-serif',
+      fontFamily: CONFIGURATOR_PANEL_FONT,
       flexDirection: 'column'
     }}>
       {/* Animations CSS pour le mobile */}
@@ -2627,7 +2627,7 @@ export default function ProductBuilderPage() {
                       borderRadius: '8px',
                       padding: '16px',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}
                   >
                     <div style={{
@@ -2784,7 +2784,7 @@ export default function ProductBuilderPage() {
                         fontSize: '13px',
                         fontWeight: '500',
                         cursor: 'pointer',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                     >
                       Annuler
@@ -2867,7 +2867,7 @@ export default function ProductBuilderPage() {
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                 `;
                 successModal.innerHTML = `
-                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                  <div style={`text-align: center; color: #ffffff; font-family: ${CONFIGURATOR_PANEL_FONT};`}>
                     <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #8eff36;">Produit lié avec succès !</div>
                     <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
@@ -2882,7 +2882,7 @@ export default function ProductBuilderPage() {
                       font-size: 14px;
                       font-weight: 600;
                       cursor: pointer;
-                      font-family: var(--stepn-font-body);
+                      font-family: ${CONFIGURATOR_PANEL_FONT};
                     ">Fermer</button>
                   </div>
                 `;
@@ -2912,7 +2912,7 @@ export default function ProductBuilderPage() {
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                 `;
                 errorModal.innerHTML = `
-                  <div style="text-align: center; color: #ffffff; font-family: var(--stepn-font-body);">
+                  <div style={`text-align: center; color: #ffffff; font-family: ${CONFIGURATOR_PANEL_FONT};`}>
                     <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #ef4444;">Erreur</div>
                     <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
@@ -2927,7 +2927,7 @@ export default function ProductBuilderPage() {
                       font-size: 14px;
                       font-weight: 600;
                       cursor: pointer;
-                      font-family: var(--stepn-font-body);
+                      font-family: ${CONFIGURATOR_PANEL_FONT};
                     ">Fermer</button>
                   </div>
                 `;
@@ -4104,7 +4104,7 @@ export default function ProductBuilderPage() {
                                   fontWeight: '500',
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                 }} className="color-class-card-label">
                                   {currentColorName || activeModule.colorClassLabels?.[selectedColorClass] || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
                                 </span>
@@ -5142,7 +5142,7 @@ export default function ProductBuilderPage() {
                                       <div style={{
                                         fontSize: '11px',
                                         color: '#666',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: CONFIGURATOR_PANEL_FONT
                                       }}>
                                         {logo.category === 'torse' ? 'Torse' : 
                                          logo.category === 'dos' ? 'Dos' : 
@@ -5542,7 +5542,7 @@ export default function ProductBuilderPage() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '4px',
-                                    fontFamily: 'var(--stepn-font-body)'
+                                    fontFamily: CONFIGURATOR_PANEL_FONT
                                   }}
                                   className="typography-back-button"
                                 >
@@ -5553,7 +5553,7 @@ export default function ProductBuilderPage() {
                                   fontSize: '14px',
                                   fontWeight: '600',
                                   color: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                 }}>
                                   Typographie
                                 </div>
@@ -5614,7 +5614,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}>
                                       Contenu du texte
                                     </div>
@@ -5679,7 +5679,7 @@ export default function ProductBuilderPage() {
                                         fontWeight: '500',
                                         color: '#111827',
                                         marginBottom: '12px',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: CONFIGURATOR_PANEL_FONT
                                       }}>
                                         Police
                                       </div>
@@ -5810,7 +5810,7 @@ export default function ProductBuilderPage() {
                                           color: '#111827',
                                           minWidth: '48px',
                                           textAlign: 'right',
-                                          fontFamily: 'var(--stepn-font-body)'
+                                          fontFamily: CONFIGURATOR_PANEL_FONT
                                         }}>
                                           {Math.round(selectedText.fontSize)} px
                                         </span>
@@ -5828,7 +5828,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}>
                                       Couleur
                                     </div>
@@ -5912,7 +5912,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}>
                                       Contour
                                     </div>
@@ -6020,7 +6020,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '13px',
                                                 fontWeight: '500',
                                                 color: '#111827',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}>
                                                 Épaisseur {currentPxValue}
                                               </div>
@@ -6134,7 +6134,7 @@ export default function ProductBuilderPage() {
                                       fontWeight: '500',
                                       color: '#111827',
                                       marginBottom: '12px',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}>
                                       Type de déformation
                                     </div>
@@ -6230,7 +6230,7 @@ export default function ProductBuilderPage() {
                                               fontSize: '13px',
                                               fontWeight: '500',
                                               color: '#111827',
-                                              fontFamily: 'var(--stepn-font-body)'
+                                              fontFamily: CONFIGURATOR_PANEL_FONT
                                             }}>
                                               Intensité
                                             </div>
@@ -7799,7 +7799,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   fontWeight: '500',
                                                   color: '#111827',
-                                fontFamily: 'var(--stepn-font-body)'
+                                fontFamily: CONFIGURATOR_PANEL_FONT
                               }}>
                                                   {zone.name}
                                                   {zone.view && ` (${zone.view})`}
@@ -7907,7 +7907,7 @@ export default function ProductBuilderPage() {
                                             fontSize: '14px',
                                             fontWeight: '600',
                                             cursor: 'pointer',
-                                            fontFamily: 'var(--stepn-font-body)'
+                                            fontFamily: CONFIGURATOR_PANEL_FONT
                                           }}
                                         >
                                           Placer le logo
@@ -8156,7 +8156,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '11px',
                                                   fontWeight: '500',
                                                   color: '#111827',
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                                 }}>
                                                   {zone.name}
                                                   {zone.view && ` (${zone.view})`}
@@ -8627,7 +8627,7 @@ export default function ProductBuilderPage() {
                                                   fontSize: '13px', 
                                                   fontWeight: '500', 
                                                   cursor: 'pointer', 
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                                 }}
                                               >
                                                 <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -8657,7 +8657,7 @@ export default function ProductBuilderPage() {
                                                 fontSize: '13px', 
                                                 fontWeight: '500', 
                                                 cursor: 'pointer', 
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}
                                               className="mobile-action-btn-black"
                                             >
@@ -9259,7 +9259,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}>
                                                 Contenu du texte
                                               </div>
@@ -9328,7 +9328,7 @@ export default function ProductBuilderPage() {
                                                   fontWeight: '500',
                                                   color: '#111827',
                                                   marginBottom: '12px',
-                                                  fontFamily: 'var(--stepn-font-body)'
+                                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                                 }}>
                                                   Police
                                                 </div>
@@ -9483,7 +9483,7 @@ export default function ProductBuilderPage() {
                                                       color: '#111827',
                                                       minWidth: '48px',
                                                       textAlign: 'right',
-                                                      fontFamily: 'var(--stepn-font-body)'
+                                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                                     }}>
                                                       {Math.round(selectedText.fontSize)} px
                                                     </span>
@@ -9501,7 +9501,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}>
                                                 Couleur
                                               </div>
@@ -9661,7 +9661,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}>
                                                 Contour
                                               </div>
@@ -9839,7 +9839,7 @@ export default function ProductBuilderPage() {
                                                           fontSize: '13px',
                                                           fontWeight: '500',
                                                           color: '#111827',
-                                                          fontFamily: 'var(--stepn-font-body)'
+                                                          fontFamily: CONFIGURATOR_PANEL_FONT
                                                         }}>
                                                           Épaisseur {currentPxValue}
                                                         </div>
@@ -9910,7 +9910,7 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '500',
                                                 color: '#111827',
                                                 marginBottom: '12px',
-                                                fontFamily: 'var(--stepn-font-body)'
+                                                fontFamily: CONFIGURATOR_PANEL_FONT
                                               }}>
                                                 Type de déformation
                                               </div>
@@ -9996,7 +9996,7 @@ export default function ProductBuilderPage() {
                                                         fontSize: '13px',
                                                         fontWeight: '500',
                                                         color: '#111827',
-                                                        fontFamily: 'var(--stepn-font-body)'
+                                                        fontFamily: CONFIGURATOR_PANEL_FONT
                                                       }}>
                                                         Intensité
                                                       </div>
@@ -10798,7 +10798,7 @@ export default function ProductBuilderPage() {
                 <div style={{
                   textAlign: 'center',
                   color: '#666',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   <div style={{
                     width: '400px',
@@ -10821,7 +10821,7 @@ export default function ProductBuilderPage() {
                   <p style={{
                     color: '#999',
                     fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: CONFIGURATOR_PANEL_FONT
                   }}>
                     Sélectionnez un modèle 3D dans "Behind the scene"
                   </p>
@@ -10855,7 +10855,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Nom de l'onglet
                 </label>
@@ -10890,7 +10890,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Icône
                 </label>
@@ -11016,7 +11016,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Type de contenu à afficher
                 </label>
@@ -11094,7 +11094,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}>
                         Palette de couleurs
                       </label>
@@ -11141,7 +11141,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '12px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}>
                         Noms des classes de couleurs
                       </label>
@@ -11204,7 +11204,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Mode de placement
                     </label>
@@ -11246,7 +11246,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}>
                         Groupes de zones
                       </label>
@@ -11313,7 +11313,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Texte du bouton "Ajouter un logo"
                     </label>
@@ -11352,7 +11352,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Texte du bouton "Importer un logo"
                     </label>
@@ -11391,7 +11391,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Texte de l'en-tête "Logos placés"
                     </label>
@@ -11447,7 +11447,7 @@ export default function ProductBuilderPage() {
                       color: '#a0a0a0',
                       marginBottom: '16px',
                       lineHeight: '1.5',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Sélectionnez les vues créées dans le modèle 3D et associez-les à des labels pour les afficher dans le builder client.
                     </p>
@@ -11467,7 +11467,7 @@ export default function ProductBuilderPage() {
                               fontSize: '12px',
                               color: '#666',
                               textAlign: 'center',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: CONFIGURATOR_PANEL_FONT
                             }}>
                               Aucune vue disponible. Créez des vues dans le modèle 3D.
                             </div>
@@ -11485,7 +11485,7 @@ export default function ProductBuilderPage() {
                                     fontSize: '12px',
                                     color: '#ffffff',
                                     fontWeight: '500',
-                                    fontFamily: 'var(--stepn-font-body)'
+                                    fontFamily: CONFIGURATOR_PANEL_FONT
                                   }}>
                                     Labels configurés ({moduleViewLabels.length})
                                   </span>
@@ -11514,7 +11514,7 @@ export default function ProductBuilderPage() {
                                       fontSize: '11px',
                                       fontWeight: '600',
                                       cursor: 'pointer',
-                                      fontFamily: 'var(--stepn-font-body)'
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}
                                   >
                                     + Ajouter un label
@@ -11596,7 +11596,7 @@ export default function ProductBuilderPage() {
                                               color: '#ef4444',
                                               fontSize: '11px',
                                               cursor: 'pointer',
-                                              fontFamily: 'var(--stepn-font-body)'
+                                              fontFamily: CONFIGURATOR_PANEL_FONT
                                             }}
                                             title="Supprimer"
                                           >
@@ -11642,7 +11642,7 @@ export default function ProductBuilderPage() {
                                             marginTop: '6px',
                                             fontSize: '10px',
                                             color: '#8eff36',
-                                            fontFamily: 'var(--stepn-font-body)'
+                                            fontFamily: CONFIGURATOR_PANEL_FONT
                                           }}>
                                             ✓ Vue associée
                                           </div>
@@ -11679,7 +11679,7 @@ export default function ProductBuilderPage() {
                                         borderRadius: '4px',
                                         fontSize: '10px',
                                         color: '#ffffff',
-                                        fontFamily: 'var(--stepn-font-body)'
+                                        fontFamily: CONFIGURATOR_PANEL_FONT
                                       }}
                                     >
                                       👁️ {view.name}
@@ -11701,7 +11701,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Bibliothèques de logos
                     </label>
@@ -11772,7 +11772,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: CONFIGURATOR_PANEL_FONT
                   }}>
                     Groupe de fonts
                   </label>
@@ -11821,7 +11821,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: CONFIGURATOR_PANEL_FONT
                   }}>
                     Designs 2D à proposer dans ce bloc
                   </label>
@@ -11853,7 +11853,7 @@ export default function ProductBuilderPage() {
                               fontSize: '12px',
                               color: '#ffffff',
                               cursor: 'pointer',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: CONFIGURATOR_PANEL_FONT
                             }}
                           >
                             <input
@@ -11896,7 +11896,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: CONFIGURATOR_PANEL_FONT
                   }}>
                     Groupe de tailles
                   </label>
@@ -11946,7 +11946,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Mode de placement
                     </label>
@@ -11988,7 +11988,7 @@ export default function ProductBuilderPage() {
                         fontSize: '12px',
                         color: '#a0a0a0',
                         marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}>
                         Groupes de zones
                       </label>
@@ -12052,7 +12052,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Texte du bouton
                     </label>
@@ -12091,7 +12091,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Texte de l'en-tête "Textes ajoutés"
                     </label>
@@ -12129,7 +12129,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '12px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Options d'édition de texte
                     </label>
@@ -12188,7 +12188,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Palette couleur du texte
                     </label>
@@ -12228,7 +12228,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Cette palette s'affichera dans l'onglet "Couleur" du texte.
                     </p>
@@ -12240,7 +12240,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Palette couleur du contour
                     </label>
@@ -12280,7 +12280,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Cette palette s'affichera dans l'onglet "Contour" du texte.
                     </p>
@@ -12291,7 +12291,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Tailles du texte (min / max)
                     </label>
@@ -12359,7 +12359,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Ces valeurs sont utilisées pour limiter le redimensionnement des textes sur le 3D.
                     </p>
@@ -12371,7 +12371,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Épaisseur du contour (min / max / valeur par défaut)
                     </label>
@@ -12475,7 +12475,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Couleurs par défaut
                     </label>
@@ -12573,7 +12573,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Groupes de polices disponibles
                     </label>
@@ -12649,7 +12649,7 @@ export default function ProductBuilderPage() {
                             <span style={{
                               color: '#ffffff',
                               fontSize: '13px',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: CONFIGURATOR_PANEL_FONT
                             }}>
                               {group.name || group.id}
                             </span>
@@ -12665,7 +12665,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Police par défaut
                     </label>
@@ -12724,7 +12724,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       La police sélectionnée sera utilisée par défaut pour les nouveaux textes.
                     </p>
@@ -12736,7 +12736,7 @@ export default function ProductBuilderPage() {
                       fontSize: '12px',
                       color: '#a0a0a0',
                       marginBottom: '8px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Déformations disponibles
                     </label>
@@ -12852,7 +12852,7 @@ export default function ProductBuilderPage() {
                             <span style={{
                               fontSize: '12px',
                               color: '#ffffff',
-                              fontFamily: 'var(--stepn-font-body)'
+                              fontFamily: CONFIGURATOR_PANEL_FONT
                             }}>
                               {def.name}
                             </span>
@@ -12864,7 +12864,7 @@ export default function ProductBuilderPage() {
                       fontSize: '11px',
                       color: '#7d7d7d',
                       marginTop: '6px',
-                      fontFamily: 'var(--stepn-font-body)'
+                      fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
                       Cochez les déformations que vous souhaitez rendre disponibles dans le configurateur.
                     </p>
@@ -12915,7 +12915,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Question Label
                 </label>
@@ -12943,7 +12943,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Question Type
                 </label>
@@ -13002,7 +13002,7 @@ export default function ProductBuilderPage() {
                     fontSize: '12px',
                     color: '#a0a0a0',
                     marginBottom: '8px',
-                    fontFamily: 'var(--stepn-font-body)'
+                    fontFamily: CONFIGURATOR_PANEL_FONT
                   }}>
                     Options (one per line)
                   </label>
@@ -13115,7 +13115,7 @@ export default function ProductBuilderPage() {
               fontWeight: '600',
               color: '#ffffff',
               marginBottom: '20px',
-              fontFamily: 'var(--stepn-font-body)'
+              fontFamily: CONFIGURATOR_PANEL_FONT
             }}>
               Créer un module de personnalisation
             </h2>
@@ -13128,7 +13128,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Nom de l'onglet
                 </label>
@@ -13165,7 +13165,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Icône
                 </label>
@@ -13260,7 +13260,7 @@ export default function ProductBuilderPage() {
                   fontSize: '12px',
                   color: '#a0a0a0',
                   marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
+                  fontFamily: CONFIGURATOR_PANEL_FONT
                 }}>
                   Type de module
                 </label>
@@ -13583,7 +13583,7 @@ export default function ProductBuilderPage() {
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   WebkitTextStrokeColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                 }}>
                                   {zone.name}
                                   {zone.view && ` (${zone.view})`}
@@ -14115,7 +14115,7 @@ export default function ProductBuilderPage() {
                                   color: '#111827',
                                   WebkitTextFillColor: '#111827',
                                   WebkitTextStrokeColor: '#111827',
-                                  fontFamily: 'var(--stepn-font-body)'
+                                  fontFamily: CONFIGURATOR_PANEL_FONT
                                 }}>
                                   {zone.name}
                                   {zone.view && ` (${zone.view})`}
