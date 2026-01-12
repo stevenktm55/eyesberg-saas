@@ -420,7 +420,6 @@ function ConnectTabContent({
       }}>
         <h2 style={{
           fontSize: '24px',
-          fontFamily: CONFIGURATOR_PANEL_FONT,
           color: '#ffffff',
           marginBottom: '8px',
           fontWeight: '600'
@@ -533,7 +532,6 @@ function ConnectTabContent({
           <div>
             <h3 style={{
               fontSize: '18px',
-              fontFamily: CONFIGURATOR_PANEL_FONT,
               color: '#ffffff',
               marginBottom: '16px',
               fontWeight: '600'
