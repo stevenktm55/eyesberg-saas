@@ -6995,10 +6995,14 @@ export default function ProductBuilderPage() {
                           minWidth: 0,
                           maxHeight: '100%',
                           maxWidth: '100%',
+                          width: '100%',
+                          height: '100%',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
                           position: 'relative',
+                          overflow: 'hidden',
+                          boxSizing: 'border-box',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '393px',
                             maxHeight: '852px',
@@ -7008,16 +7012,8 @@ export default function ProductBuilderPage() {
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                            overflow: 'hidden',
                             flex: 'none'
-                          } : {
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            width: '100%',
-                            height: '100%',
-                            margin: '0',
-                            overflow: 'hidden'
-                          })
+                          } : {})
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
                           <div style={{ 

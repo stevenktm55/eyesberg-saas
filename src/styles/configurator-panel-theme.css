@@ -64,10 +64,9 @@
   /* Mais on s'assure que le conteneur peut utiliser flex */
   box-sizing: border-box !important;
   
-  /* S'assurer que le conteneur peut utiliser flexbox - override any potential CSS reset */
-  /* Les styles inline React ont la priorité, mais on force ici pour être sûr */
-  display: flex !important;
-  flex-direction: row !important;
+  /* IMPORTANT: Ne pas forcer display ou flex-direction ici */
+  /* Les styles inline React ont la priorité absolue et doivent gérer le layout */
+  /* Forcer ici avec !important pourrait créer des conflits */
 }
 
 /* ============================================
