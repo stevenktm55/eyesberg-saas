@@ -6601,10 +6601,10 @@ export default function ProductBuilderPage() {
                       style={{
                         flex: 1,
                         padding: '12px 20px',
-                        backgroundColor: '#ffffff',
-                        color: '#000000',
-                        border: '1px solid #d0d0d0',
-                        borderRadius: '8px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#374151',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '10px',
                         fontSize: '14px',
                         fontWeight: '500',
                         cursor: 'pointer',
@@ -6612,19 +6612,25 @@ export default function ProductBuilderPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fafafa';
-                        e.currentTarget.style.borderColor = '#a0a0a0';
+                        e.currentTarget.style.backgroundColor = '#e5e7eb';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                        e.currentTarget.style.boxShadow = '0 2px 4px 0 rgb(0 0 0 / 0.1)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                        e.currentTarget.style.borderColor = '#d0d0d0';
+                        e.currentTarget.style.backgroundColor = '#f3f4f6';
+                        e.currentTarget.style.borderColor = '#e5e7eb';
+                        e.currentTarget.style.boxShadow = '0 1px 2px 0 rgb(0 0 0 / 0.05)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                       </svg>
                       Sauvegarder
                     </button>
@@ -6639,7 +6645,7 @@ export default function ProductBuilderPage() {
                         backgroundColor: '#3b82f6',
                         color: '#ffffff',
                         border: 'none',
-                        borderRadius: '8px',
+                        borderRadius: '10px',
                         fontSize: '14px',
                         fontWeight: '500',
                         cursor: 'pointer',
@@ -6647,17 +6653,23 @@ export default function ProductBuilderPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                        e.currentTarget.style.backgroundColor = '#2563eb';
+                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#000000';
+                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                        e.currentTarget.style.boxShadow = '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
                       </svg>
                       Ajouter au panier
                     </button>
@@ -11015,11 +11027,11 @@ export default function ProductBuilderPage() {
                               </div>
                               {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
                               <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '10px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', transition: 'all 0.2s ease' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)', transition: 'all 0.2s ease' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                   Ajouter au panier
                                 </button>

@@ -110,15 +110,21 @@
 
 /* ============================================
    BOUTONS - UNIQUEMENT dans .configurator-panel
+   Style Tailwind moderne avec ombres et effets hover
    ============================================ */
-/* Tous les boutons dans le panel */
+/* Tous les boutons dans le panel - Style de base */
 .configurator-panel button {
   font-family: var(--config-panel-font-family) !important;
   border-radius: var(--config-panel-radius-md) !important;
   transition: all 0.2s ease !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
 }
 
-/* Boutons avec fond noir - FORCER BLEU */
+/* Boutons primaires (bleu) - Style Tailwind moderne */
 .configurator-panel button[style*="backgroundColor: '#000000'"],
 .configurator-panel button[style*="backgroundColor: '#000'"],
 .configurator-panel button[style*="background-color: #000000"],
@@ -127,6 +133,8 @@
 .configurator-panel button[style*="background-color:#000"],
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"],
 .configurator-panel button[style*="background-color: #3b82f6"],
+.configurator-panel button[style*="backgroundColor: '#111827'"],
+.configurator-panel button[style*="background-color: #111827"],
 .configurator-panel button.bg-black,
 .configurator-panel button.btn-primary,
 .configurator-panel button[class*="bg-black"],
@@ -138,7 +146,7 @@
   border-radius: var(--config-panel-radius-md) !important;
   box-shadow: var(--config-panel-shadow-button) !important;
   border: none !important;
-  padding: 10px 20px !important;
+  padding: 12px 20px !important;
   font-weight: 500 !important;
   font-family: var(--config-panel-font-family) !important;
 }
@@ -147,23 +155,42 @@
 .configurator-panel button[style*="background-color: #000000"]:hover,
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"]:hover,
 .configurator-panel button[style*="background-color: #3b82f6"]:hover,
+.configurator-panel button[style*="backgroundColor: '#111827'"]:hover,
+.configurator-panel button[style*="background-color: #111827"]:hover,
 .configurator-panel button.bg-black:hover,
 .configurator-panel button.btn-primary:hover {
   background-color: var(--config-panel-button-primary-hover) !important;
   box-shadow: var(--config-panel-shadow-md) !important;
+  transform: translateY(-1px) !important;
 }
 
-/* Boutons secondaires */
+/* Boutons secondaires (gris clair) - Style Tailwind moderne */
 .configurator-panel button[style*="backgroundColor: '#ffffff'"],
+.configurator-panel button[style*="backgroundColor: '#fff'"],
 .configurator-panel button[style*="background-color: #ffffff"],
+.configurator-panel button[style*="background-color: #fff"],
+.configurator-panel button[style*="backgroundColor: '#f3f4f6'"],
+.configurator-panel button[style*="background-color: #f3f4f6"],
 .configurator-panel button.btn-secondary {
   background-color: var(--config-panel-button-secondary-bg) !important;
   color: var(--config-panel-button-secondary-text) !important;
   border-radius: var(--config-panel-radius-md) !important;
   border: 1px solid var(--config-panel-border) !important;
-  padding: 10px 20px !important;
+  padding: 12px 20px !important;
   font-weight: 500 !important;
   font-family: var(--config-panel-font-family) !important;
+  box-shadow: var(--config-panel-shadow-sm) !important;
+}
+
+.configurator-panel button[style*="backgroundColor: '#ffffff'"]:hover,
+.configurator-panel button[style*="background-color: #ffffff"]:hover,
+.configurator-panel button[style*="backgroundColor: '#f3f4f6'"]:hover,
+.configurator-panel button[style*="background-color: #f3f4f6"]:hover,
+.configurator-panel button.btn-secondary:hover {
+  background-color: var(--config-panel-button-secondary-hover) !important;
+  border-color: #d1d5db !important;
+  box-shadow: var(--config-panel-shadow-md) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* ============================================
