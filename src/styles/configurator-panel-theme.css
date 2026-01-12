@@ -138,6 +138,7 @@
 .configurator-panel button[style*="background-color: #111827"],
 .configurator-panel button.bg-black,
 .configurator-panel button[class*="bg-black"],
+.configurator-panel button.mobile-action-btn-black,
 /* Cibler aussi les boutons avec rgb(0, 0, 0) */
 .configurator-panel button[style*="rgb(0, 0, 0)"],
 .configurator-panel button[style*="rgb(0,0,0)"] {
@@ -152,12 +153,36 @@
   font-family: var(--config-panel-font-family) !important;
 }
 
-/* Forcer la couleur blanche sur tous les éléments texte dans les boutons primaires */
+/* Forcer la couleur blanche sur TOUS les éléments texte dans les boutons primaires - RÈGLE ULTRA-AGRESSIVE */
+.configurator-panel button.btn-primary,
 .configurator-panel button.btn-primary *,
+.configurator-panel button.btn-primary span,
+.configurator-panel button.btn-primary div,
+.configurator-panel button.btn-primary p,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"],
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"] *,
-.configurator-panel button[style*="background-color: #3b82f6"] * {
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] span,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] div,
+.configurator-panel button[style*="background-color: #3b82f6"],
+.configurator-panel button[style*="background-color: #3b82f6"] *,
+.configurator-panel button[style*="background-color: #3b82f6"] span,
+.configurator-panel button[style*="background-color: #3b82f6"] div,
+.configurator-panel button.mobile-action-btn-black,
+.configurator-panel button.mobile-action-btn-black *,
+.configurator-panel button.mobile-action-btn-black span,
+.configurator-panel button.mobile-action-btn-black div {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Forcer aussi sur les SVG dans les boutons primaires */
+.configurator-panel button.btn-primary svg,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] svg,
+.configurator-panel button[style*="background-color: #3b82f6"] svg,
+.configurator-panel button.mobile-action-btn-black svg {
+  color: #ffffff !important;
   fill: #ffffff !important;
   stroke: #ffffff !important;
 }
