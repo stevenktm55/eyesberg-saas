@@ -63,11 +63,9 @@
 /* ============================================
    TYPOGRAPHIE - UNIQUEMENT dans .configurator-panel
    ============================================ */
-/* Règle universelle pour TOUS les éléments dans le panel */
-.configurator-panel,
-.configurator-panel *,
-.configurator-panel *::before,
-.configurator-panel *::after {
+/* Règle universelle pour TOUS les éléments dans le panel - UNIQUEMENT typographie */
+/* IMPORTANT: Ne pas toucher aux styles de layout (display, flex, position, width, height, etc.) */
+.configurator-panel * {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
   -webkit-text-fill-color: var(--config-panel-text) !important;
