@@ -81,6 +81,29 @@
   
   /* S'assurer que le conteneur ne soit pas cassé par des règles CSS globales */
   contain: layout style !important;
+  
+  /* FORCER le layout avec une spécificité très élevée pour surcharger TOUT */
+  flex: 1 1 0% !important;
+  align-items: stretch !important;
+}
+
+/* Règle très spécifique pour forcer le layout flexbox - spécificité maximale */
+div.configurator-panel.configurator-panel,
+.configurator-panel.configurator-panel,
+div[class*="configurator-panel"].configurator-panel {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  flex: 1 1 0% !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  position: relative !important;
+  box-sizing: border-box !important;
 }
 
 /* ============================================
