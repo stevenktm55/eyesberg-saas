@@ -4390,6 +4390,7 @@ export default function ProductBuilderPage() {
                               flex: 1,
                               padding: '16px',
                               overflowY: 'auto',
+                              overflowX: 'visible',
                               position: 'relative',
                               zIndex: 1
                             }}>
@@ -4398,7 +4399,8 @@ export default function ProductBuilderPage() {
                                 gridTemplateColumns: 'repeat(6, 1fr)', 
                                 gap: '12px',
                                 position: 'relative',
-                                zIndex: 1
+                                zIndex: 1,
+                                overflow: 'visible'
                               }}>
                                 {allColors.map((color) => {
                                   const isSelected = color.id === selectedColorId;
@@ -4460,24 +4462,29 @@ export default function ProductBuilderPage() {
                                     >
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
-                                        <div style={{
-                                          position: 'absolute',
-                                          top: '50%',
-                                          left: '50%',
-                                          transform: 'translate(-50%, -50%)',
-                                          width: '28px',
-                                          height: '28px',
-                                          backgroundColor: '#ffffff',
-                                          borderRadius: '50%',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                                          border: '2px solid #3b82f6',
-                                          zIndex: 1000,
-                                          pointerEvents: 'none'
-                                        }}>
-                                          <svg width="16" height="16" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3 }}>
+                                        <div 
+                                          className="color-selection-indicator"
+                                          style={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            width: '32px',
+                                            height: '32px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.4)',
+                                            border: '3px solid #3b82f6',
+                                            zIndex: 9999,
+                                            pointerEvents: 'none',
+                                            opacity: 1,
+                                            visibility: 'visible'
+                                          }}
+                                        >
+                                          <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3, display: 'block' }}>
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>
