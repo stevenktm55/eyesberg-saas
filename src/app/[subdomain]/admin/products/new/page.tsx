@@ -7181,7 +7181,7 @@ export default function ProductBuilderPage() {
                                   }}
                                 >
                                   <div
-                                    className="zone-selection-modal-content"
+                                    className="zone-selection-modal-content configurator-panel-modal"
                                     style={{
                                       backgroundColor: '#ffffff',
                                       borderRadius: '8px',
