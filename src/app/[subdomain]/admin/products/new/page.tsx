@@ -2253,11 +2253,11 @@ export default function ProductBuilderPage() {
             {/* Auto-save indicator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '12px' }}>
               {saving ? (
-                <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                   Saving...
                 </span>
               ) : lastSaved ? (
-                <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                <span style={{ color: '#a0a0a0', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                   Saved {lastSaved.toLocaleTimeString()}
                 </span>
               ) : null}
@@ -2368,7 +2368,7 @@ export default function ProductBuilderPage() {
               cursor: 'pointer'
             }}>
               <span style={{ color: '#a0a0a0', fontSize: '12px' }}>?</span>
-              <span style={{ color: '#ffffff', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Logic</span>
+              <span style={{ color: '#ffffff', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>Logic</span>
             </div>
             <div style={{
               display: 'flex',
@@ -2381,7 +2381,7 @@ export default function ProductBuilderPage() {
               cursor: 'pointer'
             }}>
               <span style={{ color: '#8eff36', fontSize: '12px' }}>👁</span>
-              <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Published</span>
+              <span style={{ color: '#8eff36', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>Published</span>
             </div>
             <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▼</span>
           </div>
@@ -3995,7 +3995,7 @@ export default function ProductBuilderPage() {
                   }}>
                     {!activeModule.contentType ? (
                       <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                           Configurez le module dans les settings pour afficher du contenu.
                         </p>
                       </div>
@@ -4216,7 +4216,7 @@ export default function ProductBuilderPage() {
                       return (
                         <div>
                           {!activeModule.selectedItems?.colorPaletteId ? (
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                               Veuillez sélectionner une palette dans les paramètres du module.
                             </p>
                           ) : (
@@ -4305,7 +4305,7 @@ export default function ProductBuilderPage() {
                       if (!hasSelectedLibraries) {
                         return (
                           <div>
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                               Sélectionnez des bibliothèques de logos dans les settings du module.
                             </p>
                           </div>
@@ -4375,7 +4375,7 @@ export default function ProductBuilderPage() {
                               
                               {/* Liste des variantes */}
                               {allVariants.length === 0 ? (
-                                <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                   Aucune variante disponible
                                 </p>
                               ) : (
@@ -4732,7 +4732,7 @@ export default function ProductBuilderPage() {
                             
                             {/* Bibliothèque de logos */}
                             {allLogos.length === 0 ? (
-                              <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                              <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                 Aucun logo disponible dans les bibliothèques sélectionnées
                               </p>
                             ) : (
@@ -5222,7 +5222,7 @@ export default function ProductBuilderPage() {
                       return (
                         <div>
                           {visibleDesigns.length === 0 ? (
-                            <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                            <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                               Aucun design disponible. Cochez des designs dans les settings du module.
                             </p>
                           ) : (
@@ -5836,7 +5836,7 @@ export default function ProductBuilderPage() {
                                       const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
                                       if (!palette) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                             Palette introuvable. Veuillez en sélectionner une autre.
                                           </p>
                                         );
@@ -5844,7 +5844,7 @@ export default function ProductBuilderPage() {
                                       const paletteColors = palette.colors || [];
                                       if (paletteColors.length === 0) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                             La palette sélectionnée ne contient aucune couleur.
                                           </p>
                                         );
@@ -5897,7 +5897,7 @@ export default function ProductBuilderPage() {
                                         </div>
                                       );
                                     })() : (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                         Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                       </p>
                                     )}
@@ -5920,7 +5920,7 @@ export default function ProductBuilderPage() {
                                       const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
                                       if (!palette) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                             Palette introuvable. Veuillez en sélectionner une autre.
                                           </p>
                                         );
@@ -5928,7 +5928,7 @@ export default function ProductBuilderPage() {
                                       const paletteColors = palette.colors || [];
                                       if (paletteColors.length === 0) {
                                         return (
-                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                             La palette sélectionnée ne contient aucune couleur.
                                           </p>
                                         );
@@ -5982,7 +5982,7 @@ export default function ProductBuilderPage() {
                                         </div>
                                       );
                                     })() : (
-                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '20px' }}>
+                                      <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '20px' }}>
                                         Sélectionnez une palette de contours dans les réglages du module.
                                       </p>
                                     )}
@@ -6339,7 +6339,7 @@ export default function ProductBuilderPage() {
                       </div>
                     ) : (
                       <div>
-                        <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)' }}>
+                        <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                           Sélectionnez un élément dans les settings du module.
                         </p>
                       </div>
@@ -7262,7 +7262,7 @@ export default function ProductBuilderPage() {
                                     
                                     {/* Liste des variantes */}
                                     {allVariants.length === 0 ? (
-                                      <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                      <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                                         Aucune variante disponible
                                       </p>
                                     ) : (
@@ -7484,7 +7484,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {allLogos.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                                       Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
                                     </p>
                                   ) : (
@@ -7724,7 +7724,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {availableZones.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                                     </p>
                                   ) : (
@@ -8045,7 +8045,7 @@ export default function ProductBuilderPage() {
                                   </div>
                                   
                                   {availableZones.length === 0 ? (
-                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                                     </p>
                                   ) : (
@@ -8574,7 +8574,7 @@ export default function ProductBuilderPage() {
                                                 window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
                                               }
                                             }} 
-                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                           >
                                             {viewConfig.label}
                                           </button>
@@ -8690,7 +8690,7 @@ export default function ProductBuilderPage() {
                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             {/* Titre centré sans bouton retour (le bouton retour principal du header suffit) */}
                                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: 'var(--stepn-font-body)', textAlign: 'center' }}>
+                                              <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: CONFIGURATOR_PANEL_FONT, textAlign: 'center' }}>
                                                 {selectedLogoForVariants.name}
                                               </h3>
                                             </div>
@@ -8917,11 +8917,11 @@ export default function ProductBuilderPage() {
                                           <>
                                             {/* Bibliothèque de logos en scroll horizontal */}
                                             {allLogos.length === 0 ? (
-                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                 Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
                                               </p>
                                             ) : filteredLogos.length === 0 ? (
-                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: 'var(--stepn-font-body)' }}>
+                                              <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                 Aucun logo trouvé pour "{logoSearchQuery}"
                                               </p>
                                             ) : (
@@ -9153,7 +9153,7 @@ export default function ProductBuilderPage() {
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
-                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                           className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -9161,12 +9161,12 @@ export default function ProductBuilderPage() {
                                     </button>
                                     {/* Logos placés */}
                                     <div>
-                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: 'var(--stepn-font-body)' }}>{activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})</h3>
+                                          <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px', fontFamily: CONFIGURATOR_PANEL_FONT }}>{activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})</h3>
                                       {modulePlacedLogos.length === 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
                                           <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                              <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>Aucun logo ajouté</p>
-                                              <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'var(--stepn-font-body)' }}>Cliquez sur "Ajouter un logo" pour commencer</p>
+                                              <p style={{ fontSize: '12px', marginTop: '8px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>Aucun logo ajouté</p>
+                                              <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: CONFIGURATOR_PANEL_FONT }}>Cliquez sur "Ajouter un logo" pour commencer</p>
                                         </div>
                                       ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -9509,7 +9509,7 @@ export default function ProductBuilderPage() {
                                                 const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
                                                 if (!palette) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                       Palette introuvable. Veuillez en sélectionner une autre.
                                                     </p>
                                                   );
@@ -9517,7 +9517,7 @@ export default function ProductBuilderPage() {
                                                 const paletteColors = palette.colors || [];
                                                 if (paletteColors.length === 0) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                       La palette sélectionnée ne contient aucune couleur.
                                                     </p>
                                                   );
@@ -9646,7 +9646,7 @@ export default function ProductBuilderPage() {
                                                   </div>
                                                 );
                                               })() : (
-                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                   Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
                                                 </p>
                                               )}
@@ -9669,7 +9669,7 @@ export default function ProductBuilderPage() {
                                                 const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
                                                 if (!palette) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                       Palette introuvable. Veuillez en sélectionner une autre.
                                                     </p>
                                                   );
@@ -9677,7 +9677,7 @@ export default function ProductBuilderPage() {
                                                 const paletteColors = palette.colors || [];
                                                 if (paletteColors.length === 0) {
                                                   return (
-                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                                                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                                       La palette sélectionnée ne contient aucune couleur.
                                                     </p>
                                                   );
@@ -9808,7 +9808,7 @@ export default function ProductBuilderPage() {
                                                   </div>
                                                 );
                                               })() : (
-                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: 'var(--stepn-font-body)', marginBottom: '16px' }}>
+                                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '16px' }}>
                                                   Sélectionnez une palette de contours dans les réglages du module.
                                                 </p>
                                               )}
@@ -10091,7 +10091,7 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                       }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                       className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -10388,7 +10388,7 @@ export default function ProductBuilderPage() {
                                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                           Retour
                                         </span>
                                       </button>
@@ -10401,7 +10401,7 @@ export default function ProductBuilderPage() {
                                           <span style={{ fontSize: '14px' }}>{activeModule.icon || '🎨'}</span>
                                         )}
                                       </div>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                         {activeModule.tabName || 'Module'}
                                       </span>
                                     </div>
@@ -10758,7 +10758,7 @@ export default function ProductBuilderPage() {
                                             <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
                                           )}
                                         </div>
-                                        <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: 'var(--stepn-font-body)' }}>
+                                        <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                           {module.tabName || 'Module'}
                                         </span>
                                       </button>
@@ -10769,7 +10769,7 @@ export default function ProductBuilderPage() {
                                     {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
                                       <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px', color: '#111827' }}>
                                         <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
-                                        <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: 'var(--stepn-font-body)' }}>{name}</span>
+                                        <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>{name}</span>
                                       </div>
                                     ))}
                                   </>
@@ -10777,11 +10777,11 @@ export default function ProductBuilderPage() {
                               </div>
                               {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
                               <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: 'var(--stepn-font-body)' }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                   Ajouter au panier
                                 </button>
@@ -11837,7 +11837,7 @@ export default function ProductBuilderPage() {
                     gap: '6px'
                   }}>
                     {designs2D.length === 0 ? (
-                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: 'var(--stepn-font-body)' }}>
+                      <span style={{ fontSize: '12px', color: '#a0a0a0', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                         Aucun design 2D disponible.
                       </span>
                     ) : (
@@ -12001,7 +12001,7 @@ export default function ProductBuilderPage() {
                         backgroundColor: '#1a1a1a'
                       }}>
                         {zoneGroups.length === 0 ? (
-                          <p style={{ color: '#666', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>
+                          <p style={{ color: '#666', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                             Aucun groupe de zones disponible. Créez-en dans My Configurations → Zones.
                           </p>
                         ) : (
@@ -12520,7 +12520,7 @@ export default function ProductBuilderPage() {
                             outline: 'none'
                           }}
                         />
-                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Texte</span>
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>Texte</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ position: 'relative', width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2a2a2a' }}>
@@ -12562,7 +12562,7 @@ export default function ProductBuilderPage() {
                             outline: 'none'
                           }}
                         />
-                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: 'var(--stepn-font-body)' }}>Contour</span>
+                        <span style={{ color: '#7d7d7d', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>Contour</span>
                       </div>
                     </div>
                   </div>
@@ -13441,7 +13441,7 @@ export default function ProductBuilderPage() {
               
                 if (availableZones.length === 0) {
                   return (
-                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                     </p>
                   );
@@ -13974,7 +13974,7 @@ export default function ProductBuilderPage() {
               
                 if (filteredZones.length === 0) {
                   return (
-                    <p style={{ color: '#666', fontSize: '14px', fontFamily: 'var(--stepn-font-body)', padding: '12px' }}>
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
                       Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les settings du module.
                     </p>
                   );
