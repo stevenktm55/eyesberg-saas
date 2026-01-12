@@ -4429,38 +4429,42 @@ export default function ProductBuilderPage() {
                                         position: 'relative',
                                         aspectRatio: '1',
                                         borderRadius: '50%',
-                                        border: '2px solid #e5e7eb',
+                                        border: isSelected ? '3px solid #3b82f6' : '2px solid #e5e7eb',
                                         backgroundColor: color.hex,
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        overflow: 'hidden',
+                                        overflow: 'visible',
                                         padding: 0
                                       }}
                                       onMouseEnter={(e) => {
-                                        e.currentTarget.style.borderColor = '#d1d5db';
+                                        if (!isSelected) {
+                                          e.currentTarget.style.borderColor = '#d1d5db';
+                                        }
                                       }}
                                       onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = '#e5e7eb';
+                                        if (!isSelected) {
+                                          e.currentTarget.style.borderColor = '#e5e7eb';
+                                        }
                                       }}
                                     >
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
                                         <div style={{
                                           position: 'absolute',
-                                          top: '4px',
-                                          right: '4px',
-                                          width: '20px',
-                                          height: '20px',
+                                          top: '-4px',
+                                          right: '-4px',
+                                          width: '28px',
+                                          height: '28px',
                                           backgroundColor: '#ffffff',
                                           borderRadius: '50%',
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
-                                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 2px #ffffff',
                                           border: '2px solid #3b82f6',
-                                          zIndex: 10
+                                          zIndex: 100
                                         }}>
-                                          <svg width="12" height="12" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6' }}>
+                                          <svg width="16" height="16" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3 }}>
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>
