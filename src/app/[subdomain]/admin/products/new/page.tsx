@@ -2446,16 +2446,12 @@ export default function ProductBuilderPage() {
       
       {/* Main Content */}
       <div style={{
-        flex: '1 1 0%',
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         maxHeight: '100vh',
-        minHeight: '100vh',
-        overflow: 'hidden',
-        minWidth: 0,
-        width: '100%',
-        boxSizing: 'border-box'
+        overflow: 'hidden'
       }}>
         {/* Header */}
         <div style={{
@@ -3212,28 +3208,14 @@ export default function ProductBuilderPage() {
           />
         ) : (
           <div style={{
-            flex: '1 1 0%',
+            flex: 1,
             display: 'flex',
             flexDirection: 'row',
-            overflow: 'hidden',
-            minWidth: 0,
-            minHeight: 0,
-            width: '100%',
-            height: '100%',
-            maxHeight: '100%',
-            maxWidth: '100%',
-            position: 'relative',
-            boxSizing: 'border-box',
-            alignSelf: 'stretch',
-            flexShrink: 1,
-            flexGrow: 1
+            overflow: 'hidden'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
             width: '320px',
-            minWidth: '320px',
-            maxWidth: '320px',
-            flexShrink: 0,
             backgroundColor: '#0a0a0a',
             borderRight: '1px solid #1a1a1a',
             display: 'flex',
@@ -4027,21 +4009,12 @@ export default function ProductBuilderPage() {
           <div 
             className="configurator-panel"
             style={{
-              flex: '1 1 0%',
-              minWidth: 0,
-              minHeight: 0,
-              width: '100%',
-              height: '100%',
-              maxWidth: '100%',
-              maxHeight: '100%',
+              flex: 1,
               backgroundColor: '#ffffff',
               display: 'flex',
               flexDirection: 'row',
               position: 'relative',
-              overflow: 'hidden',
-              alignSelf: 'stretch',
-              boxSizing: 'border-box',
-              flexShrink: 1
+              overflow: 'hidden'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -4124,19 +4097,13 @@ export default function ProductBuilderPage() {
             {selectedModel3DId && viewportMode === 'desktop' && (
               <div style={{
                 width: '80px',
-                minWidth: '80px',
-                maxWidth: '80px',
-                flexShrink: 0,
-                flexGrow: 0,
                 backgroundColor: '#ffffff',
                 borderRight: '1px solid #d0d0d0',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 padding: '8px',
-                gap: '8px',
-                height: '100%',
-                overflowY: 'auto'
+                gap: '8px'
               }}>
                 {customizationModules.map((module) => (
                   <button
@@ -4225,17 +4192,13 @@ export default function ProductBuilderPage() {
               return (
                 <div style={{
                   width: '420px',
-                  minWidth: '420px',
-                  maxWidth: '420px',
-                  flexShrink: 0,
-                  flexGrow: 0,
                   backgroundColor: '#ffffff',
                   borderRight: '1px solid #e0e0e0',
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
                   animation: 'slideIn 0.3s ease-out',
-                  height: '100%'
+                  marginLeft: '16px'
                 }}>
                   {/* Tab Header */}
                   <div style={{
@@ -6763,23 +6726,13 @@ export default function ProductBuilderPage() {
 
             {/* Center: 3D Model Display */}
             <div style={{
-              flex: '1 1 0%',
-              minHeight: 0,
-              minWidth: 0,
-              maxHeight: '100%',
-              maxWidth: '100%',
-              width: '100%',
-              height: '100%',
+              flex: 1,
               backgroundColor: '#f8f8f8',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              overflow: 'hidden',
-              boxSizing: 'border-box',
-              flexShrink: 1,
-              flexGrow: 1
+              overflow: 'hidden'
             }}>
               {selectedModel3DId ? (
                 <div style={{
@@ -7003,19 +6956,11 @@ export default function ProductBuilderPage() {
                       
                       return (
                         <div style={{
-                          flex: '1 1 0%',
-                          minHeight: 0,
-                          minWidth: 0,
-                          maxHeight: '100%',
-                          maxWidth: '100%',
-                          width: '100%',
-                          height: '100%',
+                          flex: 1,
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
                           position: 'relative',
-                          overflow: 'hidden',
-                          boxSizing: 'border-box',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '393px',
                             maxHeight: '852px',
@@ -7025,8 +6970,16 @@ export default function ProductBuilderPage() {
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                            overflow: 'hidden',
                             flex: 'none'
-                          } : {})
+                          } : {
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            width: '100%',
+                            height: '100%',
+                            margin: '0',
+                            overflow: 'hidden'
+                          })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
                           <div style={{ 

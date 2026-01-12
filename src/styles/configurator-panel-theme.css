@@ -64,45 +64,8 @@
   /* Mais on s'assure que le conteneur peut utiliser flex */
   box-sizing: border-box !important;
   
-  /* FORCER display flex et flex-direction row pour restaurer le layout */
-  /* Les styles inline React ont normalement la priorité, mais si un CSS global casse le layout,
-     on doit forcer ici avec !important pour restaurer la structure */
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: stretch !important;
-  
-  /* FORCER les dimensions pour restaurer le layout */
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  
-  /* S'assurer que le conteneur ne soit pas cassé par des règles CSS globales */
-  contain: layout style !important;
-  
-  /* FORCER le layout avec une spécificité très élevée pour surcharger TOUT */
-  flex: 1 1 0% !important;
-  align-items: stretch !important;
-}
-
-/* Règle très spécifique pour forcer le layout flexbox - spécificité maximale */
-div.configurator-panel.configurator-panel,
-.configurator-panel.configurator-panel,
-div[class*="configurator-panel"].configurator-panel {
-  display: flex !important;
-  flex-direction: row !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  flex: 1 1 0% !important;
-  align-items: stretch !important;
-  overflow: hidden !important;
-  position: relative !important;
+  /* IMPORTANT: Ne pas toucher au layout - laisser React gérer via styles inline */
+  /* Les styles inline React doivent avoir la priorité pour le layout */
   box-sizing: border-box !important;
 }
 
