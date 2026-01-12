@@ -16,30 +16,31 @@ const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
 const CONFIGURATOR_PANEL_PRIMARY_HOVER = '#2563eb';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
+// IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
-    .customizer-tab-name {
+    .configurator-panel .customizer-tab-name {
       color: #000000 !important;
       -webkit-text-fill-color: #000000 !important;
       -webkit-text-stroke-color: #000000 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .color-class-card-label {
+    .configurator-panel .color-class-card-label {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .typography-back-button,
-    .typography-back-button * {
+    .configurator-panel .typography-back-button,
+    .configurator-panel .typography-back-button * {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .mobile-action-btn-black,
-    .mobile-action-btn-black * {
+    .configurator-panel .mobile-action-btn-black,
+    .configurator-panel .mobile-action-btn-black * {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff !important;
       -webkit-text-stroke-color: #ffffff !important;
@@ -967,7 +968,7 @@ export default function ProductBuilderPage() {
       // Vérifier si l'élément est dans le panel
       if (panel.contains(el)) return true;
       
-      // Vérifier si l'élément est dans un modal du configurator
+      // Vérifier si l'élément est dans un modal du configurator (UNIQUEMENT les classes spécifiques)
       const isInModal = el.closest('.configurator-panel-modal') !== null ||
                        el.closest('.zone-selection-modal-content') !== null ||
                        el.classList.contains('configurator-panel-modal') ||
@@ -976,15 +977,18 @@ export default function ProductBuilderPage() {
       return isInModal;
     };
     
-    // Traiter le panel ET tous les modaux même en dehors
+    // Vérifier d'abord que le panel existe
     const panel = document.querySelector('.configurator-panel');
+    if (!panel) return; // Ne rien faire si le panel n'existe pas
+    
+    // Traiter le panel ET tous les modaux même en dehors
     const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
     
     const targets: Element[] = [];
     if (element && isInConfiguratorPanel(element)) {
       targets.push(element);
     } else {
-      if (panel) targets.push(panel);
+      targets.push(panel);
       modals.forEach(modal => targets.push(modal));
     }
     
@@ -1075,12 +1079,20 @@ export default function ProductBuilderPage() {
   }, []);
 
   // Utiliser useLayoutEffect et useEffect avec MutationObserver pour détecter les changements DOM
+  // IMPORTANT: Ne s'exécute QUE si le panel existe et uniquement sur les éléments du panel
   useEffect(() => {
     const panel = document.querySelector('.configurator-panel');
     if (!panel) return;
 
+    // Vérifier que le panel existe avant d'exécuter
+    const checkAndForce = () => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return;
+      forceConfiguratorPanelStyles();
+    };
+
     // Exécuter immédiatement
-    forceConfiguratorPanelStyles();
+    checkAndForce();
 
     // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
     const isConfiguratorElement = (element: Element): boolean => {
@@ -1171,7 +1183,11 @@ export default function ProductBuilderPage() {
     });
 
     // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
+    // IMPORTANT: Vérifier que le panel existe à chaque fois
     const interval = setInterval(() => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return; // Ne rien faire si le panel n'existe pas
+      
       // Forcer uniquement sur le panel et les modaux spécifiques
       forceConfiguratorPanelStyles();
       
