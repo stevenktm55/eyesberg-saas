@@ -2446,13 +2446,16 @@ export default function ProductBuilderPage() {
       
       {/* Main Content */}
       <div style={{
-        flex: 1,
+        flex: '1 1 0%',
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         maxHeight: '100vh',
+        minHeight: '100vh',
         overflow: 'hidden',
-        minHeight: 0
+        minWidth: 0,
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         {/* Header */}
         <div style={{
@@ -3218,11 +3221,16 @@ export default function ProductBuilderPage() {
             width: '100%',
             height: '100%',
             maxHeight: '100%',
-            position: 'relative'
+            maxWidth: '100%',
+            position: 'relative',
+            boxSizing: 'border-box'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
             width: '320px',
+            minWidth: '320px',
+            maxWidth: '320px',
+            flexShrink: 0,
             backgroundColor: '#0a0a0a',
             borderRight: '1px solid #1a1a1a',
             display: 'flex',
