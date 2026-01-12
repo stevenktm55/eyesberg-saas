@@ -355,14 +355,13 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   -webkit-text-stroke-color: transparent !important;
 }
 
-/* Container lui-même - NE PAS utiliser all: initial car ça réinitialise TOUT y compris les styles inline React */
+/* Container lui-même - NE PAS toucher au layout (display, flex, position, etc.) pour ne pas casser les styles inline React */
+/* On surcharge seulement la typographie et les couleurs */
 .configurator-panel {
-  /* Ne pas utiliser all: initial - ça casse les styles inline React */
-  display: flex !important;
-  box-sizing: border-box !important;
+  /* NE PAS forcer display: flex - laisser les styles inline React gérer le layout */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
-  background-color: #ffffff !important;
+  /* NE PAS forcer background-color - laisser les styles inline React gérer */
 }
 
 /* Titres avec spécificité plus élevée */
