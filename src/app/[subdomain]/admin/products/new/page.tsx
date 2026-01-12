@@ -3211,7 +3211,12 @@ export default function ProductBuilderPage() {
           <div style={{
             flex: 1,
             display: 'flex',
-            overflow: 'hidden'
+            flexDirection: 'row',
+            overflow: 'hidden',
+            minWidth: 0,
+            minHeight: 0,
+            height: '100%',
+            maxHeight: '100%'
           }}>
           {/* Left Sidebar - Questions - Toujours visible (même en mobile) */}
           <div style={{
