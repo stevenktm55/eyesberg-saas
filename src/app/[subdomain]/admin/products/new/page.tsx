@@ -6972,7 +6972,7 @@ export default function ProductBuilderPage() {
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -6986,7 +6986,7 @@ export default function ProductBuilderPage() {
                                   fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
-                                style={{ width: '100%', height: '100%' }}
+                                style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', position: 'absolute', top: 0, left: 0 }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
