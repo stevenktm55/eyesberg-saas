@@ -953,47 +953,59 @@ export default function ProductBuilderPage() {
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
-  // Utiliser useLayoutEffect pour s'exécuter avant le paint et useEffect pour les mises à jour dynamiques
-  const forceConfiguratorPanelStyles = useCallback(() => {
-    const panel = document.querySelector('.configurator-panel');
-    if (!panel) return;
+  // Fonction pour forcer Inter et couleurs bleues
+  const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
+    const target = element || document.querySelector('.configurator-panel');
+    if (!target) return;
 
-    // Forcer la police Inter sur tous les éléments avec styles inline
-    // Utiliser querySelectorAll avec * pour tous les éléments
-    const allElements = panel.querySelectorAll('*');
-    allElements.forEach((el: Element) => {
+    // Traiter l'élément cible et tous ses enfants
+    const elementsToProcess = element ? [element, ...Array.from(element.querySelectorAll('*'))] : Array.from(target.querySelectorAll('*'));
+    
+    elementsToProcess.forEach((el: Element) => {
       const htmlEl = el as HTMLElement;
+      if (!htmlEl) return;
       
-      // Modifier directement via l'objet style (React gère les styles via style.fontFamily)
-      if (htmlEl.style && htmlEl.style.fontFamily) {
-        const currentFont = htmlEl.style.fontFamily;
-        if (currentFont.includes('Space Grotesk')) {
+      // Forcer la police Inter - vérifier l'objet style React ET l'attribut style
+      const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
+      const inlineStyle = htmlEl.getAttribute('style') || '';
+      
+      if (reactStyleFont && reactStyleFont.includes('Space Grotesk')) {
+        htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
+      }
+      
+      if (inlineStyle.includes('Space Grotesk')) {
+        const newStyle = inlineStyle
+          .replace(/fontFamily:\s*['"]Space Grotesk['"][^;'"]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
+          .replace(/font-family:\s*['"]Space Grotesk['"][^;'"]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
+        if (newStyle !== inlineStyle) {
+          htmlEl.setAttribute('style', newStyle);
+          // Forcer aussi via setProperty
           htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
         }
       }
       
-      // Vérifier aussi l'attribut style (pour les styles inline HTML)
-      const inlineStyle = htmlEl.getAttribute('style');
-      if (inlineStyle && inlineStyle.includes('Space Grotesk')) {
-        const newStyle = inlineStyle
-          .replace(/fontFamily:\s*['"]Space Grotesk['"][^;]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
-          .replace(/font-family:\s*['"]Space Grotesk['"][^;]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
-        htmlEl.setAttribute('style', newStyle);
-      }
-      
       // Forcer les couleurs des boutons noirs en bleu
       if (htmlEl.tagName === 'BUTTON') {
-        const bgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
-        const textColor = htmlEl.style.color || htmlEl.style.getPropertyValue('color');
+        const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
+        const reactTextColor = htmlEl.style.color || htmlEl.style.getPropertyValue('color');
         
-        // Vérifier si c'est un bouton noir avec texte blanc
-        if ((bgColor === 'rgb(0, 0, 0)' || bgColor === '#000000' || inlineStyle?.includes('backgroundColor: \'#000000\'') || inlineStyle?.includes('background-color: #000000')) &&
-            (textColor === 'rgb(255, 255, 255)' || textColor === '#ffffff' || inlineStyle?.includes('color: \'#ffffff\'') || inlineStyle?.includes('color: #ffffff'))) {
+        // Vérifier si c'est un bouton noir avec texte blanc (via React style ou inline)
+        const isBlackButton = reactBgColor === 'rgb(0, 0, 0)' || 
+                             reactBgColor === '#000000' || 
+                             inlineStyle.includes('backgroundColor: \'#000000\'') ||
+                             inlineStyle.includes('background-color: #000000') ||
+                             inlineStyle.includes('backgroundColor:#000000');
+        
+        const isWhiteText = reactTextColor === 'rgb(255, 255, 255)' ||
+                           reactTextColor === '#ffffff' ||
+                           inlineStyle.includes('color: \'#ffffff\'') ||
+                           inlineStyle.includes('color: #ffffff') ||
+                           inlineStyle.includes('color:#ffffff');
+        
+        if (isBlackButton && isWhiteText) {
           htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
-          htmlEl.style.setProperty('backgroundColor', '#3b82f6', 'important');
-          
           // Mettre à jour aussi l'attribut style si présent
-          if (inlineStyle && inlineStyle.includes('backgroundColor: \'#000000\'')) {
+          if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
             const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
             htmlEl.setAttribute('style', newStyle);
           }
@@ -1002,21 +1014,55 @@ export default function ProductBuilderPage() {
     });
   }, []);
 
-  useLayoutEffect(() => {
-    forceConfiguratorPanelStyles();
-  }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab]);
-
-  // Utiliser aussi useEffect pour capturer les éléments rendus dynamiquement
+  // Utiliser useLayoutEffect et useEffect avec MutationObserver pour détecter les changements DOM
   useEffect(() => {
-    // Exécuter après un court délai pour capturer les éléments rendus dynamiquement
-    const timeout = setTimeout(forceConfiguratorPanelStyles, 100);
-    const interval = setInterval(forceConfiguratorPanelStyles, 300);
+    const panel = document.querySelector('.configurator-panel');
+    if (!panel) return;
+
+    // Exécuter immédiatement
+    forceConfiguratorPanelStyles();
+
+    // Créer un MutationObserver pour détecter les changements DOM en temps réel
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            // Vérifier si le nouvel élément est dans le configurator-panel
+            if (panel.contains(element) || element.classList.contains('configurator-panel')) {
+              forceConfiguratorPanelStyles(element);
+            }
+          }
+        });
+        
+        // Vérifier aussi les changements d'attributs (comme style)
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          const target = mutation.target as HTMLElement;
+          if (panel.contains(target)) {
+            forceConfiguratorPanelStyles(target);
+          }
+        }
+      });
+    });
+
+    // Observer les changements dans le panel
+    observer.observe(panel, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style']
+    });
+
+    // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
+    const interval = setInterval(() => {
+      forceConfiguratorPanelStyles();
+    }, 500);
 
     return () => {
-      clearTimeout(timeout);
+      observer.disconnect();
       clearInterval(interval);
     };
-  }, [forceConfiguratorPanelStyles, selectedLogoId, texts, placedLogos, showDeleteModal]);
+  }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
