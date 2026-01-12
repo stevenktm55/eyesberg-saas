@@ -4440,7 +4440,8 @@ export default function ProductBuilderPage() {
                                         overflow: 'visible',
                                         padding: 0,
                                         minWidth: '40px',
-                                        minHeight: '40px'
+                                        minHeight: '40px',
+                                        isolation: 'isolate'
                                       }}
                                       onMouseEnter={(e) => {
                                         if (!isSelected) {
@@ -4457,21 +4458,22 @@ export default function ProductBuilderPage() {
                                       {isSelected && (
                                         <div style={{
                                           position: 'absolute',
-                                          top: '-6px',
-                                          right: '-6px',
-                                          width: '32px',
-                                          height: '32px',
+                                          top: '50%',
+                                          left: '50%',
+                                          transform: 'translate(-50%, -50%)',
+                                          width: '28px',
+                                          height: '28px',
                                           backgroundColor: '#ffffff',
                                           borderRadius: '50%',
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
-                                          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.4), 0 0 0 3px #ffffff',
-                                          border: '3px solid #3b82f6',
+                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                                          border: '2px solid #3b82f6',
                                           zIndex: 1000,
                                           pointerEvents: 'none'
                                         }}>
-                                          <svg width="18" height="18" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3 }}>
+                                          <svg width="16" height="16" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3 }}>
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>
