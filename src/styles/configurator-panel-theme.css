@@ -385,3 +385,28 @@
 .zone-selection-modal-content * {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
+
+/* ============================================
+   RONDS DE SÉLECTION DES COULEURS - FORCER LA VISIBILITÉ
+   ============================================ */
+.configurator-panel .color-selection-indicator {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  background-color: #ffffff !important;
+  border: 3px solid #3b82f6 !important;
+  width: 32px !important;
+  height: 32px !important;
+  position: absolute !important;
+}
+
+.configurator-panel .color-selection-indicator svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  stroke: #3b82f6 !important;
+  fill: none !important;
+  width: 18px !important;
+  height: 18px !important;
+}
