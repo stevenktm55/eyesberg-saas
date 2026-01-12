@@ -154,34 +154,50 @@
 }
 
 /* Forcer la couleur blanche sur TOUS les éléments texte dans les boutons primaires - RÈGLE ULTRA-AGRESSIVE */
+/* Cibler le bouton lui-même */
 .configurator-panel button.btn-primary,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"],
+.configurator-panel button[style*="background-color: #3b82f6"],
+.configurator-panel button.mobile-action-btn-black {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Cibler TOUS les enfants directs et indirects */
 .configurator-panel button.btn-primary *,
 .configurator-panel button.btn-primary span,
 .configurator-panel button.btn-primary div,
 .configurator-panel button.btn-primary p,
-.configurator-panel button[style*="backgroundColor: '#3b82f6'"],
+.configurator-panel button.btn-primary text,
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"] *,
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"] span,
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"] div,
-.configurator-panel button[style*="background-color: #3b82f6"],
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] p,
 .configurator-panel button[style*="background-color: #3b82f6"] *,
 .configurator-panel button[style*="background-color: #3b82f6"] span,
 .configurator-panel button[style*="background-color: #3b82f6"] div,
-.configurator-panel button.mobile-action-btn-black,
+.configurator-panel button[style*="background-color: #3b82f6"] p,
 .configurator-panel button.mobile-action-btn-black *,
 .configurator-panel button.mobile-action-btn-black span,
-.configurator-panel button.mobile-action-btn-black div {
+.configurator-panel button.mobile-action-btn-black div,
+.configurator-panel button.mobile-action-btn-black p {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
 }
 
-/* Forcer aussi sur les SVG dans les boutons primaires */
+/* Forcer aussi sur les SVG et leurs paths dans les boutons primaires */
 .configurator-panel button.btn-primary svg,
+.configurator-panel button.btn-primary svg *,
+.configurator-panel button.btn-primary path,
 .configurator-panel button[style*="backgroundColor: '#3b82f6'"] svg,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] svg *,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] path,
 .configurator-panel button[style*="background-color: #3b82f6"] svg,
-.configurator-panel button.mobile-action-btn-black svg {
+.configurator-panel button[style*="background-color: #3b82f6"] svg *,
+.configurator-panel button[style*="background-color: #3b82f6"] path,
+.configurator-panel button.mobile-action-btn-black svg,
+.configurator-panel button.mobile-action-btn-black svg *,
+.configurator-panel button.mobile-action-btn-black path {
   color: #ffffff !important;
   fill: #ffffff !important;
   stroke: #ffffff !important;
