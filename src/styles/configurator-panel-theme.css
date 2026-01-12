@@ -255,6 +255,24 @@
   font-weight: 500 !important;
 }
 
+/* Règle très agressive pour forcer le style bleu sur tous les boutons avec fond noir */
+/* Cibler tous les boutons qui pourraient avoir un fond noir via styles inline */
+.configurator-panel button {
+  /* Si le bouton a un fond noir (détecté via la couleur du texte blanc ou autres indices),
+     forcer le style bleu moderne */
+}
+
+/* Cibler spécifiquement les boutons avec texte blanc (généralement boutons primaires noirs) */
+.configurator-panel button[style*="color: #ffffff"],
+.configurator-panel button[style*="color:#ffffff"],
+.configurator-panel button[style*="color: '#ffffff'"],
+.configurator-panel button[style*="color:'#ffffff'"] {
+  /* Si c'est un bouton avec texte blanc, c'est probablement un bouton primaire */
+  background-color: var(--config-panel-button-primary-bg) !important;
+  border-radius: var(--config-panel-radius-md) !important;
+  box-shadow: var(--config-panel-shadow-button) !important;
+}
+
 /* Boutons primaires - Style Tailwind bleu moderne */
 /* Cibler les boutons avec classes, styles inline, ou attributs */
 .configurator-panel button.bg-black,
