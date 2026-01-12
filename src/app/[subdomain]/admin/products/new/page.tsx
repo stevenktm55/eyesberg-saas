@@ -6988,7 +6988,16 @@ export default function ProductBuilderPage() {
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          <div style={{ flex: '1 1 0%', minHeight: 0, maxHeight: '100%', position: 'relative', overflow: 'hidden', width: '100%' }}>
+                          <div style={{ 
+                            flex: '1 1 0%', 
+                            minHeight: 0, 
+                            maxHeight: '100%', 
+                            height: '100%',
+                            position: 'relative', 
+                            overflow: 'hidden', 
+                            width: '100%',
+                            maxWidth: '100%'
+                          }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -7013,8 +7022,10 @@ export default function ProductBuilderPage() {
                                   right: 0,
                                   bottom: 0,
                                   minWidth: 0,
-                                  minHeight: 0
+                                  minHeight: 0,
+                                  display: 'block'
                                 }}
+                                dpr={[1, 2]}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
