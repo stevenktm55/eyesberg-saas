@@ -1009,28 +1009,9 @@ export default function ProductBuilderPage() {
         // VÉRIFIER que l'élément est bien dans le configurator-panel avant d'appliquer les styles
         if (!isInConfiguratorPanel(el)) return;
         
-        // FORCER INTER sur TOUS les éléments texte
-        const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
-        const inlineStyle = htmlEl.getAttribute('style') || '';
-        const tagName = htmlEl.tagName;
-        
-        // Forcer Inter sur tous les éléments texte (sauf monospace)
-        const isTextElement = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'DIV', 'LABEL', 'LI', 'TD', 'TH', 'A', 'BUTTON'].includes(tagName);
-        
-        if (isTextElement || !reactStyleFont || reactStyleFont.includes('Space Grotesk') || (!reactStyleFont.includes('Inter') && !reactStyleFont.includes('monospace'))) {
-          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-        }
-        
-        // Forcer aussi via l'attribut style si Space Grotesk est présent
-        if (inlineStyle.includes('Space Grotesk')) {
-          const newStyle = inlineStyle
-            .replace(/fontFamily:\s*['"]Space Grotesk['"][^;'"]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
-            .replace(/font-family:\s*['"]Space Grotesk['"][^;'"]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
-          if (newStyle !== inlineStyle) {
-            htmlEl.setAttribute('style', newStyle);
-            htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-          }
-        }
+        // NE PAS forcer Inter via JavaScript - laisser le CSS faire le travail
+        // Le CSS est déjà bien scoped et devrait suffire
+        // On force uniquement les couleurs des boutons ici
         
         // FORCER BLEU sur TOUS les boutons noirs
         if (htmlEl.tagName === 'BUTTON') {
