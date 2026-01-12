@@ -78,6 +78,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* TEST: Div de test pour vérifier que le layout est rendu */}
+        <div id="layout-test" style={{ position: 'fixed', top: 0, left: 0, zIndex: 99999, backgroundColor: 'red', color: 'white', padding: '10px' }}>
+          LAYOUT TEST - Si vous voyez ceci, le layout est rendu
+        </div>
         {children}
       </body>
     </html>
