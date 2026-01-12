@@ -957,14 +957,31 @@ export default function ProductBuilderPage() {
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
-  // Fonction ULTRA-AGRESSIVE pour forcer Inter et couleurs bleues sur TOUT
+  // Fonction SCOPÉE pour forcer Inter et couleurs bleues UNIQUEMENT dans le configurator-panel
   const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
+    // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
+    const isInConfiguratorPanel = (el: Element): boolean => {
+      const panel = document.querySelector('.configurator-panel');
+      if (!panel) return false;
+      
+      // Vérifier si l'élément est dans le panel
+      if (panel.contains(el)) return true;
+      
+      // Vérifier si l'élément est dans un modal du configurator
+      const isInModal = el.closest('.configurator-panel-modal') !== null ||
+                       el.closest('.zone-selection-modal-content') !== null ||
+                       el.classList.contains('configurator-panel-modal') ||
+                       el.classList.contains('zone-selection-modal-content');
+      
+      return isInModal;
+    };
+    
     // Traiter le panel ET tous les modaux même en dehors
     const panel = document.querySelector('.configurator-panel');
-    const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content, [class*="configurator-panel-modal"], [class*="zone-selection-modal"]');
+    const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
     
     const targets: Element[] = [];
-    if (element) {
+    if (element && isInConfiguratorPanel(element)) {
       targets.push(element);
     } else {
       if (panel) targets.push(panel);
@@ -975,12 +992,18 @@ export default function ProductBuilderPage() {
 
     // Traiter chaque cible et tous ses enfants
     targets.forEach(target => {
+      // Vérifier que la cible est bien dans le configurator-panel
+      if (!isInConfiguratorPanel(target)) return;
+      
       const allElements = target.querySelectorAll('*');
       const elementsToProcess = [target, ...Array.from(allElements)];
       
       elementsToProcess.forEach((el: Element) => {
         const htmlEl = el as HTMLElement;
         if (!htmlEl) return;
+        
+        // VÉRIFIER que l'élément est bien dans le configurator-panel avant d'appliquer les styles
+        if (!isInConfiguratorPanel(el)) return;
         
         // FORCER INTER sur TOUS les éléments texte
         const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
@@ -1105,15 +1128,13 @@ export default function ProductBuilderPage() {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            // Vérifier si c'est un modal du configurator (plusieurs façons de détecter)
+            // Vérifier UNIQUEMENT si c'est un modal du configurator avec les classes spécifiques
             const isConfiguratorModal = element.classList.contains('configurator-panel-modal') ||
                 element.classList.contains('zone-selection-modal-content') ||
                 element.querySelector('.configurator-panel-modal') ||
-                element.querySelector('.zone-selection-modal-content') ||
-                element.getAttribute('class')?.includes('configurator-panel') ||
-                element.getAttribute('class')?.includes('zone-selection') ||
-                // Vérifier aussi par le contenu texte
-                (element.textContent && (element.textContent.includes('Supprimer') || element.textContent.includes('Confirmer') || element.textContent.includes('Annuler')));
+                element.querySelector('.zone-selection-modal-content');
+            
+            // NE PAS utiliser le contenu texte pour détecter les modaux car ça pourrait matcher d'autres modaux
             
             if (isConfiguratorModal) {
               // Attendre un peu pour que le modal soit complètement rendu
@@ -1129,10 +1150,12 @@ export default function ProductBuilderPage() {
         // Vérifier aussi les changements d'attributs sur les modaux
         if (mutation.type === 'attributes') {
           const target = mutation.target as HTMLElement;
-          if (target.classList.contains('configurator-panel-modal') ||
+          const isConfiguratorModal = target.classList.contains('configurator-panel-modal') ||
               target.classList.contains('zone-selection-modal-content') ||
               target.closest('.configurator-panel-modal') ||
-              target.closest('.zone-selection-modal-content')) {
+              target.closest('.zone-selection-modal-content');
+          
+          if (isConfiguratorModal) {
             forceConfiguratorPanelStyles(target);
           }
         }
@@ -1149,20 +1172,13 @@ export default function ProductBuilderPage() {
 
     // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
     const interval = setInterval(() => {
+      // Forcer uniquement sur le panel et les modaux spécifiques
       forceConfiguratorPanelStyles();
-      // Forcer aussi sur les modaux qui sont en dehors du panel (toutes les variantes possibles)
-      const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content, [class*="configurator-panel-modal"], [class*="zone-selection-modal"], [class*="configurator-panel"]');
+      
+      // Forcer aussi sur les modaux qui sont en dehors du panel (UNIQUEMENT les classes spécifiques)
+      const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
       modals.forEach(modal => {
         forceConfiguratorPanelStyles(modal);
-      });
-      
-      // Forcer aussi sur tous les boutons et textes dans le body qui pourraient être des modaux
-      const allButtons = document.querySelectorAll('button[style*="backgroundColor: \'#000000\'"], button[style*="background-color: #000000"]');
-      allButtons.forEach(btn => {
-        const modal = btn.closest('.configurator-panel-modal, .zone-selection-modal-content, [class*="modal"]');
-        if (modal) {
-          forceConfiguratorPanelStyles(modal);
-        }
       });
     }, 300); // Plus fréquent pour capturer plus rapidement
 
