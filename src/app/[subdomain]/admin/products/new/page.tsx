@@ -4935,30 +4935,32 @@ export default function ProductBuilderPage() {
                                 
                                 {/* Bouton Importer un logo */}
                                 <button
+                                  className="btn-primary"
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
                                   }}
                                   style={{
                                     flex: 1,
-                                    padding: '12px 24px',
+                                    padding: '10px 20px',
                                     fontSize: '14px',
                                     fontWeight: '500',
                                     backgroundColor: '#3b82f6',
                                     color: '#ffffff',
                                     border: 'none',
-                                    borderRadius: '6px',
+                                    borderRadius: '8px',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '8px',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                    e.currentTarget.style.backgroundColor = '#2563eb';
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                                    e.currentTarget.style.backgroundColor = '#3b82f6';
                                   }}
                                 >
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
@@ -5276,12 +5278,13 @@ export default function ProductBuilderPage() {
                           {/* Bouton "Ajouter un logo" - Ne s'affiche pas si on est en mode remplacement */}
                           {!logoToReplace && (
                           <button
+                            className="btn-primary"
                             onClick={() => {
                               setShowLogoLibrary(true);
                             }}
                             style={{
                               width: '100%',
-                              padding: '13px 20px',
+                              padding: '10px 20px',
                               fontSize: '14px',
                               fontWeight: '500',
                               backgroundColor: '#3b82f6',
@@ -5293,16 +5296,17 @@ export default function ProductBuilderPage() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '8px',
-                              transition: 'all 0.2s'
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#1a1a1a';
+                              e.currentTarget.style.backgroundColor = '#2563eb';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                              e.currentTarget.style.backgroundColor = '#3b82f6';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
                             {buttonLabel}
                           </button>
                           )}
@@ -5599,6 +5603,7 @@ export default function ProductBuilderPage() {
                         {/* Bouton "Ajouter un texte" - masqué quand un texte est sélectionné */}
                         {!selectedTextId && (
                           <button
+                            className="btn-primary"
                             onClick={() => {
                               if (activeModule.textPlacementMode === 'zones') {
                                 // Mode zones : ouvrir le modal de sélection de zones
@@ -5616,8 +5621,8 @@ export default function ProductBuilderPage() {
                             }}
                             style={{
                               width: '100%',
-                              padding: '14px 20px',
-                              backgroundColor: isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                              padding: '10px 20px',
+                              backgroundColor: isPlacingText ? '#8eff36' : '#3b82f6',
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
@@ -5625,15 +5630,16 @@ export default function ProductBuilderPage() {
                               color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
-                              transition: 'all 0.2s',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              textTransform: 'none',
+                              letterSpacing: 'normal'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#2563eb';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#3b82f6';
                             }}
                           >
                             {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
@@ -8881,6 +8887,7 @@ export default function ProductBuilderPage() {
                                             
                                             {/* Bouton Importer un logo */}
                                             <button
+                                              className="btn-primary mobile-action-btn-black"
                                               onClick={() => {
                                                 // TODO: Implémenter l'import de logo
                                                 console.log('📤 Importer un logo');
@@ -8891,17 +8898,24 @@ export default function ProductBuilderPage() {
                                                 alignItems: 'center', 
                                                 justifyContent: 'center', 
                                                 gap: '8px', 
-                                                padding: '12px', 
+                                                padding: '10px 20px', 
                                                 backgroundColor: '#3b82f6', 
                                                 color: '#ffffff', 
                                                 border: 'none', 
                                                 borderRadius: '8px', 
-                                                fontSize: '13px', 
+                                                fontSize: '14px', 
                                                 fontWeight: '500', 
                                                 cursor: 'pointer', 
-                                                fontFamily: CONFIGURATOR_PANEL_FONT
+                                                fontFamily: CONFIGURATOR_PANEL_FONT,
+                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                                transition: 'all 0.2s ease'
                                               }}
-                                              className="mobile-action-btn-black"
+                                              onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#3b82f6';
+                                              }}
                                             >
                                               <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                                               {activeModule.importLogoButtonLabel || 'Importer un logo'}
@@ -9392,11 +9406,33 @@ export default function ProductBuilderPage() {
                                       <>
                                     {/* Bouton ajouter */}
                                     <button
+                                          className="btn-primary mobile-action-btn-black"
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
-                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
-                                          className="mobile-action-btn-black"
+                                          style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center', 
+                                            gap: '8px', 
+                                            padding: '10px 20px', 
+                                            backgroundColor: '#3b82f6', 
+                                            color: '#ffffff', 
+                                            border: 'none', 
+                                            borderRadius: '8px', 
+                                            fontSize: '14px', 
+                                            fontWeight: '500', 
+                                            cursor: 'pointer', 
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
+                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                            transition: 'all 0.2s ease'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#2563eb';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                                          }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                       {activeModule.addLogoButtonLabel || 'Ajouter un logo'}

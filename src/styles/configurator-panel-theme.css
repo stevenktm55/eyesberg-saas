@@ -143,12 +143,23 @@
 .configurator-panel button[style*="rgb(0,0,0)"] {
   background-color: #3b82f6 !important;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   border-radius: 8px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   border: none !important;
   padding: 10px 20px !important;
   font-weight: 500 !important;
   font-family: var(--config-panel-font-family) !important;
+}
+
+/* Forcer la couleur blanche sur tous les éléments texte dans les boutons primaires */
+.configurator-panel button.btn-primary *,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"] *,
+.configurator-panel button[style*="background-color: #3b82f6"] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .configurator-panel button.btn-primary:hover,
