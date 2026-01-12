@@ -32,7 +32,8 @@ export default function RootLayout({
         {/* Charger stepn-theme.css et configurator-panel-theme.css directement via link car @import dans globals.css ne fonctionne pas */}
         {/* IMPORTANT: stepn-theme.css en premier, puis configurator-panel-theme.css pour qu'il puisse surcharger */}
         <link rel="stylesheet" href="/styles/stepn-theme.css" />
-        <link rel="stylesheet" href="/styles/configurator-panel-theme.css?v=20250115-theme1-ultra" />
+        {/* Temporairement désactivé pour debug */}
+        {/* <link rel="stylesheet" href="/styles/configurator-panel-theme.css?v=20250115-theme1-ultra" /> */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* Précharger Inter depuis le serveur local */}
