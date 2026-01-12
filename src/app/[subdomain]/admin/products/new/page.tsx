@@ -10397,8 +10397,8 @@ export default function ProductBuilderPage() {
                                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                       className="mobile-action-btn-black"
                                     >
-                                      <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                      {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
+                                      <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic' }}>+</span>
+                                      <span style={{ color: '#ffffff' }}>{activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}</span>
                                     </button>
                                     
                                     {/* Textes placés */}
@@ -14149,7 +14149,8 @@ export default function ProductBuilderPage() {
                           }
                         }}
                       >
-                        {activeModule.addTextButtonLabel || 'Ajouter un texte'}
+                        <span style={{ fontSize: '14px', fontWeight: '300', color: '#ffffff', fontStyle: 'italic', marginRight: '4px' }}>+</span>
+                        <span style={{ color: '#ffffff' }}>{activeModule.addTextButtonLabel || 'Ajouter un texte'}</span>
                       </button>
                     </div>
                   </div>
