@@ -53,10 +53,10 @@
   --config-panel-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --config-panel-shadow-button: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   
-  /* Styles de base pour le container */
+  /* Styles de base pour le container - NE PAS toucher au layout */
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
-  background-color: var(--config-panel-bg) !important;
+  /* NE PAS forcer background-color, display, flex, etc. - laisser React gérer */
 }
 
 /* ============================================
