@@ -2535,7 +2535,6 @@ export default function ProductBuilderPage() {
                   fontSize: '18px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0,
                   marginBottom: '8px'
                 }}>
