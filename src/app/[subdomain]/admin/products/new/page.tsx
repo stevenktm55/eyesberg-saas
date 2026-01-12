@@ -952,6 +952,55 @@ export default function ProductBuilderPage() {
     }
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
+  // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
+  useEffect(() => {
+    const forceConfiguratorPanelStyles = () => {
+      const panel = document.querySelector('.configurator-panel');
+      if (!panel) return;
+
+      // Forcer la police Inter sur tous les éléments
+      const allElements = panel.querySelectorAll('*');
+      allElements.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        // Vérifier si l'élément a un style inline avec fontFamily
+        const inlineStyle = htmlEl.getAttribute('style');
+        if (inlineStyle && (inlineStyle.includes('fontFamily') || inlineStyle.includes('font-family'))) {
+          // Remplacer Space Grotesk par Inter dans les styles inline
+          const newStyle = inlineStyle
+            .replace(/fontFamily:\s*['"]Space Grotesk['"]/gi, "fontFamily: 'Inter'")
+            .replace(/font-family:\s*['"]Space Grotesk['"]/gi, "font-family: 'Inter'")
+            .replace(/fontFamily:\s*['"]Space Grotesk['"]/gi, "fontFamily: 'Inter'");
+          if (newStyle !== inlineStyle) {
+            htmlEl.setAttribute('style', newStyle);
+          }
+        }
+      });
+
+      // Forcer les couleurs des boutons noirs en bleu
+      const buttons = panel.querySelectorAll('button');
+      buttons.forEach((button: Element) => {
+        const btn = button as HTMLElement;
+        const inlineStyle = btn.getAttribute('style');
+        if (inlineStyle && inlineStyle.includes('backgroundColor: \'#000000\'') && inlineStyle.includes('color: \'#ffffff\'')) {
+          const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
+          if (newStyle !== inlineStyle) {
+            btn.setAttribute('style', newStyle);
+          }
+        }
+      });
+    };
+
+    // Exécuter immédiatement et après un court délai pour capturer les éléments rendus dynamiquement
+    forceConfiguratorPanelStyles();
+    const timeout = setTimeout(forceConfiguratorPanelStyles, 100);
+    const interval = setInterval(forceConfiguratorPanelStyles, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
+
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
     const activeTextModule = customizationModules.find(
