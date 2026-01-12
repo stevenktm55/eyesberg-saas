@@ -118,10 +118,10 @@ h2:not(.configurator-panel h2):not(.configurator-panel *) h2,
 }
 
 /* Fallback plus simple - s'applique à tous les h1/h2 sauf ceux dans configurator-panel */
-body > h1,
-body > h2,
-html > body > h1,
-html > body > h2 {
+body > h1:not(.configurator-panel-modal h1):not(.configurator-panel-modal *),
+body > h2:not(.configurator-panel-modal h2):not(.configurator-panel-modal *),
+html > body > h1:not(.configurator-panel-modal h1):not(.configurator-panel-modal *),
+html > body > h2:not(.configurator-panel-modal h2):not(.configurator-panel-modal *) {
   font-family: var(--stepn-font-heading-ultrabold) !important;
   font-weight: 400 !important;
   letter-spacing: -2.32px !important;
@@ -136,10 +136,10 @@ html > body > h2 {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-h3:not(.configurator-panel h3),
-h4:not(.configurator-panel h4),
-body > h3,
-body > h4 {
+h3:not(.configurator-panel h3):not(.configurator-panel-modal h3):not(.configurator-panel-modal *),
+h4:not(.configurator-panel h4):not(.configurator-panel-modal h4):not(.configurator-panel-modal *),
+body > h3:not(.configurator-panel-modal h3):not(.configurator-panel-modal *),
+body > h4:not(.configurator-panel-modal h4):not(.configurator-panel-modal *) {
   font-family: var(--stepn-font-heading-regular);
   font-weight: 400;
   letter-spacing: -1px;
@@ -147,10 +147,10 @@ body > h4 {
   color: var(--stepn-text);
 }
 
-h5:not(.configurator-panel h5),
-h6:not(.configurator-panel h6),
-body > h5,
-body > h6 {
+h5:not(.configurator-panel h5):not(.configurator-panel-modal h5):not(.configurator-panel-modal *),
+h6:not(.configurator-panel h6):not(.configurator-panel-modal h6):not(.configurator-panel-modal *),
+body > h5:not(.configurator-panel-modal h5):not(.configurator-panel-modal *),
+body > h6:not(.configurator-panel-modal h6):not(.configurator-panel-modal *) {
   font-family: var(--stepn-font-heading-light);
   font-weight: 300;
   letter-spacing: -0.5px;
