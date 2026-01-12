@@ -478,9 +478,11 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   /* Transitions */
   --config-panel-transition: all 0.2s ease-in-out;
   
-  /* Styles de base */
-  background-color: var(--config-panel-bg) !important;
+  /* Styles de base - UNIQUEMENT typographie et couleurs, PAS de layout */
+  /* IMPORTANT: Ne pas forcer display, flex, position, width, height, etc. */
+  /* Les styles inline React doivent avoir la priorité pour le layout */
   color: var(--config-panel-text-primary) !important;
+  /* NE PAS forcer background-color - laisser React gérer */
 }
 
 /* Titres - Surcharge stepn-theme.css */
@@ -514,10 +516,10 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 }
 
 /* Textes - Surcharge stepn-theme.css */
+/* IMPORTANT: Ne pas cibler .configurator-panel div car ça casse le layout React */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
-.configurator-panel div,
 .configurator-panel li,
 .configurator-panel ul,
 .configurator-panel ol {
