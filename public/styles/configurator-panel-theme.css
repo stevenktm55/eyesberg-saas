@@ -224,19 +224,12 @@
 }
 
 /* ============================================
-   BOUTONS - Surcharge stepn-theme.css lignes 182-205
+   BOUTONS - Surcharge seulement la typographie, pas le layout
+   NE PAS toucher aux background-color, padding, border, etc. pour préserver les styles inline React
    ============================================ */
 .configurator-panel button {
+  /* Typographie seulement - NE PAS toucher au layout */
   font-family: var(--config-panel-font-family) !important;
-  background-color: transparent !important;
-  color: var(--config-panel-text-primary) !important;
-  border: none !important;
-  font-size: var(--config-panel-font-size-base) !important;
-  font-weight: 500 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  cursor: pointer !important;
-  transition: var(--config-panel-transition) !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-feature-settings: normal !important;
@@ -244,45 +237,9 @@
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
-}
-
-.configurator-panel button:hover {
-  background-color: transparent !important;
-  opacity: 1 !important;
-}
-
-.configurator-panel button:disabled {
-  background-color: transparent !important;
-  color: #9ca3af !important;
-  cursor: not-allowed !important;
-}
-
-/* Boutons spécifiques */
-.configurator-panel button.bg-black,
-.configurator-panel .btn-primary,
-.configurator-panel button[class*="bg-black"] {
-  background-color: var(--config-panel-button-primary-bg) !important;
-  color: var(--config-panel-button-primary-text) !important;
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-}
-
-.configurator-panel button.bg-black:hover {
-  background-color: var(--config-panel-button-primary-hover) !important;
-}
-
-.configurator-panel button.bg-white,
-.configurator-panel .btn-secondary,
-.configurator-panel button[class*="bg-white"] {
-  background-color: var(--config-panel-button-secondary-bg) !important;
-  color: var(--config-panel-button-secondary-text) !important;
-  border: 1px solid var(--config-panel-button-secondary-border) !important;
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-}
-
-.configurator-panel button.bg-white:hover {
-  background-color: var(--config-panel-button-secondary-hover) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
 }
 
 /* ============================================
