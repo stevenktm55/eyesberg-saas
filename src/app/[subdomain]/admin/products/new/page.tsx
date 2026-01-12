@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
@@ -953,53 +953,79 @@ export default function ProductBuilderPage() {
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
-  useEffect(() => {
+  // Utiliser useLayoutEffect pour s'exécuter avant le paint et useEffect pour les mises à jour dynamiques
+  useLayoutEffect(() => {
     const forceConfiguratorPanelStyles = () => {
       const panel = document.querySelector('.configurator-panel');
       if (!panel) return;
 
-      // Forcer la police Inter sur tous les éléments
+      // Forcer la police Inter sur tous les éléments avec styles inline
       const allElements = panel.querySelectorAll('*');
       allElements.forEach((el: Element) => {
         const htmlEl = el as HTMLElement;
-        // Vérifier si l'élément a un style inline avec fontFamily
         const inlineStyle = htmlEl.getAttribute('style');
-        if (inlineStyle && (inlineStyle.includes('fontFamily') || inlineStyle.includes('font-family'))) {
+        if (inlineStyle) {
+          let newStyle = inlineStyle;
           // Remplacer Space Grotesk par Inter dans les styles inline
-          const newStyle = inlineStyle
-            .replace(/fontFamily:\s*['"]Space Grotesk['"]/gi, "fontFamily: 'Inter'")
-            .replace(/font-family:\s*['"]Space Grotesk['"]/gi, "font-family: 'Inter'")
-            .replace(/fontFamily:\s*['"]Space Grotesk['"]/gi, "fontFamily: 'Inter'");
+          if (inlineStyle.includes('Space Grotesk')) {
+            newStyle = inlineStyle
+              .replace(/fontFamily:\s*['"]Space Grotesk['"][^;]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
+              .replace(/font-family:\s*['"]Space Grotesk['"][^;]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
+          }
+          // Remplacer les boutons noirs par bleus
+          if (inlineStyle.includes('backgroundColor: \'#000000\'') && inlineStyle.includes('color: \'#ffffff\'')) {
+            newStyle = newStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
+          }
           if (newStyle !== inlineStyle) {
             htmlEl.setAttribute('style', newStyle);
           }
         }
       });
+    };
 
-      // Forcer les couleurs des boutons noirs en bleu
-      const buttons = panel.querySelectorAll('button');
-      buttons.forEach((button: Element) => {
-        const btn = button as HTMLElement;
-        const inlineStyle = btn.getAttribute('style');
-        if (inlineStyle && inlineStyle.includes('backgroundColor: \'#000000\'') && inlineStyle.includes('color: \'#ffffff\'')) {
-          const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
+    // Exécuter immédiatement
+    forceConfiguratorPanelStyles();
+  }, [customizationModules, activeCustomizerTab]);
+
+  // Utiliser aussi useEffect pour capturer les éléments rendus dynamiquement
+  useEffect(() => {
+    const forceConfiguratorPanelStyles = () => {
+      const panel = document.querySelector('.configurator-panel');
+      if (!panel) return;
+
+      // Forcer la police Inter sur tous les éléments avec styles inline
+      const allElements = panel.querySelectorAll('*');
+      allElements.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        const inlineStyle = htmlEl.getAttribute('style');
+        if (inlineStyle) {
+          let newStyle = inlineStyle;
+          // Remplacer Space Grotesk par Inter
+          if (inlineStyle.includes('Space Grotesk')) {
+            newStyle = inlineStyle
+              .replace(/fontFamily:\s*['"]Space Grotesk['"][^;]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
+              .replace(/font-family:\s*['"]Space Grotesk['"][^;]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
+          }
+          // Remplacer les boutons noirs par bleus
+          if (inlineStyle.includes('backgroundColor: \'#000000\'') && inlineStyle.includes('color: \'#ffffff\'')) {
+            newStyle = newStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
+          }
           if (newStyle !== inlineStyle) {
-            btn.setAttribute('style', newStyle);
+            htmlEl.setAttribute('style', newStyle);
           }
         }
       });
     };
 
-    // Exécuter immédiatement et après un court délai pour capturer les éléments rendus dynamiquement
-    forceConfiguratorPanelStyles();
+    // Exécuter après un court délai pour capturer les éléments rendus dynamiquement
     const timeout = setTimeout(forceConfiguratorPanelStyles, 100);
-    const interval = setInterval(forceConfiguratorPanelStyles, 1000);
+    const interval = setInterval(forceConfiguratorPanelStyles, 500);
 
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
+  }, [selectedLogoId, texts, placedLogos, showDeleteModal]);
 
   const getTextModuleConfig = useCallback(() => {
     if (!customizationModules || customizationModules.length === 0) return undefined;
