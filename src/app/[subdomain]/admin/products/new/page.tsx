@@ -2912,7 +2912,7 @@ export default function ProductBuilderPage() {
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                 `;
                 errorModal.innerHTML = `
-                  <div style={`text-align: center; color: #ffffff; font-family: ${CONFIGURATOR_PANEL_FONT};`}>
+                  <div style="text-align: center; color: #ffffff; font-family: ${CONFIGURATOR_PANEL_FONT};">
                     <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
                     <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #ef4444;">Erreur</div>
                     <div style="font-size: 14px; color: #a0a0a0; margin-bottom: 16px;">
