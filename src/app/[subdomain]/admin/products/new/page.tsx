@@ -2853,6 +2853,7 @@ export default function ProductBuilderPage() {
                 
                 // Afficher un message de succès avec un modal temporaire
                 const successModal = document.createElement('div');
+                successModal.className = 'configurator-panel-modal';
                 successModal.style.cssText = `
                   position: fixed;
                   top: 50%;
@@ -2898,6 +2899,7 @@ export default function ProductBuilderPage() {
               } catch (error) {
                 console.error('❌ Error linking product:', error);
                 const errorModal = document.createElement('div');
+                errorModal.className = 'configurator-panel-modal';
                 errorModal.style.cssText = `
                   position: fixed;
                   top: 50%;

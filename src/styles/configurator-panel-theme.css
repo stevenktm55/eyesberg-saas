@@ -14,11 +14,10 @@
 /* TEST MARKER - CONFIGURATOR PANEL THEME IS LOADED */
 
 /* ============================================
-   TEST VISIBLE - Si ce fichier est chargé, cette bordure verte devrait être visible
+   CONFIGURATOR PANEL - Container principal
    ============================================ */
 .configurator-panel {
-  /* TEST: Bordure verte temporaire pour vérifier que le CSS est chargé */
-  border: 3px solid #00ff00 !important;
+  /* Styles de base pour le container */
 }
 
 /* ============================================
@@ -26,39 +25,22 @@
    Surcharge TOUS les styles stepn avant d'appliquer notre thème
    IMPORTANT: all: unset dans stepn-theme.css a déjà réinitialisé, on réapplique maintenant
    ============================================ */
-.configurator-panel,
-.configurator-panel *,
-.configurator-panel *::before,
-.configurator-panel *::after {
-  /* Box model - Réappliquer après all: unset */
-  display: revert !important;
-  box-sizing: border-box !important;
-  position: revert !important;
-  width: revert !important;
-  height: revert !important;
-  margin: revert !important;
-  padding: revert !important;
-  border: revert !important;
-  background: revert !important;
-  
-  /* Typographie - Surcharge stepn-theme.css ligne 127 */
+/* Surcharge seulement les propriétés typographiques problématiques de stepn-theme */
+/* NE PAS toucher aux autres styles pour ne pas casser le layout existant */
+.configurator-panel {
+  /* Typographie de base pour le container */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
-  font-weight: normal !important;
-  font-size: revert !important;
-  line-height: revert !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  text-align: revert !important;
-  text-decoration: revert !important;
-  font-style: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Surcharge seulement les éléments texte qui ont des problèmes avec stepn-theme */
+.configurator-panel p,
+.configurator-panel span,
+.configurator-panel div,
+.configurator-panel label {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
-  -webkit-opacity: 1 !important;
   -webkit-text-stroke-width: 0 !important;
   -webkit-text-stroke-color: transparent !important;
 }
@@ -127,13 +109,21 @@
 
 /* ============================================
    TITRES - Surcharge stepn-theme.css lignes 96-125
+   Surcharge aussi les styles inline avec fontFamily: 'var(--stepn-font-body)'
    ============================================ */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
 .configurator-panel h4,
 .configurator-panel h5,
-.configurator-panel h6 {
+.configurator-panel h6,
+/* Surcharge aussi les titres avec styles inline stepn-font-body */
+.configurator-panel h1[style*="fontFamily"],
+.configurator-panel h2[style*="fontFamily"],
+.configurator-panel h3[style*="fontFamily"],
+.configurator-panel h4[style*="fontFamily"],
+.configurator-panel h5[style*="fontFamily"],
+.configurator-panel h6[style*="fontFamily"] {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text-primary) !important;
   font-weight: 600 !important;
@@ -145,6 +135,8 @@
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
+  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
+  -webkit-text-stroke-width: 0 !important;
   margin: 0 !important;
 }
 
@@ -242,19 +234,12 @@
 }
 
 /* ============================================
-   BOUTONS - Surcharge stepn-theme.css lignes 182-205
+   BOUTONS - Surcharge seulement la typographie, pas le layout
+   NE PAS toucher aux background-color, padding, border, etc. pour préserver les styles inline React
    ============================================ */
 .configurator-panel button {
+  /* Typographie seulement - NE PAS toucher au layout */
   font-family: var(--config-panel-font-family) !important;
-  background-color: transparent !important;
-  color: var(--config-panel-text-primary) !important;
-  border: none !important;
-  font-size: var(--config-panel-font-size-base) !important;
-  font-weight: 500 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  cursor: pointer !important;
-  transition: var(--config-panel-transition) !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-feature-settings: normal !important;
@@ -262,45 +247,9 @@
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
-}
-
-.configurator-panel button:hover {
-  background-color: transparent !important;
-  opacity: 1 !important;
-}
-
-.configurator-panel button:disabled {
-  background-color: transparent !important;
-  color: #9ca3af !important;
-  cursor: not-allowed !important;
-}
-
-/* Boutons spécifiques */
-.configurator-panel button.bg-black,
-.configurator-panel .btn-primary,
-.configurator-panel button[class*="bg-black"] {
-  background-color: var(--config-panel-button-primary-bg) !important;
-  color: var(--config-panel-button-primary-text) !important;
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-}
-
-.configurator-panel button.bg-black:hover {
-  background-color: var(--config-panel-button-primary-hover) !important;
-}
-
-.configurator-panel button.bg-white,
-.configurator-panel .btn-secondary,
-.configurator-panel button[class*="bg-white"] {
-  background-color: var(--config-panel-button-secondary-bg) !important;
-  color: var(--config-panel-button-secondary-text) !important;
-  border: 1px solid var(--config-panel-button-secondary-border) !important;
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-}
-
-.configurator-panel button.bg-white:hover {
-  background-color: var(--config-panel-button-secondary-hover) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
 }
 
 /* ============================================
@@ -339,6 +288,91 @@
 .configurator-panel .viewer-3d {
   background-color: var(--config-panel-viewer-bg) !important;
   background: linear-gradient(to bottom, #f8fafc, #e2e8f0) !important;
+}
+
+/* ============================================
+   MODAUX - Les modaux peuvent être rendus en dehors de .configurator-panel
+   IMPORTANT: Ces règles s'appliquent même si les modaux sont en dehors de .configurator-panel
+   ============================================ */
+.configurator-panel-modal,
+.configurator-panel-modal-overlay {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+}
+
+/* Tous les éléments dans les modaux - règles très agressives pour surcharger stepn-theme */
+.configurator-panel-modal *,
+.configurator-panel-modal-overlay * {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+.configurator-panel-modal h1,
+.configurator-panel-modal h2,
+.configurator-panel-modal h3,
+.configurator-panel-modal h4,
+.configurator-panel-modal h5,
+.configurator-panel-modal h6,
+/* Surcharge aussi les titres avec styles inline */
+.configurator-panel-modal h1[style*="fontFamily"],
+.configurator-panel-modal h2[style*="fontFamily"],
+.configurator-panel-modal h3[style*="fontFamily"],
+.configurator-panel-modal h4[style*="fontFamily"],
+.configurator-panel-modal h5[style*="fontFamily"],
+.configurator-panel-modal h6[style*="fontFamily"],
+.configurator-panel-modal h1[style*="font-family"],
+.configurator-panel-modal h2[style*="font-family"],
+.configurator-panel-modal h3[style*="font-family"],
+.configurator-panel-modal h4[style*="font-family"],
+.configurator-panel-modal h5[style*="font-family"],
+.configurator-panel-modal h6[style*="font-family"] {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+  color: var(--config-panel-text-primary, #111827) !important;
+  font-weight: 600 !important;
+  -webkit-text-fill-color: var(--config-panel-text-primary, #111827) !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+}
+
+.configurator-panel-modal p,
+.configurator-panel-modal span,
+.configurator-panel-modal div,
+.configurator-panel-modal label,
+.configurator-panel-modal button,
+/* Surcharge aussi les éléments avec styles inline stepn-font-body */
+.configurator-panel-modal p[style*="fontFamily"],
+.configurator-panel-modal span[style*="fontFamily"],
+.configurator-panel-modal div[style*="fontFamily"],
+.configurator-panel-modal label[style*="fontFamily"],
+.configurator-panel-modal button[style*="fontFamily"],
+.configurator-panel-modal p[style*="font-family"],
+.configurator-panel-modal span[style*="font-family"],
+.configurator-panel-modal div[style*="font-family"],
+.configurator-panel-modal label[style*="font-family"],
+.configurator-panel-modal button[style*="font-family"] {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+}
+
+/* ============================================
+   Surcharge globale pour tous les éléments avec fontFamily stepn dans configurator-panel
+   ============================================ */
+.configurator-panel [style*="fontFamily"],
+.configurator-panel [style*="font-family"] {
+  /* Surcharge les styles inline qui utilisent var(--stepn-font-body) */
+  font-family: var(--config-panel-font-family) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
 }
 
 /* Cards et conteneurs */

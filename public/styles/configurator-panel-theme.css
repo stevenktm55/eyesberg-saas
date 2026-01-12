@@ -292,10 +292,27 @@
 
 /* ============================================
    MODAUX - Les modaux peuvent être rendus en dehors de .configurator-panel
+   IMPORTANT: Ces règles s'appliquent même si les modaux sont en dehors de .configurator-panel
    ============================================ */
 .configurator-panel-modal,
 .configurator-panel-modal-overlay {
-  font-family: var(--config-panel-font-family) !important;
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+}
+
+/* Tous les éléments dans les modaux - règles très agressives pour surcharger stepn-theme */
+.configurator-panel-modal *,
+.configurator-panel-modal-overlay * {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-feature-settings: normal !important;
+  font-variant: normal !important;
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 .configurator-panel-modal h1,
@@ -310,12 +327,19 @@
 .configurator-panel-modal h3[style*="fontFamily"],
 .configurator-panel-modal h4[style*="fontFamily"],
 .configurator-panel-modal h5[style*="fontFamily"],
-.configurator-panel-modal h6[style*="fontFamily"] {
-  font-family: var(--config-panel-font-family) !important;
-  color: var(--config-panel-text-primary) !important;
+.configurator-panel-modal h6[style*="fontFamily"],
+.configurator-panel-modal h1[style*="font-family"],
+.configurator-panel-modal h2[style*="font-family"],
+.configurator-panel-modal h3[style*="font-family"],
+.configurator-panel-modal h4[style*="font-family"],
+.configurator-panel-modal h5[style*="font-family"],
+.configurator-panel-modal h6[style*="font-family"] {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
+  color: var(--config-panel-text-primary, #111827) !important;
   font-weight: 600 !important;
-  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
+  -webkit-text-fill-color: var(--config-panel-text-primary, #111827) !important;
   -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
 }
 
 .configurator-panel-modal p,
@@ -328,10 +352,16 @@
 .configurator-panel-modal span[style*="fontFamily"],
 .configurator-panel-modal div[style*="fontFamily"],
 .configurator-panel-modal label[style*="fontFamily"],
-.configurator-panel-modal button[style*="fontFamily"] {
-  font-family: var(--config-panel-font-family) !important;
+.configurator-panel-modal button[style*="fontFamily"],
+.configurator-panel-modal p[style*="font-family"],
+.configurator-panel-modal span[style*="font-family"],
+.configurator-panel-modal div[style*="font-family"],
+.configurator-panel-modal label[style*="font-family"],
+.configurator-panel-modal button[style*="font-family"] {
+  font-family: var(--config-panel-font-family, 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif) !important;
   -webkit-text-fill-color: inherit !important;
   -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
 }
 
 /* ============================================
