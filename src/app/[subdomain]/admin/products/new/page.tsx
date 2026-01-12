@@ -10504,6 +10504,7 @@ export default function ProductBuilderPage() {
                           {/* Modal de confirmation de suppression - Version MOBILE (dans la simulation) */}
                           {viewportMode === 'mobile' && showDeleteModal && itemToDelete && (
                             <div
+                              className="configurator-panel-modal-overlay"
                               style={{
                                 position: 'absolute',
                                 top: 0,
@@ -10524,6 +10525,7 @@ export default function ProductBuilderPage() {
                               }}
                             >
                               <div
+                                className="configurator-panel-modal"
                                 style={{
                                   backgroundColor: '#ffffff',
                                   borderRadius: '12px',
@@ -10560,7 +10562,7 @@ export default function ProductBuilderPage() {
                                     fontSize: '20px',
                                     fontWeight: '600',
                                     color: '#000000',
-                                    fontFamily: 'var(--stepn-font-body)',
+                                    fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                                     margin: 0,
                                     textAlign: 'center'
                                   }}
@@ -10581,7 +10583,7 @@ export default function ProductBuilderPage() {
                                     style={{
                                       fontSize: '14px',
                                       color: '#666666',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                                       margin: 0
                                     }}
                                   >
@@ -10591,7 +10593,7 @@ export default function ProductBuilderPage() {
                                     style={{
                                       fontSize: '14px',
                                       color: '#666666',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                                       margin: 0
                                     }}
                                   >
@@ -10619,7 +10621,7 @@ export default function ProductBuilderPage() {
                                       border: '1px solid #e0e0e0',
                                       borderRadius: '6px',
                                       fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                                       color: '#000000',
                                       cursor: 'pointer',
                                       fontWeight: '500',
@@ -10643,7 +10645,7 @@ export default function ProductBuilderPage() {
                                       border: 'none',
                                       borderRadius: '6px',
                                       fontSize: '14px',
-                                      fontFamily: 'var(--stepn-font-body)',
+                                      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                                       color: '#ffffff',
                                       cursor: 'pointer',
                                       fontWeight: '500',
@@ -14294,19 +14296,20 @@ export default function ProductBuilderPage() {
       
       {/* Modal de confirmation de suppression - Version DESKTOP (niveau global) */}
       {viewportMode === 'desktop' && showDeleteModal && itemToDelete && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10000
-            }}
+        <div
+          className="configurator-panel-modal-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000
+          }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowDeleteModal(false);
@@ -14315,6 +14318,7 @@ export default function ProductBuilderPage() {
           }}
         >
           <div
+            className="configurator-panel-modal"
             style={{
               backgroundColor: '#ffffff',
               borderRadius: '12px',
@@ -14351,7 +14355,7 @@ export default function ProductBuilderPage() {
                 fontSize: '20px',
                 fontWeight: '600',
                 color: '#000000',
-                fontFamily: 'var(--stepn-font-body)',
+                fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                 margin: 0,
                 textAlign: 'center'
               }}
@@ -14372,7 +14376,7 @@ export default function ProductBuilderPage() {
                 style={{
                   fontSize: '14px',
                   color: '#666666',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                   margin: 0
                 }}
               >
@@ -14382,7 +14386,7 @@ export default function ProductBuilderPage() {
                 style={{
                   fontSize: '14px',
                   color: '#666666',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                   margin: 0
                 }}
               >
@@ -14410,7 +14414,7 @@ export default function ProductBuilderPage() {
                   border: '1px solid #e0e0e0',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                   color: '#000000',
                   cursor: 'pointer',
                   fontWeight: '500',
@@ -14434,7 +14438,7 @@ export default function ProductBuilderPage() {
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
+                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
                   color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',

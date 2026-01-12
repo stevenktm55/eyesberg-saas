@@ -280,6 +280,37 @@
   background: linear-gradient(to bottom, #f8fafc, #e2e8f0) !important;
 }
 
+/* ============================================
+   MODAUX - Les modaux peuvent être rendus en dehors de .configurator-panel
+   ============================================ */
+.configurator-panel-modal,
+.configurator-panel-modal-overlay {
+  font-family: var(--config-panel-font-family) !important;
+}
+
+.configurator-panel-modal h1,
+.configurator-panel-modal h2,
+.configurator-panel-modal h3,
+.configurator-panel-modal h4,
+.configurator-panel-modal h5,
+.configurator-panel-modal h6 {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text-primary) !important;
+  font-weight: 600 !important;
+  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
+  -webkit-text-stroke-width: 0 !important;
+}
+
+.configurator-panel-modal p,
+.configurator-panel-modal span,
+.configurator-panel-modal div,
+.configurator-panel-modal label,
+.configurator-panel-modal button {
+  font-family: var(--config-panel-font-family) !important;
+  -webkit-text-fill-color: inherit !important;
+  -webkit-text-stroke-width: 0 !important;
+}
+
 /* Cards et conteneurs */
 .configurator-panel .card,
 .configurator-panel .bg-white,
