@@ -13,21 +13,36 @@ export default function Page({
   const shopDomain = searchParams.shop || null;
   const preview = searchParams.preview || null;
   
-  console.log('🔍 Page component rendering', { productId, shopDomain, preview });
+  // TEST: Log immédiat pour vérifier que le composant s'exécute
+  if (typeof window !== 'undefined') {
+    console.log('🔍 Page component rendering', { productId, shopDomain, preview });
+  }
   
-  return (
-    <div className="h-screen w-screen configurator-panel-wrapper" style={{ backgroundColor: '#ffffff', border: '5px solid green' } as React.CSSProperties}>
-      <div className="configurator-panel-test" style={{ border: '5px solid magenta', padding: '20px' } as React.CSSProperties}>
-        TEST: Cette div devrait être visible
+  // TEST: Rendre d'abord sans Suspense pour voir si le problème vient de là
+  try {
+    return (
+      <div className="h-screen w-screen configurator-panel-wrapper" style={{ backgroundColor: '#ffffff', border: '5px solid green' } as React.CSSProperties}>
+        <div className="configurator-panel-test" style={{ border: '5px solid magenta', padding: '20px', backgroundColor: 'yellow' } as React.CSSProperties}>
+          TEST: Cette div devrait être visible - Page.tsx fonctionne !
+        </div>
+        {/* Temporairement désactiver Suspense pour tester */}
+        <div style={{ border: '5px solid blue', padding: '20px', backgroundColor: 'lightblue' } as React.CSSProperties}>
+          <p>Test: Suspense désactivé temporairement</p>
+          <ConfiguratorViewer 
+            mode="client"
+            productId={productId}
+            shopDomain={shopDomain}
+            preview={preview === 'true' || preview === '1' || preview === 'yes'}
+          />
+        </div>
       </div>
-      <Suspense fallback={<div className="configurator-panel configurator-panel-loading flex items-center justify-center h-full" style={{ border: '10px solid cyan', backgroundColor: 'lightcyan' } as React.CSSProperties}>Chargement...</div>}>
-        <ConfiguratorViewer 
-          mode="client"
-          productId={productId}
-          shopDomain={shopDomain}
-          preview={preview === 'true' || preview === '1' || preview === 'yes'}
-        />
-      </Suspense>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error('❌ Erreur dans Page component:', error);
+    return (
+      <div style={{ padding: '20px', backgroundColor: 'red', color: 'white' } as React.CSSProperties}>
+        ERREUR dans Page: {String(error)}
+      </div>
+    );
+  }
 }
