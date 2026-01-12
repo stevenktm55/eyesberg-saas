@@ -1,298 +1,117 @@
 /**
- * Thème dédié au ConfiguratorPanel
+ * Thème dédié au ConfiguratorPanel - THÈME 1: TAILWIND MODERNE (BLEU)
  * Ce thème s'applique uniquement à la zone de configuration visible par les clients
  * (Sidebar blanche + Viewer 3D)
  * Sépare complètement du thème stepn-theme.css qui est pour l'interface admin
  * 
  * IMPORTANT: Ce fichier DOIT être chargé APRÈS stepn-theme.css dans layout.tsx
  * Utilise !important partout pour surcharger les sélecteurs généraux stepn qui ont aussi !important
- * 
- * Cette version utilise une approche plus agressive avec des réinitialisations complètes
- * 
- * TEST: Si ce fichier est chargé, vous devriez voir cette règle dans les DevTools
  */
-/* TEST MARKER - CONFIGURATOR PANEL THEME IS LOADED */
 
 /* ============================================
-   CONFIGURATOR PANEL - Container principal
+   VARIABLES CSS - THÈME 1: TAILWIND MODERNE
    ============================================ */
 .configurator-panel {
-  /* Styles de base pour le container */
-}
-
-/* ============================================
-   RÉINITIALISATION COMPLÈTE EN PREMIER
-   Surcharge TOUS les styles stepn avant d'appliquer notre thème
-   IMPORTANT: all: unset dans stepn-theme.css a déjà réinitialisé, on réapplique maintenant
-   ============================================ */
-/* Surcharge seulement les propriétés typographiques problématiques de stepn-theme */
-/* NE PAS toucher aux autres styles pour ne pas casser le layout existant */
-.configurator-panel {
-  /* Typographie de base pour le container - Inter (style Tailwind) */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  color: #111827 !important;
-}
-
-/* Surcharge seulement les éléments texte qui ont des problèmes avec stepn-theme */
-.configurator-panel p,
-.configurator-panel span,
-.configurator-panel div,
-.configurator-panel label,
-.configurator-panel * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-  -webkit-text-stroke-width: 0 !important;
-  -webkit-text-stroke-color: transparent !important;
-}
-
-/* Règle très agressive pour forcer Inter sur TOUS les éléments, même avec styles inline */
-.configurator-panel *[style*="fontFamily"],
-.configurator-panel *[style*="font-family"],
-.configurator-panel *[style*="FontFamily"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-}
-
-/* ============================================
-   VARIABLES CSS - Configuration du thème
-   ============================================ */
-.configurator-panel {
-  /* Couleurs principales - Style Tailwind CSS moderne */
+  /* Typographie - Inter (style Tailwind CSS moderne) */
+  --config-panel-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Couleurs principales */
   --config-panel-bg: #ffffff;
-  --config-panel-sidebar-bg: #ffffff;
-  --config-panel-sidebar-border: #e5e7eb;
-  --config-panel-viewer-bg: #f9fafb;
-  --config-panel-text-primary: #111827;
+  --config-panel-text: #111827;
   --config-panel-text-secondary: #6b7280;
-  --config-panel-accent: #3b82f6;
-  --config-panel-accent-hover: #2563eb;
   --config-panel-border: #e5e7eb;
   
-  /* Inputs - Style Tailwind moderne */
+  /* Couleurs accent (bleu Tailwind) */
+  --config-panel-accent: #3b82f6;
+  --config-panel-accent-hover: #2563eb;
+  --config-panel-accent-light: #dbeafe;
+  
+  /* Boutons */
+  --config-panel-button-primary-bg: #3b82f6;
+  --config-panel-button-primary-hover: #2563eb;
+  --config-panel-button-primary-text: #ffffff;
+  --config-panel-button-secondary-bg: #f3f4f6;
+  --config-panel-button-secondary-hover: #e5e7eb;
+  --config-panel-button-secondary-text: #374151;
+  
+  /* Inputs */
   --config-panel-input-bg: #ffffff;
   --config-panel-input-border: #d1d5db;
   --config-panel-input-border-focus: #3b82f6;
-  
-  /* Boutons - Style Tailwind moderne avec ombres douces */
-  --config-panel-button-primary-bg: #3b82f6;
-  --config-panel-button-primary-text: #ffffff;
-  --config-panel-button-primary-hover: #2563eb;
-  --config-panel-button-secondary-bg: #ffffff;
-  --config-panel-button-secondary-text: #374151;
-  --config-panel-button-secondary-border: #d1d5db;
-  --config-panel-button-secondary-hover: #f9fafb;
-  
-  /* Typographie - Style Tailwind CSS moderne (Inter) */
-  --config-panel-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --config-panel-font-size-base: 14px;
-  --config-panel-font-size-sm: 12px;
-  --config-panel-font-size-lg: 16px;
-  --config-panel-font-size-xl: 18px;
-  --config-panel-font-size-2xl: 20px;
-  
-  /* Espacements */
-  --config-panel-spacing-xs: 4px;
-  --config-panel-spacing-sm: 8px;
-  --config-panel-spacing-md: 16px;
-  --config-panel-spacing-lg: 24px;
-  --config-panel-spacing-xl: 32px;
-  
-  /* Ombres - Style Tailwind moderne (ombres plus douces) */
-  --config-panel-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --config-panel-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-  --config-panel-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
-  --config-panel-shadow-button: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --config-panel-input-text: #111827;
   
   /* Border radius - Style Tailwind moderne (plus arrondi) */
   --config-panel-radius-sm: 6px;
   --config-panel-radius-md: 10px;
   --config-panel-radius-lg: 16px;
   
-  /* Transitions */
-  --config-panel-transition: all 0.2s ease-in-out;
-  
-  /* Styles de base */
-  background-color: var(--config-panel-bg) !important;
-  color: var(--config-panel-text-primary) !important;
+  /* Shadows - Style Tailwind */
+  --config-panel-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --config-panel-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --config-panel-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --config-panel-shadow-button: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 /* ============================================
-   TITRES - Surcharge stepn-theme.css lignes 96-125
-   Surcharge aussi les styles inline avec fontFamily: 'var(--stepn-font-body)'
+   CONFIGURATOR PANEL - Container principal
    ============================================ */
+.configurator-panel {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
+  background-color: var(--config-panel-bg) !important;
+}
+
+/* ============================================
+   TYPOGRAPHIE - Forcer Inter sur TOUS les éléments
+   ============================================ */
+.configurator-panel * {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
+  -webkit-text-fill-color: var(--config-panel-text) !important;
+  -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
+}
+
+/* Règle très agressive pour forcer Inter sur TOUS les éléments avec styles inline */
+.configurator-panel *[style*="fontFamily"],
+.configurator-panel *[style*="font-family"],
+.configurator-panel *[style*="FontFamily"],
+.configurator-panel *[style*="Font-Family"] {
+  font-family: var(--config-panel-font-family) !important;
+}
+
+/* Éléments texte spécifiques */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
 .configurator-panel h4,
 .configurator-panel h5,
 .configurator-panel h6,
-/* Surcharge aussi les titres avec styles inline stepn-font-body */
-.configurator-panel h1[style*="fontFamily"],
-.configurator-panel h2[style*="fontFamily"],
-.configurator-panel h3[style*="fontFamily"],
-.configurator-panel h4[style*="fontFamily"],
-.configurator-panel h5[style*="fontFamily"],
-.configurator-panel h6[style*="fontFamily"] {
-  font-family: var(--config-panel-font-family) !important;
-  color: var(--config-panel-text-primary) !important;
-  font-weight: 600 !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-style: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
-  -webkit-text-stroke-width: 0 !important;
-  margin: 0 !important;
-}
-
-/* ============================================
-   TEXTES - Surcharge stepn-theme.css ligne 127
-   ============================================ */
 .configurator-panel p,
 .configurator-panel span,
-.configurator-panel label,
-.configurator-panel a,
 .configurator-panel div,
+.configurator-panel label,
 .configurator-panel li,
-.configurator-panel ul,
-.configurator-panel ol {
+.configurator-panel td,
+.configurator-panel th {
   font-family: var(--config-panel-font-family) !important;
-  color: var(--config-panel-text-primary) !important;
-  font-weight: normal !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-style: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
-}
-
-/* Textes secondaires */
-.configurator-panel .text-secondary,
-.configurator-panel .text-gray-500,
-.configurator-panel .text-gray-600,
-.configurator-panel [class*="text-gray"] {
-  color: var(--config-panel-text-secondary) !important;
-}
-
-/* ============================================
-   INPUTS - Surcharge stepn-theme.css lignes 138-179
-   ============================================ */
-.configurator-panel input,
-.configurator-panel input[type="text"],
-.configurator-panel input[type="email"],
-.configurator-panel input[type="password"],
-.configurator-panel input[type="number"],
-.configurator-panel input[type="search"],
-.configurator-panel textarea,
-.configurator-panel select {
-  font-family: var(--config-panel-font-family) !important;
-  background-color: var(--config-panel-input-bg) !important;
-  border: 1px solid var(--config-panel-input-border) !important;
-  color: var(--config-panel-text-primary) !important;
-  font-size: var(--config-panel-font-size-base) !important;
-  padding: var(--config-panel-spacing-sm) var(--config-panel-spacing-md) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-  transition: var(--config-panel-transition) !important;
-  font-weight: normal !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
-  -webkit-opacity: 1 !important;
-  -webkit-box-shadow: none !important;
-}
-
-.configurator-panel input:focus,
-.configurator-panel input:active,
-.configurator-panel textarea:focus,
-.configurator-panel textarea:active,
-.configurator-panel select:focus,
-.configurator-panel select:active {
-  outline: none !important;
-  border-color: var(--config-panel-input-border-focus) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-  background-color: var(--config-panel-input-bg) !important;
-  color: var(--config-panel-text-primary) !important;
-}
-
-.configurator-panel input::placeholder,
-.configurator-panel textarea::placeholder {
-  color: var(--config-panel-text-secondary) !important;
-  opacity: 1 !important;
-}
-
-.configurator-panel input:-webkit-autofill,
-.configurator-panel textarea:-webkit-autofill,
-.configurator-panel select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px var(--config-panel-input-bg) inset !important;
-  -webkit-text-fill-color: var(--config-panel-text-primary) !important;
-  color: var(--config-panel-text-primary) !important;
-  background-color: var(--config-panel-input-bg) !important;
-}
-
-/* ============================================
-   BOUTONS - Style Tailwind moderne avec ombres et transitions
-   ============================================ */
-.configurator-panel button {
-  /* Typographie */
-  font-family: var(--config-panel-font-family) !important;
-  text-transform: none !important;
-  letter-spacing: normal !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  -webkit-text-fill-color: inherit !important;
+  color: var(--config-panel-text) !important;
+  -webkit-text-fill-color: var(--config-panel-text) !important;
   -webkit-text-stroke-width: 0 !important;
   -webkit-text-stroke-color: transparent !important;
-  /* Style Tailwind moderne */
-  transition: all 0.2s ease-in-out !important;
-  font-weight: 500 !important;
 }
 
-/* Règle très agressive pour forcer le style bleu sur tous les boutons avec fond noir */
-/* Cibler tous les boutons qui pourraient avoir un fond noir via styles inline */
-.configurator-panel button {
-  /* Si le bouton a un fond noir (détecté via la couleur du texte blanc ou autres indices),
-     forcer le style bleu moderne */
-}
-
-/* Cibler spécifiquement les boutons avec texte blanc (généralement boutons primaires noirs) */
-.configurator-panel button[style*="color: #ffffff"],
-.configurator-panel button[style*="color:#ffffff"],
-.configurator-panel button[style*="color: '#ffffff'"],
-.configurator-panel button[style*="color:'#ffffff'"] {
-  /* Si c'est un bouton avec texte blanc, c'est probablement un bouton primaire */
-  background-color: var(--config-panel-button-primary-bg) !important;
-  border-radius: var(--config-panel-radius-md) !important;
-  box-shadow: var(--config-panel-shadow-button) !important;
-}
-
-/* Boutons primaires - Style Tailwind bleu moderne */
-/* Cibler les boutons avec classes, styles inline, ou attributs */
-.configurator-panel button.bg-black,
-.configurator-panel .btn-primary,
-.configurator-panel button[class*="bg-black"],
-/* Cibler les boutons avec backgroundColor: '#000000' en style inline */
+/* ============================================
+   BOUTONS - Style Tailwind moderne
+   ============================================ */
+/* Boutons primaires (bleu) */
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"],
 .configurator-panel button[style*="backgroundColor: '#000000'"],
-.configurator-panel button[style*="backgroundColor: '#000'"],
+.configurator-panel button[style*="background-color: #3b82f6"],
 .configurator-panel button[style*="background-color: #000000"],
-.configurator-panel button[style*="background-color: #000"],
-.configurator-panel button[style*="background-color:#000000"],
-.configurator-panel button[style*="background-color:#000"] {
+.configurator-panel button.bg-black,
+.configurator-panel button.btn-primary,
+.configurator-panel button[class*="bg-black"] {
   background-color: var(--config-panel-button-primary-bg) !important;
   color: var(--config-panel-button-primary-text) !important;
   border-radius: var(--config-panel-radius-md) !important;
@@ -300,252 +119,246 @@
   border: none !important;
   padding: 10px 20px !important;
   font-weight: 500 !important;
+  font-family: var(--config-panel-font-family) !important;
+  transition: all 0.2s ease !important;
 }
 
-.configurator-panel button.bg-black:hover,
-.configurator-panel .btn-primary:hover,
-.configurator-panel button[class*="bg-black"]:hover,
+.configurator-panel button[style*="backgroundColor: '#3b82f6'"]:hover,
 .configurator-panel button[style*="backgroundColor: '#000000'"]:hover,
-.configurator-panel button[style*="backgroundColor: '#000'"]:hover,
+.configurator-panel button[style*="background-color: #3b82f6"]:hover,
 .configurator-panel button[style*="background-color: #000000"]:hover,
-.configurator-panel button[style*="background-color: #000"]:hover {
+.configurator-panel button.bg-black:hover,
+.configurator-panel button.btn-primary:hover {
   background-color: var(--config-panel-button-primary-hover) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06) !important;
-  transform: translateY(-1px) !important;
+  box-shadow: var(--config-panel-shadow-md) !important;
 }
 
-/* Boutons secondaires - Style Tailwind moderne */
-.configurator-panel button.bg-white,
-.configurator-panel .btn-secondary,
-.configurator-panel button[class*="bg-white"] {
+/* Boutons secondaires */
+.configurator-panel button[style*="backgroundColor: '#ffffff'"],
+.configurator-panel button[style*="background-color: #ffffff"],
+.configurator-panel button.btn-secondary {
   background-color: var(--config-panel-button-secondary-bg) !important;
   color: var(--config-panel-button-secondary-text) !important;
-  border: 1px solid var(--config-panel-button-secondary-border) !important;
   border-radius: var(--config-panel-radius-md) !important;
+  border: 1px solid var(--config-panel-border) !important;
   padding: 10px 20px !important;
   font-weight: 500 !important;
-}
-
-.configurator-panel button.bg-white:hover,
-.configurator-panel .btn-secondary:hover,
-.configurator-panel button[class*="bg-white"]:hover {
-  background-color: var(--config-panel-button-secondary-hover) !important;
-  border-color: #9ca3af !important;
-}
-
-/* ============================================
-   LIENS - Surcharge stepn-theme.css lignes 208-216
-   ============================================ */
-.configurator-panel a {
   font-family: var(--config-panel-font-family) !important;
-  color: var(--config-panel-text-primary) !important;
-  text-decoration: none !important;
-  transition: var(--config-panel-transition) !important;
-  cursor: pointer !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
+  transition: all 0.2s ease !important;
 }
 
-.configurator-panel a:hover {
-  opacity: 1 !important;
-  color: var(--config-panel-accent-hover) !important;
+.configurator-panel button[style*="backgroundColor: '#ffffff'"]:hover,
+.configurator-panel button[style*="background-color: #ffffff"]:hover,
+.configurator-panel button.btn-secondary:hover {
+  background-color: var(--config-panel-button-secondary-hover) !important;
+}
+
+/* Tous les boutons dans le panel */
+.configurator-panel button {
+  font-family: var(--config-panel-font-family) !important;
+  border-radius: var(--config-panel-radius-md) !important;
+  transition: all 0.2s ease !important;
 }
 
 /* ============================================
-   COMPOSANTS SPÉCIFIQUES
+   INPUTS - Style Tailwind moderne
    ============================================ */
-
-/* Sidebar blanche */
-.configurator-panel .sidebar-white {
-  background-color: var(--config-panel-sidebar-bg) !important;
-  border-right: 1px solid var(--config-panel-sidebar-border) !important;
-  color: var(--config-panel-text-primary) !important;
+.configurator-panel input[type="text"],
+.configurator-panel input[type="email"],
+.configurator-panel input[type="number"],
+.configurator-panel input[type="password"],
+.configurator-panel textarea,
+.configurator-panel select {
+  background-color: var(--config-panel-input-bg) !important;
+  border: 1px solid var(--config-panel-input-border) !important;
+  border-radius: var(--config-panel-radius-sm) !important;
+  color: var(--config-panel-input-text) !important;
+  padding: 8px 12px !important;
+  font-family: var(--config-panel-font-family) !important;
+  transition: all 0.2s ease !important;
 }
 
-/* Viewer 3D */
-.configurator-panel .viewer-3d {
-  background-color: var(--config-panel-viewer-bg) !important;
-  background: linear-gradient(to bottom, #f8fafc, #e2e8f0) !important;
+.configurator-panel input:focus,
+.configurator-panel textarea:focus,
+.configurator-panel select:focus {
+  outline: none !important;
+  border-color: var(--config-panel-input-border-focus) !important;
+  box-shadow: 0 0 0 3px var(--config-panel-accent-light) !important;
 }
 
 /* ============================================
-   MODAUX - Les modaux peuvent être rendus en dehors de .configurator-panel
-   IMPORTANT: Ces règles s'appliquent même si les modaux sont en dehors de .configurator-panel
-   Utiliser directement la valeur de la police car les variables CSS ne sont pas disponibles en dehors de .configurator-panel
+   MODAUX - Style Tailwind moderne
    ============================================ */
 .configurator-panel-modal,
 .configurator-panel-modal-overlay {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: var(--config-panel-font-family) !important;
 }
 
-/* Tous les éléments dans les modaux - règles très agressives pour surcharger stepn-theme */
+/* Tous les éléments dans les modaux */
 .configurator-panel-modal *,
-.configurator-panel-modal-overlay * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  -webkit-text-fill-color: inherit !important;
+.zone-selection-modal-content * {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
+  -webkit-text-fill-color: var(--config-panel-text) !important;
   -webkit-text-stroke-width: 0 !important;
   -webkit-text-stroke-color: transparent !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  font-feature-settings: normal !important;
-  font-variant: normal !important;
-  text-rendering: optimizeLegibility !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
 }
 
+/* Titres dans les modaux */
 .configurator-panel-modal h1,
 .configurator-panel-modal h2,
 .configurator-panel-modal h3,
 .configurator-panel-modal h4,
 .configurator-panel-modal h5,
 .configurator-panel-modal h6,
-/* Surcharge aussi les titres avec styles inline */
-.configurator-panel-modal h1[style*="fontFamily"],
-.configurator-panel-modal h2[style*="fontFamily"],
-.configurator-panel-modal h3[style*="fontFamily"],
-.configurator-panel-modal h4[style*="fontFamily"],
-.configurator-panel-modal h5[style*="fontFamily"],
-.configurator-panel-modal h6[style*="fontFamily"],
-.configurator-panel-modal h1[style*="font-family"],
-.configurator-panel-modal h2[style*="font-family"],
-.configurator-panel-modal h3[style*="font-family"],
-.configurator-panel-modal h4[style*="font-family"],
-.configurator-panel-modal h5[style*="font-family"],
-.configurator-panel-modal h6[style*="font-family"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  color: #111827 !important;
-  font-weight: 600 !important;
-  -webkit-text-fill-color: #111827 !important;
-  -webkit-text-stroke-width: 0 !important;
-  -webkit-text-stroke-color: transparent !important;
-}
-
-.configurator-panel-modal p,
-.configurator-panel-modal span,
-.configurator-panel-modal div,
-.configurator-panel-modal label,
-.configurator-panel-modal button,
-/* Surcharge aussi les éléments avec styles inline stepn-font-body */
-.configurator-panel-modal p[style*="fontFamily"],
-.configurator-panel-modal span[style*="fontFamily"],
-.configurator-panel-modal div[style*="fontFamily"],
-.configurator-panel-modal label[style*="fontFamily"],
-.configurator-panel-modal button[style*="fontFamily"],
-.configurator-panel-modal p[style*="font-family"],
-.configurator-panel-modal span[style*="font-family"],
-.configurator-panel-modal div[style*="font-family"],
-.configurator-panel-modal label[style*="font-family"],
-.configurator-panel-modal button[style*="font-family"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  -webkit-text-fill-color: inherit !important;
-  -webkit-text-stroke-width: 0 !important;
-  -webkit-text-stroke-color: transparent !important;
-}
-
-/* ============================================
-   Surcharge globale pour tous les éléments avec fontFamily stepn dans configurator-panel
-   ============================================ */
-.configurator-panel [style*="fontFamily"],
-.configurator-panel [style*="font-family"] {
-  /* Surcharge les styles inline qui utilisent var(--stepn-font-body) */
-  font-family: var(--config-panel-font-family) !important;
-  -webkit-text-fill-color: inherit !important;
-  -webkit-text-stroke-width: 0 !important;
-}
-
-/* ============================================
-   MODAUX ZONE SELECTION - Ces modaux utilisent une classe différente
-   ============================================ */
-.zone-selection-modal-content,
-.zone-selection-modal-content * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  -webkit-text-fill-color: inherit !important;
-  -webkit-text-stroke-width: 0 !important;
-  -webkit-text-stroke-color: transparent !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-}
-
 .zone-selection-modal-content h1,
 .zone-selection-modal-content h2,
 .zone-selection-modal-content h3,
 .zone-selection-modal-content h4,
 .zone-selection-modal-content h5,
 .zone-selection-modal-content h6 {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  color: #111827 !important;
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
   font-weight: 600 !important;
-  -webkit-text-fill-color: #111827 !important;
+  -webkit-text-fill-color: var(--config-panel-text) !important;
   -webkit-text-stroke-width: 0 !important;
+  -webkit-text-stroke-color: transparent !important;
 }
 
-/* Cards et conteneurs */
+/* Boutons dans les modaux */
+.configurator-panel-modal button,
+.zone-selection-modal-content button {
+  font-family: var(--config-panel-font-family) !important;
+  border-radius: var(--config-panel-radius-md) !important;
+}
+
+.configurator-panel-modal button[style*="backgroundColor: '#000000'"],
+.configurator-panel-modal button[style*="background-color: #000000"],
+.zone-selection-modal-content button[style*="backgroundColor: '#000000'"],
+.zone-selection-modal-content button[style*="background-color: #000000"] {
+  background-color: var(--config-panel-button-primary-bg) !important;
+  color: var(--config-panel-button-primary-text) !important;
+  box-shadow: var(--config-panel-shadow-button) !important;
+}
+
+.configurator-panel-modal button[style*="backgroundColor: '#000000'"]:hover,
+.configurator-panel-modal button[style*="background-color: #000000"]:hover,
+.zone-selection-modal-content button[style*="backgroundColor: '#000000'"]:hover,
+.zone-selection-modal-content button[style*="background-color: #000000"]:hover {
+  background-color: var(--config-panel-button-primary-hover) !important;
+  box-shadow: var(--config-panel-shadow-md) !important;
+}
+
+/* ============================================
+   CARTES ET CONTAINERS - Style Tailwind moderne
+   ============================================ */
 .configurator-panel .card,
-.configurator-panel .bg-white,
-.configurator-panel [class*="bg-white"] {
-  background-color: var(--config-panel-sidebar-bg) !important;
-}
-
-.configurator-panel .card {
+.configurator-panel .panel-card,
+.configurator-panel [class*="card"] {
+  background-color: var(--config-panel-bg) !important;
   border: 1px solid var(--config-panel-border) !important;
   border-radius: var(--config-panel-radius-lg) !important;
   box-shadow: var(--config-panel-shadow-sm) !important;
+  padding: 16px !important;
 }
 
-/* Onglets/Tabs */
-.configurator-panel .tab,
-.configurator-panel [class*="tab"] {
-  color: var(--config-panel-text-secondary) !important;
-  transition: var(--config-panel-transition) !important;
+/* ============================================
+   LIENS - Style Tailwind moderne
+   ============================================ */
+.configurator-panel a {
+  color: var(--config-panel-accent) !important;
+  text-decoration: none !important;
+  font-family: var(--config-panel-font-family) !important;
+  transition: color 0.2s ease !important;
+}
+
+.configurator-panel a:hover {
+  color: var(--config-panel-accent-hover) !important;
+}
+
+/* ============================================
+   BADGES ET LABELS - Style Tailwind moderne
+   ============================================ */
+.configurator-panel .badge,
+.configurator-panel [class*="badge"],
+.configurator-panel label {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   SIDEBAR - Style Tailwind moderne
+   ============================================ */
+.configurator-panel .sidebar,
+.configurator-panel [class*="sidebar"] {
+  background-color: var(--config-panel-bg) !important;
+  border-right: 1px solid var(--config-panel-border) !important;
   font-family: var(--config-panel-font-family) !important;
 }
 
-.configurator-panel .tab:hover,
-.configurator-panel [class*="tab"]:hover {
-  color: var(--config-panel-text-primary) !important;
+/* ============================================
+   TABS - Style Tailwind moderne
+   ============================================ */
+.configurator-panel .tab,
+.configurator-panel [class*="tab"] {
+  font-family: var(--config-panel-font-family) !important;
+  color: var(--config-panel-text-secondary) !important;
+  transition: all 0.2s ease !important;
 }
 
-.configurator-panel .tab-active,
-.configurator-panel [class*="tab-active"] {
-  color: var(--config-panel-text-primary) !important;
-  font-weight: 600 !important;
+.configurator-panel .tab.active,
+.configurator-panel [class*="tab"].active {
+  color: var(--config-panel-accent) !important;
+  border-bottom-color: var(--config-panel-accent) !important;
 }
 
-/* Bordures */
-.configurator-panel .border-gray-200,
-.configurator-panel .border-gray-300,
-.configurator-panel [class*="border-gray"] {
-  border-color: var(--config-panel-border) !important;
+/* ============================================
+   MOBILE - Style Tailwind moderne
+   ============================================ */
+.mobile-panel-slide-up button,
+.mobile-content-fade button {
+  font-family: var(--config-panel-font-family) !important;
+  border-radius: var(--config-panel-radius-md) !important;
 }
 
-/* Scrollbar personnalisée */
-.configurator-panel ::-webkit-scrollbar {
-  width: 8px !important;
-  height: 8px !important;
+.mobile-panel-slide-up button[style*="backgroundColor: '#000000'"],
+.mobile-panel-slide-up button[style*="background-color: #000000"],
+.mobile-content-fade button[style*="backgroundColor: '#000000'"],
+.mobile-content-fade button[style*="background-color: #000000"] {
+  background-color: var(--config-panel-button-primary-bg) !important;
+  color: var(--config-panel-button-primary-text) !important;
+  box-shadow: var(--config-panel-shadow-button) !important;
 }
 
-.configurator-panel ::-webkit-scrollbar-track {
-  background: var(--config-panel-viewer-bg) !important;
+.mobile-panel-slide-up button[style*="backgroundColor: '#000000'"]:hover,
+.mobile-panel-slide-up button[style*="background-color: #000000"]:hover,
+.mobile-content-fade button[style*="backgroundColor: '#000000'"]:hover,
+.mobile-content-fade button[style*="background-color: #000000"]:hover {
+  background-color: var(--config-panel-button-primary-hover) !important;
+  box-shadow: var(--config-panel-shadow-md) !important;
 }
 
-.configurator-panel ::-webkit-scrollbar-thumb {
-  background: var(--config-panel-text-secondary) !important;
-  border-radius: 4px !important;
+/* ============================================
+   OVERRIDES FINAUX - Pour s'assurer que tout est appliqué
+   ============================================ */
+/* Forcer la police Inter sur tous les éléments, même ceux avec des styles inline Space Grotesk */
+.configurator-panel *[style*="Space Grotesk"],
+.configurator-panel *[style*="space grotesk"],
+.configurator-panel *[style*="SPACE GROTESK"] {
+  font-family: var(--config-panel-font-family) !important;
 }
 
-.configurator-panel ::-webkit-scrollbar-thumb:hover {
-  background: var(--config-panel-text-primary) !important;
+/* Forcer les couleurs de boutons noirs en bleu */
+.configurator-panel button[style*="rgb(0, 0, 0)"],
+.configurator-panel button[style*="rgb(0,0,0)"] {
+  background-color: var(--config-panel-button-primary-bg) !important;
+  color: var(--config-panel-button-primary-text) !important;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .configurator-panel {
-    --config-panel-font-size-base: 14px;
-    --config-panel-spacing-md: 12px;
-    --config-panel-spacing-lg: 20px;
-  }
+/* ============================================
+   ANIMATIONS ET TRANSITIONS - Style Tailwind moderne
+   ============================================ */
+.configurator-panel * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
