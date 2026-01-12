@@ -7026,6 +7026,10 @@ export default function ProductBuilderPage() {
                                   display: 'block'
                                 }}
                                 dpr={[1, 2]}
+                                onCreated={({ gl, size }) => {
+                                  // Empêcher le redimensionnement automatique
+                                  gl.setSize(size.width, size.height, false);
+                                }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
