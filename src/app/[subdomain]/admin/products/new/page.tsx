@@ -8,8 +8,8 @@ import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
 
-// Constante pour la font du configurator-panel (Space Grotesk au lieu de stepn-font-body)
-const CONFIGURATOR_PANEL_FONT = "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+// Constante pour la font du configurator-panel (Inter - style Tailwind moderne)
+const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 if (typeof document !== 'undefined') {
@@ -9150,7 +9150,7 @@ export default function ProductBuilderPage() {
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
-                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
+                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                           className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -10088,7 +10088,7 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                       }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
+                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
                                       className="mobile-action-btn-black"
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
