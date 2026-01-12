@@ -354,15 +354,15 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 }
 
 /* Textes avec spécificité plus élevée que les sélecteurs généraux stepn */
+/* IMPORTANT: Ne pas cibler .configurator-panel div car ça casse le layout React */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
 .configurator-panel a,
-.configurator-panel div,
 .configurator-panel li,
 .configurator-panel ul,
 .configurator-panel ol {
-  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   color: #111827 !important;
   font-weight: normal !important;
   letter-spacing: normal !important;
