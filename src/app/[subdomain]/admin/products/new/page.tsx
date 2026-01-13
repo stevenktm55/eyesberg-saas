@@ -10432,7 +10432,7 @@ export default function ProductBuilderPage() {
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Bouton ajouter */}
                                     <button 
-                                      className="mobile-action-btn"
+                                      className="btn-primary mobile-action-btn mobile-action-btn-black"
                                       onClick={() => {
                                         if (isZoneMode) {
                                           // Mode zones : ouvrir le modal de sélection de zones
@@ -10452,11 +10452,33 @@ export default function ProductBuilderPage() {
                                           }
                                         }
                                       }}
-                                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
-                                      className="mobile-action-btn-black"
+                                      style={{ 
+                                        width: '100%',
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        gap: '8px', 
+                                        padding: '10px 20px', 
+                                        backgroundColor: '#3b82f6', 
+                                        color: '#ffffff', 
+                                        border: 'none', 
+                                        borderRadius: '8px', 
+                                        fontSize: '14px', 
+                                        fontWeight: '500', 
+                                        cursor: 'pointer', 
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#2563eb';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                                      }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                      {activeModule.config?.addTextButtonLabel || 'Ajouter du texte'}
+                                      {activeModule.addTextButtonLabel || 'Ajouter du texte'}
                                     </button>
                                     
                                     {/* Textes placés */}
