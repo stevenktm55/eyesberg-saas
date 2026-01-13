@@ -1176,6 +1176,13 @@ export default function ProductBuilderPage() {
           }
         }
         
+        // FORCER les labels du background remover en noir
+        if (htmlEl.classList.contains('background-remover-label')) {
+          htmlEl.style.setProperty('color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+        }
+        
         // FORCER les noms des zones en noir dans les modaux desktop
         // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
         if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
