@@ -2459,6 +2459,7 @@ export default function ProductBuilderPage() {
   };
   
   // Fonction pour redimensionner une image (max 4MB pour éviter l'erreur 413)
+  // NOTE: Temporairement désactivé car @imgly/background-removal ne fonctionne pas sur Vercel/serverless
   const resizeImageForApi = async (file: File, maxSizeMB: number = 3.5): Promise<File> => {
     // Si l'image est déjà assez petite, la retourner telle quelle
     if (file.size <= maxSizeMB * 1024 * 1024) {

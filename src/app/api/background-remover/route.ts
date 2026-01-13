@@ -57,7 +57,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Supprimer le fond avec le modèle ML
-    // Note: La première fois, le modèle sera téléchargé (mise en cache ensuite)
+    // NOTE: @imgly/background-removal ne fonctionne pas bien sur Vercel/serverless
+    // Les modèles ML nécessitent des fichiers natifs qui ne sont pas disponibles dans l'environnement serverless
+    // Pour l'instant, on retourne l'image originale
+    // TODO: Utiliser une API externe (remove.bg) ou une autre solution compatible serverless
+    console.warn('⚠️ Background removal not supported on serverless - returning original image');
+    
+    // Retourner l'image originale pour l'instant
+    const originalBase64 = originalImageBuffer.toString('base64');
+    return NextResponse.json({
+      success: false,
+      image: `data:${originalMimeType};base64,${originalBase64}`,
+      error: 'Background removal not supported on serverless platform'
+    });
+    
+    // Code désactivé - ne fonctionne pas sur Vercel/serverless
+    /*
     const blob = await removeBackground(originalImageBuffer, config);
 
     // Convertir le Blob en ArrayBuffer puis en base64
@@ -70,6 +85,7 @@ export async function POST(request: NextRequest) {
       success: true,
       image: `data:image/png;base64,${processedBase64}`
     });
+    */
   } catch (error: any) {
     console.error('❌ Error in background remover API:', error);
     
