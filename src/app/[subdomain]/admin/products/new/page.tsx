@@ -4011,7 +4011,10 @@ export default function ProductBuilderPage() {
               backgroundColor: '#ffffff',
               display: 'flex',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              minHeight: 0,
+              maxHeight: '100%',
+              height: '100%'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -6930,11 +6933,13 @@ export default function ProductBuilderPage() {
                         <div style={{
                           width: '100%',
                           height: '100%',
-                          minHeight: '600px',
+                          minHeight: 0,
+                          maxHeight: '100%',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
                           position: 'relative',
+                          flex: '1 1 0%',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '393px',
                             maxHeight: '852px',
@@ -6944,7 +6949,8 @@ export default function ProductBuilderPage() {
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            flex: '0 0 auto'
                           } : {
                             maxWidth: '100%',
                             maxHeight: '100%',
