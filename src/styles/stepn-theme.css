@@ -422,7 +422,8 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 }
 
 /* Boutons avec spécificité plus élevée */
-.configurator-panel button {
+/* EXCLURE les boutons de couleurs qui ont leur propre backgroundColor */
+.configurator-panel button:not(.color-circle-button) {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   background-color: transparent !important;
   color: #111827 !important;
@@ -441,12 +442,12 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-.configurator-panel button:hover {
+.configurator-panel button:not(.color-circle-button):hover {
   background-color: transparent !important;
   opacity: 1 !important;
 }
 
-.configurator-panel button:disabled {
+.configurator-panel button:not(.color-circle-button):disabled {
   background-color: transparent !important;
   color: #9ca3af !important;
   cursor: not-allowed !important;
@@ -454,19 +455,22 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 
 /* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
 /* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
-/* Utiliser une classe CSS spécifique pour exclure ces boutons de la règle générale */
+/* La classe color-circle-button les exclut déjà de la règle générale avec :not() */
+/* On ajoute juste les styles de base nécessaires sans surcharger le backgroundColor */
 .configurator-panel button.color-circle-button {
-  /* Ne pas forcer background-color: transparent - laisser les styles inline React gérer */
-  /* Ne pas forcer border-radius: 0 - laisser les styles inline React gérer */
-  background-color: unset !important;
-  border-radius: unset !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #111827 !important;
+  cursor: pointer !important;
+  /* Ne PAS définir background-color ici - laisser les styles inline React gérer */
+  /* Ne PAS définir border-radius ici - laisser les styles inline React gérer */
 }
 
 /* PROTECTION: Divs de cercles de couleurs dans les cartes (Primary, Secondary, Tertiary) */
 /* Ces divs ont un backgroundColor défini en inline style et doivent rester visibles */
 .configurator-panel div.color-circle-indicator {
   /* Ne pas surcharger le backgroundColor - laisser les styles inline React gérer */
-  background-color: unset !important;
+  /* Juste s'assurer que la typographie est correcte */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* Liens avec spécificité plus élevée */
