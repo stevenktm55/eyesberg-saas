@@ -353,22 +353,31 @@
    PROTECTION: Noms des zones dans les modaux - FORCER NOIR
    ============================================ */
 /* Forcer la couleur noire sur tous les textes dans les modaux de sélection de zones */
+/* RÈGLE ULTRA-SPÉCIFIQUE pour surcharger toutes les autres règles */
 .zone-selection-modal-content,
-.zone-selection-modal-content * {
+.zone-selection-modal-content *,
+.zone-selection-modal-content p,
+.zone-selection-modal-content span,
+.zone-selection-modal-content div,
+.zone-selection-modal-content div p,
+.zone-selection-modal-content div span {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
+  -webkit-text-stroke-color: #111827 !important;
 }
 
 /* Exception pour les boutons qui ont leur propre couleur */
-.zone-selection-modal-content button {
+.zone-selection-modal-content button,
+.zone-selection-modal-content button * {
   color: inherit !important;
   -webkit-text-fill-color: inherit !important;
 }
 
-/* Protection spécifique pour les labels de zones (noms sous les vignettes) */
-.zone-selection-modal-content p,
-.zone-selection-modal-content div p,
-.zone-selection-modal-content span {
+/* Protection spécifique pour les labels de zones (noms sous les vignettes) - RÈGLE TRÈS SPÉCIFIQUE */
+.zone-selection-modal-content div[style*="padding"] p,
+.zone-selection-modal-content div[style*="padding"] span,
+.zone-selection-modal-content > div > div > div p,
+.zone-selection-modal-content > div > div > div span {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
   -webkit-text-stroke-color: #111827 !important;
