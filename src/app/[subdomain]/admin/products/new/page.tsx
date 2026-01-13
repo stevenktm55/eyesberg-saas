@@ -2547,13 +2547,15 @@ export default function ProductBuilderPage() {
         if (logoId === 'imported' || variantFile.startsWith('data:') || variantFile.startsWith('blob:')) {
           const img = new Image();
           img.crossOrigin = 'anonymous';
-          await new Promise((resolve, reject) => {
+          await new Promise<void>((resolve, reject) => {
             img.onload = () => {
               actualWidth = img.naturalWidth || img.width;
               actualHeight = img.naturalHeight || img.height;
-              resolve(null);
+              resolve();
             };
-            img.onerror = reject;
+            img.onerror = () => {
+              reject(new Error('Failed to load image'));
+            };
             img.src = variantFile;
           });
         } else {
