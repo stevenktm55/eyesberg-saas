@@ -11753,14 +11753,14 @@ export default function ProductBuilderPage() {
                                       className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
-                                        color: '#111827 !important',
+                                        color: '#111827',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         textAlign: 'center',
                                         fontWeight: '500',
                                         WebkitTextFillColor: '#111827',
                                         WebkitTextStrokeColor: '#111827'
-                                      }}
+                                      } as React.CSSProperties}
                                     >
                                       Original
                                     </p>
@@ -11801,14 +11801,14 @@ export default function ProductBuilderPage() {
                                       className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
-                                        color: '#111827 !important',
+                                        color: '#111827',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         textAlign: 'center',
                                         fontWeight: '500',
                                         WebkitTextFillColor: '#111827',
                                         WebkitTextStrokeColor: '#111827'
-                                      }}
+                                      } as React.CSSProperties}
                                     >
                                       Sans fond
                                     </p>
@@ -16101,14 +16101,14 @@ export default function ProductBuilderPage() {
                   className="background-remover-label"
                   style={{
                     fontSize: '13px',
-                    color: '#111827 !important',
+                    color: '#111827',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
                     textAlign: 'center',
                     fontWeight: '500',
                     WebkitTextFillColor: '#111827',
                     WebkitTextStrokeColor: '#111827'
-                  }}
+                  } as React.CSSProperties}
                 >
                   Original
                 </p>
@@ -16149,14 +16149,14 @@ export default function ProductBuilderPage() {
                   className="background-remover-label"
                   style={{
                     fontSize: '13px',
-                    color: '#111827 !important',
+                    color: '#111827',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
                     textAlign: 'center',
                     fontWeight: '500',
                     WebkitTextFillColor: '#111827',
                     WebkitTextStrokeColor: '#111827'
-                  }}
+                  } as React.CSSProperties}
                 >
                   Sans fond
                 </p>
