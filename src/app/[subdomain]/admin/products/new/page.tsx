@@ -152,17 +152,33 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
   useEffect(() => {
     if (!fontFamily || !divRef.current) return;
     
+    // APPLIQUER IMMÉDIATEMENT la police même si elle n'est pas encore chargée
+    // Le navigateur l'appliquera automatiquement une fois chargée
+    const fontFamilyQuoted = `"${fontFamily}"`;
+    if (divRef.current) {
+      divRef.current.style.fontFamily = fontFamilyQuoted + ', sans-serif';
+      divRef.current.style.setProperty('font-family', fontFamilyQuoted + ', sans-serif', 'important');
+    }
+    
     let timeoutId: NodeJS.Timeout | null = null;
     let isMounted = true;
     let checkCount = 0;
-    const maxChecks = 100; // Limiter à 100 vérifications (5 secondes max)
+    const maxChecks = 200; // Augmenter à 200 vérifications (10 secondes max)
     
     const checkFont = () => {
-      if (!isMounted || !divRef.current || checkCount >= maxChecks) return;
+      if (!isMounted || !divRef.current || checkCount >= maxChecks) {
+        // Même si la police n'est pas chargée après maxChecks, forcer quand même le style
+        if (divRef.current && !fontReady) {
+          divRef.current.style.fontFamily = fontFamilyQuoted + ', sans-serif';
+          divRef.current.style.setProperty('font-family', fontFamilyQuoted + ', sans-serif', 'important');
+          setFontReady(true);
+          setForceUpdate(prev => prev + 1);
+        }
+        return;
+      }
       checkCount++;
       
       // Vérifier si la police est chargée avec différentes tailles et formats
-      const fontFamilyQuoted = `"${fontFamily}"`;
       const isReady = document.fonts.check(`12px ${fontFamilyQuoted}`) || 
                      document.fonts.check(`18px ${fontFamilyQuoted}`) ||
                      document.fonts.check(`24px ${fontFamilyQuoted}`) ||
@@ -175,10 +191,16 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
         // Forcer aussi directement le style pour être sûr
         if (divRef.current) {
           divRef.current.style.fontFamily = fontFamilyQuoted + ', sans-serif';
+          divRef.current.style.setProperty('font-family', fontFamilyQuoted + ', sans-serif', 'important');
           // Forcer un re-render en modifiant une propriété qui déclenche un reflow
           setForceUpdate(prev => prev + 1);
         }
       } else {
+        // Continuer à forcer le style même si pas encore chargé
+        if (divRef.current) {
+          divRef.current.style.fontFamily = fontFamilyQuoted + ', sans-serif';
+          divRef.current.style.setProperty('font-family', fontFamilyQuoted + ', sans-serif', 'important');
+        }
         // Réessayer après un court délai
         timeoutId = setTimeout(checkFont, 50);
       }
@@ -210,7 +232,7 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
       document.fonts.removeEventListener('loadingdone', handleFontsReady);
       document.fonts.removeEventListener('load', handleFontLoad);
     };
-  }, [fontFamily]);
+  }, [fontFamily, fontReady]);
   
   return (
     <div 
