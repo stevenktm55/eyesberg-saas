@@ -1013,6 +1013,32 @@ export default function ProductBuilderPage() {
         // Le CSS est déjà bien scoped et devrait suffire
         // On force uniquement les couleurs des boutons ici
         
+        // FORCER les styles pour les inputs dans les modaux desktop
+        if (htmlEl.tagName === 'INPUT' && (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
+          // Forcer le backgroundColor blanc et la couleur du texte noire
+          htmlEl.style.setProperty('background-color', '#ffffff', 'important');
+          htmlEl.style.setProperty('backgroundColor', '#ffffff', 'important');
+          htmlEl.style.setProperty('color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+          htmlEl.style.setProperty('border', '1px solid #d1d5db', 'important');
+          htmlEl.style.setProperty('border-radius', '6px', 'important');
+        }
+        
+        // FORCER les noms des zones en noir dans les modaux desktop
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
+            (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
+          // Vérifier si c'est un label de zone (contenant le nom de la zone)
+          const parentDiv = htmlEl.closest('div');
+          if (parentDiv && (parentDiv.style.padding === '12px' || parentDiv.style.padding === '10px' || 
+              parentDiv.getAttribute('style')?.includes('padding: 12px') || 
+              parentDiv.getAttribute('style')?.includes('padding: 10px'))) {
+            // C'est probablement un label de zone - forcer la couleur noire
+            htmlEl.style.setProperty('color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+          }
+        }
+        
         // FORCER le backgroundColor et borderRadius pour les cercles de couleurs depuis l'attribut data-color
         // Cela permet de contourner les règles CSS avec !important qui surchargent les styles inline React
         if (htmlEl.classList.contains('color-circle-button') || htmlEl.classList.contains('color-circle-indicator')) {

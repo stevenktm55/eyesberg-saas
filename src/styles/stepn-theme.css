@@ -185,13 +185,13 @@ select:not(.configurator-panel select):not(.configurator-panel *) select {
   -moz-osx-font-smoothing: grayscale !important;
 }
 
-/* Inputs - EXCLURE .configurator-panel */
-input[type="text"]:not(.configurator-panel input),
-input[type="email"]:not(.configurator-panel input),
-input[type="password"]:not(.configurator-panel input),
-body > input[type="text"],
-body > input[type="email"],
-body > input[type="password"] {
+/* Inputs - EXCLURE .configurator-panel ET ses modaux */
+input[type="text"]:not(.configurator-panel input):not(.configurator-panel-modal input):not(.zone-selection-modal-content input),
+input[type="email"]:not(.configurator-panel input):not(.configurator-panel-modal input):not(.zone-selection-modal-content input),
+input[type="password"]:not(.configurator-panel input):not(.configurator-panel-modal input):not(.zone-selection-modal-content input),
+body > input[type="text"]:not(.configurator-panel-modal input):not(.zone-selection-modal-content input),
+body > input[type="email"]:not(.configurator-panel-modal input):not(.zone-selection-modal-content input),
+body > input[type="password"]:not(.configurator-panel-modal input):not(.zone-selection-modal-content input) {
   background-color: var(--stepn-input-bg) !important;
   border: 1px solid var(--stepn-input-border);
   color: var(--stepn-text) !important;
