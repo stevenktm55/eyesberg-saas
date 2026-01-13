@@ -2458,6 +2458,71 @@ export default function ProductBuilderPage() {
     reader.readAsDataURL(file);
   };
   
+  // Fonction pour redimensionner une image (max 4MB pour éviter l'erreur 413)
+  const resizeImageForApi = async (file: File, maxSizeMB: number = 3.5): Promise<File> => {
+    // Si l'image est déjà assez petite, la retourner telle quelle
+    if (file.size <= maxSizeMB * 1024 * 1024) {
+      return file;
+    }
+    
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionner progressivement jusqu'à ce que la taille soit acceptable
+        let quality = 0.9;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const tryResize = () => {
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file); // Fallback: retourner le fichier original
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(file); // Fallback: retourner le fichier original
+              return;
+            }
+            
+            const sizeMB = blob.size / (1024 * 1024);
+            
+            if (sizeMB > maxSizeMB && attempts < maxAttempts) {
+              // Réduire encore la taille
+              width = Math.floor(width * 0.9);
+              height = Math.floor(height * 0.9);
+              quality = Math.max(0.5, quality - 0.1);
+              attempts++;
+              tryResize();
+            } else {
+              // Créer un nouveau File avec le blob redimensionné
+              const resizedFile = new File([blob], file.name, {
+                type: file.type || 'image/png',
+                lastModified: Date.now()
+              });
+              resolve(resizedFile);
+            }
+          }, file.type || 'image/png', quality);
+        };
+        
+        tryResize();
+      };
+      img.onerror = () => {
+        resolve(file); // Fallback: retourner le fichier original en cas d'erreur
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+  
   const handleImportLogo = async () => {
     if (!importedFile || !importedFilePreview) return;
     
@@ -2470,8 +2535,11 @@ export default function ProductBuilderPage() {
       
       // Appeler l'API de background remover
       try {
+        // Redimensionner l'image avant de l'envoyer (max 3.5MB pour éviter l'erreur 413)
+        const resizedFile = await resizeImageForApi(importedFile, 3.5);
+        
         const formData = new FormData();
-        formData.append('image', importedFile);
+        formData.append('image', resizedFile);
         
         const response = await fetch('/api/background-remover', {
           method: 'POST',
@@ -2485,7 +2553,7 @@ export default function ProductBuilderPage() {
             processed: data.image || importedFilePreview
           });
         } else {
-          console.error('Error calling background remover API');
+          console.error('Error calling background remover API:', response.status);
           // Fallback: utiliser l'image originale
           setBackgroundRemoverPreview({
             original: importedFilePreview,
