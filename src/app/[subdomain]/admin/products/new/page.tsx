@@ -146,6 +146,7 @@ type Design2D = {
 // Composant pour prévisualiser une police avec re-render automatique
 function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewText: string }) {
   const [fontReady, setFontReady] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
   const divRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -153,20 +154,29 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
     
     let timeoutId: NodeJS.Timeout | null = null;
     let isMounted = true;
+    let checkCount = 0;
+    const maxChecks = 100; // Limiter à 100 vérifications (5 secondes max)
     
     const checkFont = () => {
-      if (!isMounted || !divRef.current) return;
+      if (!isMounted || !divRef.current || checkCount >= maxChecks) return;
+      checkCount++;
       
-      // Vérifier si la police est chargée
-      const isReady = document.fonts.check(`12px "${fontFamily}"`) || 
-                     document.fonts.check(`18px "${fontFamily}"`) ||
-                     document.fonts.check(`24px "${fontFamily}"`);
+      // Vérifier si la police est chargée avec différentes tailles et formats
+      const fontFamilyQuoted = `"${fontFamily}"`;
+      const isReady = document.fonts.check(`12px ${fontFamilyQuoted}`) || 
+                     document.fonts.check(`18px ${fontFamilyQuoted}`) ||
+                     document.fonts.check(`24px ${fontFamilyQuoted}`) ||
+                     document.fonts.check(`12px '${fontFamily}'`) ||
+                     document.fonts.check(`18px '${fontFamily}'`) ||
+                     document.fonts.check(`24px '${fontFamily}'`);
       
       if (isReady) {
         setFontReady(true);
         // Forcer aussi directement le style pour être sûr
         if (divRef.current) {
-          divRef.current.style.fontFamily = `"${fontFamily}", sans-serif`;
+          divRef.current.style.fontFamily = fontFamilyQuoted + ', sans-serif';
+          // Forcer un re-render en modifiant une propriété qui déclenche un reflow
+          setForceUpdate(prev => prev + 1);
         }
       } else {
         // Réessayer après un court délai
@@ -184,17 +194,27 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
       }
     };
     
+    // Écouter aussi loadstart et load
+    const handleFontLoad = () => {
+      if (isMounted && divRef.current) {
+        setTimeout(checkFont, 100);
+      }
+    };
+    
     document.fonts.addEventListener('loadingdone', handleFontsReady);
+    document.fonts.addEventListener('load', handleFontLoad);
     
     return () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
       document.fonts.removeEventListener('loadingdone', handleFontsReady);
+      document.fonts.removeEventListener('load', handleFontLoad);
     };
   }, [fontFamily]);
   
   return (
     <div 
+      key={`font-preview-${fontFamily}-${forceUpdate}`}
       ref={divRef}
       style={{
         width: '100%',
@@ -2290,7 +2310,12 @@ export default function ProductBuilderPage() {
         const view = viewMap[text.zoneCategory];
         if (view) {
           console.log('📸 Pivoting camera to view:', view, 'for selected text zoneCategory:', text.zoneCategory);
-          window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+          // Marquer que la vue a été définie pour empêcher CameraInitializer de réinitialiser
+          viewHasBeenSetRef.current = true;
+          // Utiliser un délai pour s'assurer que l'événement est bien traité
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+          }, 10);
         }
       }
     } else {
@@ -14072,6 +14097,48 @@ export default function ProductBuilderPage() {
                               onClick={() => {
                                 setSelectedZoneId(zone.id);
                                 setTextInputValue('');
+                                
+                                // Pivoter la caméra vers la vue correspondant à la zone
+                                const zoneView = (zone as any)?.view as ('front'|'back'|'left'|'right') | undefined;
+                                if (zoneView) {
+                                  const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                    'Face': 'front',
+                                    'Dos': 'back',
+                                    'Gauche': 'left',
+                                    'Droite': 'right',
+                                    'front': 'front',
+                                    'back': 'back',
+                                    'left': 'left',
+                                    'right': 'right'
+                                  };
+                                  const view = viewMap[zoneView] || viewMap[zoneView?.toLowerCase() || ''];
+                                  if (view) {
+                                    console.log('📸 Desktop modal: Pivoting camera to view:', view, 'for zone:', zone.name);
+                                    // Marquer que la vue a été définie pour empêcher CameraInitializer de réinitialiser
+                                    viewHasBeenSetRef.current = true;
+                                    // Utiliser un délai pour s'assurer que l'événement est bien traité
+                                    setTimeout(() => {
+                                      window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                    }, 10);
+                                  }
+                                } else if ((zone as any)?.zoneCategory) {
+                                  const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                    'torse': 'front',
+                                    'dos': 'back',
+                                    'bras-gauche': 'left',
+                                    'bras-droit': 'right'
+                                  };
+                                  const view = viewMap[(zone as any).zoneCategory];
+                                  if (view) {
+                                    console.log('📸 Desktop modal: Pivoting camera to view:', view, 'for zoneCategory:', (zone as any).zoneCategory);
+                                    // Marquer que la vue a été définie pour empêcher CameraInitializer de réinitialiser
+                                    viewHasBeenSetRef.current = true;
+                                    // Utiliser un délai pour s'assurer que l'événement est bien traité
+                                    setTimeout(() => {
+                                      window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                    }, 10);
+                                  }
+                                }
                               }}
                               style={{
                                 position: 'relative',
