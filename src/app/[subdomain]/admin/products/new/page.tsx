@@ -1013,7 +1013,7 @@ export default function ProductBuilderPage() {
         // Le CSS est déjà bien scoped et devrait suffire
         // On force uniquement les couleurs des boutons ici
         
-        // FORCER le backgroundColor pour les cercles de couleurs depuis l'attribut data-color
+        // FORCER le backgroundColor et borderRadius pour les cercles de couleurs depuis l'attribut data-color
         // Cela permet de contourner les règles CSS avec !important qui surchargent les styles inline React
         if (htmlEl.classList.contains('color-circle-button') || htmlEl.classList.contains('color-circle-indicator')) {
           const dataColor = htmlEl.getAttribute('data-color');
@@ -1021,6 +1021,23 @@ export default function ProductBuilderPage() {
             // Forcer le backgroundColor depuis l'attribut data-color avec !important
             htmlEl.style.setProperty('background-color', dataColor, 'important');
             htmlEl.style.setProperty('backgroundColor', dataColor, 'important');
+          }
+          
+          // FORCER le borderRadius à 50% pour les cercles (uniquement pour les boutons, pas les divs)
+          if (htmlEl.classList.contains('color-circle-button')) {
+            // Forcer le borderRadius à 50% pour créer un cercle parfait (comme dans le header)
+            htmlEl.style.setProperty('border-radius', '50%', 'important');
+            htmlEl.style.setProperty('borderRadius', '50%', 'important');
+            // S'assurer que l'aspectRatio est 1:1 pour un cercle parfait
+            htmlEl.style.setProperty('aspect-ratio', '1', 'important');
+            htmlEl.style.setProperty('aspectRatio', '1', 'important');
+            // S'assurer que la border est visible (comme dans le header avec '2px solid #d1d5db' ou '#e5e7eb')
+            // Ne pas forcer la border si elle est déjà définie dans les styles inline
+            const currentBorder = htmlEl.style.border || htmlEl.style.getPropertyValue('border');
+            if (!currentBorder || currentBorder === 'none' || currentBorder === '0px') {
+              // Utiliser la même border que dans les styles inline React: '2px solid #e5e7eb'
+              htmlEl.style.setProperty('border', '2px solid #e5e7eb', 'important');
+            }
           }
         }
         
