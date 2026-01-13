@@ -9281,8 +9281,23 @@ export default function ProductBuilderPage() {
                                                 transition: 'all 0.2s ease',
                                                 whiteSpace: 'nowrap',
                                                 position: 'relative',
-                                                boxShadow: isActive ? 'inset 0 0 0 2px #6b7280' : 'none'
+                                                overflow: 'hidden'
                                               }}
+                                            >
+                                              {isActive && (
+                                                <div style={{
+                                                  position: 'absolute',
+                                                  top: '2px',
+                                                  left: '2px',
+                                                  right: '2px',
+                                                  bottom: '2px',
+                                                  border: '2px solid #6b7280',
+                                                  borderRadius: '6px',
+                                                  pointerEvents: 'none'
+                                                }} />
+                                              )}
+                                              {viewConfig.label}
+                                            </button>
                                               onMouseEnter={(e) => {
                                                 if (!isActive) {
                                                   e.currentTarget.style.backgroundColor = '#f3f4f6';
