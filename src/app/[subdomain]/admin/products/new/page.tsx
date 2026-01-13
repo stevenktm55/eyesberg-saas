@@ -1013,8 +1013,24 @@ export default function ProductBuilderPage() {
         // Le CSS est déjà bien scoped et devrait suffire
         // On force uniquement les couleurs des boutons ici
         
+        // FORCER le backgroundColor pour les cercles de couleurs depuis l'attribut data-color
+        // Cela permet de contourner les règles CSS avec !important qui surchargent les styles inline React
+        if (htmlEl.classList.contains('color-circle-button') || htmlEl.classList.contains('color-circle-indicator')) {
+          const dataColor = htmlEl.getAttribute('data-color');
+          if (dataColor && dataColor !== 'transparent' && dataColor !== 'undefined') {
+            // Forcer le backgroundColor depuis l'attribut data-color avec !important
+            htmlEl.style.setProperty('background-color', dataColor, 'important');
+            htmlEl.style.setProperty('backgroundColor', dataColor, 'important');
+          }
+        }
+        
         // FORCER BLEU sur TOUS les boutons primaires ET FORCER TEXTE BLANC
         if (htmlEl.tagName === 'BUTTON') {
+          // Ne pas traiter les boutons de couleurs ici
+          if (htmlEl.classList.contains('color-circle-button')) {
+            return; // Déjà traité ci-dessus
+          }
+          
           const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
           const inlineStyle = htmlEl.getAttribute('style') || '';
           
@@ -4401,6 +4417,7 @@ export default function ProductBuilderPage() {
                                     <button
                                       key={color.id}
                                       className="color-circle-button"
+                                      data-color={color.hex}
                                       onClick={() => {
                                         const newDesignColors = { ...designColors };
                                         newDesignColors[selectedColorClass] = color.id;
@@ -4531,6 +4548,7 @@ export default function ProductBuilderPage() {
                                   >
                                     <div
                                       className="color-circle-indicator"
+                                      data-color={currentColorHex && currentColorHex !== '#cccccc' && currentColorHex !== '#ffffff' && currentColorHex !== '#FFFFFF' ? currentColorHex : undefined}
                                       style={{
                                         width: '32px',
                                         height: '32px',

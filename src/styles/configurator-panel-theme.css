@@ -396,3 +396,11 @@
 .zone-selection-modal-content * {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
+
+/* ============================================
+   PROTECTION FINALE: Cercles de couleurs - FORCER la visibilité
+   Ces règles doivent être à la TRÈS FIN pour surcharger toutes les autres règles
+   ============================================ */
+/* IMPORTANT: Les styles inline React ont normalement la priorité la plus élevée */
+/* Mais si une règle CSS avec !important les surcharge, on doit utiliser une approche différente */
+/* Solution: Utiliser JavaScript pour forcer les styles après le rendu (voir useEffect dans page.tsx) */

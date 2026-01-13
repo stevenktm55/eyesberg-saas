@@ -457,20 +457,23 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 /* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
 /* La classe color-circle-button les exclut déjà de la règle générale avec :not() */
 /* On ajoute juste les styles de base nécessaires sans surcharger le backgroundColor */
+/* IMPORTANT: Cette règle doit être APRÈS toutes les autres règles pour avoir la priorité */
 .configurator-panel button.color-circle-button {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   color: #111827 !important;
   cursor: pointer !important;
-  /* Ne PAS définir background-color ici - laisser les styles inline React gérer */
-  /* Ne PAS définir border-radius ici - laisser les styles inline React gérer */
+  /* CRITIQUE: Ne PAS définir background-color ici - laisser les styles inline React gérer */
+  /* CRITIQUE: Ne PAS définir border-radius ici - laisser les styles inline React gérer */
+  /* Les styles inline React doivent avoir la priorité absolue pour ces propriétés */
 }
 
 /* PROTECTION: Divs de cercles de couleurs dans les cartes (Primary, Secondary, Tertiary) */
 /* Ces divs ont un backgroundColor défini en inline style et doivent rester visibles */
 .configurator-panel div.color-circle-indicator {
-  /* Ne pas surcharger le backgroundColor - laisser les styles inline React gérer */
+  /* CRITIQUE: Ne pas surcharger le backgroundColor - laisser les styles inline React gérer */
   /* Juste s'assurer que la typographie est correcte */
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* Les styles inline React doivent avoir la priorité absolue pour background-color */
 }
 
 /* Liens avec spécificité plus élevée */
