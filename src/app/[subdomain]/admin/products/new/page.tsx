@@ -5594,7 +5594,8 @@ export default function ProductBuilderPage() {
                                       transition: 'all 0.2s ease',
                                       whiteSpace: 'nowrap',
                                       fontFamily: CONFIGURATOR_PANEL_FONT,
-                                      boxShadow: isActive ? 'inset 0 0 0 1px #6b7280' : 'none'
+                                      position: 'relative',
+                                      boxShadow: isActive ? 'inset 0 0 0 2px #6b7280' : 'none'
                                     }}
                                     onTouchStart={(e) => {
                                       if (!isActive) {
@@ -9279,7 +9280,8 @@ export default function ProductBuilderPage() {
                                                 fontFamily: CONFIGURATOR_PANEL_FONT,
                                                 transition: 'all 0.2s ease',
                                                 whiteSpace: 'nowrap',
-                                                boxShadow: isActive ? 'inset 0 0 0 1px #6b7280' : 'none'
+                                                position: 'relative',
+                                                boxShadow: isActive ? 'inset 0 0 0 2px #6b7280' : 'none'
                                               }}
                                               onMouseEnter={(e) => {
                                                 if (!isActive) {
