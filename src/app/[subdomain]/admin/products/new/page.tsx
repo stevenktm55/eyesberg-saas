@@ -6102,7 +6102,7 @@ export default function ProductBuilderPage() {
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
                                                   minHeight: '60px',
-                                                  fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                  fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
                                                   fontSize: '18px',
                                                   fontWeight: 'bold',
                                                   color: '#111827'
@@ -9839,7 +9839,7 @@ export default function ProductBuilderPage() {
                                                               alignItems: 'center',
                                                               justifyContent: 'center',
                                                               minHeight: '60px',
-                                                              fontFamily: fontFamilyValue && loadedFonts.has(font.id) ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                              fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
                                                               fontSize: '18px',
                                                               fontWeight: 'bold',
                                                               color: '#111827'
