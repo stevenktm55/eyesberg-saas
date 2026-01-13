@@ -12646,6 +12646,106 @@ export default function ProductBuilderPage() {
                     />
                   </div>
 
+                  {/* Types de fichiers autorisés pour l'importation */}
+                  {selectedModule.contentType === 'logos' && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
+                      }}>
+                        Types de fichiers autorisés
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {['svg', 'png', 'jpg', 'jpeg'].map((fileType) => {
+                          const allowedTypes = selectedModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                          const isChecked = allowedTypes.includes(fileType);
+                          return (
+                            <label
+                              key={fileType}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                color: '#ffffff',
+                                fontFamily: CONFIGURATOR_PANEL_FONT
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const currentTypes = selectedModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                                  const newTypes = e.target.checked
+                                    ? [...currentTypes, fileType]
+                                    : currentTypes.filter(t => t !== fileType);
+                                  
+                                  // S'assurer qu'au moins un type est sélectionné
+                                  if (newTypes.length === 0) return;
+                                  
+                                  const updated = {
+                                    ...selectedModule,
+                                    allowedLogoFileTypes: newTypes.length === 4 ? undefined : newTypes
+                                  };
+                                  setSelectedModule(updated);
+                                  setCustomizationModules(customizationModules.map(m =>
+                                    m.id === selectedModule.id ? updated : m
+                                  ));
+                                }}
+                                style={{
+                                  width: '16px',
+                                  height: '16px',
+                                  cursor: 'pointer'
+                                }}
+                              />
+                              {fileType.toUpperCase()}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Option Background Remover */}
+                  {selectedModule.contentType === 'logos' && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: '#ffffff',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedModule.enableBackgroundRemover || false}
+                          onChange={(e) => {
+                            const updated = {
+                              ...selectedModule,
+                              enableBackgroundRemover: e.target.checked || undefined
+                            };
+                            setSelectedModule(updated);
+                            setCustomizationModules(customizationModules.map(m =>
+                              m.id === selectedModule.id ? updated : m
+                            ));
+                          }}
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        Background remover
+                      </label>
+                    </div>
+                  )}
+                  
                   {/* Texte du bouton "Importer un logo" */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{
