@@ -90,6 +90,15 @@ Value: [Copie depuis ton autre projet Vercel ou .env.local]
 Environments: ✅ Production, ✅ Preview, ✅ Development
 ```
 
+### 12. REMOVE_BG_API_KEY (Optionnel - pour le background remover des logos)
+```
+Name: REMOVE_BG_API_KEY
+Value: [Obtiens ta clé sur https://www.remove.bg/ → My Account → API Keys]
+Environments: ✅ Production, ✅ Preview, ✅ Development
+```
+
+📖 **Guide complet** : Voir `GUIDE_ADD_REMOVE_BG_API.md`
+
 ---
 
 ## 🚀 Après Configuration

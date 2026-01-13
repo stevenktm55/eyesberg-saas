@@ -1,13 +1,18 @@
 // =====================================================
 // API POUR SUPPRIMER LE FOND D'UNE IMAGE
+// Utilise @imgly/background-removal (modèle ML intégré)
 // =====================================================
 import { NextRequest, NextResponse } from 'next/server';
+import { removeBackground } from '@imgly/background-removal';
 
 /**
  * POST /api/background-remover
- * Supprime le fond d'une image en utilisant remove.bg API
+ * Supprime le fond d'une image en utilisant un modèle ML intégré
  */
 export async function POST(request: NextRequest) {
+  let originalImageBuffer: Buffer | null = null;
+  let originalMimeType: string = 'image/png';
+  
   try {
     const formData = await request.formData();
     const imageFile = formData.get('image') as File | null;
@@ -19,66 +24,80 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Utiliser remove.bg API (tu devras ajouter ta clé API dans les variables d'environnement)
-    const REMOVE_BG_API_KEY = process.env.REMOVE_BG_API_KEY;
+    // Vérifier le type de fichier
+    const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const fileType = imageFile.type || '';
     
-    if (!REMOVE_BG_API_KEY) {
-      // Si pas de clé API, retourner l'image originale (fallback)
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString('base64');
-      const mimeType = imageFile.type || 'image/png';
-      return NextResponse.json({
-        success: true,
-        image: `data:${mimeType};base64,${base64}`,
-        note: 'Background remover API key not configured'
-      });
+    if (!validMimeTypes.some(type => fileType.includes(type.split('/')[1]))) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Supported formats: JPEG, PNG, WebP, GIF' },
+        { status: 400 }
+      );
     }
 
-    // Convertir le fichier en blob
+    // Convertir le fichier en ArrayBuffer et sauvegarder pour le fallback
     const arrayBuffer = await imageFile.arrayBuffer();
-    const blob = new Blob([arrayBuffer], { type: imageFile.type });
+    originalImageBuffer = Buffer.from(arrayBuffer);
+    originalMimeType = imageFile.type || 'image/png';
 
-    // Appeler remove.bg API
-    const formDataRemoveBg = new FormData();
-    formDataRemoveBg.append('image_file', blob, imageFile.name);
-    formDataRemoveBg.append('size', 'auto');
-
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-Api-Key': REMOVE_BG_API_KEY,
-      },
-      body: formDataRemoveBg,
+    console.log('🔄 Processing image for background removal...', {
+      fileName: imageFile.name,
+      size: arrayBuffer.byteLength,
+      type: imageFile.type
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Remove.bg API error:', errorText);
-      
-      // Fallback: retourner l'image originale
-      const base64 = Buffer.from(arrayBuffer).toString('base64');
-      const mimeType = imageFile.type || 'image/png';
-      return NextResponse.json({
-        success: false,
-        image: `data:${mimeType};base64,${base64}`,
-        error: 'Failed to process image with remove.bg'
-      });
-    }
+    // Configuration pour la suppression de fond
+    const config = {
+      output: {
+        format: 'image/png' as const, // PNG pour supporter la transparence
+        quality: 0.9, // Qualité élevée
+      },
+      // Optionnel : personnaliser le modèle si nécessaire
+      // model: 'medium' // Options: 'small', 'medium', 'large' (par défaut: 'medium')
+    };
 
-    // Récupérer l'image traitée
-    const processedBlob = await response.blob();
-    const processedArrayBuffer = await processedBlob.arrayBuffer();
+    // Supprimer le fond avec le modèle ML
+    // Note: La première fois, le modèle sera téléchargé (mise en cache ensuite)
+    const blob = await removeBackground(originalImageBuffer, config);
+
+    // Convertir le Blob en ArrayBuffer puis en base64
+    const processedArrayBuffer = await blob.arrayBuffer();
     const processedBase64 = Buffer.from(processedArrayBuffer).toString('base64');
+
+    console.log('✅ Background removed successfully');
 
     return NextResponse.json({
       success: true,
       image: `data:image/png;base64,${processedBase64}`
     });
   } catch (error: any) {
-    console.error('Error in background remover API:', error);
+    console.error('❌ Error in background remover API:', error);
+    
+    // En cas d'erreur, retourner l'image originale
+    if (originalImageBuffer) {
+      const originalBase64 = originalImageBuffer.toString('base64');
+      console.log('⚠️ Returning original image due to error');
+      
+      return NextResponse.json({
+        success: false,
+        image: `data:${originalMimeType};base64,${originalBase64}`,
+        error: error.message || 'Failed to remove background, returning original image'
+      });
+    }
+    
     return NextResponse.json(
-      { error: error.message || 'Failed to remove background' },
+      { 
+        error: error.message || 'Failed to remove background',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
 }
+
+// Configuration pour Vercel (important pour les fonctions serverless)
+export const runtime = 'nodejs'; // Nécessaire pour utiliser les bibliothèques Node.js
+
+export const config = {
+  maxDuration: 60, // 60 secondes max (temps nécessaire pour le traitement ML)
+};
