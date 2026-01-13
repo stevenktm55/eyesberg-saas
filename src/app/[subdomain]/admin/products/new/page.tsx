@@ -73,6 +73,8 @@ type CustomizationModule = {
   placedLogosLabel?: string; // Texte de l'en-tête "Logos placés" (par défaut: "Logos placés")
   logoPlacementMode?: 'zones' | 'free'; // Mode de placement du logo: zones prédéfinies ou placement libre
   logoZoneGroupIds?: string[]; // IDs des groupes de zones à afficher pour les logos (si logoPlacementMode === 'zones')
+  allowedLogoFileTypes?: string[]; // Types de fichiers autorisés pour l'importation de logos (ex: ['svg', 'png', 'jpg', 'jpeg'])
+  enableBackgroundRemover?: boolean; // Activer l'option de suppression du fond pour les logos importés
   // Vues de caméra personnalisées (depuis modèle 3D)
   viewLabels?: { id: string; label: string; cameraViewId?: string }[]; // Labels de vues personnalisés avec liaison aux vues du modèle 3D
   selectedCameraViews?: string[]; // IDs des vues de caméra disponibles depuis le modèle 3D
@@ -1039,6 +1041,15 @@ export default function ProductBuilderPage() {
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null); // ID du logo placé à remplacer
   const [logoSearchQuery, setLogoSearchQuery] = useState<string>('');
   const logoScrollRef = useRef<HTMLDivElement>(null);
+  
+  // États pour l'importation de logo
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importedFile, setImportedFile] = useState<File | null>(null);
+  const [importedFilePreview, setImportedFilePreview] = useState<string | null>(null);
+  const [showBackgroundRemoverModal, setShowBackgroundRemoverModal] = useState(false);
+  const [backgroundRemoverEnabled, setBackgroundRemoverEnabled] = useState(false);
+  const [backgroundRemoverPreview, setBackgroundRemoverPreview] = useState<{original: string, processed: string} | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // États pour le modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -2410,6 +2421,76 @@ export default function ProductBuilderPage() {
     addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
     // Désactiver le mode placement après ajout
     setIsPlacingText(null);
+  };
+
+  // Fonctions de gestion de l'importation de logo
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+    if (!activeModule || activeModule.contentType !== 'logos') return;
+    
+    // Vérifier le type de fichier
+    const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      alert(`Type de fichier non autorisé. Types autorisés: ${allowedTypes.join(', ').toUpperCase()}`);
+      return;
+    }
+    
+    setImportedFile(file);
+    
+    // Créer un aperçu
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImportedFilePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleImportLogo = async () => {
+    if (!importedFile || !importedFilePreview) return;
+    
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+    if (!activeModule || activeModule.contentType !== 'logos') return;
+    
+    // Si background remover est activé, ouvrir le modal de confirmation
+    if (activeModule.enableBackgroundRemover) {
+      setShowBackgroundRemoverModal(true);
+      // TODO: Générer l'aperçu avec/sans background remover
+      // Pour l'instant, on utilise la même image pour les deux
+      setBackgroundRemoverPreview({
+        original: importedFilePreview,
+        processed: importedFilePreview // À remplacer par l'image traitée
+      });
+    } else {
+      // Aller directement à la sélection de zone
+      proceedToZoneSelection(importedFilePreview);
+    }
+  };
+  
+  const proceedToZoneSelection = (fileUrl: string) => {
+    // Fermer le modal d'importation
+    setShowImportModal(false);
+    setShowBackgroundRemoverModal(false);
+    
+    // Stocker le fichier importé pour la sélection de zone
+    setSelectedLogoForZone({
+      logoId: 'imported',
+      variantFile: fileUrl
+    });
+    
+    // Ouvrir le modal de sélection de zone
+    setShowLogoZoneModal(true);
+  };
+  
+  const handleBackgroundRemoverChoice = (apply: boolean) => {
+    if (!backgroundRemoverPreview) return;
+    
+    const fileUrl = apply ? backgroundRemoverPreview.processed : backgroundRemoverPreview.original;
+    proceedToZoneSelection(fileUrl);
   };
 
   // Logo management functions
@@ -5261,7 +5342,7 @@ export default function ProductBuilderPage() {
                                 <button
                                   className="btn-primary"
                                   onClick={() => {
-                                    // Logique d'importation de logo (à implémenter)
+                                    setShowImportModal(true);
                                   }}
                                   style={{
                                     flex: 1,
@@ -9386,8 +9467,7 @@ export default function ProductBuilderPage() {
                                             <button
                                               className="btn-primary mobile-action-btn-black"
                                               onClick={() => {
-                                                // TODO: Implémenter l'import de logo
-                                                console.log('📤 Importer un logo');
+                                                setShowImportModal(true);
                                               }}
                                               style={{ 
                                                 flex: 1,
@@ -11350,6 +11430,381 @@ export default function ProductBuilderPage() {
                               </div>
                             );
                           })()}
+                          
+                          {/* Modal d'importation de logo - Version MOBILE */}
+                          {viewportMode === 'mobile' && showImportModal && (() => {
+                            const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+                            if (!activeModule || activeModule.contentType !== 'logos') return null;
+                            
+                            const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                            const acceptTypes = allowedTypes.map(t => `.${t}`).join(',');
+                            
+                            return (
+                              <div
+                                className="configurator-panel-modal-overlay"
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  zIndex: 10000
+                                }}
+                                onClick={(e) => {
+                                  if (e.target === e.currentTarget) {
+                                    setShowImportModal(false);
+                                    setImportedFile(null);
+                                    setImportedFilePreview(null);
+                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                  }
+                                }}
+                              >
+                                <div
+                                  className="configurator-panel-modal"
+                                  style={{
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '12px',
+                                    padding: '24px',
+                                    width: '90%',
+                                    maxWidth: '400px',
+                                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '20px'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {/* Titre */}
+                                  <h2
+                                    style={{
+                                      fontSize: '18px',
+                                      fontWeight: '600',
+                                      color: '#111827',
+                                      margin: 0,
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
+                                    }}
+                                  >
+                                    Importer un logo
+                                  </h2>
+                                  
+                                  {/* Info types de fichiers */}
+                                  <p
+                                    style={{
+                                      fontSize: '12px',
+                                      color: '#6b7280',
+                                      margin: 0,
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
+                                    }}
+                                  >
+                                    Fichier ({allowedTypes.map(t => t.toUpperCase()).join(', ')})
+                                  </p>
+                                  
+                                  {/* Input fichier */}
+                                  <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept={acceptTypes}
+                                    onChange={handleFileSelect}
+                                    style={{
+                                      width: '100%',
+                                      padding: '10px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '6px',
+                                      fontSize: '14px',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                                      backgroundColor: '#ffffff',
+                                      color: '#111827'
+                                    }}
+                                  />
+                                  
+                                  {/* Aperçu si fichier sélectionné */}
+                                  {importedFilePreview && (
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        maxHeight: '200px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        padding: '12px',
+                                        backgroundColor: '#f9fafb'
+                                      }}
+                                    >
+                                      <img
+                                        src={importedFilePreview}
+                                        alt="Aperçu"
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '180px',
+                                          objectFit: 'contain'
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                  
+                                  {/* Boutons */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      gap: '12px',
+                                      width: '100%'
+                                    }}
+                                  >
+                                    <button
+                                      onClick={() => {
+                                        setShowImportModal(false);
+                                        setImportedFile(null);
+                                        setImportedFilePreview(null);
+                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                      }}
+                                      className="btn-secondary"
+                                      style={{
+                                        flex: 1,
+                                        padding: '10px 20px',
+                                        backgroundColor: '#ffffff',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        color: '#111827',
+                                        cursor: 'pointer',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                    >
+                                      Annuler
+                                    </button>
+                                    <button
+                                      onClick={handleImportLogo}
+                                      disabled={!importedFile}
+                                      className="btn-primary"
+                                      style={{
+                                        flex: 1,
+                                        padding: '10px 20px',
+                                        backgroundColor: importedFile ? '#6b7280' : '#d1d5db',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        color: '#ffffff',
+                                        cursor: importedFile ? 'pointer' : 'not-allowed',
+                                        fontWeight: '500',
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                    >
+                                      Importer
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
+                          {/* Modal de background remover - Version MOBILE */}
+                          {viewportMode === 'mobile' && showBackgroundRemoverModal && backgroundRemoverPreview && (
+                            <div
+                              className="configurator-panel-modal-overlay"
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 10001
+                              }}
+                              onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                  setShowBackgroundRemoverModal(false);
+                                }
+                              }}
+                            >
+                              <div
+                                className="configurator-panel-modal"
+                                style={{
+                                  backgroundColor: '#ffffff',
+                                  borderRadius: '12px',
+                                  padding: '24px',
+                                  width: '90%',
+                                  maxWidth: '500px',
+                                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '20px',
+                                  maxHeight: '90vh',
+                                  overflow: 'auto'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* Titre */}
+                                <h2
+                                  style={{
+                                    fontSize: '18px',
+                                    fontWeight: '600',
+                                    color: '#111827',
+                                    margin: 0,
+                                    fontFamily: CONFIGURATOR_PANEL_FONT
+                                  }}
+                                >
+                                  Supprimer le fond ?
+                                </h2>
+                                
+                                {/* Aperçus côte à côte */}
+                                <div
+                                  style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 1fr',
+                                    gap: '12px'
+                                  }}
+                                >
+                                  {/* Aperçu original */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '8px'
+                                    }}
+                                  >
+                                    <p
+                                      style={{
+                                        fontSize: '12px',
+                                        color: '#6b7280',
+                                        margin: 0,
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        textAlign: 'center'
+                                      }}
+                                    >
+                                      Original
+                                    </p>
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        aspectRatio: '1',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        padding: '8px',
+                                        backgroundColor: '#f9fafb'
+                                      }}
+                                    >
+                                      <img
+                                        src={backgroundRemoverPreview.original}
+                                        alt="Original"
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain'
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Aperçu traité */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: '8px'
+                                    }}
+                                  >
+                                    <p
+                                      style={{
+                                        fontSize: '12px',
+                                        color: '#6b7280',
+                                        margin: 0,
+                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        textAlign: 'center'
+                                      }}
+                                    >
+                                      Sans fond
+                                    </p>
+                                    <div
+                                      style={{
+                                        width: '100%',
+                                        aspectRatio: '1',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        padding: '8px',
+                                        backgroundColor: '#f9fafb'
+                                      }}
+                                    >
+                                      <img
+                                        src={backgroundRemoverPreview.processed}
+                                        alt="Sans fond"
+                                        style={{
+                                          maxWidth: '100%',
+                                          maxHeight: '100%',
+                                          objectFit: 'contain'
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Boutons */}
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    width: '100%'
+                                  }}
+                                >
+                                  <button
+                                    onClick={() => handleBackgroundRemoverChoice(false)}
+                                    className="btn-secondary"
+                                    style={{
+                                      flex: 1,
+                                      padding: '10px 20px',
+                                      backgroundColor: '#ffffff',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '8px',
+                                      fontSize: '14px',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                                      color: '#111827',
+                                      cursor: 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s ease'
+                                    }}
+                                  >
+                                    Non
+                                  </button>
+                                  <button
+                                    onClick={() => handleBackgroundRemoverChoice(true)}
+                                    className="btn-primary"
+                                    style={{
+                                      flex: 1,
+                                      padding: '10px 20px',
+                                      backgroundColor: '#6b7280',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      fontSize: '14px',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                                      color: '#ffffff',
+                                      cursor: 'pointer',
+                                      fontWeight: '500',
+                                      transition: 'all 0.2s ease'
+                                    }}
+                                  >
+                                    Oui
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           
                           {/* Modal de confirmation de suppression - Version MOBILE (dans la simulation) */}
                           {viewportMode === 'mobile' && showDeleteModal && itemToDelete && (
@@ -15205,6 +15660,377 @@ export default function ProductBuilderPage() {
           </div>
         );
       })()}
+      
+      {/* Modal d'importation de logo - Version DESKTOP */}
+      {viewportMode === 'desktop' && showImportModal && (() => {
+        const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+        if (!activeModule || activeModule.contentType !== 'logos') return null;
+        
+        const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+        const acceptTypes = allowedTypes.map(t => `.${t}`).join(',');
+        
+        return (
+          <div
+            className="configurator-panel-modal-overlay"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowImportModal(false);
+                setImportedFile(null);
+                setImportedFilePreview(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+              }
+            }}
+          >
+            <div
+              className="configurator-panel-modal zone-selection-modal-content"
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '32px',
+                width: '90%',
+                maxWidth: '500px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Titre */}
+              <h2
+                style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#111827',
+                  margin: 0,
+                  fontFamily: CONFIGURATOR_PANEL_FONT
+                }}
+              >
+                Importer un logo
+              </h2>
+              
+              {/* Info types de fichiers */}
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#6b7280',
+                  margin: 0,
+                  fontFamily: CONFIGURATOR_PANEL_FONT
+                }}
+              >
+                Fichier ({allowedTypes.map(t => t.toUpperCase()).join(', ')})
+              </p>
+              
+              {/* Input fichier */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={acceptTypes}
+                onChange={handleFileSelect}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
+                  backgroundColor: '#ffffff',
+                  color: '#111827'
+                }}
+              />
+              
+              {/* Aperçu si fichier sélectionné */}
+              {importedFilePreview && (
+                <div
+                  style={{
+                    width: '100%',
+                    maxHeight: '300px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    padding: '16px',
+                    backgroundColor: '#f9fafb'
+                  }}
+                >
+                  <img
+                    src={importedFilePreview}
+                    alt="Aperçu"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '280px',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Boutons */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                  width: '100%',
+                  justifyContent: 'flex-end'
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setImportedFile(null);
+                    setImportedFilePreview(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="btn-secondary"
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    color: '#111827',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleImportLogo}
+                  disabled={!importedFile}
+                  className="btn-primary"
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: importedFile ? '#6b7280' : '#d1d5db',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    color: '#ffffff',
+                    cursor: importedFile ? 'pointer' : 'not-allowed',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Importer
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      
+      {/* Modal de background remover - Version DESKTOP */}
+      {viewportMode === 'desktop' && showBackgroundRemoverModal && backgroundRemoverPreview && (
+        <div
+          className="configurator-panel-modal-overlay"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10001
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowBackgroundRemoverModal(false);
+            }
+          }}
+        >
+          <div
+            className="configurator-panel-modal zone-selection-modal-content"
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '32px',
+              width: '90%',
+              maxWidth: '600px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Titre */}
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#111827',
+                margin: 0,
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}
+            >
+              Supprimer le fond ?
+            </h2>
+            
+            {/* Aperçus côte à côte */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '16px'
+              }}
+            >
+              {/* Aperçu original */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#6b7280',
+                    margin: 0,
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    textAlign: 'center'
+                  }}
+                >
+                  Original
+                </p>
+                <div
+                  style={{
+                    width: '100%',
+                    aspectRatio: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb'
+                  }}
+                >
+                  <img
+                    src={backgroundRemoverPreview.original}
+                    alt="Original"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              {/* Aperçu traité */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#6b7280',
+                    margin: 0,
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    textAlign: 'center'
+                  }}
+                >
+                  Sans fond
+                </p>
+                <div
+                  style={{
+                    width: '100%',
+                    aspectRatio: '1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '6px',
+                    padding: '12px',
+                    backgroundColor: '#f9fafb'
+                  }}
+                >
+                  <img
+                    src={backgroundRemoverPreview.processed}
+                    alt="Sans fond"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Boutons */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                width: '100%',
+                justifyContent: 'flex-end'
+              }}
+            >
+              <button
+                onClick={() => handleBackgroundRemoverChoice(false)}
+                className="btn-secondary"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
+                  color: '#111827',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Non
+              </button>
+              <button
+                onClick={() => handleBackgroundRemoverChoice(true)}
+                className="btn-primary"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#6b7280',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Oui
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Modal de confirmation de suppression - Version DESKTOP (niveau global) */}
       {viewportMode === 'desktop' && showDeleteModal && itemToDelete && (
