@@ -1141,6 +1141,30 @@ export default function ProductBuilderPage() {
           htmlEl.style.setProperty('border-radius', '6px', 'important');
         }
         
+        // FORCER les polices dans les cartes de prévisualisation
+        // Chercher les divs qui contiennent du texte de prévisualisation de police
+        if (htmlEl.tagName === 'DIV' && htmlEl.closest('.configurator-panel')) {
+          const style = htmlEl.getAttribute('style') || '';
+          const hasPreviewStyle = style.includes('backgroundColor: #f5f5f5') || 
+                                 style.includes('background-color: #f5f5f5') ||
+                                 htmlEl.style.backgroundColor === 'rgb(245, 245, 245)' ||
+                                 htmlEl.style.backgroundColor === '#f5f5f5';
+          
+          if (hasPreviewStyle && htmlEl.textContent && htmlEl.textContent.length > 0 && htmlEl.textContent.length < 20) {
+            // C'est probablement une carte de prévisualisation de police
+            // Vérifier si une fontFamily est définie dans le style
+            const fontFamilyMatch = style.match(/fontFamily:\s*["']([^"']+)["']/i) || 
+                                   style.match(/font-family:\s*["']([^"']+)["']/i);
+            
+            if (fontFamilyMatch && fontFamilyMatch[1]) {
+              const fontFamily = fontFamilyMatch[1];
+              // Forcer l'application de la police
+              htmlEl.style.setProperty('font-family', `"${fontFamily}", sans-serif`, 'important');
+              htmlEl.style.fontFamily = `"${fontFamily}", sans-serif`;
+            }
+          }
+        }
+        
         // FORCER les noms des zones en noir dans les modaux desktop
         // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
         if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
