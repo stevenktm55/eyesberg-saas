@@ -16,30 +16,31 @@ const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
 const CONFIGURATOR_PANEL_PRIMARY_HOVER = '#2563eb';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
+// IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
-    .customizer-tab-name {
+    .configurator-panel .customizer-tab-name {
       color: #000000 !important;
       -webkit-text-fill-color: #000000 !important;
       -webkit-text-stroke-color: #000000 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .color-class-card-label {
+    .configurator-panel .color-class-card-label {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .typography-back-button,
-    .typography-back-button * {
+    .configurator-panel .typography-back-button,
+    .configurator-panel .typography-back-button * {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .mobile-action-btn-black,
-    .mobile-action-btn-black * {
+    .configurator-panel .mobile-action-btn-black,
+    .configurator-panel .mobile-action-btn-black * {
       color: #ffffff !important;
       -webkit-text-fill-color: #ffffff !important;
       -webkit-text-stroke-color: #ffffff !important;
@@ -957,92 +958,148 @@ export default function ProductBuilderPage() {
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
   // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
-  // Fonction pour forcer Inter et couleurs bleues
+  // Fonction SCOPÉE pour forcer Inter et couleurs bleues UNIQUEMENT dans le configurator-panel
   const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
-    const target = element || document.querySelector('.configurator-panel');
-    if (!target) return;
-
-    // Traiter l'élément cible et tous ses enfants
-    const elementsToProcess = element ? [element, ...Array.from(element.querySelectorAll('*'))] : Array.from(target.querySelectorAll('*'));
+    // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
+    const isInConfiguratorPanel = (el: Element): boolean => {
+      const panel = document.querySelector('.configurator-panel');
+      if (!panel) return false;
+      
+      // Vérifier si l'élément est dans le panel
+      if (panel.contains(el)) return true;
+      
+      // Vérifier si l'élément est dans un modal du configurator (UNIQUEMENT les classes spécifiques)
+      const isInModal = el.closest('.configurator-panel-modal') !== null ||
+                       el.closest('.zone-selection-modal-content') !== null ||
+                       el.classList.contains('configurator-panel-modal') ||
+                       el.classList.contains('zone-selection-modal-content');
+      
+      return isInModal;
+    };
     
-    elementsToProcess.forEach((el: Element) => {
-      const htmlEl = el as HTMLElement;
-      if (!htmlEl) return;
+    // Vérifier d'abord que le panel existe
+    const panel = document.querySelector('.configurator-panel');
+    if (!panel) return; // Ne rien faire si le panel n'existe pas
+    
+    // Traiter le panel ET tous les modaux même en dehors
+    const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
+    
+    const targets: Element[] = [];
+    if (element && isInConfiguratorPanel(element)) {
+      targets.push(element);
+    } else {
+      targets.push(panel);
+      modals.forEach(modal => targets.push(modal));
+    }
+    
+    if (targets.length === 0) return;
+
+    // Traiter chaque cible et tous ses enfants
+    targets.forEach(target => {
+      // Vérifier que la cible est bien dans le configurator-panel
+      if (!isInConfiguratorPanel(target)) return;
       
-      // Forcer la police Inter - vérifier l'objet style React ET l'attribut style
-      const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
-      const inlineStyle = htmlEl.getAttribute('style') || '';
+      const allElements = target.querySelectorAll('*');
+      const elementsToProcess = [target, ...Array.from(allElements)];
       
-      // Forcer Inter si Space Grotesk est détecté OU si la police n'est pas Inter
-      if (reactStyleFont) {
-        if (reactStyleFont.includes('Space Grotesk') || (!reactStyleFont.includes('Inter') && !reactStyleFont.includes('monospace'))) {
-          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-        }
-      } else if (!inlineStyle.includes('Inter') && !inlineStyle.includes('monospace')) {
-        // Si pas de style inline mais qu'on est dans le panel, forcer Inter
-        htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-      }
-      
-      if (inlineStyle.includes('Space Grotesk')) {
-        const newStyle = inlineStyle
-          .replace(/fontFamily:\s*['"]Space Grotesk['"][^;'"]*/gi, "fontFamily: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif")
-          .replace(/font-family:\s*['"]Space Grotesk['"][^;'"]*/gi, "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
-        if (newStyle !== inlineStyle) {
-          htmlEl.setAttribute('style', newStyle);
-          // Forcer aussi via setProperty
-          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-        }
-      }
-      
-      // Forcer les couleurs des boutons noirs en bleu
-      if (htmlEl.tagName === 'BUTTON') {
-        const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
-        const reactTextColor = htmlEl.style.color || htmlEl.style.getPropertyValue('color');
+      elementsToProcess.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        if (!htmlEl) return;
         
-        // Vérifier si c'est un bouton noir avec texte blanc (via React style ou inline)
-        const isBlackButton = reactBgColor === 'rgb(0, 0, 0)' || 
-                             reactBgColor === '#000000' || 
-                             inlineStyle.includes('backgroundColor: \'#000000\'') ||
-                             inlineStyle.includes('background-color: #000000') ||
-                             inlineStyle.includes('backgroundColor:#000000');
+        // VÉRIFIER que l'élément est bien dans le configurator-panel avant d'appliquer les styles
+        if (!isInConfiguratorPanel(el)) return;
         
-        const isWhiteText = reactTextColor === 'rgb(255, 255, 255)' ||
-                           reactTextColor === '#ffffff' ||
-                           inlineStyle.includes('color: \'#ffffff\'') ||
-                           inlineStyle.includes('color: #ffffff') ||
-                           inlineStyle.includes('color:#ffffff');
+        // NE PAS forcer Inter via JavaScript - laisser le CSS faire le travail
+        // Le CSS est déjà bien scoped et devrait suffire
+        // On force uniquement les couleurs des boutons ici
         
-        // Ne pas changer si c'est un bouton de couleur (qui affiche une couleur réelle)
-        const isColorButton = inlineStyle.includes('color?.hex') || htmlEl.getAttribute('data-color-button') === 'true';
-        
-        if (isBlackButton && isWhiteText && !isColorButton) {
-          htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
-          // Mettre à jour aussi l'attribut style si présent
-          if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
-            const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
-            htmlEl.setAttribute('style', newStyle);
+        // FORCER BLEU sur TOUS les boutons primaires ET FORCER TEXTE BLANC
+        if (htmlEl.tagName === 'BUTTON') {
+          const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
+          const inlineStyle = htmlEl.getAttribute('style') || '';
+          
+          // Détecter bouton primaire (bleu ou noir qui doit être bleu)
+          const isPrimaryButton = reactBgColor === 'rgb(59, 130, 246)' ||
+                                 reactBgColor === '#3b82f6' ||
+                                 reactBgColor === 'rgb(0, 0, 0)' || 
+                                 reactBgColor === '#000000' || 
+                                 reactBgColor === 'black' ||
+                                 htmlEl.classList.contains('btn-primary') ||
+                                 htmlEl.classList.contains('mobile-action-btn-black') ||
+                                 inlineStyle.includes('backgroundColor: \'#3b82f6\'') ||
+                                 inlineStyle.includes('background-color: #3b82f6') ||
+                                 inlineStyle.includes('backgroundColor: \'#000000\'') ||
+                                 inlineStyle.includes('background-color: #000000') ||
+                                 inlineStyle.includes('backgroundColor:#000000') ||
+                                 inlineStyle.includes('rgb(0, 0, 0)') ||
+                                 inlineStyle.includes('rgb(0,0,0)');
+          
+          // Ne pas changer si c'est un bouton de couleur (qui affiche une couleur réelle)
+          const isColorButton = inlineStyle.includes('color?.hex') || 
+                               htmlEl.getAttribute('data-color-button') === 'true' ||
+                               htmlEl.closest('[class*="color"]') !== null;
+          
+          if (isPrimaryButton && !isColorButton) {
+            // Forcer le fond bleu
+            htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
+            htmlEl.style.setProperty('backgroundColor', '#3b82f6', 'important');
+            
+            // FORCER LE TEXTE EN BLANC sur le bouton
+            htmlEl.style.setProperty('color', '#ffffff', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            
+            // Forcer aussi sur tous les éléments enfants (span, div, p, etc.)
+            const children = htmlEl.querySelectorAll('*');
+            children.forEach((child: Element) => {
+              const childEl = child as HTMLElement;
+              childEl.style.setProperty('color', '#ffffff', 'important');
+              childEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+              
+              // Forcer aussi sur les SVG
+              if (childEl.tagName === 'svg') {
+                childEl.style.setProperty('stroke', '#ffffff', 'important');
+                childEl.style.setProperty('fill', '#ffffff', 'important');
+                childEl.setAttribute('stroke', '#ffffff');
+                childEl.setAttribute('fill', 'none');
+              }
+              
+              // Forcer aussi sur les paths dans les SVG
+              if (childEl.tagName === 'path') {
+                childEl.style.setProperty('stroke', '#ffffff', 'important');
+                childEl.setAttribute('stroke', '#ffffff');
+              }
+            });
+            
+            // Mettre à jour aussi l'attribut style si présent
+            if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
+              const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
+              htmlEl.setAttribute('style', newStyle);
+            }
+            if (inlineStyle.includes('background-color: #000000')) {
+              const newStyle = inlineStyle.replace(/background-color:\s*#000000/g, "background-color: #3b82f6");
+              htmlEl.setAttribute('style', newStyle);
+            }
           }
         }
-      }
-      
-      // Forcer aussi sur les éléments texte (h1, h2, h3, p, span, div, label)
-      const textElements = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'DIV', 'LABEL'];
-      if (textElements.includes(htmlEl.tagName)) {
-        const reactStyleFont = htmlEl.style.fontFamily || htmlEl.style.getPropertyValue('font-family');
-        if (reactStyleFont && (reactStyleFont.includes('Space Grotesk') || (!reactStyleFont.includes('Inter') && !reactStyleFont.includes('monospace')))) {
-          htmlEl.style.setProperty('font-family', "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", 'important');
-        }
-      }
+      });
     });
   }, []);
 
   // Utiliser useLayoutEffect et useEffect avec MutationObserver pour détecter les changements DOM
+  // IMPORTANT: Ne s'exécute QUE si le panel existe et uniquement sur les éléments du panel
   useEffect(() => {
     const panel = document.querySelector('.configurator-panel');
     if (!panel) return;
 
+    // Vérifier que le panel existe avant d'exécuter
+    const checkAndForce = () => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return;
+      forceConfiguratorPanelStyles();
+    };
+
     // Exécuter immédiatement
-    forceConfiguratorPanelStyles();
+    checkAndForce();
 
     // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
     const isConfiguratorElement = (element: Element): boolean => {
@@ -1085,27 +1142,53 @@ export default function ProductBuilderPage() {
     });
 
     // Observer aussi document.body pour capturer les modaux qui sont rendus en dehors du panel
+    // IMPORTANT: Observer UNIQUEMENT les modaux avec les classes spécifiques
     const bodyObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
-            // Vérifier si c'est un modal du configurator
-            if (element.classList.contains('configurator-panel-modal') ||
-                element.classList.contains('zone-selection-modal-content') ||
-                element.querySelector('.configurator-panel-modal') ||
-                element.querySelector('.zone-selection-modal-content')) {
+            // Vérifier UNIQUEMENT si c'est un modal du configurator avec les classes spécifiques
+            // Ne pas utiliser querySelector car ça pourrait matcher d'autres éléments
+            const isConfiguratorModal = element.classList.contains('configurator-panel-modal') ||
+                element.classList.contains('zone-selection-modal-content');
+            
+            // Vérifier aussi si l'élément contient un modal du configurator (mais pas via querySelector qui est trop large)
+            const hasConfiguratorModalChild = Array.from(element.children).some(child => 
+              child.classList.contains('configurator-panel-modal') ||
+              child.classList.contains('zone-selection-modal-content')
+            );
+            
+            if (isConfiguratorModal || hasConfiguratorModalChild) {
               // Attendre un peu pour que le modal soit complètement rendu
               setTimeout(() => {
                 forceConfiguratorPanelStyles(element);
               }, 50);
+              // Forcer aussi immédiatement
+              forceConfiguratorPanelStyles(element);
             }
           }
         });
+        
+        // Vérifier aussi les changements d'attributs sur les modaux
+        if (mutation.type === 'attributes') {
+          const target = mutation.target as HTMLElement;
+          // Vérifier UNIQUEMENT les classes spécifiques
+          const isConfiguratorModal = target.classList.contains('configurator-panel-modal') ||
+              target.classList.contains('zone-selection-modal-content');
+          
+          // Vérifier aussi si l'élément est dans un modal du configurator
+          const isInConfiguratorModal = target.closest('.configurator-panel-modal') !== null ||
+              target.closest('.zone-selection-modal-content') !== null;
+          
+          if (isConfiguratorModal || isInConfiguratorModal) {
+            forceConfiguratorPanelStyles(target);
+          }
+        }
       });
     });
 
-    // Observer document.body pour les modaux
+    // Observer document.body pour les modaux mais UNIQUEMENT ceux avec les classes spécifiques
     bodyObserver.observe(document.body, {
       childList: true,
       subtree: true,
@@ -1114,14 +1197,20 @@ export default function ProductBuilderPage() {
     });
 
     // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
+    // IMPORTANT: Vérifier que le panel existe à chaque fois
     const interval = setInterval(() => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return; // Ne rien faire si le panel n'existe pas
+      
+      // Forcer uniquement sur le panel et les modaux spécifiques
       forceConfiguratorPanelStyles();
-      // Forcer aussi sur les modaux qui sont en dehors du panel
+      
+      // Forcer aussi sur les modaux qui sont en dehors du panel (UNIQUEMENT les classes spécifiques)
       const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
       modals.forEach(modal => {
         forceConfiguratorPanelStyles(modal);
       });
-    }, 500);
+    }, 300); // Plus fréquent pour capturer plus rapidement
 
     return () => {
       panelObserver.disconnect();
@@ -4871,36 +4960,38 @@ export default function ProductBuilderPage() {
                                 
                                 {/* Bouton Importer un logo */}
                                 <button
+                                  className="btn-primary"
                                   onClick={() => {
                                     // Logique d'importation de logo (à implémenter)
                                   }}
                                   style={{
                                     flex: 1,
-                                    padding: '12px 24px',
+                                    padding: '10px 20px',
                                     fontSize: '14px',
                                     fontWeight: '500',
                                     backgroundColor: '#3b82f6',
                                     color: '#ffffff',
                                     border: 'none',
-                                    borderRadius: '6px',
+                                    borderRadius: '8px',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '8px',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                    e.currentTarget.style.backgroundColor = '#2563eb';
                                   }}
                                   onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                                    e.currentTarget.style.backgroundColor = '#3b82f6';
                                   }}
                                 >
                                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                   </svg>
-                                  {activeModule.importLogoButtonLabel || 'Importer un logo'}
+                                  <span style={{ color: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                                 </button>
                               </div>
                             )}
@@ -5212,12 +5303,13 @@ export default function ProductBuilderPage() {
                           {/* Bouton "Ajouter un logo" - Ne s'affiche pas si on est en mode remplacement */}
                           {!logoToReplace && (
                           <button
+                            className="btn-primary"
                             onClick={() => {
                               setShowLogoLibrary(true);
                             }}
                             style={{
                               width: '100%',
-                              padding: '13px 20px',
+                              padding: '10px 20px',
                               fontSize: '14px',
                               fontWeight: '500',
                               backgroundColor: '#3b82f6',
@@ -5229,17 +5321,18 @@ export default function ProductBuilderPage() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '8px',
-                              transition: 'all 0.2s'
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#1a1a1a';
+                              e.currentTarget.style.backgroundColor = '#2563eb';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                              e.currentTarget.style.backgroundColor = '#3b82f6';
                             }}
                           >
-                            <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span>
-                            {buttonLabel}
+                            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
+                            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
                           </button>
                           )}
                           
@@ -5535,6 +5628,7 @@ export default function ProductBuilderPage() {
                         {/* Bouton "Ajouter un texte" - masqué quand un texte est sélectionné */}
                         {!selectedTextId && (
                           <button
+                            className="btn-primary"
                             onClick={() => {
                               if (activeModule.textPlacementMode === 'zones') {
                                 // Mode zones : ouvrir le modal de sélection de zones
@@ -5552,8 +5646,8 @@ export default function ProductBuilderPage() {
                             }}
                             style={{
                               width: '100%',
-                              padding: '14px 20px',
-                              backgroundColor: isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                              padding: '10px 20px',
+                              backgroundColor: isPlacingText ? '#8eff36' : '#3b82f6',
                               border: 'none',
                               borderRadius: '8px',
                               fontSize: '14px',
@@ -5561,18 +5655,21 @@ export default function ProductBuilderPage() {
                               color: '#ffffff',
                               cursor: 'pointer',
                               fontWeight: '500',
-                              transition: 'all 0.2s',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
+                              transition: 'all 0.2s ease',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                              textTransform: 'none',
+                              letterSpacing: 'normal'
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#1a1a1a';
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#2563eb';
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                              e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#3b82f6';
                             }}
                           >
-                            {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            <span style={{ color: '#ffffff' }}>
+                              {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
+                            </span>
                           </button>
                         )}
                         
@@ -6534,12 +6631,13 @@ export default function ProductBuilderPage() {
                         // TODO: Implémenter la sauvegarde
                         console.log('Sauvegarder');
                       }}
+                      className="btn-secondary"
                       style={{
                         flex: 1,
-                        padding: '12px 20px',
-                        backgroundColor: '#ffffff',
-                        color: '#000000',
-                        border: '1px solid #d0d0d0',
+                        padding: '10px 20px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#374151',
+                        border: 'none',
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '500',
@@ -6548,19 +6646,18 @@ export default function ProductBuilderPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s ease',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fafafa';
-                        e.currentTarget.style.borderColor = '#a0a0a0';
+                        e.currentTarget.style.backgroundColor = '#e5e7eb';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                        e.currentTarget.style.borderColor = '#d0d0d0';
+                        e.currentTarget.style.backgroundColor = '#f3f4f6';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                       </svg>
                       Sauvegarder
                     </button>
@@ -6569,9 +6666,10 @@ export default function ProductBuilderPage() {
                         // TODO: Implémenter l'ajout au panier
                         console.log('Ajouter au panier');
                       }}
+                      className="btn-primary"
                       style={{
                         flex: 1,
-                        padding: '12px 20px',
+                        padding: '10px 20px',
                         backgroundColor: '#3b82f6',
                         color: '#ffffff',
                         border: 'none',
@@ -6583,19 +6681,21 @@ export default function ProductBuilderPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                        e.currentTarget.style.backgroundColor = '#2563eb';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#000000';
+                        e.currentTarget.style.backgroundColor = '#3b82f6';
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z"></path>
                       </svg>
-                      Ajouter au panier
+                      <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
                     </button>
                   </div>
                 </div>
@@ -8814,6 +8914,7 @@ export default function ProductBuilderPage() {
                                             
                                             {/* Bouton Importer un logo */}
                                             <button
+                                              className="btn-primary mobile-action-btn-black"
                                               onClick={() => {
                                                 // TODO: Implémenter l'import de logo
                                                 console.log('📤 Importer un logo');
@@ -8824,17 +8925,24 @@ export default function ProductBuilderPage() {
                                                 alignItems: 'center', 
                                                 justifyContent: 'center', 
                                                 gap: '8px', 
-                                                padding: '12px', 
+                                                padding: '10px 20px', 
                                                 backgroundColor: '#3b82f6', 
                                                 color: '#ffffff', 
                                                 border: 'none', 
                                                 borderRadius: '8px', 
-                                                fontSize: '13px', 
+                                                fontSize: '14px', 
                                                 fontWeight: '500', 
                                                 cursor: 'pointer', 
-                                                fontFamily: CONFIGURATOR_PANEL_FONT
+                                                fontFamily: CONFIGURATOR_PANEL_FONT,
+                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                                transition: 'all 0.2s ease'
                                               }}
-                                              className="mobile-action-btn-black"
+                                              onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#3b82f6';
+                                              }}
                                             >
                                               <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                                               {activeModule.importLogoButtonLabel || 'Importer un logo'}
@@ -9325,14 +9433,36 @@ export default function ProductBuilderPage() {
                                       <>
                                     {/* Bouton ajouter */}
                                     <button
+                                          className="btn-primary mobile-action-btn-black"
                                           onClick={() => {
                                             setShowLogoLibrary(true);
                                           }}
-                                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: '#3b82f6', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '500', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
-                                          className="mobile-action-btn-black"
+                                          style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center', 
+                                            gap: '8px', 
+                                            padding: '10px 20px', 
+                                            backgroundColor: '#3b82f6', 
+                                            color: '#ffffff', 
+                                            border: 'none', 
+                                            borderRadius: '8px', 
+                                            fontSize: '14px', 
+                                            fontWeight: '500', 
+                                            cursor: 'pointer', 
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
+                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                            transition: 'all 0.2s ease'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#2563eb';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                                          }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                      {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+                                      <span style={{ color: '#ffffff' }}>{activeModule.addLogoButtonLabel || 'Ajouter un logo'}</span>
                                     </button>
                                     {/* Logos placés */}
                                     <div>
@@ -10951,13 +11081,13 @@ export default function ProductBuilderPage() {
                               </div>
                               {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
                               <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '10px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', transition: 'all 0.2s ease' }}>
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#111827', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                  Ajouter au panier
+                                <button className="btn-primary mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', transition: 'all 0.2s ease' }}>
+                                  <svg width="14" height="14" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                  <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
                                 </button>
                               </div>
                             </div>
