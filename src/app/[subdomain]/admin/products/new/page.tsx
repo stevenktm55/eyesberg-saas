@@ -1198,6 +1198,9 @@ export default function ProductBuilderPage() {
 
     // Exécuter périodiquement aussi pour capturer les éléments qui pourraient être manqués
     // IMPORTANT: Vérifier que le panel existe à chaque fois
+    // DÉSACTIVÉ TEMPORAIREMENT pour éviter les problèmes de layout
+    // Le CSS devrait suffire maintenant que les règles sont mieux scoped
+    /*
     const interval = setInterval(() => {
       const currentPanel = document.querySelector('.configurator-panel');
       if (!currentPanel) return; // Ne rien faire si le panel n'existe pas
@@ -1211,11 +1214,13 @@ export default function ProductBuilderPage() {
         forceConfiguratorPanelStyles(modal);
       });
     }, 300); // Plus fréquent pour capturer plus rapidement
+    */
+    const interval: NodeJS.Timeout | null = null; // Désactivé temporairement
 
     return () => {
       panelObserver.disconnect();
       bodyObserver.disconnect();
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
   }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
 

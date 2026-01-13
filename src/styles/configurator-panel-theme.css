@@ -113,15 +113,17 @@
    Style Tailwind moderne avec ombres et effets hover
    ============================================ */
 /* Tous les boutons dans le panel - Style de base */
+/* NE PAS utiliser transition: all - ça peut causer des problèmes avec les styles inline React */
 .configurator-panel button {
   font-family: var(--config-panel-font-family) !important;
   border-radius: var(--config-panel-radius-md) !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
   font-weight: 500 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
+  /* NE PAS forcer display - laisser les styles inline React gérer */
+  /* display: inline-flex !important; */
+  /* align-items: center !important; */
+  /* justify-content: center !important; */
+  /* gap: 8px !important; */
 }
 
 /* Boutons primaires (bleu) - Style Tailwind moderne - EXACTEMENT comme dans themes-preview.html */
@@ -430,8 +432,15 @@
 /* ============================================
    ANIMATIONS ET TRANSITIONS - UNIQUEMENT dans .configurator-panel et ses modaux
    ============================================ */
-.configurator-panel *,
-.configurator-panel-modal *,
-.zone-selection-modal-content * {
+/* NE PAS appliquer de transitions sur TOUS les éléments - ça peut causer des problèmes avec le layout */
+/* Appliquer uniquement sur les éléments interactifs spécifiques */
+.configurator-panel button,
+.configurator-panel input,
+.configurator-panel select,
+.configurator-panel textarea,
+.configurator-panel-modal button,
+.configurator-panel-modal input,
+.zone-selection-modal-content button,
+.zone-selection-modal-content input {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }

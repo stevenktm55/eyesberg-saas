@@ -443,9 +443,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   text-rendering: optimizeLegibility !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
-}
-
-.configurator-panel button:hover {
+}.configurator-panel button:hover {
   background-color: transparent !important;
   opacity: 1 !important;
 }

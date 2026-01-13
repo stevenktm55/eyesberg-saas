@@ -117,9 +117,7 @@ Si vous préférez plus de contrôle, vous pouvez utiliser le snippet Liquid (vo
 ### "Failed to fetch products" dans l'onglet Connect :
 1. Vérifiez que la boutique est bien connectée (Settings → Online stores)
 2. Vérifiez que la boutique n'est pas protégée par un mot de passe
-3. Testez l'URL : `https://votre-boutique.myshopify.com/products.json`
-
-### Le configurateur ne s'ouvre pas :
+3. Testez l'URL : `https://votre-boutique.myshopify.com/products.json`### Le configurateur ne s'ouvre pas :
 1. Vérifiez que le produit est bien lié (onglet Connect)
 2. Vérifiez que l'URL du configurateur est correcte dans le script
 3. Vérifiez les logs dans la console du navigateur## 📝 Notes importantes- **Multi-tenant** : Chaque sous-domaine Eyesberg peut avoir sa propre boutique Shopify connectée
