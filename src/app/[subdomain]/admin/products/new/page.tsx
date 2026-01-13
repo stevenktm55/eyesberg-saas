@@ -1031,11 +1031,21 @@ export default function ProductBuilderPage() {
             // S'assurer que l'aspectRatio est 1:1 pour un cercle parfait
             htmlEl.style.setProperty('aspect-ratio', '1', 'important');
             htmlEl.style.setProperty('aspectRatio', '1', 'important');
-            // S'assurer que la border est visible (comme dans le header avec '2px solid #d1d5db' ou '#e5e7eb')
-            // Ne pas forcer la border si elle est déjà définie dans les styles inline
-            const currentBorder = htmlEl.style.border || htmlEl.style.getPropertyValue('border');
-            if (!currentBorder || currentBorder === 'none' || currentBorder === '0px') {
-              // Utiliser la même border que dans les styles inline React: '2px solid #e5e7eb'
+            // FORCER la border pour correspondre au style du header
+            // Les styles inline React définissent '2px solid #e5e7eb', on force avec !important
+            const inlineStyle = htmlEl.getAttribute('style') || '';
+            // Vérifier si une border est déjà définie dans les styles inline
+            if (inlineStyle.includes('border:') || inlineStyle.includes('border:')) {
+              // Extraire la border depuis les styles inline si possible
+              const borderMatch = inlineStyle.match(/border:\s*([^;]+)/i);
+              if (borderMatch) {
+                htmlEl.style.setProperty('border', borderMatch[1].trim(), 'important');
+              } else {
+                // Fallback: utiliser la même border que dans le code React
+                htmlEl.style.setProperty('border', '2px solid #e5e7eb', 'important');
+              }
+            } else {
+              // Si pas de border dans les styles inline, utiliser la valeur par défaut
               htmlEl.style.setProperty('border', '2px solid #e5e7eb', 'important');
             }
           }
