@@ -57,6 +57,9 @@
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
   background-color: var(--config-panel-bg) !important;
+  /* PROTECTION LAYOUT: Ne jamais forcer display, flex, position, width, height - laisser React gérer */
+  /* Les styles inline React doivent avoir la priorité absolue pour le layout */
+  box-sizing: border-box !important;
 }
 
 /* ============================================
@@ -94,13 +97,11 @@
 .configurator-panel h6,
 .configurator-panel p,
 .configurator-panel span,
-.configurator-panel div,
 .configurator-panel label,
 .configurator-panel li,
 .configurator-panel td,
 .configurator-panel th,
-.configurator-panel a,
-.configurator-panel button {
+.configurator-panel a {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
   -webkit-text-fill-color: var(--config-panel-text) !important;
@@ -108,20 +109,26 @@
   -webkit-text-stroke-color: transparent !important;
 }
 
+/* PROTECTION LAYOUT: .configurator-panel div - UNIQUEMENT typographie, JAMAIS layout */
+/* Ne pas cibler .configurator-panel div car ça casse le layout React */
+/* Les divs doivent garder leurs styles inline React pour display, flex, position, etc. */
+
 /* ============================================
    BOUTONS - UNIQUEMENT dans .configurator-panel
    Style Tailwind moderne avec ombres et effets hover
    ============================================ */
 /* Tous les boutons dans le panel - Style de base */
+/* PROTECTION LAYOUT: Ne pas forcer display sur les boutons - laisser React gérer */
 .configurator-panel button {
   font-family: var(--config-panel-font-family) !important;
   border-radius: var(--config-panel-radius-md) !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
   font-weight: 500 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
+  /* NE PAS forcer display: inline-flex - laisser les styles inline React gérer */
+  /* display: inline-flex !important; */
+  /* align-items: center !important; */
+  /* justify-content: center !important; */
+  /* gap: 8px !important; */
 }
 
 /* Boutons primaires (bleu) - Style Tailwind moderne - EXACTEMENT comme dans themes-preview.html */
