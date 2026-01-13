@@ -452,6 +452,18 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   cursor: not-allowed !important;
 }
 
+/* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
+/* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
+.configurator-panel button[style*="backgroundColor"],
+.configurator-panel button[style*="background-color"],
+.configurator-panel button[style*="aspectRatio"],
+.configurator-panel button[style*="aspect-ratio"] {
+  /* Ne pas forcer background-color: transparent - laisser les styles inline React gérer */
+  /* Ne pas forcer border-radius: 0 - laisser les styles inline React gérer */
+  background-color: unset !important;
+  border-radius: unset !important;
+}
+
 /* Liens avec spécificité plus élevée */
 .configurator-panel a {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
