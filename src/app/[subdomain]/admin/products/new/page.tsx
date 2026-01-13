@@ -11071,15 +11071,6 @@ export default function ProductBuilderPage() {
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.backgroundColor = '#ef4444';
                                     }}
-                                      fontWeight: '500',
-                                      transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#dc2626';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#ef4444';
-                                    }}
                                   >
                                     Oui
                                   </button>
