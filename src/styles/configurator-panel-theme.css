@@ -352,18 +352,23 @@
 /* ============================================
    PROTECTION: Noms des zones dans les modaux - FORCER NOIR
    ============================================ */
-.zone-selection-modal-content p,
-.zone-selection-modal-content span,
-.zone-selection-modal-content div:not(button):not([style*="background-color: #"]) {
+/* Forcer la couleur noire sur tous les textes dans les modaux de sélection de zones */
+.zone-selection-modal-content,
+.zone-selection-modal-content * {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
 }
 
-/* Protection spécifique pour les labels de zones */
-.zone-selection-modal-content div[style*="padding: '12px'"] p,
-.zone-selection-modal-content div[style*="padding: '10px'"] p,
-.zone-selection-modal-content div[style*="padding: 12px"] p,
-.zone-selection-modal-content div[style*="padding: 10px"] p {
+/* Exception pour les boutons qui ont leur propre couleur */
+.zone-selection-modal-content button {
+  color: inherit !important;
+  -webkit-text-fill-color: inherit !important;
+}
+
+/* Protection spécifique pour les labels de zones (noms sous les vignettes) */
+.zone-selection-modal-content p,
+.zone-selection-modal-content div p,
+.zone-selection-modal-content span {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
   -webkit-text-stroke-color: #111827 !important;
