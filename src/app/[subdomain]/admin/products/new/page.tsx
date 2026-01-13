@@ -143,6 +143,48 @@ type Design2D = {
 };
 
 
+// Composant pour prévisualiser une police avec re-render automatique
+function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewText: string }) {
+  const [fontReady, setFontReady] = useState(false);
+  
+  useEffect(() => {
+    if (!fontFamily) return;
+    
+    const checkFont = () => {
+      if (document.fonts.check(`12px "${fontFamily}"`)) {
+        setFontReady(true);
+      } else {
+        // Réessayer après un court délai
+        const timeout = setTimeout(checkFont, 100);
+        return () => clearTimeout(timeout);
+      }
+    };
+    
+    checkFont();
+  }, [fontFamily]);
+  
+  return (
+    <div 
+      style={{
+        width: '100%',
+        padding: '8px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60px',
+        fontFamily: fontFamily ? `"${fontFamily}", sans-serif` : 'sans-serif',
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#111827'
+      }}
+    >
+      {previewText}
+    </div>
+  );
+}
+
 // Composant pour contrôler la caméra via événements personnalisés
 function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, viewHasBeenSetRef }: { controlsRef?: React.RefObject<any>, minDistance?: number, maxDistance?: number, viewHasBeenSetRef?: React.RefObject<boolean> }) {
   const { camera } = useThree();
@@ -2204,6 +2246,22 @@ export default function ProductBuilderPage() {
     setSelectedTextId(id);
     if (id) {
       setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+      
+      // Pivoter la caméra vers la vue correspondant à la zone du texte sélectionné
+      const text = texts.find(t => t.id === id);
+      if (text && text.zoneCategory) {
+        const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+          'torse': 'front',
+          'dos': 'back',
+          'bras-gauche': 'left',
+          'bras-droit': 'right'
+        };
+        const view = viewMap[text.zoneCategory];
+        if (view) {
+          console.log('📸 Pivoting camera to view:', view, 'for selected text zoneCategory:', text.zoneCategory);
+          window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+        }
+      }
     } else {
       // Si on désélectionne, marquer comme désélection manuelle pour éviter la réouverture
       if (viewportMode === 'mobile') {
@@ -2231,6 +2289,22 @@ export default function ProductBuilderPage() {
     // Toujours ajouter le texte si onTextPlaced est appelé, même si isPlacingText est null (au cas où)
     const textCategory = isPlacingText || category || 'nom';
     console.log('✅ Adding text with category:', textCategory, 'at position:', position);
+    
+    // Pivoter la caméra vers la vue correspondant à la zone
+    if (zoneCategory) {
+      const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+        'torse': 'front',
+        'dos': 'back',
+        'bras-gauche': 'left',
+        'bras-droit': 'right'
+      };
+      const view = viewMap[zoneCategory];
+      if (view) {
+        console.log('📸 Pivoting camera to view:', view, 'for zoneCategory:', zoneCategory);
+        window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+      }
+    }
+    
     addText('Texte', position, undefined, textCategory, 700, zoneCategory as any, rotation);
     // Désactiver le mode placement après ajout
     setIsPlacingText(null);
@@ -6117,39 +6191,7 @@ export default function ProductBuilderPage() {
                                                   position: 'relative'
                                                 }}
                                               >
-                                                <div 
-                                                  style={{
-                                                    width: '100%',
-                                                    padding: '8px',
-                                                    backgroundColor: '#f5f5f5',
-                                                    borderRadius: '4px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    minHeight: '60px',
-                                                    fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
-                                                    fontSize: '18px',
-                                                    fontWeight: 'bold',
-                                                    color: '#111827'
-                                                  }}
-                                                  ref={(el) => {
-                                                    // Forcer le re-render une fois la police chargée
-                                                    if (el && fontFamilyValue) {
-                                                      const checkFont = () => {
-                                                        if (document.fonts.check(`12px "${fontFamilyValue}"`)) {
-                                                          // Police chargée, forcer le re-render en modifiant le style
-                                                          el.style.fontFamily = `"${fontFamilyValue}", sans-serif`;
-                                                        } else {
-                                                          // Réessayer après un court délai
-                                                          setTimeout(checkFont, 100);
-                                                        }
-                                                      };
-                                                      checkFont();
-                                                    }
-                                                  }}
-                                                >
-                                                  {previewText}
-                                                </div>
+                                                <FontPreview fontFamily={fontFamilyValue || ''} previewText={previewText} />
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
@@ -9871,39 +9913,7 @@ export default function ProductBuilderPage() {
                                                               position: 'relative'
                                                             }}
                                                           >
-                                                            <div 
-                                                              style={{
-                                                                width: '100%',
-                                                                padding: '8px',
-                                                                backgroundColor: '#f5f5f5',
-                                                                borderRadius: '4px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                minHeight: '60px',
-                                                                fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
-                                                                fontSize: '18px',
-                                                                fontWeight: 'bold',
-                                                                color: '#111827'
-                                                              }}
-                                                              ref={(el) => {
-                                                                // Forcer le re-render une fois la police chargée
-                                                                if (el && fontFamilyValue) {
-                                                                  const checkFont = () => {
-                                                                    if (document.fonts.check(`12px "${fontFamilyValue}"`)) {
-                                                                      // Police chargée, forcer le re-render en modifiant le style
-                                                                      el.style.fontFamily = `"${fontFamilyValue}", sans-serif`;
-                                                                    } else {
-                                                                      // Réessayer après un court délai
-                                                                      setTimeout(checkFont, 100);
-                                                                    }
-                                                                  };
-                                                                  checkFont();
-                                                                }
-                                                              }}
-                                                            >
-                                                              {previewText}
-                                                            </div>
+                                                            <FontPreview fontFamily={fontFamilyValue || ''} previewText={previewText} />
                                                             <span style={{
                                                               fontSize: '11px',
                                                               color: '#111827',
