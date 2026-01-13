@@ -2619,9 +2619,9 @@ export default function ProductBuilderPage() {
             finalScale: scale,
             isImported: logoId === 'imported'
           });
-          }
         }
-      } catch (error) {
+      }
+    } catch (error) {
         console.error('Erreur lors du calcul des dimensions du logo:', error);
         // Utiliser un scale par défaut si l'extraction échoue
         scale = 0.1;
