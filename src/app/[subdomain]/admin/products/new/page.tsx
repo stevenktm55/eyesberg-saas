@@ -5794,7 +5794,7 @@ export default function ProductBuilderPage() {
                                 key={text.id}
                                 style={{
                                   padding: '16px',
-                                  backgroundColor: '#3b82f6',
+                                  backgroundColor: '#ffffff',
                                   border: '1px solid #e5e7eb',
                                   borderRadius: '12px',
                                   display: 'flex',
@@ -5816,21 +5816,17 @@ export default function ProductBuilderPage() {
                                   }}
                                 >
                                   <div style={{
-                                    fontSize: '15px',
-                                    color: '#ffffff',
-                                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                                    fontSize: text.fontSize ? `${text.fontSize / 10}px` : '15px',
+                                    color: text.color || '#111827',
+                                    fontFamily: text.fontFamily || CONFIGURATOR_PANEL_FONT,
                                     fontWeight: '500',
-                                    lineHeight: '1.4'
+                                    lineHeight: '1.4',
+                                    ...(text.strokeColor && text.strokeWidth ? {
+                                      WebkitTextStroke: `${text.strokeWidth}px ${text.strokeColor}`,
+                                      textStroke: `${text.strokeWidth}px ${text.strokeColor}`
+                                    } : {})
                                   }}>
                                     {text.content || '(Texte vide)'}
-                                  </div>
-                                  <div style={{
-                                    fontSize: '12px',
-                                    color: '#9ca3af',
-                                    fontFamily: CONFIGURATOR_PANEL_FONT,
-                                    fontStyle: 'italic'
-                                  }}>
-                                    {text.category === 'nom' ? 'Nom' : text.category === 'numero' ? 'Numéro' : 'Texte'}
                                     {text.locked && ' 🔒'}
                                   </div>
                                 </div>
@@ -10575,8 +10571,20 @@ export default function ProductBuilderPage() {
                                               }}
                                             >
                                               <div>
-                                                <p style={{ fontSize: '13px', fontWeight: '500', color: '#111827', margin: 0 }}>{text.content || 'Texte vide'}</p>
-                                                <p style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 0' }}>{text.zoneName || text.category || 'Zone'}</p>
+                                                <p style={{ 
+                                                  fontSize: text.fontSize ? `${text.fontSize / 10}px` : '13px', 
+                                                  fontWeight: '500', 
+                                                  color: text.color || '#111827', 
+                                                  margin: 0,
+                                                  fontFamily: text.fontFamily || CONFIGURATOR_PANEL_FONT,
+                                                  ...(text.strokeColor && text.strokeWidth ? {
+                                                    WebkitTextStroke: `${text.strokeWidth}px ${text.strokeColor}`,
+                                                    textStroke: `${text.strokeWidth}px ${text.strokeColor}`
+                                                  } : {})
+                                                }}>
+                                                  {text.content || 'Texte vide'}
+                                                  {text.locked && ' 🔒'}
+                                                </p>
                                               </div>
                                               <button
                                                 onClick={(e) => {
