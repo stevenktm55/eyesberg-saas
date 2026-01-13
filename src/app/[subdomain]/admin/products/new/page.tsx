@@ -4011,10 +4011,7 @@ export default function ProductBuilderPage() {
               backgroundColor: '#ffffff',
               display: 'flex',
               position: 'relative',
-              overflow: 'hidden',
-              minHeight: 0,
-              maxHeight: '100%',
-              height: '100%'
+              overflow: 'hidden'
             } as React.CSSProperties}
           >
             {/* Viewport selector buttons */}
@@ -6933,13 +6930,11 @@ export default function ProductBuilderPage() {
                         <div style={{
                           width: '100%',
                           height: '100%',
-                          minHeight: 0,
-                          maxHeight: '100%',
+                          minHeight: '600px',
                           backgroundColor: '#e8e8e8',
                           display: 'flex',
                           flexDirection: 'column',
                           position: 'relative',
-                          flex: '1 1 0%',
                           ...(viewportMode === 'mobile' ? {
                             maxWidth: '393px',
                             maxHeight: '852px',
@@ -6949,8 +6944,7 @@ export default function ProductBuilderPage() {
                             border: '8px solid #1f2937',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                            overflow: 'hidden',
-                            flex: '0 0 auto'
+                            overflow: 'hidden'
                           } : {
                             maxWidth: '100%',
                             maxHeight: '100%',
@@ -6959,17 +6953,7 @@ export default function ProductBuilderPage() {
                           })
                         }}>
                           {/* Canvas 3D - prend l'espace restant */}
-                          {/* FIX: Ajouter maxHeight et height pour empêcher la croissance continue */}
-                          <div style={{ 
-                            flex: '1 1 0%', 
-                            minHeight: 0, 
-                            maxHeight: '100%',
-                            height: '100%',
-                            position: 'relative', 
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column'
-                          }}>
+                          <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                           {(() => {
                             // Utiliser les mêmes paramètres que le configurateur pour aligner les échelles
                             const cameraPosition = viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
@@ -6983,14 +6967,7 @@ export default function ProductBuilderPage() {
                                   fov: cameraFov
                                 }}
                                 gl={{ preserveDrawingBuffer: true }}
-                                style={{ 
-                                  width: '100%', 
-                                  height: '100%',
-                                  minHeight: 0,
-                                  maxHeight: '100%',
-                                  flex: '1 1 0%',
-                                  display: 'block'
-                                }}
+                                style={{ width: '100%', height: '100%' }}
                               >
                             {/* Composant pour initialiser la caméra avec les réglages - UNIQUEMENT au chargement initial */}
                             {(() => {
