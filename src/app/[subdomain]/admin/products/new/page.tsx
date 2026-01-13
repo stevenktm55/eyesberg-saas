@@ -5586,14 +5586,15 @@ export default function ProductBuilderPage() {
                                       padding: '0 16px',
                                       fontSize: '14px',
                                       fontWeight: '600',
-                                      border: isActive ? '2px solid #ffffff' : '1px solid #6b7280',
+                                      border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
                                       borderRadius: '8px',
                                       backgroundColor: isActive ? '#111827' : 'transparent',
                                       cursor: 'pointer',
                                       color: isActive ? '#ffffff' : '#6b7280',
                                       transition: 'all 0.2s ease',
                                       whiteSpace: 'nowrap',
-                                      fontFamily: CONFIGURATOR_PANEL_FONT
+                                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                                      boxShadow: isActive ? 'inset 0 0 0 1px #6b7280' : 'none'
                                     }}
                                     onTouchStart={(e) => {
                                       if (!isActive) {
@@ -9272,12 +9273,13 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '600', 
                                                 color: isActive ? '#ffffff' : '#6b7280', 
                                                 backgroundColor: isActive ? '#111827' : 'transparent',
-                                                border: isActive ? '2px solid #ffffff' : '1px solid #6b7280',
+                                                border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer', 
                                                 fontFamily: CONFIGURATOR_PANEL_FONT,
                                                 transition: 'all 0.2s ease',
-                                                whiteSpace: 'nowrap'
+                                                whiteSpace: 'nowrap',
+                                                boxShadow: isActive ? 'inset 0 0 0 1px #6b7280' : 'none'
                                               }}
                                               onMouseEnter={(e) => {
                                                 if (!isActive) {
