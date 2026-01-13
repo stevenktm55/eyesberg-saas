@@ -9213,38 +9213,74 @@ export default function ProductBuilderPage() {
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Tabs de vue - Masqués si on est en train de choisir une variante OU si la bibliothèque est ouverte */}
                                     {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && !showLogoLibrary && (
-                                      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
-                                        {customViews.map((viewConfig) => (
-                                          <button 
-                                            key={viewConfig.id} 
-                                            onClick={() => {
-                                              setActiveLogoView(viewConfig.id as any);
-                                              
-                                              // Si une vue de caméra personnalisée est configurée, l'utiliser
-                                              if (viewConfig.cameraViewId) {
-                                                const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
-                                                if (cameraView) {
-                                                  // Dispatcher l'événement avec les coordonnées de la vue
-                                                  window.dispatchEvent(new CustomEvent('goToCameraView', { 
-                                                    detail: {
-                                                      position: cameraView.position,
-                                                      target: cameraView.target
-                                                    }
-                                                  }));
+                                      <div style={{ 
+                                        display: 'flex', 
+                                        gap: '8px',
+                                        padding: '4px',
+                                        backgroundColor: '#f9fafb',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e5e7eb'
+                                      }}>
+                                        {customViews.map((viewConfig) => {
+                                          const isActive = activeLogoView === viewConfig.id;
+                                          return (
+                                            <button 
+                                              key={viewConfig.id} 
+                                              onClick={() => {
+                                                setActiveLogoView(viewConfig.id as any);
+                                                
+                                                // Si une vue de caméra personnalisée est configurée, l'utiliser
+                                                if (viewConfig.cameraViewId) {
+                                                  const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                                  if (cameraView) {
+                                                    // Dispatcher l'événement avec les coordonnées de la vue
+                                                    window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                                      detail: {
+                                                        position: cameraView.position,
+                                                        target: cameraView.target
+                                                      }
+                                                    }));
+                                                  } else {
+                                                    // Fallback sur la vue legacy
+                                                    window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
+                                                  }
                                                 } else {
-                                                  // Fallback sur la vue legacy
+                                                  // Utiliser la vue legacy (front, back, left, right)
                                                   window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
                                                 }
-                                              } else {
-                                                // Utiliser la vue legacy (front, back, left, right)
-                                                window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
-                                              }
-                                            }} 
-                                            style={{ flex: 1, padding: '10px 8px', fontSize: '12px', fontWeight: '500', color: activeLogoView === viewConfig.id ? '#111827' : '#6b7280', background: 'none', border: 'none', borderBottom: activeLogoView === viewConfig.id ? '2px solid #111827' : '2px solid transparent', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT }}
-                                          >
-                                            {viewConfig.label}
-                                          </button>
-                                        ))}
+                                              }} 
+                                              style={{ 
+                                                flex: 1, 
+                                                padding: '10px 16px', 
+                                                fontSize: '13px', 
+                                                fontWeight: '600', 
+                                                color: isActive ? '#ffffff' : '#6b7280', 
+                                                backgroundColor: isActive ? '#111827' : 'transparent',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer', 
+                                                fontFamily: CONFIGURATOR_PANEL_FONT,
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: isActive ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+                                                whiteSpace: 'nowrap'
+                                              }}
+                                              onMouseEnter={(e) => {
+                                                if (!isActive) {
+                                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                                  e.currentTarget.style.color = '#111827';
+                                                }
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                if (!isActive) {
+                                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                                  e.currentTarget.style.color = '#6b7280';
+                                                }
+                                              }}
+                                            >
+                                              {viewConfig.label}
+                                            </button>
+                                          );
+                                        })}
                                       </div>
                                     )}
                                     
