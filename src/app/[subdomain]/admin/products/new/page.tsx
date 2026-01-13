@@ -13785,6 +13785,7 @@ export default function ProductBuilderPage() {
             }}
           >
             <div
+              className="zone-selection-modal-content"
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '8px',
@@ -13807,7 +13808,7 @@ export default function ProductBuilderPage() {
                 <h2 style={{
                   fontSize: '20px',
                   fontWeight: '600',
-                  color: '#000000',
+                  color: '#111827',
                   fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}>
@@ -14127,23 +14128,25 @@ export default function ProductBuilderPage() {
                           setSelectedZoneId(null);
                           setTextInputValue('');
                         }}
+                        className="btn-secondary"
                         style={{
-                          padding: '12px 24px',
-                          backgroundColor: '#f5f5f5',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '4px',
+                          padding: '10px 20px',
+                          backgroundColor: '#f3f4f6',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
                           fontSize: '14px',
                           fontFamily: CONFIGURATOR_PANEL_FONT,
-                          color: '#000000',
+                          color: '#374151',
                           cursor: 'pointer',
                           fontWeight: '500',
-                          transition: 'all 0.2s'
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#e8e8e8';
+                          e.currentTarget.style.backgroundColor = '#e5e7eb';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
                         }}
                       >
                         Annuler
@@ -14231,26 +14234,28 @@ export default function ProductBuilderPage() {
                           }
                         }}
                         disabled={!textInputValue.trim() || !selectedZoneId}
+                        className="btn-primary"
                         style={{
-                          padding: '12px 24px',
-                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
+                          padding: '10px 20px',
+                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#3b82f6',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '8px',
                           fontSize: '14px',
                           fontFamily: CONFIGURATOR_PANEL_FONT,
-                          color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
+                          color: '#ffffff',
                           cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
                           fontWeight: '500',
-                          transition: 'all 0.2s'
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
-                            e.currentTarget.style.backgroundColor = '#333333';
+                            e.currentTarget.style.backgroundColor = '#2563eb';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
-                            e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                            e.currentTarget.style.backgroundColor = '#3b82f6';
                           }
                         }}
                       >
@@ -14295,6 +14300,7 @@ export default function ProductBuilderPage() {
             }}
           >
             <div
+              className="zone-selection-modal-content"
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '8px',
@@ -14317,7 +14323,7 @@ export default function ProductBuilderPage() {
                 <h2 style={{
                   fontSize: '20px',
                   fontWeight: '600',
-                  color: '#000000',
+                  color: '#111827',
                   fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}>
@@ -14547,23 +14553,25 @@ export default function ProductBuilderPage() {
                           setSelectedLogoZoneId('');
                           setLogoToReplace(null); // Réinitialiser le remplacement
                         }}
+                        className="btn-secondary"
                         style={{
-                          padding: '12px 24px',
-                          backgroundColor: '#f5f5f5',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '4px',
+                          padding: '10px 20px',
+                          backgroundColor: '#f3f4f6',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
                           fontSize: '14px',
                           fontFamily: CONFIGURATOR_PANEL_FONT,
-                          color: '#000000',
+                          color: '#374151',
                           cursor: 'pointer',
                           fontWeight: '500',
-                          transition: 'all 0.2s'
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#e8e8e8';
+                          e.currentTarget.style.backgroundColor = '#e5e7eb';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f5f5f5';
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
                         }}
                       >
                         Annuler
@@ -14674,26 +14682,28 @@ export default function ProductBuilderPage() {
                           }
                         }}
                         disabled={!selectedLogoZoneId}
+                        className="btn-primary"
                         style={{
-                          padding: '12px 24px',
-                          backgroundColor: selectedLogoZoneId ? '#000000' : '#cccccc',
+                          padding: '10px 20px',
+                          backgroundColor: selectedLogoZoneId ? '#3b82f6' : '#cccccc',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '8px',
                           fontSize: '14px',
                           fontFamily: CONFIGURATOR_PANEL_FONT,
                           color: '#ffffff',
                           cursor: selectedLogoZoneId ? 'pointer' : 'not-allowed',
                           fontWeight: '500',
-                          transition: 'all 0.2s'
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                           if (selectedLogoZoneId) {
-                            e.currentTarget.style.backgroundColor = '#333333';
+                            e.currentTarget.style.backgroundColor = '#2563eb';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (selectedLogoZoneId) {
-                            e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                            e.currentTarget.style.backgroundColor = '#3b82f6';
                           }
                         }}
                       >
