@@ -1347,31 +1347,55 @@ export default function ProductBuilderPage() {
       }
     });
     
-    // Charger toutes les fonts en parallèle
+    // Charger toutes les fonts en parallèle avec FontFace API (comme dans ModelViewer)
     Promise.all(fontsToLoad.map(async (font) => {
       // Vérifier si la font est déjà chargée
       if (loadedFonts.has(font.id)) return;
       const existingStyle = document.querySelector(`style[data-font-id="${font.id}"]`);
       if (existingStyle) {
-        setLoadedFonts(prev => new Set([...prev, font.id]));
-        return;
+        // Vérifier si la police est réellement chargée dans document.fonts
+        const fontFamily = font.display_name || font.name;
+        if (document.fonts.check(`12px "${fontFamily}"`)) {
+          setLoadedFonts(prev => new Set([...prev, font.id]));
+          return;
+        }
       }
       
       try {
-        // Utiliser directement file_url comme dans la page admin des fonts
-        // Utiliser display_name comme font-family (comme dans ModelViewer qui utilise display_name)
+        // Utiliser display_name comme font-family (comme dans ModelViewer)
         const fontFamily = font.display_name || font.name;
+        
+        // Charger la police comme blob (comme dans ModelViewer)
+        const response = await fetch(font.file_url);
+        if (!response.ok) {
+          console.error('Failed to fetch font:', font.name || font.display_name, 'Status:', response.status);
+          return;
+        }
+        
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Créer le @font-face rule
+        const style = document.createElement('style');
+        style.setAttribute('data-font-id', font.id);
         const format = font.file_type === 'woff' ? 'woff' : 
                       font.file_type === 'woff2' ? 'woff2' : 
                       font.file_type === 'otf' ? 'opentype' : 
                       'truetype';
-        
-        const style = document.createElement('style');
-        style.setAttribute('data-font-id', font.id);
-        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${font.file_url}') format('${format}'); }`;
+        style.textContent = `@font-face { font-family: '${fontFamily}'; src: url('${blobUrl}') format('${format}'); }`;
         document.head.appendChild(style);
         
-        setLoadedFonts(prev => new Set([...prev, font.id]));
+        // Créer FontFace et attendre qu'elle soit chargée (comme dans ModelViewer)
+        const fontFace = new FontFace(fontFamily, `url('${blobUrl}')`);
+        try {
+          await fontFace.load();
+          document.fonts.add(fontFace);
+          setLoadedFonts(prev => new Set([...prev, font.id]));
+        } catch (err) {
+          console.error('Failed to load FontFace for:', font.name || font.display_name, err);
+          // Même si FontFace échoue, on marque comme chargé car le @font-face est créé
+          setLoadedFonts(prev => new Set([...prev, font.id]));
+        }
       } catch (err) {
         console.error('Failed to load font:', font.name || font.display_name, err);
       }
@@ -6093,20 +6117,37 @@ export default function ProductBuilderPage() {
                                                   position: 'relative'
                                                 }}
                                               >
-                                                <div style={{
-                                                  width: '100%',
-                                                  padding: '8px',
-                                                  backgroundColor: '#f5f5f5',
-                                                  borderRadius: '4px',
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  justifyContent: 'center',
-                                                  minHeight: '60px',
-                                                  fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
-                                                  fontSize: '18px',
-                                                  fontWeight: 'bold',
-                                                  color: '#111827'
-                                                }}>
+                                                <div 
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '8px',
+                                                    backgroundColor: '#f5f5f5',
+                                                    borderRadius: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    minHeight: '60px',
+                                                    fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#111827'
+                                                  }}
+                                                  ref={(el) => {
+                                                    // Forcer le re-render une fois la police chargée
+                                                    if (el && fontFamilyValue) {
+                                                      const checkFont = () => {
+                                                        if (document.fonts.check(`12px "${fontFamilyValue}"`)) {
+                                                          // Police chargée, forcer le re-render en modifiant le style
+                                                          el.style.fontFamily = `"${fontFamilyValue}", sans-serif`;
+                                                        } else {
+                                                          // Réessayer après un court délai
+                                                          setTimeout(checkFont, 100);
+                                                        }
+                                                      };
+                                                      checkFont();
+                                                    }
+                                                  }}
+                                                >
                                                   {previewText}
                                                 </div>
                                                 <span style={{
@@ -9830,20 +9871,37 @@ export default function ProductBuilderPage() {
                                                               position: 'relative'
                                                             }}
                                                           >
-                                                            <div style={{
-                                                              width: '100%',
-                                                              padding: '8px',
-                                                              backgroundColor: '#f5f5f5',
-                                                              borderRadius: '4px',
-                                                              display: 'flex',
-                                                              alignItems: 'center',
-                                                              justifyContent: 'center',
-                                                              minHeight: '60px',
-                                                              fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
-                                                              fontSize: '18px',
-                                                              fontWeight: 'bold',
-                                                              color: '#111827'
-                                                            }}>
+                                                            <div 
+                                                              style={{
+                                                                width: '100%',
+                                                                padding: '8px',
+                                                                backgroundColor: '#f5f5f5',
+                                                                borderRadius: '4px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                minHeight: '60px',
+                                                                fontFamily: fontFamilyValue ? `"${fontFamilyValue}", sans-serif` : 'sans-serif',
+                                                                fontSize: '18px',
+                                                                fontWeight: 'bold',
+                                                                color: '#111827'
+                                                              }}
+                                                              ref={(el) => {
+                                                                // Forcer le re-render une fois la police chargée
+                                                                if (el && fontFamilyValue) {
+                                                                  const checkFont = () => {
+                                                                    if (document.fonts.check(`12px "${fontFamilyValue}"`)) {
+                                                                      // Police chargée, forcer le re-render en modifiant le style
+                                                                      el.style.fontFamily = `"${fontFamilyValue}", sans-serif`;
+                                                                    } else {
+                                                                      // Réessayer après un court délai
+                                                                      setTimeout(checkFont, 100);
+                                                                    }
+                                                                  };
+                                                                  checkFont();
+                                                                }
+                                                              }}
+                                                            >
                                                               {previewText}
                                                             </div>
                                                             <span style={{
