@@ -390,10 +390,24 @@
 .zone-selection-modal-content div[style*="padding"] p,
 .zone-selection-modal-content div[style*="padding"] span,
 .zone-selection-modal-content > div > div > div p,
-.zone-selection-modal-content > div > div > div span {
+.zone-selection-modal-content > div > div > div span,
+.zone-selection-modal-content div p,
+.zone-selection-modal-content div span {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
   -webkit-text-stroke-color: #111827 !important;
+}
+
+/* RÈGLE ULTRA-AGRESSIVE pour forcer tous les textes en noir dans les modaux */
+.zone-selection-modal-content *:not(button):not(button *) {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Exception pour les boutons */
+.zone-selection-modal-content button,
+.zone-selection-modal-content button * {
+  /* Laisser les boutons gérer leur propre couleur */
 }
 
 /* ============================================
