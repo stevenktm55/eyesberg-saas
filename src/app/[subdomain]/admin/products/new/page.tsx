@@ -5595,7 +5595,7 @@ export default function ProductBuilderPage() {
                                       whiteSpace: 'nowrap',
                                       fontFamily: CONFIGURATOR_PANEL_FONT,
                                       position: 'relative',
-                                      boxShadow: isActive ? 'inset 0 0 0 2px #6b7280' : 'none'
+                                      overflow: 'hidden'
                                     }}
                                     onTouchStart={(e) => {
                                       if (!isActive) {
@@ -5610,6 +5610,18 @@ export default function ProductBuilderPage() {
                                       }
                                     }}
                                   >
+                                    {isActive && (
+                                      <div style={{
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: '2px',
+                                        right: '2px',
+                                        bottom: '2px',
+                                        border: '2px solid #6b7280',
+                                        borderRadius: '6px',
+                                        pointerEvents: 'none'
+                                      }} />
+                                    )}
                                     {viewConfig.label}
                                   </button>
                                 );
