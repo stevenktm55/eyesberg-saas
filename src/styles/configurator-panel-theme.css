@@ -328,15 +328,28 @@
 .configurator-panel input[type="password"],
 .configurator-panel textarea,
 .configurator-panel select,
-.configurator-panel-modal input,
-.zone-selection-modal-content input {
+.configurator-panel-modal input[type="text"],
+.configurator-panel-modal input[type="email"],
+.configurator-panel-modal input[type="number"],
+.configurator-panel-modal input[type="password"],
+.configurator-panel-modal textarea,
+.configurator-panel-modal select,
+.zone-selection-modal-content input[type="text"],
+.zone-selection-modal-content input[type="email"],
+.zone-selection-modal-content input[type="number"],
+.zone-selection-modal-content input[type="password"],
+.zone-selection-modal-content textarea,
+.zone-selection-modal-content select {
   background-color: #ffffff !important;
+  background: #ffffff !important;
   border: 1px solid #d1d5db !important;
   border-radius: 6px !important;
   color: #111827 !important;
-  padding: 8px 12px !important;
+  padding: 12px !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   transition: all 0.2s ease !important;
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-text-stroke-color: #111827 !important;
 }
 
 .configurator-panel input:focus,
