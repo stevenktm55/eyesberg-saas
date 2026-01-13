@@ -2432,7 +2432,8 @@ export default function ProductBuilderPage() {
     if (!activeModule || activeModule.contentType !== 'logos') return;
     
     // Vérifier le type de fichier
-    const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
+        const defaultTypes = ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
+        const allowedTypes = activeModule.allowedLogoFileTypes || defaultTypes;
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
     
     if (!allowedTypes.includes(fileExtension)) {
@@ -2459,33 +2460,34 @@ export default function ProductBuilderPage() {
     // Si background remover est activé, ouvrir le modal de confirmation
     if (activeModule.enableBackgroundRemover) {
       setShowBackgroundRemoverModal(true);
-      // TODO: Générer l'aperçu avec/sans background remover via une API
-      // Pour l'instant, on simule en créant une version avec fond transparent
-      // En production, il faudra appeler une API de background removal
+      
+      // Appeler l'API de background remover
       try {
-        // Créer un canvas pour traiter l'image
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            // Pour l'instant, on utilise la même image
-            // En production, il faudra appliquer un algorithme de background removal
-            const processedDataUrl = canvas.toDataURL('image/png');
-            setBackgroundRemoverPreview({
-              original: importedFilePreview,
-              processed: processedDataUrl
-            });
-          }
-        };
-        img.src = importedFilePreview;
+        const formData = new FormData();
+        formData.append('image', importedFile);
+        
+        const response = await fetch('/api/background-remover', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setBackgroundRemoverPreview({
+            original: importedFilePreview,
+            processed: data.image || importedFilePreview
+          });
+        } else {
+          console.error('Error calling background remover API');
+          // Fallback: utiliser l'image originale
+          setBackgroundRemoverPreview({
+            original: importedFilePreview,
+            processed: importedFilePreview
+          });
+        }
       } catch (error) {
-        console.error('Error processing image:', error);
-        // Fallback: utiliser la même image
+        console.error('Error processing image with background remover:', error);
+        // Fallback: utiliser l'image originale
         setBackgroundRemoverPreview({
           original: importedFilePreview,
           processed: importedFilePreview
@@ -11496,7 +11498,8 @@ export default function ProductBuilderPage() {
                             const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
                             if (!activeModule || activeModule.contentType !== 'logos') return null;
                             
-                            const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                            const defaultTypes = ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
+                            const allowedTypes = activeModule.allowedLogoFileTypes || defaultTypes;
                             const acceptTypes = allowedTypes.map(t => `.${t}`).join(',');
                             
                             return (
@@ -11552,16 +11555,28 @@ export default function ProductBuilderPage() {
                                   </h2>
                                   
                                   {/* Info types de fichiers */}
-                                  <p
-                                    style={{
-                                      fontSize: '12px',
-                                      color: '#6b7280',
-                                      margin: 0,
-                                      fontFamily: CONFIGURATOR_PANEL_FONT
-                                    }}
-                                  >
-                                    Fichier ({allowedTypes.map(t => t.toUpperCase()).join(', ')})
-                                  </p>
+                                  <div>
+                                    <p
+                                      style={{
+                                        fontSize: '12px',
+                                        color: '#6b7280',
+                                        margin: '0 0 4px 0',
+                                        fontFamily: CONFIGURATOR_PANEL_FONT
+                                      }}
+                                    >
+                                      Fichier
+                                    </p>
+                                    <p
+                                      style={{
+                                        fontSize: '11px',
+                                        color: '#9ca3af',
+                                        margin: 0,
+                                        fontFamily: CONFIGURATOR_PANEL_FONT
+                                      }}
+                                    >
+                                      Types autorisés: {allowedTypes.map(t => t.toUpperCase()).join(', ')}
+                                    </p>
+                                  </div>
                                   
                                   {/* Input fichier */}
                                   <input
@@ -11735,6 +11750,7 @@ export default function ProductBuilderPage() {
                                     }}
                                   >
                                     <p
+                                      className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
                                         color: '#111827',
@@ -11780,6 +11796,7 @@ export default function ProductBuilderPage() {
                                     }}
                                   >
                                     <p
+                                      className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
                                         color: '#111827',
@@ -15885,16 +15902,28 @@ export default function ProductBuilderPage() {
               </h2>
               
               {/* Info types de fichiers */}
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#6b7280',
-                  margin: 0,
-                  fontFamily: CONFIGURATOR_PANEL_FONT
-                }}
-              >
-                Fichier ({allowedTypes.map(t => t.toUpperCase()).join(', ')})
-              </p>
+              <div>
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: '#6b7280',
+                    margin: '0 0 4px 0',
+                    fontFamily: CONFIGURATOR_PANEL_FONT
+                  }}
+                >
+                  Fichier
+                </p>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: '#9ca3af',
+                    margin: 0,
+                    fontFamily: CONFIGURATOR_PANEL_FONT
+                  }}
+                >
+                  Types autorisés: {allowedTypes.map(t => t.toUpperCase()).join(', ')}
+                </p>
+              </div>
               
               {/* Input fichier */}
               <input
@@ -16065,6 +16094,7 @@ export default function ProductBuilderPage() {
                 }}
               >
                 <p
+                  className="background-remover-label"
                   style={{
                     fontSize: '13px',
                     color: '#111827',
@@ -16110,6 +16140,7 @@ export default function ProductBuilderPage() {
                 }}
               >
                 <p
+                  className="background-remover-label"
                   style={{
                     fontSize: '13px',
                     color: '#111827',
