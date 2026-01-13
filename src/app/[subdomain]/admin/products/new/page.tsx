@@ -1018,20 +1018,32 @@ export default function ProductBuilderPage() {
           // Forcer le backgroundColor blanc et la couleur du texte noire
           htmlEl.style.setProperty('background-color', '#ffffff', 'important');
           htmlEl.style.setProperty('backgroundColor', '#ffffff', 'important');
+          htmlEl.style.setProperty('background', '#ffffff', 'important');
           htmlEl.style.setProperty('color', '#111827', 'important');
           htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
           htmlEl.style.setProperty('border', '1px solid #d1d5db', 'important');
           htmlEl.style.setProperty('border-radius', '6px', 'important');
         }
         
         // FORCER les noms des zones en noir dans les modaux desktop
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
+        // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN') && 
             (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
           // Vérifier si c'est un label de zone (contenant le nom de la zone)
           const parentDiv = htmlEl.closest('div');
-          if (parentDiv && (parentDiv.style.padding === '12px' || parentDiv.style.padding === '10px' || 
+          const textContent = htmlEl.textContent || '';
+          // Si le texte contient des noms de zones typiques ou si le parent a un padding spécifique
+          if (parentDiv && (
+              parentDiv.style.padding === '12px' || 
+              parentDiv.style.padding === '10px' || 
               parentDiv.getAttribute('style')?.includes('padding: 12px') || 
-              parentDiv.getAttribute('style')?.includes('padding: 10px'))) {
+              parentDiv.getAttribute('style')?.includes('padding: 10px') ||
+              textContent.includes('dos') ||
+              textContent.includes('face') ||
+              textContent.includes('Nom') ||
+              textContent.includes('Zone')
+            )) {
             // C'est probablement un label de zone - forcer la couleur noire
             htmlEl.style.setProperty('color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
