@@ -14778,7 +14778,8 @@ export default function ProductBuilderPage() {
               style={{
                 fontSize: '20px',
                 fontWeight: '600',
-                color: '#000000',
+                color: '#111827',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
                 margin: 0,
                 textAlign: 'center'
               }}
@@ -14798,8 +14799,8 @@ export default function ProductBuilderPage() {
               <p
                 style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                  color: '#6b7280',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}
               >
@@ -14808,8 +14809,8 @@ export default function ProductBuilderPage() {
               <p
                 style={{
                   fontSize: '14px',
-                  color: '#666666',
-                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                  color: '#6b7280',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   margin: 0
                 }}
               >
@@ -14830,42 +14831,46 @@ export default function ProductBuilderPage() {
                   setShowDeleteModal(false);
                   setItemToDelete(null);
                 }}
+                className="btn-primary"
                 style={{
                   flex: 1,
-                  padding: '12px 24px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '6px',
+                  padding: '10px 20px',
+                  backgroundColor: '#3b82f6',
+                  border: 'none',
+                  borderRadius: '8px',
                   fontSize: '14px',
-                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-                  color: '#000000',
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
+                  color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',
-                  transition: 'all 0.2s'
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  e.currentTarget.style.backgroundColor = '#2563eb';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.backgroundColor = '#3b82f6';
                 }}
               >
                 Non
               </button>
               <button
                 onClick={handleConfirmDelete}
+                className="btn-primary"
                 style={{
                   flex: 1,
-                  padding: '12px 24px',
+                  padding: '10px 20px',
                   backgroundColor: '#ef4444',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   fontSize: '14px',
-                  fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
                   color: '#ffffff',
                   cursor: 'pointer',
                   fontWeight: '500',
-                  transition: 'all 0.2s'
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#dc2626';
