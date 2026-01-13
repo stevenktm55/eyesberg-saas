@@ -2615,9 +2615,10 @@ export default function ProductBuilderPage() {
             targetWidthPx,
             targetHeightPx,
             scaleX,
-              scaleY,
-              finalScale: scale
-            });
+            scaleY,
+            finalScale: scale,
+            isImported: logoId === 'imported'
+          });
           }
         }
       } catch (error) {
