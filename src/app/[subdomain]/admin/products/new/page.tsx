@@ -4433,7 +4433,7 @@ export default function ProductBuilderPage() {
                                         backgroundColor: color.hex,
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        overflow: 'visible',
+                                        overflow: 'hidden',
                                         padding: 0
                                       }}
                                       onMouseEnter={(e) => {
@@ -4445,22 +4445,25 @@ export default function ProductBuilderPage() {
                                     >
                                       {/* Rond de sélection si couleur sélectionnée */}
                                       {isSelected && (
-                                        <div style={{
-                                          position: 'absolute',
-                                          top: '-4px',
-                                          right: '-4px',
-                                          width: '24px',
-                                          height: '24px',
-                                          backgroundColor: '#ffffff',
-                                          borderRadius: '50%',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
-                                          border: '2px solid #3b82f6',
-                                          zIndex: 100
-                                        }}>
-                                          <svg width="14" height="14" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6', strokeWidth: 3 }}>
+                                        <div 
+                                          className="color-selection-indicator"
+                                          style={{
+                                            position: 'absolute',
+                                            top: '4px',
+                                            right: '4px',
+                                            width: '20px',
+                                            height: '20px',
+                                            backgroundColor: '#ffffff',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                                            border: '2px solid #3b82f6',
+                                            zIndex: 10
+                                          }}
+                                        >
+                                          <svg width="12" height="12" fill="none" stroke="#3b82f6" viewBox="0 0 24 24" style={{ color: '#3b82f6' }}>
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
                                         </div>

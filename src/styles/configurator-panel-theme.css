@@ -378,6 +378,56 @@
 }
 
 /* ============================================
+   RONDS DE SÉLECTION DANS LA GRILLE DE COULEURS
+   ============================================ */
+/* Forcer la visibilité des ronds de sélection dans la grille de couleurs */
+/* Ces règles doivent surcharger le all: initial de stepn-theme.css */
+/* Utilise une classe spécifique pour un ciblage fiable */
+.configurator-panel .color-selection-indicator,
+.configurator-panel button .color-selection-indicator {
+  /* Réappliquer tous les styles essentiels après all: initial */
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: #ffffff !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  border: 2px solid #3b82f6 !important;
+  z-index: 10 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Forcer la visibilité des SVG dans les ronds de sélection */
+.configurator-panel .color-selection-indicator svg,
+.configurator-panel button .color-selection-indicator svg {
+  width: 12px !important;
+  height: 12px !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: #3b82f6 !important;
+}
+
+/* Forcer la couleur du stroke dans les SVG des ronds de sélection */
+.configurator-panel .color-selection-indicator svg path,
+.configurator-panel button .color-selection-indicator svg path {
+  stroke: #3b82f6 !important;
+  stroke-width: 3 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  fill: none !important;
+}
+
+/* ============================================
    ANIMATIONS ET TRANSITIONS - UNIQUEMENT dans .configurator-panel et ses modaux
    ============================================ */
 .configurator-panel *,
