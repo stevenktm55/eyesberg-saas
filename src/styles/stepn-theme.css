@@ -464,6 +464,17 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   border-radius: unset !important;
 }
 
+/* PROTECTION: Divs de cercles de couleurs dans les cartes (Primary, Secondary, Tertiary) */
+/* Ces divs ont un backgroundColor défini en inline style et doivent rester visibles */
+.configurator-panel div[style*="backgroundColor"],
+.configurator-panel div[style*="background-color"],
+.configurator-panel div[style*="borderRadius: '50%'"],
+.configurator-panel div[style*="border-radius: 50%"] {
+  /* Forcer le backgroundColor à être respecté depuis les styles inline */
+  /* Ne pas surcharger avec transparent ou autre valeur */
+  background-color: unset !important;
+}
+
 /* Liens avec spécificité plus élevée */
 .configurator-panel a {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
