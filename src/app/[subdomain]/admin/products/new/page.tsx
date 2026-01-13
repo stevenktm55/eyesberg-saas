@@ -8219,17 +8219,26 @@ export default function ProductBuilderPage() {
                                               setSelectedLogoZoneId('');
                                             }
                                           }}
+                                          className="btn-primary"
                                           style={{
                                             width: '100%',
-                                            padding: '12px',
+                                            padding: '10px 20px',
                                             backgroundColor: '#3b82f6',
                                             color: '#ffffff',
                                             border: 'none',
                                             borderRadius: '8px',
                                             fontSize: '14px',
-                                            fontWeight: '600',
+                                            fontWeight: '500',
                                             cursor: 'pointer',
-                                            fontFamily: CONFIGURATOR_PANEL_FONT
+                                            fontFamily: CONFIGURATOR_PANEL_FONT,
+                                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                            transition: 'all 0.2s ease'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#2563eb';
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = '#3b82f6';
                                           }}
                                         >
                                           Placer le logo
@@ -8634,18 +8643,30 @@ export default function ProductBuilderPage() {
                                               }
                                             }}
                                             disabled={!textInputValue.trim() || !selectedZoneId}
+                                            className="btn-primary"
                                             style={{
                                               width: '100%',
-                                              padding: '12px',
+                                              padding: '10px 20px',
                                               backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
                                               border: 'none',
-                                              borderRadius: '6px',
+                                              borderRadius: '8px',
                                               fontSize: '14px',
                                               fontFamily: CONFIGURATOR_PANEL_FONT,
-                                              color: (!textInputValue.trim() || !selectedZoneId) ? '#666666' : '#ffffff',
                                               color: '#ffffff',
                                               cursor: (!textInputValue.trim() || !selectedZoneId) ? 'not-allowed' : 'pointer',
-                                              fontWeight: '500'
+                                              fontWeight: '500',
+                                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                              transition: 'all 0.2s ease'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              if (!(!textInputValue.trim() || !selectedZoneId)) {
+                                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                              }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              if (!(!textInputValue.trim() || !selectedZoneId)) {
+                                                e.currentTarget.style.backgroundColor = CONFIGURATOR_PANEL_PRIMARY_COLOR;
+                                              }
                                             }}
                                           >
                                             Ajouter
