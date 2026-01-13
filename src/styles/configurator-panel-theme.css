@@ -113,7 +113,8 @@
    Style Tailwind moderne avec ombres et effets hover
    ============================================ */
 /* Tous les boutons dans le panel - Style de base */
-.configurator-panel button {
+/* EXCLURE les boutons de couleurs qui ont leur propre backgroundColor */
+.configurator-panel button:not(.color-circle-button) {
   font-family: var(--config-panel-font-family) !important;
   border-radius: var(--config-panel-radius-md) !important;
   transition: all 0.2s ease !important;
@@ -122,6 +123,16 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
+}
+
+/* PROTECTION: Boutons de couleurs - ne pas forcer display, border-radius, etc. */
+.configurator-panel button.color-circle-button {
+  /* Ne PAS forcer display: inline-flex - laisser les styles inline React gérer */
+  /* Ne PAS forcer border-radius - laisser les styles inline React gérer */
+  /* Ne PAS forcer background-color - laisser les styles inline React gérer */
+  font-family: var(--config-panel-font-family) !important;
+  transition: border-color 0.2s ease !important;
+  font-weight: 500 !important;
 }
 
 /* Boutons primaires (bleu) - Style Tailwind moderne - EXACTEMENT comme dans themes-preview.html */
