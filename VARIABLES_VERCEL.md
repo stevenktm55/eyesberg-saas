@@ -90,14 +90,12 @@ Value: [Copie depuis ton autre projet Vercel ou .env.local]
 Environments: ✅ Production, ✅ Preview, ✅ Development
 ```
 
-### 12. REMOVE_BG_API_KEY (Optionnel - pour le background remover des logos)
-```
-Name: REMOVE_BG_API_KEY
-Value: [Obtiens ta clé sur https://www.remove.bg/ → My Account → API Keys]
-Environments: ✅ Production, ✅ Preview, ✅ Development
-```
+### 12. REMOVE_BG_API_KEY (❌ Plus nécessaire - système intégré)
 
-📖 **Guide complet** : Voir `GUIDE_ADD_REMOVE_BG_API.md`
+Le système de suppression de fond utilise maintenant un modèle ML intégré (`@imgly/background-removal`).
+**Aucune clé API n'est requise** - le système fonctionne automatiquement.
+
+📖 **Documentation** : Voir `BACKGROUND_REMOVAL_README.md`
 
 ---
 
