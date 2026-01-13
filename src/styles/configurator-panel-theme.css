@@ -415,12 +415,17 @@
   -webkit-text-stroke-color: #111827 !important;
 }
 
-/* Forcer la couleur noire pour les labels du modal background remover */
+/* Forcer la couleur noire pour les labels du modal background remover - RÈGLE ULTRA-SPÉCIFIQUE */
 .configurator-panel-modal .background-remover-label,
-.configurator-panel-modal .background-remover-label * {
+.configurator-panel-modal .background-remover-label *,
+.configurator-panel-modal p.background-remover-label,
+.configurator-panel-modal div p.background-remover-label,
+.configurator-panel-modal div[style*="display: flex"][style*="flexDirection: column"] p.background-remover-label {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
   -webkit-text-stroke-color: #111827 !important;
+  fill: #111827 !important;
+  stroke: #111827 !important;
 }
 
 /* RÈGLE ULTRA-AGRESSIVE pour forcer tous les textes en noir dans les modaux */

@@ -11753,11 +11753,13 @@ export default function ProductBuilderPage() {
                                       className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
-                                        color: '#111827',
+                                        color: '#111827 !important',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         textAlign: 'center',
-                                        fontWeight: '500'
+                                        fontWeight: '500',
+                                        WebkitTextFillColor: '#111827',
+                                        WebkitTextStrokeColor: '#111827'
                                       }}
                                     >
                                       Original
@@ -11799,11 +11801,13 @@ export default function ProductBuilderPage() {
                                       className="background-remover-label"
                                       style={{
                                         fontSize: '12px',
-                                        color: '#111827',
+                                        color: '#111827 !important',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         textAlign: 'center',
-                                        fontWeight: '500'
+                                        fontWeight: '500',
+                                        WebkitTextFillColor: '#111827',
+                                        WebkitTextStrokeColor: '#111827'
                                       }}
                                     >
                                       Sans fond
@@ -16097,11 +16101,13 @@ export default function ProductBuilderPage() {
                   className="background-remover-label"
                   style={{
                     fontSize: '13px',
-                    color: '#111827',
+                    color: '#111827 !important',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
                     textAlign: 'center',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    WebkitTextFillColor: '#111827',
+                    WebkitTextStrokeColor: '#111827'
                   }}
                 >
                   Original
@@ -16143,11 +16149,13 @@ export default function ProductBuilderPage() {
                   className="background-remover-label"
                   style={{
                     fontSize: '13px',
-                    color: '#111827',
+                    color: '#111827 !important',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
                     textAlign: 'center',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    WebkitTextFillColor: '#111827',
+                    WebkitTextStrokeColor: '#111827'
                   }}
                 >
                   Sans fond
