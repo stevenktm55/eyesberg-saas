@@ -9322,9 +9322,6 @@ export default function ProductBuilderPage() {
                                               )}
                                               {viewConfig.label}
                                             </button>
-                                            >
-                                              {viewConfig.label}
-                                            </button>
                                           );
                                         })}
                                       </div>
