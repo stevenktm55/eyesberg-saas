@@ -150,17 +150,22 @@ function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewT
   useEffect(() => {
     if (!fontFamily) return;
     
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     const checkFont = () => {
       if (document.fonts.check(`12px "${fontFamily}"`)) {
         setFontReady(true);
       } else {
         // Réessayer après un court délai
-        const timeout = setTimeout(checkFont, 100);
-        return () => clearTimeout(timeout);
+        timeoutId = setTimeout(checkFont, 100);
       }
     };
     
     checkFont();
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [fontFamily]);
   
   return (
