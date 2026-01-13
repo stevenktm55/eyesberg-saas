@@ -146,30 +146,56 @@ type Design2D = {
 // Composant pour prévisualiser une police avec re-render automatique
 function FontPreview({ fontFamily, previewText }: { fontFamily: string; previewText: string }) {
   const [fontReady, setFontReady] = useState(false);
+  const divRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (!fontFamily) return;
+    if (!fontFamily || !divRef.current) return;
     
     let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
     
     const checkFont = () => {
-      if (document.fonts.check(`12px "${fontFamily}"`)) {
+      if (!isMounted || !divRef.current) return;
+      
+      // Vérifier si la police est chargée
+      const isReady = document.fonts.check(`12px "${fontFamily}"`) || 
+                     document.fonts.check(`18px "${fontFamily}"`) ||
+                     document.fonts.check(`24px "${fontFamily}"`);
+      
+      if (isReady) {
         setFontReady(true);
+        // Forcer aussi directement le style pour être sûr
+        if (divRef.current) {
+          divRef.current.style.fontFamily = `"${fontFamily}", sans-serif`;
+        }
       } else {
         // Réessayer après un court délai
-        timeoutId = setTimeout(checkFont, 100);
+        timeoutId = setTimeout(checkFont, 50);
       }
     };
     
+    // Démarrer la vérification
     checkFont();
     
+    // Écouter aussi l'événement fontsloadingdone
+    const handleFontsReady = () => {
+      if (isMounted && divRef.current) {
+        checkFont();
+      }
+    };
+    
+    document.fonts.addEventListener('loadingdone', handleFontsReady);
+    
     return () => {
+      isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
+      document.fonts.removeEventListener('loadingdone', handleFontsReady);
     };
   }, [fontFamily]);
   
   return (
     <div 
+      ref={divRef}
       style={{
         width: '100%',
         padding: '8px',
@@ -8535,22 +8561,54 @@ export default function ProductBuilderPage() {
                                         {availableZones.map((zone) => {
                                           const isSelected = selectedZoneId === zone.id;
                                           return (
-                                            <div
-                                              key={zone.id}
-                                              onClick={() => {
-                                                setSelectedZoneId(zone.id);
-                                                setTextInputValue('');
-                                              }}
-                                              style={{
-                                                position: 'relative',
-                                                cursor: 'pointer',
-                                                border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
-                                                borderRadius: '8px',
-                                                overflow: 'hidden',
-                                                backgroundColor: '#ffffff',
-                                                transition: 'all 0.2s'
-                                              }}
-                                            >
+                            <div
+                              key={zone.id}
+                              onClick={() => {
+                                setSelectedZoneId(zone.id);
+                                setTextInputValue('');
+                                
+                                // Pivoter la caméra vers la vue correspondant à la zone
+                                const zoneView = (zone as any)?.view as ('front'|'back'|'left'|'right') | undefined;
+                                if (zoneView) {
+                                  const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                    'Face': 'front',
+                                    'Dos': 'back',
+                                    'Gauche': 'left',
+                                    'Droite': 'right',
+                                    'front': 'front',
+                                    'back': 'back',
+                                    'left': 'left',
+                                    'right': 'right'
+                                  };
+                                  const view = viewMap[zoneView] || viewMap[zoneView?.toLowerCase() || ''];
+                                  if (view) {
+                                    console.log('📸 Pivoting camera to view:', view, 'for zone:', zone.name);
+                                    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                  }
+                                } else if ((zone as any)?.zoneCategory) {
+                                  const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                    'torse': 'front',
+                                    'dos': 'back',
+                                    'bras-gauche': 'left',
+                                    'bras-droit': 'right'
+                                  };
+                                  const view = viewMap[(zone as any).zoneCategory];
+                                  if (view) {
+                                    console.log('📸 Pivoting camera to view:', view, 'for zoneCategory:', (zone as any).zoneCategory);
+                                    window.dispatchEvent(new CustomEvent('setCameraView', { detail: view }));
+                                  }
+                                }
+                              }}
+                              style={{
+                                position: 'relative',
+                                cursor: 'pointer',
+                                border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                overflow: 'hidden',
+                                backgroundColor: '#ffffff',
+                                transition: 'all 0.2s'
+                              }}
+                            >
                                               {isSelected && (
                                                 <div style={{
                                                   position: 'absolute',
