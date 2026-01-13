@@ -5532,30 +5532,44 @@ export default function ProductBuilderPage() {
                           {activeModule.logoPlacementMode === 'zones' && (
                             <div style={{ 
                               display: 'flex', 
-                              gap: '0', 
-                              marginBottom: '0',
-                              paddingBottom: '0',
-                              borderBottom: '1px solid #e0e0e0'
+                              gap: '8px',
+                              padding: '4px',
+                              backgroundColor: '#f9fafb',
+                              borderRadius: '8px',
+                              border: '1px solid #e5e7eb'
                             }}>
-                              {customViews.map((viewConfig) => (
-                                <button
-                                  key={viewConfig.id}
-                                  onClick={() => {
-                                    setActiveLogoView(viewConfig.id as any);
-                                    
-                                    // Si une vue de caméra personnalisée est configurée, l'utiliser
-                                    if (viewConfig.cameraViewId) {
-                                      const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
-                                      if (cameraView) {
-                                        // Dispatcher l'événement avec les coordonnées de la vue
-                                        window.dispatchEvent(new CustomEvent('goToCameraView', { 
-                                          detail: {
-                                            position: cameraView.position,
-                                            target: cameraView.target
-                                          }
-                                        }));
+                              {customViews.map((viewConfig) => {
+                                const isActive = activeLogoView === viewConfig.id;
+                                return (
+                                  <button
+                                    key={viewConfig.id}
+                                    onClick={() => {
+                                      setActiveLogoView(viewConfig.id as any);
+                                      
+                                      // Si une vue de caméra personnalisée est configurée, l'utiliser
+                                      if (viewConfig.cameraViewId) {
+                                        const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                        if (cameraView) {
+                                          // Dispatcher l'événement avec les coordonnées de la vue
+                                          window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                            detail: {
+                                              position: cameraView.position,
+                                              target: cameraView.target
+                                            }
+                                          }));
+                                        } else {
+                                          // Fallback sur la vue legacy
+                                          const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                                            'front': 'torse',
+                                            'back': 'dos',
+                                            'left': 'bras-droit',
+                                            'right': 'bras-gauche'
+                                          };
+                                          const category = viewToCategory[viewConfig.id] || 'torse';
+                                          // setTargetView(category); // DÉSACTIVÉ - Conflit avec CameraController
+                                        }
                                       } else {
-                                        // Fallback sur la vue legacy
+                                        // Utiliser la vue legacy (front, back, left, right)
                                         const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
                                           'front': 'torse',
                                           'back': 'dos',
@@ -5565,37 +5579,40 @@ export default function ProductBuilderPage() {
                                         const category = viewToCategory[viewConfig.id] || 'torse';
                                         // setTargetView(category); // DÉSACTIVÉ - Conflit avec CameraController
                                       }
-                                    } else {
-                                      // Utiliser la vue legacy (front, back, left, right)
-                                      const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                        'front': 'torse',
-                                        'back': 'dos',
-                                        'left': 'bras-droit',
-                                        'right': 'bras-gauche'
-                                      };
-                                      const category = viewToCategory[viewConfig.id] || 'torse';
-                                      // setTargetView(category); // DÉSACTIVÉ - Conflit avec CameraController
-                                    }
-                                  }}
-                                  style={{
-                                    height: '42px',
-                                    padding: '0 12px',
-                                    fontSize: '14px',
-                                    fontWeight: '500',
-                                    border: 'none',
-                                    borderRadius: '0',
-                                    background: 'transparent',
-                                    cursor: 'pointer',
-                                    color: activeLogoView === viewConfig.id ? '#000000' : '#606060',
-                                    transition: 'all 0.15s',
-                                    position: 'relative',
-                                    borderBottom: activeLogoView === viewConfig.id ? '2px solid #000000' : '2px solid transparent',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  {viewConfig.label}
-                                </button>
-                              ))}
+                                    }}
+                                    style={{
+                                      flex: 1,
+                                      height: '42px',
+                                      padding: '0 16px',
+                                      fontSize: '14px',
+                                      fontWeight: '600',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      backgroundColor: isActive ? '#111827' : 'transparent',
+                                      cursor: 'pointer',
+                                      color: isActive ? '#ffffff' : '#6b7280',
+                                      transition: 'all 0.2s ease',
+                                      boxShadow: isActive ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+                                      whiteSpace: 'nowrap',
+                                      fontFamily: CONFIGURATOR_PANEL_FONT
+                                    }}
+                                    onTouchStart={(e) => {
+                                      if (!isActive) {
+                                        e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                        e.currentTarget.style.color = '#111827';
+                                      }
+                                    }}
+                                    onTouchEnd={(e) => {
+                                      if (!isActive) {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        e.currentTarget.style.color = '#6b7280';
+                                      }
+                                    }}
+                                  >
+                                    {viewConfig.label}
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                           
