@@ -1028,26 +1028,40 @@ export default function ProductBuilderPage() {
         
         // FORCER les noms des zones en noir dans les modaux desktop
         // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN') && 
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
             (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
           // Vérifier si c'est un label de zone (contenant le nom de la zone)
           const parentDiv = htmlEl.closest('div');
-          const textContent = htmlEl.textContent || '';
+          const textContent = (htmlEl.textContent || '').toLowerCase();
+          const parentStyle = parentDiv?.getAttribute('style') || '';
           // Si le texte contient des noms de zones typiques ou si le parent a un padding spécifique
           if (parentDiv && (
               parentDiv.style.padding === '12px' || 
               parentDiv.style.padding === '10px' || 
-              parentDiv.getAttribute('style')?.includes('padding: 12px') || 
-              parentDiv.getAttribute('style')?.includes('padding: 10px') ||
+              parentStyle.includes('padding: 12px') || 
+              parentStyle.includes('padding: 10px') ||
+              parentStyle.includes("padding: '12px'") ||
+              parentStyle.includes("padding: '10px'") ||
               textContent.includes('dos') ||
               textContent.includes('face') ||
-              textContent.includes('Nom') ||
-              textContent.includes('Zone')
+              textContent.includes('nom') ||
+              textContent.includes('zone') ||
+              textContent.includes('logo') ||
+              textContent.includes('bras') ||
+              textContent.includes('torse')
             )) {
             // C'est probablement un label de zone - forcer la couleur noire
             htmlEl.style.setProperty('color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+            // Forcer aussi sur tous les enfants
+            const children = htmlEl.querySelectorAll('*');
+            children.forEach((child: Element) => {
+              const childEl = child as HTMLElement;
+              childEl.style.setProperty('color', '#111827', 'important');
+              childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+              childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+            });
           }
         }
         
