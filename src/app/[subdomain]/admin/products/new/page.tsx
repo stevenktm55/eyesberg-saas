@@ -6274,6 +6274,14 @@ export default function ProductBuilderPage() {
                                             // Utiliser display_name comme fontFamily (comme dans ModelViewer)
                                             const fontFamilyValue = font.display_name || font.name;
                                             
+                                            // Vérifier si la police est chargée
+                                            const fontFamilyQuoted = fontFamilyValue ? `"${fontFamilyValue}"` : '';
+                                            const isFontLoaded = fontFamilyValue ? (
+                                              document.fonts.check(`12px ${fontFamilyQuoted}`) ||
+                                              document.fonts.check(`18px ${fontFamilyQuoted}`) ||
+                                              document.fonts.check(`24px ${fontFamilyQuoted}`)
+                                            ) : false;
+                                            
                                             return (
                                               <div
                                                 key={font.id}
@@ -6293,7 +6301,48 @@ export default function ProductBuilderPage() {
                                                   position: 'relative'
                                                 }}
                                               >
-                                                <FontPreview fontFamily={fontFamilyValue || ''} previewText={previewText} />
+                                                <div
+                                                  style={{
+                                                    width: '100%',
+                                                    padding: '8px',
+                                                    backgroundColor: '#f5f5f5',
+                                                    borderRadius: '4px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    minHeight: '60px',
+                                                    fontFamily: fontFamilyValue ? `${fontFamilyQuoted}, sans-serif` : 'sans-serif',
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#111827'
+                                                  }}
+                                                  ref={(el) => {
+                                                    if (el && fontFamilyValue) {
+                                                      // Forcer immédiatement la police
+                                                      el.style.fontFamily = `${fontFamilyQuoted}, sans-serif`;
+                                                      el.style.setProperty('font-family', `${fontFamilyQuoted}, sans-serif`, 'important');
+                                                      
+                                                      // Vérifier périodiquement si la police est chargée et forcer le style
+                                                      const checkAndForce = () => {
+                                                        if (el) {
+                                                          el.style.fontFamily = `${fontFamilyQuoted}, sans-serif`;
+                                                          el.style.setProperty('font-family', `${fontFamilyQuoted}, sans-serif`, 'important');
+                                                          
+                                                          // Vérifier si la police est maintenant chargée
+                                                          const isReady = document.fonts.check(`12px ${fontFamilyQuoted}`) ||
+                                                                         document.fonts.check(`18px ${fontFamilyQuoted}`) ||
+                                                                         document.fonts.check(`24px ${fontFamilyQuoted}`);
+                                                          if (!isReady) {
+                                                            setTimeout(checkAndForce, 100);
+                                                          }
+                                                        }
+                                                      };
+                                                      checkAndForce();
+                                                    }
+                                                  }}
+                                                >
+                                                  {previewText}
+                                                </div>
                                                 <span style={{
                                                   fontSize: '11px',
                                                   color: '#111827',
@@ -10026,6 +10075,14 @@ export default function ProductBuilderPage() {
                                                         const isSelected = selectedText.fontFamily === font.id;
                                                         const fontFamilyValue = font.display_name || font.name;
                                                         
+                                                        // Vérifier si la police est chargée
+                                                        const fontFamilyQuoted = fontFamilyValue ? `"${fontFamilyValue}"` : '';
+                                                        const isFontLoaded = fontFamilyValue ? (
+                                                          document.fonts.check(`12px ${fontFamilyQuoted}`) ||
+                                                          document.fonts.check(`18px ${fontFamilyQuoted}`) ||
+                                                          document.fonts.check(`24px ${fontFamilyQuoted}`)
+                                                        ) : false;
+                                                        
                                                         return (
                                                           <div
                                                             key={font.id}
@@ -10047,7 +10104,48 @@ export default function ProductBuilderPage() {
                                                               position: 'relative'
                                                             }}
                                                           >
-                                                            <FontPreview fontFamily={fontFamilyValue || ''} previewText={previewText} />
+                                                            <div
+                                                              style={{
+                                                                width: '100%',
+                                                                padding: '8px',
+                                                                backgroundColor: '#f5f5f5',
+                                                                borderRadius: '4px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                minHeight: '60px',
+                                                                fontFamily: fontFamilyValue ? `${fontFamilyQuoted}, sans-serif` : 'sans-serif',
+                                                                fontSize: '18px',
+                                                                fontWeight: 'bold',
+                                                                color: '#111827'
+                                                              }}
+                                                              ref={(el) => {
+                                                                if (el && fontFamilyValue) {
+                                                                  // Forcer immédiatement la police
+                                                                  el.style.fontFamily = `${fontFamilyQuoted}, sans-serif`;
+                                                                  el.style.setProperty('font-family', `${fontFamilyQuoted}, sans-serif`, 'important');
+                                                                  
+                                                                  // Vérifier périodiquement si la police est chargée et forcer le style
+                                                                  const checkAndForce = () => {
+                                                                    if (el) {
+                                                                      el.style.fontFamily = `${fontFamilyQuoted}, sans-serif`;
+                                                                      el.style.setProperty('font-family', `${fontFamilyQuoted}, sans-serif`, 'important');
+                                                                      
+                                                                      // Vérifier si la police est maintenant chargée
+                                                                      const isReady = document.fonts.check(`12px ${fontFamilyQuoted}`) ||
+                                                                                     document.fonts.check(`18px ${fontFamilyQuoted}`) ||
+                                                                                     document.fonts.check(`24px ${fontFamilyQuoted}`);
+                                                                      if (!isReady) {
+                                                                        setTimeout(checkAndForce, 100);
+                                                                      }
+                                                                    }
+                                                                  };
+                                                                  checkAndForce();
+                                                                }
+                                                              }}
+                                                            >
+                                                              {previewText}
+                                                            </div>
                                                             <span style={{
                                                               fontSize: '11px',
                                                               color: '#111827',
