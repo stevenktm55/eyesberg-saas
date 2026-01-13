@@ -454,14 +454,18 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 
 /* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
 /* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
+/* Utiliser une spécificité plus élevée que .configurator-panel button pour surcharger */
 .configurator-panel button[style*="backgroundColor"],
 .configurator-panel button[style*="background-color"],
 .configurator-panel button[style*="aspectRatio"],
-.configurator-panel button[style*="aspect-ratio"] {
+.configurator-panel button[style*="aspect-ratio"],
+.configurator-panel button[style*="borderRadius: '50%'"],
+.configurator-panel button[style*="border-radius: 50%"] {
   /* Ne pas forcer background-color: transparent - laisser les styles inline React gérer */
   /* Ne pas forcer border-radius: 0 - laisser les styles inline React gérer */
-  background-color: unset !important;
-  border-radius: unset !important;
+  /* Utiliser initial pour réinitialiser et laisser les styles inline prendre le dessus */
+  background-color: initial !important;
+  border-radius: initial !important;
 }
 
 /* PROTECTION: Divs de cercles de couleurs dans les cartes (Primary, Secondary, Tertiary) */
@@ -471,8 +475,8 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 .configurator-panel div[style*="borderRadius: '50%'"],
 .configurator-panel div[style*="border-radius: 50%"] {
   /* Forcer le backgroundColor à être respecté depuis les styles inline */
-  /* Ne pas surcharger avec transparent ou autre valeur */
-  background-color: unset !important;
+  /* Utiliser initial pour réinitialiser et laisser les styles inline prendre le dessus */
+  background-color: initial !important;
 }
 
 /* Liens avec spécificité plus élevée */
