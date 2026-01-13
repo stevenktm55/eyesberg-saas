@@ -9295,6 +9295,18 @@ export default function ProductBuilderPage() {
                                                 position: 'relative',
                                                 overflow: 'hidden'
                                               }}
+                                              onMouseEnter={(e) => {
+                                                if (!isActive) {
+                                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                                  e.currentTarget.style.color = '#111827';
+                                                }
+                                              }}
+                                              onMouseLeave={(e) => {
+                                                if (!isActive) {
+                                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                                  e.currentTarget.style.color = '#6b7280';
+                                                }
+                                              }}
                                             >
                                               {isActive && (
                                                 <div style={{
@@ -9310,18 +9322,6 @@ export default function ProductBuilderPage() {
                                               )}
                                               {viewConfig.label}
                                             </button>
-                                              onMouseEnter={(e) => {
-                                                if (!isActive) {
-                                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                                  e.currentTarget.style.color = '#111827';
-                                                }
-                                              }}
-                                              onMouseLeave={(e) => {
-                                                if (!isActive) {
-                                                  e.currentTarget.style.backgroundColor = 'transparent';
-                                                  e.currentTarget.style.color = '#6b7280';
-                                                }
-                                              }}
                                             >
                                               {viewConfig.label}
                                             </button>
