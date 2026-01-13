@@ -5586,13 +5586,13 @@ export default function ProductBuilderPage() {
                                       padding: '0 16px',
                                       fontSize: '14px',
                                       fontWeight: '600',
-                                      border: isActive ? '2px solid #111827' : '2px solid transparent',
+                                      border: isActive ? '3px solid #ffffff' : '2px solid transparent',
                                       borderRadius: '6px',
                                       backgroundColor: isActive ? '#111827' : 'transparent',
                                       cursor: 'pointer',
                                       color: isActive ? '#ffffff' : '#6b7280',
                                       transition: 'all 0.2s ease',
-                                      boxShadow: isActive ? '0 2px 4px rgba(0, 0, 0, 0.15)' : 'none',
+                                      boxShadow: isActive ? '0 2px 6px rgba(0, 0, 0, 0.2)' : 'none',
                                       whiteSpace: 'nowrap',
                                       fontFamily: CONFIGURATOR_PANEL_FONT
                                     }}
@@ -9273,12 +9273,12 @@ export default function ProductBuilderPage() {
                                                 fontWeight: '600', 
                                                 color: isActive ? '#ffffff' : '#6b7280', 
                                                 backgroundColor: isActive ? '#111827' : 'transparent',
-                                                border: isActive ? '2px solid #111827' : '2px solid transparent',
+                                                border: isActive ? '3px solid #ffffff' : '2px solid transparent',
                                                 borderRadius: '6px',
                                                 cursor: 'pointer', 
                                                 fontFamily: CONFIGURATOR_PANEL_FONT,
                                                 transition: 'all 0.2s ease',
-                                                boxShadow: isActive ? '0 2px 4px rgba(0, 0, 0, 0.15)' : 'none',
+                                                boxShadow: isActive ? '0 2px 6px rgba(0, 0, 0, 0.2)' : 'none',
                                                 whiteSpace: 'nowrap'
                                               }}
                                               onMouseEnter={(e) => {
