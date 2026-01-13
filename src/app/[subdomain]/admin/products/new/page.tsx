@@ -2432,7 +2432,7 @@ export default function ProductBuilderPage() {
     if (!activeModule || activeModule.contentType !== 'logos') return;
     
     // Vérifier le type de fichier
-    const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+    const allowedTypes = activeModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
     
     if (!allowedTypes.includes(fileExtension)) {
@@ -2459,12 +2459,38 @@ export default function ProductBuilderPage() {
     // Si background remover est activé, ouvrir le modal de confirmation
     if (activeModule.enableBackgroundRemover) {
       setShowBackgroundRemoverModal(true);
-      // TODO: Générer l'aperçu avec/sans background remover
-      // Pour l'instant, on utilise la même image pour les deux
-      setBackgroundRemoverPreview({
-        original: importedFilePreview,
-        processed: importedFilePreview // À remplacer par l'image traitée
-      });
+      // TODO: Générer l'aperçu avec/sans background remover via une API
+      // Pour l'instant, on simule en créant une version avec fond transparent
+      // En production, il faudra appeler une API de background removal
+      try {
+        // Créer un canvas pour traiter l'image
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            // Pour l'instant, on utilise la même image
+            // En production, il faudra appliquer un algorithme de background removal
+            const processedDataUrl = canvas.toDataURL('image/png');
+            setBackgroundRemoverPreview({
+              original: importedFilePreview,
+              processed: processedDataUrl
+            });
+          }
+        };
+        img.src = importedFilePreview;
+      } catch (error) {
+        console.error('Error processing image:', error);
+        // Fallback: utiliser la même image
+        setBackgroundRemoverPreview({
+          original: importedFilePreview,
+          processed: importedFilePreview
+        });
+      }
     } else {
       // Aller directement à la sélection de zone
       proceedToZoneSelection(importedFilePreview);
@@ -2512,61 +2538,81 @@ export default function ProductBuilderPage() {
     let logoHeight: number | undefined = undefined;
     
     if (zoneWidth && zoneHeight && zoneWidth > 0 && zoneHeight > 0) {
-      // Récupérer les dimensions réelles du logo SVG
+      // Récupérer les dimensions réelles du logo
       try {
-        const response = await fetch(variantFile);
-        const svgText = await response.text();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-        const svgElement = svgDoc.querySelector('svg');
-        if (svgElement) {
-          const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
-          const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
-          const viewBox = svgElement.getAttribute('viewBox');
-          
-          let actualWidth = svgWidth;
-          let actualHeight = svgHeight;
-          
-          if (viewBox) {
-            const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
-            if (vbWidth && vbHeight) {
-              actualWidth = vbWidth;
-              actualHeight = vbHeight;
+        let actualWidth = 0;
+        let actualHeight = 0;
+        
+        // Si c'est un logo importé (data URL ou blob URL), utiliser Image pour obtenir les dimensions
+        if (logoId === 'imported' || variantFile.startsWith('data:') || variantFile.startsWith('blob:')) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            img.onload = () => {
+              actualWidth = img.naturalWidth || img.width;
+              actualHeight = img.naturalHeight || img.height;
+              resolve(null);
+            };
+            img.onerror = reject;
+            img.src = variantFile;
+          });
+        } else {
+          // Pour les SVG de la bibliothèque
+          const response = await fetch(variantFile);
+          const svgText = await response.text();
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+          const svgElement = svgDoc.querySelector('svg');
+          if (svgElement) {
+            const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
+            const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
+            const viewBox = svgElement.getAttribute('viewBox');
+            
+            actualWidth = svgWidth;
+            actualHeight = svgHeight;
+            
+            if (viewBox) {
+              const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
+              if (vbWidth && vbHeight) {
+                actualWidth = vbWidth;
+                actualHeight = vbHeight;
+              }
             }
           }
+        }
+        
+        if (actualWidth > 0 && actualHeight > 0) {
+          // Stocker les dimensions réelles du logo
+          logoWidth = actualWidth;
+          logoHeight = actualHeight;
           
-          if (actualWidth > 0 && actualHeight > 0) {
-            // Stocker les dimensions réelles du logo
-            logoWidth = actualWidth;
-            logoHeight = actualHeight;
-            
-            // Convertir les dimensions de la zone en pixels (canvas 2048x2048)
-            const CANVAS_SIZE = 2048;
-            const SCALE_FACTOR = 0.50; // Même facteur que dans ModelViewer
-            const zoneWidthPx = zoneWidth * CANVAS_SIZE;
-            const zoneHeightPx = zoneHeight * CANVAS_SIZE;
-            
-            // On veut que le logo tienne dans 80% de la zone
-            const targetWidthPx = zoneWidthPx * 0.8;
-            const targetHeightPx = zoneHeightPx * 0.8;
-            
-            // Calculer le scale pour que le logo tienne dans la zone
-            // scaledWidth = baseWidth * scale * SCALE_FACTOR
-            // Donc: scale = targetWidthPx / (baseWidth * SCALE_FACTOR)
-            const scaleX = targetWidthPx / (actualWidth * SCALE_FACTOR);
-            const scaleY = targetHeightPx / (actualHeight * SCALE_FACTOR);
-            scale = Math.min(scaleX, scaleY);
-            
-            console.log('📐 Logo scale calculation:', {
-              zoneWidth,
-              zoneHeight,
-              zoneWidthPx,
-              zoneHeightPx,
-              actualWidth,
-              actualHeight,
-              targetWidthPx,
-              targetHeightPx,
-              scaleX,
+          // Convertir les dimensions de la zone en pixels (canvas 2048x2048)
+          const CANVAS_SIZE = 2048;
+          const SCALE_FACTOR = 0.50; // Même facteur que dans ModelViewer
+          const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+          const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+          
+          // On veut que le logo tienne dans 80% de la zone
+          const targetWidthPx = zoneWidthPx * 0.8;
+          const targetHeightPx = zoneHeightPx * 0.8;
+          
+          // Calculer le scale pour que le logo tienne dans la zone
+          // scaledWidth = baseWidth * scale * SCALE_FACTOR
+          // Donc: scale = targetWidthPx / (baseWidth * SCALE_FACTOR)
+          const scaleX = targetWidthPx / (actualWidth * SCALE_FACTOR);
+          const scaleY = targetHeightPx / (actualHeight * SCALE_FACTOR);
+          scale = Math.min(scaleX, scaleY);
+          
+          console.log('📐 Logo scale calculation:', {
+            zoneWidth,
+            zoneHeight,
+            zoneWidthPx,
+            zoneHeightPx,
+            actualWidth,
+            actualHeight,
+            targetWidthPx,
+            targetHeightPx,
+            scaleX,
               scaleY,
               finalScale: scale
             });
@@ -5342,6 +5388,12 @@ export default function ProductBuilderPage() {
                                 <button
                                   className="btn-primary"
                                   onClick={() => {
+                                    // Réinitialiser les états
+                                    setImportedFile(null);
+                                    setImportedFilePreview(null);
+                                    setShowBackgroundRemoverModal(false);
+                                    setBackgroundRemoverPreview(null);
+                                    if (fileInputRef.current) fileInputRef.current.value = '';
                                     setShowImportModal(true);
                                   }}
                                   style={{
@@ -9467,6 +9519,12 @@ export default function ProductBuilderPage() {
                                             <button
                                               className="btn-primary mobile-action-btn-black"
                                               onClick={() => {
+                                                // Réinitialiser les états
+                                                setImportedFile(null);
+                                                setImportedFilePreview(null);
+                                                setShowBackgroundRemoverModal(false);
+                                                setBackgroundRemoverPreview(null);
+                                                if (fileInputRef.current) fileInputRef.current.value = '';
                                                 setShowImportModal(true);
                                               }}
                                               style={{ 
@@ -11677,10 +11735,11 @@ export default function ProductBuilderPage() {
                                     <p
                                       style={{
                                         fontSize: '12px',
-                                        color: '#6b7280',
+                                        color: '#111827',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        fontWeight: '500'
                                       }}
                                     >
                                       Original
@@ -11721,10 +11780,11 @@ export default function ProductBuilderPage() {
                                     <p
                                       style={{
                                         fontSize: '12px',
-                                        color: '#6b7280',
+                                        color: '#111827',
                                         margin: 0,
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        fontWeight: '500'
                                       }}
                                     >
                                       Sans fond
@@ -12659,8 +12719,9 @@ export default function ProductBuilderPage() {
                         Types de fichiers autorisés
                       </label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {['svg', 'png', 'jpg', 'jpeg'].map((fileType) => {
-                          const allowedTypes = selectedModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                        {['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'].map((fileType) => {
+                          const defaultTypes = ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
+                          const allowedTypes = selectedModule.allowedLogoFileTypes || defaultTypes;
                           const isChecked = allowedTypes.includes(fileType);
                           return (
                             <label
@@ -12679,7 +12740,7 @@ export default function ProductBuilderPage() {
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={(e) => {
-                                  const currentTypes = selectedModule.allowedLogoFileTypes || ['svg', 'png', 'jpg', 'jpeg'];
+                                  const currentTypes = selectedModule.allowedLogoFileTypes || defaultTypes;
                                   const newTypes = e.target.checked
                                     ? [...currentTypes, fileType]
                                     : currentTypes.filter(t => t !== fileType);
@@ -12689,7 +12750,7 @@ export default function ProductBuilderPage() {
                                   
                                   const updated = {
                                     ...selectedModule,
-                                    allowedLogoFileTypes: newTypes.length === 4 ? undefined : newTypes
+                                    allowedLogoFileTypes: newTypes.length === defaultTypes.length ? undefined : newTypes
                                   };
                                   setSelectedModule(updated);
                                   setCustomizationModules(customizationModules.map(m =>
@@ -16004,10 +16065,11 @@ export default function ProductBuilderPage() {
                 <p
                   style={{
                     fontSize: '13px',
-                    color: '#6b7280',
+                    color: '#111827',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontWeight: '500'
                   }}
                 >
                   Original
@@ -16048,10 +16110,11 @@ export default function ProductBuilderPage() {
                 <p
                   style={{
                     fontSize: '13px',
-                    color: '#6b7280',
+                    color: '#111827',
                     margin: 0,
                     fontFamily: CONFIGURATOR_PANEL_FONT,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontWeight: '500'
                   }}
                 >
                   Sans fond
