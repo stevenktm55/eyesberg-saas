@@ -454,28 +454,19 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 
 /* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
 /* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
-/* Utiliser une spécificité plus élevée que .configurator-panel button pour surcharger */
-/* IMPORTANT: Les sélecteurs par attribut [style*="..."] ont une spécificité plus élevée */
-.configurator-panel button[style*="backgroundColor"],
-.configurator-panel button[style*="background-color"],
-.configurator-panel button[style*="aspectRatio"],
-.configurator-panel button[style*="aspect-ratio"],
-.configurator-panel button[style*="borderRadius: '50%'"],
-.configurator-panel button[style*="border-radius: 50%"] {
-  /* Ne pas forcer background-color: transparent - utiliser revert pour revenir au style inline */
-  /* Ne pas forcer border-radius: 0 - utiliser revert pour revenir au style inline */
-  background-color: revert !important;
-  border-radius: revert !important;
+/* Utiliser une classe CSS spécifique pour exclure ces boutons de la règle générale */
+.configurator-panel button.color-circle-button {
+  /* Ne pas forcer background-color: transparent - laisser les styles inline React gérer */
+  /* Ne pas forcer border-radius: 0 - laisser les styles inline React gérer */
+  background-color: unset !important;
+  border-radius: unset !important;
 }
 
 /* PROTECTION: Divs de cercles de couleurs dans les cartes (Primary, Secondary, Tertiary) */
 /* Ces divs ont un backgroundColor défini en inline style et doivent rester visibles */
-.configurator-panel div[style*="backgroundColor"],
-.configurator-panel div[style*="background-color"],
-.configurator-panel div[style*="borderRadius: '50%'"],
-.configurator-panel div[style*="border-radius: 50%"] {
-  /* Utiliser revert pour revenir au style inline et respecter le backgroundColor défini */
-  background-color: revert !important;
+.configurator-panel div.color-circle-indicator {
+  /* Ne pas surcharger le backgroundColor - laisser les styles inline React gérer */
+  background-color: unset !important;
 }
 
 /* Liens avec spécificité plus élevée */

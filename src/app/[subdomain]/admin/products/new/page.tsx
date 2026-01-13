@@ -4400,6 +4400,7 @@ export default function ProductBuilderPage() {
                                   return (
                                     <button
                                       key={color.id}
+                                      className="color-circle-button"
                                       onClick={() => {
                                         const newDesignColors = { ...designColors };
                                         newDesignColors[selectedColorClass] = color.id;
@@ -4529,6 +4530,7 @@ export default function ProductBuilderPage() {
                                     }}
                                   >
                                     <div
+                                      className="color-circle-indicator"
                                       style={{
                                         width: '32px',
                                         height: '32px',
