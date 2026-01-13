@@ -350,6 +350,26 @@
 }
 
 /* ============================================
+   PROTECTION: Noms des zones dans les modaux - FORCER NOIR
+   ============================================ */
+.zone-selection-modal-content p,
+.zone-selection-modal-content span,
+.zone-selection-modal-content div:not(button):not([style*="background-color: #"]) {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+/* Protection spécifique pour les labels de zones */
+.zone-selection-modal-content div[style*="padding: '12px'"] p,
+.zone-selection-modal-content div[style*="padding: '10px'"] p,
+.zone-selection-modal-content div[style*="padding: 12px"] p,
+.zone-selection-modal-content div[style*="padding: 10px"] p {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  -webkit-text-stroke-color: #111827 !important;
+}
+
+/* ============================================
    MOBILE - UNIQUEMENT dans .configurator-panel
    ============================================ */
 .configurator-panel .mobile-panel-slide-up button,

@@ -14019,6 +14019,12 @@ export default function ProductBuilderPage() {
                         value={textInputValue}
                         onChange={(e) => setTextInputValue(e.target.value)}
                         placeholder="Saisir l'inscription ici..."
+                        onFocus={(e) => {
+                          e.currentTarget.style.borderColor = '#3b82f6';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.borderColor = '#d1d5db';
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && textInputValue.trim() && selectedZoneId) {
                             const selectedZone = availableZones.find(z => z.id === selectedZoneId);
@@ -14104,14 +14110,15 @@ export default function ProductBuilderPage() {
                         }}
                         style={{
                           width: '100%',
-                          padding: '12px 16px',
+                          padding: '12px',
                           backgroundColor: '#ffffff',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '4px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
                           fontSize: '14px',
                           fontFamily: CONFIGURATOR_PANEL_FONT,
-                          color: '#000000',
-                          outline: 'none'
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
