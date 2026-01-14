@@ -8482,7 +8482,7 @@ export default function ProductBuilderPage() {
                             return (
                               <div
                                 style={{
-                                  position: 'fixed',
+                                  position: 'absolute',
                                   top: 0,
                                   left: 0,
                                   right: 0,
@@ -8492,7 +8492,7 @@ export default function ProductBuilderPage() {
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   zIndex: 10002,
-                                  padding: '16px',
+                                  padding: '12px',
                                   boxSizing: 'border-box'
                                 }}
                                 onClick={(e) => {
@@ -8507,10 +8507,10 @@ export default function ProductBuilderPage() {
                                   style={{
                                     backgroundColor: '#ffffff',
                                     borderRadius: '8px',
-                                    padding: '16px',
+                                    padding: '14px',
                                     width: '100%',
-                                    maxWidth: 'calc(100vw - 32px)',
-                                    maxHeight: 'calc(100vh - 32px)',
+                                    maxWidth: 'calc(100% - 24px)',
+                                    maxHeight: 'calc(100% - 24px)',
                                     overflowY: 'auto',
                                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                                     color: '#111827',
@@ -8604,8 +8604,10 @@ export default function ProductBuilderPage() {
                                       <div style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(2, 1fr)',
-                                        gap: '12px',
-                                        marginBottom: '20px'
+                                        gap: '10px',
+                                        marginBottom: '16px',
+                                        width: '100%',
+                                        boxSizing: 'border-box'
                                       }}>
                                         {availableZones.map((zone) => {
                                           const isSelected = selectedLogoZoneId === zone.id;
@@ -11793,7 +11795,7 @@ export default function ProductBuilderPage() {
                               <div
                                 className="configurator-panel-modal-overlay"
                                 style={{
-                                  position: 'fixed',
+                                  position: 'absolute',
                                   top: 0,
                                   left: 0,
                                   right: 0,
@@ -11803,7 +11805,8 @@ export default function ProductBuilderPage() {
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   zIndex: 10001,
-                                  padding: '16px'
+                                  padding: '12px',
+                                  boxSizing: 'border-box'
                                 }}
                               onClick={(e) => {
                                 if (e.target === e.currentTarget) {
@@ -11816,14 +11819,14 @@ export default function ProductBuilderPage() {
                                 style={{
                                   backgroundColor: '#ffffff',
                                   borderRadius: '12px',
-                                  padding: '16px',
+                                  padding: '14px',
                                   width: '100%',
-                                  maxWidth: 'min(400px, calc(100vw - 32px))',
+                                  maxWidth: 'calc(100% - 24px)',
                                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  gap: '12px',
-                                  maxHeight: 'calc(100vh - 32px)',
+                                  gap: '10px',
+                                  maxHeight: 'calc(100% - 24px)',
                                   overflow: 'auto',
                                   boxSizing: 'border-box'
                                 }}
@@ -11848,7 +11851,9 @@ export default function ProductBuilderPage() {
                                   style={{
                                     display: 'grid',
                                     gridTemplateColumns: '1fr 1fr',
-                                    gap: '12px'
+                                    gap: '8px',
+                                    width: '100%',
+                                    boxSizing: 'border-box'
                                   }}
                                 >
                                   {/* Aperçu original */}
