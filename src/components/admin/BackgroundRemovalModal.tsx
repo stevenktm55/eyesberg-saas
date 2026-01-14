@@ -21,25 +21,10 @@ export function BackgroundRemovalModal({
   onCancel,
   onProcessedImageChange,
 }: BackgroundRemovalModalProps) {
-  // ALERT pour vérifier que le composant s'exécute
-  if (typeof window !== 'undefined' && isOpen) {
-    console.log('🚨 BackgroundRemovalModal MOUNTED - isOpen:', isOpen, 'imageFile:', imageFile?.name);
-  }
-  
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Log quand processedImageUrl change
-  useEffect(() => {
-    console.log('🔄 BackgroundRemovalModal: processedImageUrl changed:', {
-      hasProcessedImage: !!processedImageUrl,
-      length: processedImageUrl?.length,
-      isOpen,
-      isProcessing
-    });
-  }, [processedImageUrl, isOpen, isProcessing]);
 
   // Afficher l'aperçu de l'image originale
   useEffect(() => {
@@ -75,12 +60,8 @@ export function BackgroundRemovalModal({
       
       // Appel direct de la fonction de traitement
       const processImage = async () => {
-        if (!imageFile) {
-          console.error('❌ BackgroundRemovalModal: Pas de imageFile');
-          return;
-        }
+        if (!imageFile) return;
         
-        console.log('🚀 BackgroundRemovalModal: Démarrage du traitement');
         setIsProcessing(true);
         setError(null);
 
@@ -88,49 +69,37 @@ export function BackgroundRemovalModal({
           const formData = new FormData();
           formData.append("image", imageFile);
 
-          console.log('📡 BackgroundRemovalModal: Envoi vers /api/background-remover');
           const response = await fetch("/api/background-remover", {
             method: "POST",
             body: formData,
           });
-
-          console.log('📥 BackgroundRemovalModal: Réponse reçue, status:', response.status);
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
           const data = await response.json();
-          console.log('📥 BackgroundRemovalModal: Données reçues:', {
-            success: data.success,
-            hasDataUrl: !!data.dataUrl,
-            dataUrlStart: data.dataUrl?.substring(0, 50)
-          });
 
           if (data.success && data.dataUrl) {
             // Vérifier que le dataUrl est valide
             if (data.dataUrl.startsWith('data:image/png;base64,')) {
-              console.log('✅ BackgroundRemovalModal: DataUrl valide, mise à jour du state');
               setProcessedImageUrl(data.dataUrl);
               setIsProcessing(false);
               if (onProcessedImageChange) {
-                console.log('📢 BackgroundRemovalModal: Appel onProcessedImageChange');
                 onProcessedImageChange(data.dataUrl);
               }
             } else {
-              console.error('❌ BackgroundRemovalModal: DataUrl invalide:', data.dataUrl.substring(0, 50));
               setError("Format d'image invalide reçu du serveur");
               setIsProcessing(false);
             }
           } else {
-            console.warn('⚠️ BackgroundRemovalModal: Échec -', data.error);
             setError(
               data.error || "Erreur lors de la suppression du fond. L'image originale sera utilisée."
             );
             setIsProcessing(false);
           }
         } catch (err) {
-          console.error("❌ BackgroundRemovalModal: Erreur:", err);
+          console.error("Erreur suppression de fond:", err);
           setError("Erreur lors de la suppression du fond. L'image originale sera utilisée.");
           setIsProcessing(false);
         }
@@ -283,10 +252,6 @@ export function BackgroundRemovalModal({
 
         {/* Content */}
         <div className="p-6">
-          {/* DEBUG: Texte visible pour vérifier que le modal est rendu */}
-          <div className="mb-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-xs">
-            🐛 DEBUG: Modal version avec logs - Si tu vois ce message, le modal est bien rendu
-          </div>
           <p className="text-sm text-gray-600 mb-4">
             Voulez-vous supprimer le fond de cette image ? La version sans fond
             sera utilisée.
@@ -320,22 +285,12 @@ export function BackgroundRemovalModal({
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
                   ) : processedImageUrl ? (
-                    <>
-                      {console.log('🖼️ Affichage de l\'image traitée, longueur:', processedImageUrl.length, 'preview:', processedImageUrl.substring(0, 80))}
-                      <img
-                        key={`processed-${processedImageUrl.length}`}
-                        src={processedImageUrl}
-                        alt="Sans fond"
-                        className="max-w-full max-h-32 mx-auto object-contain"
-                        onError={(e) => {
-                          console.error('❌ Erreur chargement image traitée:', e);
-                          console.error('❌ DataUrl (premiers 200 chars):', processedImageUrl.substring(0, 200));
-                        }}
-                        onLoad={() => {
-                          console.log('✅ Image traitée chargée avec succès');
-                        }}
-                      />
-                    </>
+                    <img
+                      key={`processed-${processedImageUrl.length}`}
+                      src={processedImageUrl}
+                      alt="Sans fond"
+                      className="max-w-full max-h-32 mx-auto object-contain"
+                    />
                   ) : (
                     <div className="text-xs text-gray-400 text-center h-32 flex items-center justify-center">
                       Aperçu après traitement

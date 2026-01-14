@@ -4364,10 +4364,8 @@ function LogoTab({
 
     // Si c'est une image (pas SVG), afficher le modal de suppression de fond
     const isImage = selectedFile.type.startsWith('image/') && !selectedFile.name.toLowerCase().endsWith('.svg');
-    console.log('🔵 ClientPage: handleUploadLogo - isImage:', isImage, 'fileType:', selectedFile.type, 'fileName:', selectedFile.name);
     if (isImage) {
       // Afficher le modal de suppression de fond
-      console.log('🔵 ClientPage: Ouverture du modal de suppression de fond');
       setShowBackgroundRemovalModal(true);
       setProcessedImageDataUrl(null);
       return;
@@ -5191,12 +5189,10 @@ function LogoTab({
           isOpen={showBackgroundRemovalModal}
           imageFile={selectedFile}
           onClose={() => {
-            console.log('🔵 ClientPage: onClose appelé');
             setShowBackgroundRemovalModal(false);
             setProcessedImageDataUrl(null);
           }}
           onConfirm={async (dataUrl) => {
-            console.log('🔵 ClientPage: onConfirm appelé', { hasDataUrl: !!dataUrl, hasProcessedImageDataUrl: !!processedImageDataUrl });
             const imageToUse = dataUrl || processedImageDataUrl;
             if (imageToUse) {
               // Convertir le data URL en File
@@ -5212,14 +5208,12 @@ function LogoTab({
             setProcessedImageDataUrl(null);
           }}
           onCancel={async () => {
-            console.log('🔵 ClientPage: onCancel appelé');
             // Utiliser l'image originale
             await doUploadLogo(selectedFile);
             setShowBackgroundRemovalModal(false);
             setProcessedImageDataUrl(null);
           }}
           onProcessedImageChange={(dataUrl) => {
-            console.log('🔵 ClientPage: onProcessedImageChange appelé', { hasDataUrl: !!dataUrl });
             setProcessedImageDataUrl(dataUrl);
           }}
         />
