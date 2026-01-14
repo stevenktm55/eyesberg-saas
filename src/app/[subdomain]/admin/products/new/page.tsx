@@ -2436,7 +2436,9 @@ export default function ProductBuilderPage() {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+    // Vérifier le module actif selon le mode (desktop ou mobile)
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || 
+                         customizationModules.find(m => m.id === mobileActivePanel);
     if (!activeModule || activeModule.contentType !== 'logos') return;
     
     // Vérifier le type de fichier
