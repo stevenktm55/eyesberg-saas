@@ -57,8 +57,11 @@ export function BackgroundRemovalModal({
   const hasStartedProcessing = useRef(false);
   
   useEffect(() => {
+    console.log('🔍 useEffect déclenché:', { isOpen, hasImageFile: !!imageFile, hasStartedProcessing: hasStartedProcessing.current, isProcessing });
+    
     // Reset quand le modal se ferme
     if (!isOpen) {
+      console.log('🔒 Modal fermé, reset du state');
       hasStartedProcessing.current = false;
       setProcessedImageUrl(null);
       setError(null);
@@ -67,12 +70,17 @@ export function BackgroundRemovalModal({
     
     // Déclencher le traitement automatiquement quand le modal s'ouvre
     if (isOpen && imageFile && !hasStartedProcessing.current && !isProcessing) {
+      console.log('🚀 Conditions remplies, démarrage du traitement');
       hasStartedProcessing.current = true;
       console.log('🔄 Déclenchement automatique du traitement de suppression de fond');
       // Appel direct de la fonction de traitement
       const processImage = async () => {
-        if (!imageFile) return;
+        if (!imageFile) {
+          console.error('❌ Pas de imageFile dans processImage');
+          return;
+        }
         
+        console.log('📤 Envoi de l\'image à l\'API:', imageFile.name, imageFile.size, imageFile.type);
         setIsProcessing(true);
         setError(null);
 
@@ -80,11 +88,13 @@ export function BackgroundRemovalModal({
           const formData = new FormData();
           formData.append("image", imageFile);
 
+          console.log('📡 Appel fetch vers /api/background-remover');
           const response = await fetch("/api/background-remover", {
             method: "POST",
             body: formData,
           });
 
+          console.log('📥 Réponse reçue, status:', response.status, response.ok);
           const data = await response.json();
           console.log('📥 Réponse API background-remover:', {
             success: data.success,
@@ -99,6 +109,7 @@ export function BackgroundRemovalModal({
             setProcessedImageUrl(data.dataUrl);
             setIsProcessing(false);
             if (onProcessedImageChange) {
+              console.log('📢 Appel de onProcessedImageChange');
               onProcessedImageChange(data.dataUrl);
             }
           } else {
@@ -109,13 +120,20 @@ export function BackgroundRemovalModal({
             setIsProcessing(false);
           }
         } catch (err) {
-          console.error("Erreur suppression de fond:", err);
+          console.error("❌ Erreur suppression de fond:", err);
           setError("Erreur lors de la suppression du fond. L'image originale sera utilisée.");
           setIsProcessing(false);
         }
       };
       
       processImage();
+    } else {
+      console.log('⏸️ Conditions non remplies pour démarrer le traitement:', {
+        isOpen,
+        hasImageFile: !!imageFile,
+        hasStartedProcessing: hasStartedProcessing.current,
+        isProcessing
+      });
     }
   }, [isOpen, imageFile, isProcessing, onProcessedImageChange]);
 
@@ -207,6 +225,8 @@ export function BackgroundRemovalModal({
     }
   };
 
+  console.log('🎨 Render BackgroundRemovalModal:', { isOpen, hasImageFile: !!imageFile, processedImageUrl: !!processedImageUrl, isProcessing });
+  
   if (!isOpen) return null;
 
   return (
