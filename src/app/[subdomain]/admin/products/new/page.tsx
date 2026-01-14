@@ -46,6 +46,9 @@ if (typeof document !== 'undefined') {
       -webkit-text-stroke-color: #ffffff !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
+    .configurator-panel-sidebar-tab-active {
+      border-radius: 16px !important;
+    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -4685,13 +4688,14 @@ export default function ProductBuilderPage() {
                         setSelectedColorClass(null);
                       }
                     }}
+                    className={activeCustomizerTab === module.id ? 'configurator-panel-sidebar-tab-active' : ''}
                     style={{
                       width: '64px',
                       height: '64px',
                       padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
-                      borderRadius: activeCustomizerTab === module.id ? '20px' : '8px',
+                      borderRadius: activeCustomizerTab === module.id ? '16px' : '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -4699,7 +4703,8 @@ export default function ProductBuilderPage() {
                       cursor: 'pointer',
                       fontSize: '20px',
                       transition: 'all 0.15s ease',
-                      gap: '4px'
+                      gap: '4px',
+                      overflow: 'hidden'
                     }}
                     title={module.tabName}
                   >
