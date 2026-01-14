@@ -5186,14 +5186,14 @@ function LogoTab({
       {zoneModal}
       
       {/* Modal de suppression de fond */}
-      {showBackgroundRemovalModal && selectedFile && (
-        <>
-          {console.log('🔵 ClientPage: Rendu du BackgroundRemovalModal', {
-            showBackgroundRemovalModal,
-            hasSelectedFile: !!selectedFile,
-            fileName: selectedFile?.name,
-            fileSize: selectedFile?.size
-          })}
+      {showBackgroundRemovalModal && selectedFile && (() => {
+        console.log('🔵 ClientPage: Rendu du BackgroundRemovalModal', {
+          showBackgroundRemovalModal,
+          hasSelectedFile: !!selectedFile,
+          fileName: selectedFile?.name,
+          fileSize: selectedFile?.size
+        });
+        return (
           <BackgroundRemovalModal
             isOpen={showBackgroundRemovalModal}
             imageFile={selectedFile}
@@ -5220,8 +5220,8 @@ function LogoTab({
             setProcessedImageDataUrl(dataUrl);
           }}
         />
-        </>
-      )}
+        );
+      })()}
     </div>
   );
 }

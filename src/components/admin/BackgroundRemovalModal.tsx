@@ -21,6 +21,11 @@ export function BackgroundRemovalModal({
   onCancel,
   onProcessedImageChange,
 }: BackgroundRemovalModalProps) {
+  // ALERT pour vérifier que le composant s'exécute
+  if (typeof window !== 'undefined' && isOpen) {
+    console.log('🚨 BackgroundRemovalModal MOUNTED - isOpen:', isOpen, 'imageFile:', imageFile?.name);
+  }
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
@@ -224,15 +229,28 @@ export function BackgroundRemovalModal({
     }
   };
 
-  console.log('🎨 BackgroundRemovalModal render:', {
-    isOpen,
-    hasImageFile: !!imageFile,
-    hasProcessedImage: !!processedImageUrl,
-    isProcessing,
-    hasError: !!error
-  });
+  // Log de rendu à chaque fois
+  if (typeof window !== 'undefined') {
+    console.log('🎨 BackgroundRemovalModal render:', {
+      isOpen,
+      hasImageFile: !!imageFile,
+      hasProcessedImage: !!processedImageUrl,
+      isProcessing,
+      hasError: !!error
+    });
+  }
   
-  if (!isOpen) return null;
+  if (!isOpen) {
+    if (typeof window !== 'undefined') {
+      console.log('🚫 BackgroundRemovalModal: Modal fermé, pas de rendu');
+    }
+    return null;
+  }
+  
+  // Log quand le modal est ouvert
+  if (typeof window !== 'undefined') {
+    console.log('✅ BackgroundRemovalModal: Modal ouvert, rendu du contenu');
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
