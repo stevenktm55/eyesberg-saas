@@ -47,14 +47,14 @@ if (typeof document !== 'undefined') {
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .configurator-panel button.configurator-panel-sidebar-tab-active {
-      border-radius: 20px !important;
-      -webkit-border-radius: 20px !important;
-      -moz-border-radius: 20px !important;
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
     }
     button.configurator-panel-sidebar-tab-active {
-      border-radius: 20px !important;
-      -webkit-border-radius: 20px !important;
-      -moz-border-radius: 20px !important;
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
     }
   `;
   if (!document.getElementById('customizer-tab-style')) {
@@ -2169,10 +2169,10 @@ export default function ProductBuilderPage() {
       activeTabs.forEach((tab) => {
         const htmlEl = tab as HTMLElement;
         if (htmlEl) {
-          htmlEl.style.setProperty('border-radius', '20px', 'important');
-          htmlEl.style.setProperty('borderRadius', '20px', 'important');
-          htmlEl.style.setProperty('-webkit-border-radius', '20px', 'important');
-          htmlEl.style.setProperty('-moz-border-radius', '20px', 'important');
+          htmlEl.style.setProperty('border-radius', '12px', 'important');
+          htmlEl.style.setProperty('borderRadius', '12px', 'important');
+          htmlEl.style.setProperty('-webkit-border-radius', '12px', 'important');
+          htmlEl.style.setProperty('-moz-border-radius', '12px', 'important');
         }
       });
     };
@@ -4744,7 +4744,7 @@ export default function ProductBuilderPage() {
                       padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
-                      borderRadius: activeCustomizerTab === module.id ? '20px' : '8px',
+                      borderRadius: activeCustomizerTab === module.id ? '12px' : '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
