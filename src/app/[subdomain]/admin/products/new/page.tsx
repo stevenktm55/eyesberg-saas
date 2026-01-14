@@ -11577,8 +11577,26 @@ export default function ProductBuilderPage() {
                           
                           {/* Modal d'importation de logo - Version MOBILE */}
                           {viewportMode === 'mobile' && showImportModal && (() => {
-                            const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
-                            if (!activeModule || activeModule.contentType !== 'logos') return null;
+                            console.log('🔵 Mobile: Tentative de rendu du modal d\'import', {
+                              viewportMode,
+                              showImportModal,
+                              activeCustomizerTab,
+                              mobileActivePanel
+                            });
+                            const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === mobileActivePanel);
+                            console.log('🔵 Mobile: activeModule trouvé', {
+                              hasModule: !!activeModule,
+                              contentType: activeModule?.contentType,
+                              moduleId: activeModule?.id
+                            });
+                            if (!activeModule || activeModule.contentType !== 'logos') {
+                              console.warn('🔵 Mobile: Modal non rendu - conditions non remplies', {
+                                hasModule: !!activeModule,
+                                contentType: activeModule?.contentType
+                              });
+                              return null;
+                            }
+                            console.log('🔵 Mobile: Modal d\'import rendu');
                             
                             const defaultTypes = ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
                             const allowedTypes = activeModule.allowedLogoFileTypes || defaultTypes;
