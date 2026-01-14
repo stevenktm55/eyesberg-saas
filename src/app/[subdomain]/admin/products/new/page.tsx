@@ -4678,7 +4678,7 @@ export default function ProductBuilderPage() {
                       padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: activeCustomizerTab === module.id ? '12px' : '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -4696,7 +4696,7 @@ export default function ProductBuilderPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: activeCustomizerTab === module.id ? '#ffffff' : CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                      backgroundColor: 'transparent',
                       borderRadius: '4px',
                       overflow: 'hidden'
                     }}>
@@ -4711,14 +4711,14 @@ export default function ProductBuilderPage() {
                             maxHeight: '14px',
                           objectFit: 'contain',
                             display: 'block',
-                            filter: activeCustomizerTab === module.id ? 'invert(0)' : 'invert(1)'
+                            filter: activeCustomizerTab === module.id ? 'invert(1)' : 'invert(0)'
                         }}
                       />
                     ) : (
                         <span style={{ 
                           fontSize: '14px', 
                           lineHeight: '1',
-                          color: activeCustomizerTab === module.id ? '#000000' : '#ffffff'
+                          color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
                         }}>
                         {module.icon}
                       </span>
@@ -4729,7 +4729,9 @@ export default function ProductBuilderPage() {
                       fontWeight: '400',
                       lineHeight: '1.2',
                       textAlign: 'center',
-                      color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
+                      color: activeCustomizerTab === module.id ? '#ffffff' : '#000000',
+                      WebkitTextFillColor: activeCustomizerTab === module.id ? '#ffffff' : '#000000',
+                      WebkitTextStrokeColor: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
                     }}>
                       {module.tabName}
                     </span>
