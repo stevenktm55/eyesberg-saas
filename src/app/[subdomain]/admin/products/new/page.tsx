@@ -47,7 +47,9 @@ if (typeof document !== 'undefined') {
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .configurator-panel-sidebar-tab-active {
-      border-radius: 16px !important;
+      border-radius: 20px !important;
+      -webkit-border-radius: 20px !important;
+      -moz-border-radius: 20px !important;
     }
   `;
   if (!document.getElementById('customizer-tab-style')) {
@@ -4695,7 +4697,7 @@ export default function ProductBuilderPage() {
                       padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
-                      borderRadius: activeCustomizerTab === module.id ? '16px' : '8px',
+                      borderRadius: activeCustomizerTab === module.id ? '20px' : '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
