@@ -55,12 +55,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Vérifier le Content-Type de la réponse VPS
+    const contentType = vpsResponse.headers.get('content-type');
+    console.log('📦 Content-Type VPS:', contentType);
+    
     // Lire l'image PNG sans fond depuis le VPS
     const pngBuffer = Buffer.from(await vpsResponse.arrayBuffer());
     const base64 = pngBuffer.toString('base64');
     const dataUrl = `data:image/png;base64,${base64}`;
 
     console.log('✅ Image sans fond générée, taille:', pngBuffer.length);
+    console.log('📊 DataUrl preview (premiers 100 caractères):', dataUrl.substring(0, 100));
 
     return NextResponse.json({
       success: true,

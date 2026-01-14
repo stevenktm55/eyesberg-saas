@@ -74,14 +74,23 @@ export function BackgroundRemovalModal({
           });
 
           const data = await response.json();
+          console.log('📥 Réponse API background-remover:', {
+            success: data.success,
+            hasDataUrl: !!data.dataUrl,
+            dataUrlLength: data.dataUrl?.length,
+            error: data.error,
+            fullData: data
+          });
 
           if (data.success && data.dataUrl) {
+            console.log('✅ Image traitée reçue, longueur dataUrl:', data.dataUrl.length);
             setProcessedImageUrl(data.dataUrl);
             setIsProcessing(false);
             if (onProcessedImageChange) {
               onProcessedImageChange(data.dataUrl);
             }
           } else {
+            console.warn('⚠️ Échec du traitement:', data.error || 'Pas de dataUrl dans la réponse');
             setError(
               data.error || "Erreur lors de la suppression du fond. L'image originale sera utilisée."
             );
@@ -252,11 +261,20 @@ export function BackgroundRemovalModal({
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     </div>
                   ) : processedImageUrl ? (
-                    <img
-                      src={processedImageUrl}
-                      alt="Sans fond"
-                      className="max-w-full max-h-32 mx-auto object-contain"
-                    />
+                    <>
+                      {console.log('🖼️ Affichage de l\'image traitée, longueur:', processedImageUrl.length)}
+                      <img
+                        src={processedImageUrl}
+                        alt="Sans fond"
+                        className="max-w-full max-h-32 mx-auto object-contain"
+                        onError={(e) => {
+                          console.error('❌ Erreur chargement image traitée:', e);
+                        }}
+                        onLoad={() => {
+                          console.log('✅ Image traitée chargée avec succès');
+                        }}
+                      />
+                    </>
                   ) : (
                     <div className="text-xs text-gray-400 text-center h-32 flex items-center justify-center">
                       Aperçu après traitement
