@@ -9600,7 +9600,10 @@ export default function ProductBuilderPage() {
                                             {/* Bouton Importer un logo */}
                                             <button
                                               className="btn-primary mobile-action-btn-black"
-                                              onClick={() => {
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                console.log('🔵 Mobile: Bouton Importer un logo cliqué');
                                                 // Réinitialiser les états
                                                 setImportedFile(null);
                                                 setImportedFilePreview(null);
@@ -9608,6 +9611,7 @@ export default function ProductBuilderPage() {
                                                 setBackgroundRemoverPreview(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
                                                 setShowImportModal(true);
+                                                console.log('🔵 Mobile: showImportModal mis à true');
                                               }}
                                               style={{ 
                                                 flex: 1,
