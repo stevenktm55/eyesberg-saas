@@ -1319,6 +1319,33 @@ export default function ProductBuilderPage() {
             return; // Déjà traité ci-dessus
           }
           
+          // Ne pas traiter les boutons de viewport (desktop/mobile switch)
+          const buttonTitle = htmlEl.getAttribute('title') || '';
+          if (buttonTitle === 'Vue ordinateur' || buttonTitle === 'Vue téléphone') {
+            // Forcer le backgroundColor blanc et le SVG noir pour les boutons de viewport
+            htmlEl.style.setProperty('background-color', '#ffffff', 'important');
+            htmlEl.style.setProperty('backgroundColor', '#ffffff', 'important');
+            
+            // Forcer le SVG et ses paths en noir
+            const svgs = htmlEl.querySelectorAll('svg');
+            svgs.forEach((svg: Element) => {
+              const svgEl = svg as HTMLElement;
+              svgEl.style.setProperty('stroke', '#000000', 'important');
+              svgEl.style.setProperty('fill', 'none', 'important');
+              svgEl.setAttribute('stroke', '#000000');
+              svgEl.setAttribute('fill', 'none');
+              
+              const paths = svgEl.querySelectorAll('path');
+              paths.forEach((path: Element) => {
+                const pathEl = path as HTMLElement;
+                pathEl.style.setProperty('stroke', '#000000', 'important');
+                pathEl.setAttribute('stroke', '#000000');
+              });
+            });
+            
+            return; // Ne pas traiter ce bouton comme un bouton primaire
+          }
+          
           const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
           const inlineStyle = htmlEl.getAttribute('style') || '';
           
