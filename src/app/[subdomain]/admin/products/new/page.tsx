@@ -2531,8 +2531,11 @@ export default function ProductBuilderPage() {
     const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === mobileActivePanel);
     if (!activeModule || activeModule.contentType !== 'logos') return;
     
-    // Si background remover est activé, ouvrir le modal de confirmation
-    if (activeModule.enableBackgroundRemover) {
+    // Si background remover est activé et le fichier est un format raster (jpg/jpeg/png), ouvrir le modal de confirmation
+    const fileExtension = importedFile.name.toLowerCase().split('.').pop();
+    const isRasterImage = fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'png';
+    
+    if (activeModule.enableBackgroundRemover && isRasterImage) {
       setIsProcessingBackground(true);
       setShowBackgroundRemoverModal(true);
       setBackgroundRemoverPreview({
@@ -8479,7 +8482,7 @@ export default function ProductBuilderPage() {
                             return (
                               <div
                                 style={{
-                                  position: 'absolute',
+                                  position: 'fixed',
                                   top: 0,
                                   left: 0,
                                   right: 0,
@@ -8488,7 +8491,9 @@ export default function ProductBuilderPage() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  zIndex: 300
+                                  zIndex: 10002,
+                                  padding: '16px',
+                                  boxSizing: 'border-box'
                                 }}
                                 onClick={(e) => {
                                   if (e.target === e.currentTarget) {
@@ -8502,13 +8507,14 @@ export default function ProductBuilderPage() {
                                   style={{
                                     backgroundColor: '#ffffff',
                                     borderRadius: '8px',
-                                    padding: '20px',
-                                    width: '90%',
-                                    maxWidth: '100%',
-                                    maxHeight: '80vh',
+                                    padding: '16px',
+                                    width: '100%',
+                                    maxWidth: 'calc(100vw - 32px)',
+                                    maxHeight: 'calc(100vh - 32px)',
                                     overflowY: 'auto',
                                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                                    color: '#111827'
+                                    color: '#111827',
+                                    boxSizing: 'border-box'
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -11810,13 +11816,13 @@ export default function ProductBuilderPage() {
                                 style={{
                                   backgroundColor: '#ffffff',
                                   borderRadius: '12px',
-                                  padding: '20px',
+                                  padding: '16px',
                                   width: '100%',
-                                  maxWidth: 'calc(100vw - 32px)',
+                                  maxWidth: 'min(400px, calc(100vw - 32px))',
                                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  gap: '16px',
+                                  gap: '12px',
                                   maxHeight: 'calc(100vh - 32px)',
                                   overflow: 'auto',
                                   boxSizing: 'border-box'
