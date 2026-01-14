@@ -1,119 +1,80 @@
 // =====================================================
-// API POUR SUPPRIMER LE FOND D'UNE IMAGE
-// Utilise @imgly/background-removal (modèle ML intégré)
+// API Background Remover - Proxy vers VPS rembg
 // =====================================================
 import { NextRequest, NextResponse } from 'next/server';
-import { removeBackground } from '@imgly/background-removal';
 
-/**
- * POST /api/background-remover
- * Supprime le fond d'une image en utilisant un modèle ML intégré
- */
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
-  let originalImageBuffer: Buffer | null = null;
-  let originalMimeType: string = 'image/png';
+  console.log('📥 Background Remover - Requête reçue');
   
   try {
+    // Récupérer l'image depuis le FormData
     const formData = await request.formData();
-    const imageFile = formData.get('image') as File | null;
+    const image = formData.get('image');
 
-    if (!imageFile) {
+    if (!image || !(image instanceof Blob)) {
+      console.error('❌ Aucune image fournie');
       return NextResponse.json(
-        { error: 'Image file is required' },
+        { success: false, error: 'Aucune image fournie' },
         { status: 400 }
       );
     }
 
-    // Vérifier le type de fichier
-    const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    const fileType = imageFile.type || '';
+    // URL du VPS (même serveur que Inkscape)
+    const vpsUrl = process.env.VPS_INKSCAPE_URL || process.env.VPS_BACKGROUND_REMOVER_URL || 'http://localhost:3001';
     
-    if (!validMimeTypes.some(type => fileType.includes(type.split('/')[1]))) {
+    if (!vpsUrl || vpsUrl.includes('localhost')) {
+      console.error('❌ VPS URL non configurée');
+      // Fallback : on signale un échec → le front garde l'image originale
       return NextResponse.json(
-        { error: 'Invalid file type. Supported formats: JPEG, PNG, WebP, GIF' },
-        { status: 400 }
+        { success: false, error: 'VPS URL not configured' },
+        { status: 200 } // Status 200 pour permettre le fallback côté front
       );
     }
 
-    // Convertir le fichier en ArrayBuffer et sauvegarder pour le fallback
-    const arrayBuffer = await imageFile.arrayBuffer();
-    originalImageBuffer = Buffer.from(arrayBuffer);
-    originalMimeType = imageFile.type || 'image/png';
+    console.log('🔄 Appel VPS Background Remover:', `${vpsUrl}/remove-background`);
 
-    console.log('🔄 Processing image for background removal...', {
-      fileName: imageFile.name,
-      size: arrayBuffer.byteLength,
-      type: imageFile.type
+    // Reconstruire le FormData pour le VPS
+    const vpsFormData = new FormData();
+    vpsFormData.append('image', image, 'input.png');
+
+    // Appeler le VPS
+    const vpsResponse = await fetch(`${vpsUrl}/remove-background`, {
+      method: 'POST',
+      body: vpsFormData,
     });
 
-    // Configuration pour la suppression de fond
-    const config = {
-      output: {
-        format: 'image/png' as const, // PNG pour supporter la transparence
-        quality: 0.9, // Qualité élevée
-      },
-      // Optionnel : personnaliser le modèle si nécessaire
-      // model: 'medium' // Options: 'small', 'medium', 'large' (par défaut: 'medium')
-    };
+    if (!vpsResponse.ok) {
+      const errorText = await vpsResponse.text();
+      console.error('❌ Erreur VPS Background Remover:', errorText);
+      // Fallback : on signale un échec → le front garde l'image originale
+      return NextResponse.json(
+        { success: false, error: 'VPS error', details: errorText },
+        { status: 200 } // Status 200 pour permettre le fallback côté front
+      );
+    }
 
-    // Supprimer le fond avec le modèle ML
-    // NOTE: @imgly/background-removal ne fonctionne pas bien sur Vercel/serverless
-    // Les modèles ML nécessitent des fichiers natifs qui ne sont pas disponibles dans l'environnement serverless
-    // Pour l'instant, on retourne l'image originale
-    // TODO: Utiliser une API externe (remove.bg) ou une autre solution compatible serverless
-    console.warn('⚠️ Background removal not supported on serverless - returning original image');
-    
-    // Retourner l'image originale pour l'instant
-    const originalBase64 = originalImageBuffer.toString('base64');
-    return NextResponse.json({
-      success: false,
-      image: `data:${originalMimeType};base64,${originalBase64}`,
-      error: 'Background removal not supported on serverless platform'
-    });
-    
-    // Code désactivé - ne fonctionne pas sur Vercel/serverless
-    /*
-    const blob = await removeBackground(originalImageBuffer, config);
+    // Lire l'image PNG sans fond depuis le VPS
+    const pngBuffer = Buffer.from(await vpsResponse.arrayBuffer());
+    const base64 = pngBuffer.toString('base64');
+    const dataUrl = `data:image/png;base64,${base64}`;
 
-    // Convertir le Blob en ArrayBuffer puis en base64
-    const processedArrayBuffer = await blob.arrayBuffer();
-    const processedBase64 = Buffer.from(processedArrayBuffer).toString('base64');
-
-    console.log('✅ Background removed successfully');
+    console.log('✅ Image sans fond générée, taille:', pngBuffer.length);
 
     return NextResponse.json({
       success: true,
-      image: `data:image/png;base64,${processedBase64}`
+      dataUrl,
     });
-    */
-  } catch (error: any) {
-    console.error('❌ Error in background remover API:', error);
-    
-    // En cas d'erreur, retourner l'image originale
-    if (originalImageBuffer) {
-      const originalBase64 = originalImageBuffer.toString('base64');
-      console.log('⚠️ Returning original image due to error');
-      
-      return NextResponse.json({
-        success: false,
-        image: `data:${originalMimeType};base64,${originalBase64}`,
-        error: error.message || 'Failed to remove background, returning original image'
-      });
-    }
-    
+  } catch (error) {
+    console.error('❌ Erreur route /api/background-remover:', error);
+    // Fallback : on signale un échec → le front garde l'image originale
     return NextResponse.json(
-      { 
-        error: error.message || 'Failed to remove background',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 200 } // Status 200 pour permettre le fallback côté front
     );
   }
 }
-
-// Configuration pour Vercel (important pour les fonctions serverless)
-export const runtime = 'nodejs'; // Nécessaire pour utiliser les bibliothèques Node.js
-
-export const config = {
-  maxDuration: 60, // 60 secondes max (temps nécessaire pour le traitement ML)
-};

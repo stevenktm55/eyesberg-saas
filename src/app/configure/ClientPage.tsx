@@ -11,6 +11,7 @@ import { ShopifyLoginModal } from "@/components/ShopifyLoginModal";
 import { useCameraViews, CameraView } from "@/hooks/useCameraViews";
 import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
+import { BackgroundRemovalModal } from "@/components/admin/BackgroundRemovalModal";
 import Image from "next/image";
 // configurator-panel-theme.css est maintenant importé via @import dans globals.css pour s'assurer qu'il est bundlé
 
@@ -4173,6 +4174,8 @@ function LogoTab({
   const [logoName, setLogoName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
+  const [showBackgroundRemovalModal, setShowBackgroundRemovalModal] = useState(false);
+  const [processedImageDataUrl, setProcessedImageDataUrl] = useState<string | null>(null);
 
   // Filtrer les logos placés selon la catégorie active
   const activeCategoryLogos = placedLogos.filter(l => l.category === activeCategory);
@@ -4359,12 +4362,27 @@ function LogoTab({
       return;
     }
 
+    // Si c'est une image (pas SVG), afficher le modal de suppression de fond
+    const isImage = selectedFile.type.startsWith('image/') && !selectedFile.name.toLowerCase().endsWith('.svg');
+    if (isImage) {
+      // Afficher le modal de suppression de fond
+      setShowBackgroundRemovalModal(true);
+      setProcessedImageDataUrl(null);
+      return;
+    }
+
+    // Pour les SVG, uploader directement
+    await doUploadLogo(selectedFile);
+  };
+
+  // Fonction qui fait l'upload réel (avec ou sans fond selon le choix)
+  const doUploadLogo = async (fileToUpload: File) => {
     setIsUploading(true);
 
     try {
       // Uploader le fichier vers Supabase Storage
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('file', fileToUpload);
       
       const uploadResponse = await fetch('/api/logos/upload', {
         method: 'POST',
@@ -4398,6 +4416,7 @@ function LogoTab({
       // Fermer le modal d'import
       setShowImportModal(false);
       setSelectedFile(null);
+      setProcessedImageDataUrl(null);
 
       if (editingLogoId) {
         // Mode édition : modifier le logo existant
@@ -5163,6 +5182,35 @@ function LogoTab({
       {/* Modals */}
       {importModal}
       {zoneModal}
+      
+      {/* Modal de suppression de fond */}
+      {showBackgroundRemovalModal && selectedFile && (
+        <BackgroundRemovalModal
+          isOpen={showBackgroundRemovalModal}
+          imageFile={selectedFile}
+          onConfirm={async () => {
+            if (processedImageDataUrl) {
+              // Convertir le data URL en File
+              const response = await fetch(processedImageDataUrl);
+              const blob = await response.blob();
+              const processedFile = new File([blob], selectedFile.name, { type: 'image/png' });
+              await doUploadLogo(processedFile);
+            } else {
+              // Fallback : utiliser l'image originale
+              await doUploadLogo(selectedFile);
+            }
+            setShowBackgroundRemovalModal(false);
+          }}
+          onCancel={async () => {
+            // Utiliser l'image originale
+            await doUploadLogo(selectedFile);
+            setShowBackgroundRemovalModal(false);
+          }}
+          onProcessedImageChange={(dataUrl) => {
+            setProcessedImageDataUrl(dataUrl);
+          }}
+        />
+      )}
     </div>
   );
 }
