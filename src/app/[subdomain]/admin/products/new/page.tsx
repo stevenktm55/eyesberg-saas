@@ -16332,6 +16332,7 @@ export default function ProductBuilderPage() {
                 </div>
               </div>
             </div>
+            )}
             
             {/* Boutons */}
             {backgroundRemoverPreview && !isProcessingBackground && (
