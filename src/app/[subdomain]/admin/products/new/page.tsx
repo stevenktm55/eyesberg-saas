@@ -5730,6 +5730,9 @@ export default function ProductBuilderPage() {
                       }
                       
                       // Vue par défaut : boutons de vue + bouton "Ajouter un logo" + logos placés
+                      // Utiliser uniquement les vues personnalisées configurées dans le module
+                      const customViews = activeModule.viewLabels || [];
+                      
                       // Mapper les catégories aux vues pour le filtrage
                       const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
                         'torse': 'front',
@@ -5772,9 +5775,6 @@ export default function ProductBuilderPage() {
                         }
                         return true; // En mode libre ou si pas de vue trouvée, afficher tous les logos
                       });
-                      
-                      // Utiliser uniquement les vues personnalisées configurées dans le module
-                      const customViews = activeModule.viewLabels || [];
                       
                       // Charger les vues de caméra du modèle 3D
                       const selectedModel = models3D.find(m => m.id === selectedModel3DId);
