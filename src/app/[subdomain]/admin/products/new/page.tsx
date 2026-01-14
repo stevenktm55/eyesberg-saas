@@ -11787,21 +11787,29 @@ export default function ProductBuilderPage() {
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        if (!importedFile || isProcessingBackground) return;
+                                        // Vérifier à la fois importedFile ET importedFilePreview car FileReader est asynchrone
+                                        if (!importedFile || !importedFilePreview || isProcessingBackground) {
+                                          console.log('❌ Import impossible:', { 
+                                            hasFile: !!importedFile, 
+                                            hasPreview: !!importedFilePreview, 
+                                            isProcessing: isProcessingBackground 
+                                          });
+                                          return;
+                                        }
                                         handleImportLogo();
                                       }}
-                                      disabled={!importedFile || isProcessingBackground}
+                                      disabled={!importedFile || !importedFilePreview || isProcessingBackground}
                                       className="btn-primary"
                                       style={{
                                         flex: 1,
                                         padding: '10px 20px',
-                                        backgroundColor: importedFile && !isProcessingBackground ? '#6b7280' : '#d1d5db',
+                                        backgroundColor: importedFile && importedFilePreview && !isProcessingBackground ? '#6b7280' : '#d1d5db',
                                         border: 'none',
                                         borderRadius: '8px',
                                         fontSize: '14px',
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         color: '#ffffff',
-                                        cursor: importedFile && !isProcessingBackground ? 'pointer' : 'not-allowed',
+                                        cursor: importedFile && importedFilePreview && !isProcessingBackground ? 'pointer' : 'not-allowed',
                                         fontWeight: '500',
                                         transition: 'all 0.2s ease',
                                         display: 'flex',
