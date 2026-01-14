@@ -1056,6 +1056,47 @@ export default function ProductBuilderPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string, type: 'logo' | 'text'} | null>(null);
   
+  // Sélectionner automatiquement la première vue quand le panel logo s'ouvre
+  useEffect(() => {
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || 
+                         customizationModules.find(m => m.id === mobileActivePanel);
+    if (activeModule?.contentType === 'logos' && activeModule.logoPlacementMode === 'zones') {
+      const customViews = activeModule.viewLabels || [];
+      if (customViews.length > 0) {
+        // Vérifier si la vue actuelle existe dans les vues disponibles
+        const currentViewExists = customViews.some(v => v.id === activeLogoView);
+        if (!currentViewExists) {
+          // Sélectionner la première vue (à gauche)
+          const firstView = customViews[0];
+          if (firstView) {
+            setActiveLogoView(firstView.id as any);
+            
+            // Charger les vues de caméra du modèle 3D et pivoter si nécessaire
+            const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+            const modelCameraViews = selectedModel?.cameraViews || [];
+            
+            // Si une vue de caméra personnalisée est configurée, l'utiliser
+            if (firstView.cameraViewId) {
+              const cameraView = modelCameraViews.find(cv => cv.id === firstView.cameraViewId);
+              if (cameraView) {
+                window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                  detail: {
+                    position: cameraView.position,
+                    target: cameraView.target
+                  }
+                }));
+              } else {
+                window.dispatchEvent(new CustomEvent('setCameraView', { detail: firstView.id }));
+              }
+            } else {
+              window.dispatchEvent(new CustomEvent('setCameraView', { detail: firstView.id }));
+            }
+          }
+        }
+      }
+    }
+  }, [activeCustomizerTab, mobileActivePanel, customizationModules, models3D, selectedModel3DId]);
+
   // Ouvrir/fermer la bibliothèque selon la sélection du logo
   useEffect(() => {
     // Vérifier si on est dans le module logos
