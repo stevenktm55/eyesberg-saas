@@ -15254,9 +15254,17 @@ export default function ProductBuilderPage() {
               </div>
 
               {(() => {
-                // Récupérer les zones des groupes sélectionnés
+                // Récupérer les zones des groupes sélectionnés pour les textes
+                // Essayer plusieurs propriétés possibles pour les zoneGroupIds (comme sur mobile)
+                const textZoneGroupIds = activeModule.config?.textZoneGroupIds || 
+                                         activeModule.selectedItems?.textZoneGroupIds || 
+                                         activeModule.zoneGroupIds ||
+                                         activeModule.config?.zoneGroupIds ||
+                                         activeModule.selectedItems?.zoneGroupIds ||
+                                         [];
+                
                 const availableZones = zoneGroups
-                  .filter(group => activeModule.zoneGroupIds?.includes(group.id))
+                  .filter(group => textZoneGroupIds.includes(group.id))
                   .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
               
                 // Debug: log des zones pour vérifier les thumbnails
