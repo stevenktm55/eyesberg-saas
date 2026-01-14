@@ -2139,6 +2139,19 @@ export default function ProductBuilderPage() {
     }
   }, [selectedLogoId, viewportMode, customizationModules, mobileActivePanel]);
 
+  // Ouvrir automatiquement le premier onglet sur desktop au chargement
+  useEffect(() => {
+    if (
+      viewportMode === 'desktop' &&
+      selectedModel3DId &&
+      !activeCustomizerTab &&
+      customizationModules.length > 0
+    ) {
+      // Sélectionner le premier module de customisation
+      setActiveCustomizerTab(customizationModules[0].id);
+    }
+  }, [viewportMode, selectedModel3DId, activeCustomizerTab, customizationModules]);
+
   function addQuestion() {
     // Ouvrir le modal de création de module
     setNewModule({
@@ -4678,7 +4691,7 @@ export default function ProductBuilderPage() {
                       padding: '0',
                       backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
                       border: 'none',
-                      borderRadius: activeCustomizerTab === module.id ? '12px' : '8px',
+                      borderRadius: activeCustomizerTab === module.id ? '20px' : '8px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
