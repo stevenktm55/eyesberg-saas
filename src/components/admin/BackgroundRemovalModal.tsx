@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface BackgroundRemovalModalProps {
   isOpen: boolean;
   imageFile: File | null;
   originalImageUrl?: string; // URL de l'image originale (pour fallback)
   onClose: () => void;
-  onConfirm: (imageWithoutBackground: string) => void; // dataUrl de l'image sans fond
+  onConfirm: (imageWithoutBackground?: string) => void; // dataUrl de l'image sans fond (optionnel)
   onCancel?: () => void; // Si l'utilisateur annule, utiliser l'image originale
+  onProcessedImageChange?: (dataUrl: string | null) => void; // Callback quand l'image est traitée
 }
 
 export function BackgroundRemovalModal({
@@ -18,6 +19,7 @@ export function BackgroundRemovalModal({
   onClose,
   onConfirm,
   onCancel,
+  onProcessedImageChange,
 }: BackgroundRemovalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -38,6 +40,63 @@ export function BackgroundRemovalModal({
       setPreviewUrl(null);
     }
   }, [imageFile, originalImageUrl, isOpen]);
+
+  // Déclencher automatiquement le traitement quand le modal s'ouvre
+  const hasStartedProcessing = useRef(false);
+  
+  useEffect(() => {
+    // Reset quand le modal se ferme
+    if (!isOpen) {
+      hasStartedProcessing.current = false;
+      setProcessedImageUrl(null);
+      setError(null);
+      return;
+    }
+    
+    // Déclencher le traitement automatiquement quand le modal s'ouvre
+    if (isOpen && imageFile && !hasStartedProcessing.current && !isProcessing) {
+      hasStartedProcessing.current = true;
+      console.log('🔄 Déclenchement automatique du traitement de suppression de fond');
+      // Appel direct de la fonction de traitement
+      const processImage = async () => {
+        if (!imageFile) return;
+        
+        setIsProcessing(true);
+        setError(null);
+
+        try {
+          const formData = new FormData();
+          formData.append("image", imageFile);
+
+          const response = await fetch("/api/background-remover", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.dataUrl) {
+            setProcessedImageUrl(data.dataUrl);
+            setIsProcessing(false);
+            if (onProcessedImageChange) {
+              onProcessedImageChange(data.dataUrl);
+            }
+          } else {
+            setError(
+              data.error || "Erreur lors de la suppression du fond. L'image originale sera utilisée."
+            );
+            setIsProcessing(false);
+          }
+        } catch (err) {
+          console.error("Erreur suppression de fond:", err);
+          setError("Erreur lors de la suppression du fond. L'image originale sera utilisée.");
+          setIsProcessing(false);
+        }
+      };
+      
+      processImage();
+    }
+  }, [isOpen, imageFile, isProcessing, onProcessedImageChange]);
 
   const handleRemoveBackground = async () => {
     if (!imageFile) {
@@ -64,6 +123,10 @@ export function BackgroundRemovalModal({
         // Succès : afficher l'aperçu de l'image sans fond
         setProcessedImageUrl(data.dataUrl);
         setIsProcessing(false);
+        // Notifier le parent du changement
+        if (onProcessedImageChange) {
+          onProcessedImageChange(data.dataUrl);
+        }
         // Ne pas fermer automatiquement, laisser l'utilisateur confirmer
       } else {
         // Échec : on garde l'image originale (fallback)
@@ -102,6 +165,9 @@ export function BackgroundRemovalModal({
     // Reset state
     setProcessedImageUrl(null);
     setError(null);
+    if (onProcessedImageChange) {
+      onProcessedImageChange(null);
+    }
     onClose();
   };
 
@@ -110,6 +176,9 @@ export function BackgroundRemovalModal({
       // Confirmer avec l'image traitée
       onConfirm(processedImageUrl);
       setProcessedImageUrl(null);
+      if (onProcessedImageChange) {
+        onProcessedImageChange(null);
+      }
       onClose();
     } else {
       // Si pas encore traité, déclencher le traitement
