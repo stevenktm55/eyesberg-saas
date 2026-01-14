@@ -216,11 +216,6 @@ export function BackgroundRemovalModal({
     return null;
   }
   
-  // Log quand le modal est ouvert
-  if (typeof window !== 'undefined') {
-    console.log('✅ BackgroundRemovalModal: Modal ouvert, rendu du contenu');
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
