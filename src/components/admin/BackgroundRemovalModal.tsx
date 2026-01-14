@@ -28,14 +28,12 @@ export function BackgroundRemovalModal({
 
   // Log quand processedImageUrl change
   useEffect(() => {
-    if (processedImageUrl) {
-      console.log('🔄 processedImageUrl mis à jour:', {
-        length: processedImageUrl.length,
-        preview: processedImageUrl.substring(0, 50) + '...',
-        isOpen,
-        isProcessing
-      });
-    }
+    console.log('🔄 BackgroundRemovalModal: processedImageUrl changed:', {
+      hasProcessedImage: !!processedImageUrl,
+      length: processedImageUrl?.length,
+      isOpen,
+      isProcessing
+    });
   }, [processedImageUrl, isOpen, isProcessing]);
 
   // Afficher l'aperçu de l'image originale
@@ -62,18 +60,22 @@ export function BackgroundRemovalModal({
       hasStartedProcessing.current = false;
       setProcessedImageUrl(null);
       setError(null);
+      setIsProcessing(false);
       return;
     }
     
     // Déclencher le traitement automatiquement quand le modal s'ouvre
-    // On retire isProcessing des conditions pour éviter les blocages
     if (isOpen && imageFile && !hasStartedProcessing.current) {
       hasStartedProcessing.current = true;
       
       // Appel direct de la fonction de traitement
       const processImage = async () => {
-        if (!imageFile) return;
+        if (!imageFile) {
+          console.error('❌ BackgroundRemovalModal: Pas de imageFile');
+          return;
+        }
         
+        console.log('🚀 BackgroundRemovalModal: Démarrage du traitement');
         setIsProcessing(true);
         setError(null);
 
@@ -81,38 +83,49 @@ export function BackgroundRemovalModal({
           const formData = new FormData();
           formData.append("image", imageFile);
 
+          console.log('📡 BackgroundRemovalModal: Envoi vers /api/background-remover');
           const response = await fetch("/api/background-remover", {
             method: "POST",
             body: formData,
           });
+
+          console.log('📥 BackgroundRemovalModal: Réponse reçue, status:', response.status);
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
           const data = await response.json();
+          console.log('📥 BackgroundRemovalModal: Données reçues:', {
+            success: data.success,
+            hasDataUrl: !!data.dataUrl,
+            dataUrlStart: data.dataUrl?.substring(0, 50)
+          });
 
           if (data.success && data.dataUrl) {
             // Vérifier que le dataUrl est valide
             if (data.dataUrl.startsWith('data:image/png;base64,')) {
+              console.log('✅ BackgroundRemovalModal: DataUrl valide, mise à jour du state');
               setProcessedImageUrl(data.dataUrl);
               setIsProcessing(false);
               if (onProcessedImageChange) {
+                console.log('📢 BackgroundRemovalModal: Appel onProcessedImageChange');
                 onProcessedImageChange(data.dataUrl);
               }
             } else {
-              console.error('❌ DataUrl invalide:', data.dataUrl.substring(0, 50));
+              console.error('❌ BackgroundRemovalModal: DataUrl invalide:', data.dataUrl.substring(0, 50));
               setError("Format d'image invalide reçu du serveur");
               setIsProcessing(false);
             }
           } else {
+            console.warn('⚠️ BackgroundRemovalModal: Échec -', data.error);
             setError(
               data.error || "Erreur lors de la suppression du fond. L'image originale sera utilisée."
             );
             setIsProcessing(false);
           }
         } catch (err) {
-          console.error("Erreur suppression de fond:", err);
+          console.error("❌ BackgroundRemovalModal: Erreur:", err);
           setError("Erreur lors de la suppression du fond. L'image originale sera utilisée.");
           setIsProcessing(false);
         }
@@ -211,6 +224,14 @@ export function BackgroundRemovalModal({
     }
   };
 
+  console.log('🎨 BackgroundRemovalModal render:', {
+    isOpen,
+    hasImageFile: !!imageFile,
+    hasProcessedImage: !!processedImageUrl,
+    isProcessing,
+    hasError: !!error
+  });
+  
   if (!isOpen) return null;
 
   return (
