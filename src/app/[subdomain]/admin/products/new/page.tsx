@@ -5920,11 +5920,45 @@ export default function ProductBuilderPage() {
                                   }
                                 }
                                 
+                                // Mapper la catégorie à la vue pour pivoter
+                                const categoryToViewId: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', string> = {
+                                  'torse': 'front',
+                                  'dos': 'back',
+                                  'bras-gauche': 'left',
+                                  'bras-droit': 'right'
+                                };
+                                
                                 return (
                                   <div
                                     key={logo.id}
                                     onClick={() => {
+                                      // 1. Pivoter vers la vue du logo
+                                      const logoViewId = categoryToViewId[logo.category as keyof typeof categoryToViewId];
+                                      if (logoViewId) {
+                                        setActiveLogoView(logoViewId as any);
+                                        // Trouver la vue de caméra correspondante
+                                        const viewConfig = customViews.find(v => v.id === logoViewId);
+                                        if (viewConfig?.cameraViewId) {
+                                          const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                          if (cameraView) {
+                                            window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                              detail: {
+                                                position: cameraView.position,
+                                                target: cameraView.target
+                                              }
+                                            }));
+                                          }
+                                        } else {
+                                          window.dispatchEvent(new CustomEvent('setCameraView', { detail: logoViewId }));
+                                        }
+                                      }
+                                      
+                                      // 2. Sélectionner le logo
                                       setSelectedLogoId(logo.id);
+                                      
+                                      // 3. Ouvrir le panel d'édition (mode remplacement)
+                                      setLogoToReplace(logo.id);
+                                      setShowLogoLibrary(true);
                                     }}
                                     style={{
                                       padding: '14px',
@@ -9478,7 +9512,23 @@ export default function ProductBuilderPage() {
                                 const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                                 const modelCameraViews = selectedModel?.cameraViews || [];
                                 
-                                const modulePlacedLogos = placedLogos.filter(l => l.category);
+                                // Filtrer les logos selon la vue active (comme sur desktop)
+                                const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
+                                  'torse': 'front',
+                                  'dos': 'back',
+                                  'bras-gauche': 'left',
+                                  'bras-droit': 'right'
+                                };
+                                
+                                let modulePlacedLogos = placedLogos.filter(l => l.category);
+                                
+                                // Filtrer selon la vue active si mode zones
+                                if (activeModule.logoPlacementMode === 'zones') {
+                                  modulePlacedLogos = modulePlacedLogos.filter(logo => {
+                                    const logoView = categoryToView[logo.category as keyof typeof categoryToView];
+                                    return logoView === activeLogoView;
+                                  });
+                                }
                                 
                                 // Récupérer les bibliothèques de logos sélectionnées
                                 const selectedLibraries = logoLibraries.filter(l => 
@@ -10213,17 +10263,55 @@ export default function ProductBuilderPage() {
                                         </div>
                                       ) : (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                          {modulePlacedLogos.map((logo) => (
-                                            <div 
-                                              key={logo.id} 
-                                              onClick={() => {
-                                                setSelectedLogoId(logo.id);
-                                              }} 
-                                              style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}
-                                            >
-                                              <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                                            </div>
-                                          ))}
+                                          {modulePlacedLogos.map((logo) => {
+                                            // Mapper la catégorie à la vue pour pivoter
+                                            const categoryToViewId: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', string> = {
+                                              'torse': 'front',
+                                              'dos': 'back',
+                                              'bras-gauche': 'left',
+                                              'bras-droit': 'right'
+                                            };
+                                            
+                                            return (
+                                              <div 
+                                                key={logo.id} 
+                                                onClick={() => {
+                                                  // 1. Pivoter vers la vue du logo
+                                                  const logoViewId = categoryToViewId[logo.category as keyof typeof categoryToViewId];
+                                                  if (logoViewId) {
+                                                    setActiveLogoView(logoViewId as any);
+                                                    // Trouver la vue de caméra correspondante
+                                                    if (logoViewId) {
+                                                      const viewConfig = customViews.find(v => v.id === logoViewId);
+                                                      if (viewConfig?.cameraViewId) {
+                                                        const cameraView = modelCameraViews.find(cv => cv.id === viewConfig.cameraViewId);
+                                                        if (cameraView) {
+                                                          window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                                                            detail: {
+                                                              position: cameraView.position,
+                                                              target: cameraView.target
+                                                            }
+                                                          }));
+                                                        }
+                                                      } else {
+                                                        window.dispatchEvent(new CustomEvent('setCameraView', { detail: logoViewId }));
+                                                      }
+                                                    }
+                                                  }
+                                                  
+                                                  // 2. Sélectionner le logo
+                                                  setSelectedLogoId(logo.id);
+                                                  
+                                                  // 3. Ouvrir le panel d'édition (mode remplacement)
+                                                  setLogoToReplace(logo.id);
+                                                  setShowLogoLibrary(true);
+                                                }} 
+                                                style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: selectedLogoId === logo.id ? '2px solid #000' : '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px' }}
+                                              >
+                                                <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                              </div>
+                                            );
+                                          })}
                                         </div>
                                       )}
                                     </div>
