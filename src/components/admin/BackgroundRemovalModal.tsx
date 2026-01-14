@@ -283,6 +283,10 @@ export function BackgroundRemovalModal({
 
         {/* Content */}
         <div className="p-6">
+          {/* DEBUG: Texte visible pour vérifier que le modal est rendu */}
+          <div className="mb-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-xs">
+            🐛 DEBUG: Modal version avec logs - Si tu vois ce message, le modal est bien rendu
+          </div>
           <p className="text-sm text-gray-600 mb-4">
             Voulez-vous supprimer le fond de cette image ? La version sans fond
             sera utilisée.
