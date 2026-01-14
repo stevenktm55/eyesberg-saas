@@ -8479,38 +8479,33 @@ export default function ProductBuilderPage() {
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
                             
-                            // Filtrer les zones selon la vue de caméra actuelle (activeLogoView)
-                            // Mapper les vues pour correspondre aux labels dans zone.view
-                            const viewMapping: Record<string, string[]> = {
-                              'front': ['front', 'Face', 'FACE', 'torse'],
-                              'back': ['back', 'Dos', 'DOS', 'dos'],
-                              'left': ['left', 'Gauche', 'GAUCHE', 'bras-gauche'],
-                              'right': ['right', 'Droite', 'DROITE', 'bras-droit']
+                            // Filtrer les zones selon la vue de caméra actuelle
+                            // Utiliser la même logique que desktop avec viewLabels du module
+                            const customViews = activeModule.viewLabels || [];
+                            const activeViewConfig = customViews.find(v => v.id === activeLogoView);
+                            const activeViewLabel = activeViewConfig?.label || activeLogoView;
+                            
+                            // Si aucune vue n'est définie, utiliser activeLogoView directement
+                            const viewLabels: Record<string, string> = {
+                              'Face': 'front',
+                              'Dos': 'back',
+                              'Gauche': 'left',
+                              'Droite': 'right'
                             };
                             
-                            const currentViewLabels = viewMapping[activeLogoView] || [];
-                            
                             availableZones = availableZones.filter(zone => {
-                              // Si la zone a une vue spécifique, elle doit correspondre à la vue actuelle
-                              if (zone.view) {
-                                const zoneView = String(zone.view);
-                                return currentViewLabels.some(label => 
-                                  zoneView.toLowerCase() === label.toLowerCase() ||
-                                  zoneView === label
-                                );
-                              }
-                              
-                              // Si la zone a une catégorie qui correspond à la vue actuelle
-                              if ((zone as any).zoneCategory) {
-                                const zoneCategory = String((zone as any).zoneCategory).toLowerCase();
-                                return currentViewLabels.some(label => 
-                                  zoneCategory === label.toLowerCase()
-                                );
-                              }
-                              
-                              // Si aucune vue/catégorie spécifique, inclure la zone (zones universelles)
+                              // Comparer avec le label de la vue active
+                              if (zone.view && zone.view !== activeViewLabel) return false;
                               return true;
                             });
+                            
+                            // Si aucune zone trouvée avec le filtre strict, essayer sans filtre pour debug
+                            if (availableZones.length === 0 && zoneGroups.length > 0) {
+                              // Réessayer sans filtre pour voir toutes les zones disponibles
+                              availableZones = zoneGroups
+                                .filter(group => logoZoneGroupIds.includes(group.id))
+                                .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+                            }
                             
                             return (
                               <div
@@ -11787,7 +11782,12 @@ export default function ProductBuilderPage() {
                                       Annuler
                                     </button>
                                     <button
-                                      onClick={handleImportLogo}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (!importedFile || isProcessingBackground) return;
+                                        handleImportLogo();
+                                      }}
                                       disabled={!importedFile || isProcessingBackground}
                                       className="btn-primary"
                                       style={{
@@ -11805,7 +11805,8 @@ export default function ProductBuilderPage() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '8px'
+                                        gap: '8px',
+                                        touchAction: 'manipulation'
                                       }}
                                     >
                                       {isProcessingBackground ? (
@@ -15562,8 +15563,8 @@ export default function ProductBuilderPage() {
         );
       })()}
 
-      {/* Modal de sélection de zones pour les logos */}
-      {showLogoZoneModal && selectedLogoForZone && (() => {
+      {/* Modal de sélection de zones pour les logos - DESKTOP uniquement */}
+      {viewportMode === 'desktop' && showLogoZoneModal && selectedLogoForZone && (() => {
         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
         if (!activeModule || activeModule.contentType !== 'logos') {
           return null;
@@ -16172,7 +16173,12 @@ export default function ProductBuilderPage() {
                   Annuler
                 </button>
                 <button
-                  onClick={handleImportLogo}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!importedFile || isProcessingBackground) return;
+                    handleImportLogo();
+                  }}
                   disabled={!importedFile || isProcessingBackground}
                   className="btn-primary"
                   style={{
