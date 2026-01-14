@@ -5186,21 +5186,21 @@ function LogoTab({
       {zoneModal}
       
       {/* Modal de suppression de fond */}
-      {showBackgroundRemovalModal && selectedFile && (() => {
-        console.log('🔵 ClientPage: Rendu du BackgroundRemovalModal', {
-          showBackgroundRemovalModal,
-          hasSelectedFile: !!selectedFile,
-          fileName: selectedFile?.name,
-          fileSize: selectedFile?.size
-        });
-        return (
-          <BackgroundRemovalModal
-            isOpen={showBackgroundRemovalModal}
-            imageFile={selectedFile}
-          onConfirm={async () => {
-            if (processedImageDataUrl) {
+      {showBackgroundRemovalModal && selectedFile && (
+        <BackgroundRemovalModal
+          isOpen={showBackgroundRemovalModal}
+          imageFile={selectedFile}
+          onClose={() => {
+            console.log('🔵 ClientPage: onClose appelé');
+            setShowBackgroundRemovalModal(false);
+            setProcessedImageDataUrl(null);
+          }}
+          onConfirm={async (dataUrl) => {
+            console.log('🔵 ClientPage: onConfirm appelé', { hasDataUrl: !!dataUrl, hasProcessedImageDataUrl: !!processedImageDataUrl });
+            const imageToUse = dataUrl || processedImageDataUrl;
+            if (imageToUse) {
               // Convertir le data URL en File
-              const response = await fetch(processedImageDataUrl);
+              const response = await fetch(imageToUse);
               const blob = await response.blob();
               const processedFile = new File([blob], selectedFile.name, { type: 'image/png' });
               await doUploadLogo(processedFile);
@@ -5209,19 +5209,21 @@ function LogoTab({
               await doUploadLogo(selectedFile);
             }
             setShowBackgroundRemovalModal(false);
+            setProcessedImageDataUrl(null);
           }}
           onCancel={async () => {
+            console.log('🔵 ClientPage: onCancel appelé');
             // Utiliser l'image originale
             await doUploadLogo(selectedFile);
             setShowBackgroundRemovalModal(false);
+            setProcessedImageDataUrl(null);
           }}
           onProcessedImageChange={(dataUrl) => {
             console.log('🔵 ClientPage: onProcessedImageChange appelé', { hasDataUrl: !!dataUrl });
             setProcessedImageDataUrl(dataUrl);
           }}
         />
-        );
-      })()}
+      )}
     </div>
   );
 }
