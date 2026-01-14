@@ -2549,9 +2549,11 @@ export default function ProductBuilderPage() {
         
         if (response.ok) {
           const data = await response.json();
+          // Notre API retourne dataUrl, pas image
+          const processedImageUrl = data.dataUrl || data.image || importedFilePreview;
           setBackgroundRemoverPreview({
             original: importedFilePreview,
-            processed: data.image || importedFilePreview
+            processed: processedImageUrl
           });
         } else {
           console.error('Error calling background remover API:', response.status);
