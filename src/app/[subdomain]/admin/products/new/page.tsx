@@ -6013,27 +6013,40 @@ export default function ProductBuilderPage() {
                                     <div style={{
                                       flex: 1,
                                       display: 'flex',
-                                      flexDirection: 'column',
-                                      gap: '4px'
+                                      alignItems: 'center',
+                                      gap: '12px'
                                     }}>
+                                      {/* Aperçu du logo */}
                                       <div style={{
-                                        fontSize: '14px',
-                                        color: '#000000',
-                                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                                        fontWeight: selectedLogoId === logo.id ? '600' : '400'
+                                        width: '48px',
+                                        height: '48px',
+                                        backgroundColor: '#f3f4f6',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                        padding: '4px'
                                       }}>
-                                        {logoName}
-                                      </div>
-                                      <div style={{
-                                        fontSize: '11px',
-                                        color: '#666',
-                                        fontFamily: CONFIGURATOR_PANEL_FONT
-                                      }}>
-                                        {logo.category === 'torse' ? 'Torse' : 
-                                         logo.category === 'dos' ? 'Dos' : 
-                                         logo.category === 'bras-gauche' ? 'Bras gauche' : 
-                                         'Bras droit'}
-                                        {logo.locked && ' 🔒'}
+                                        {logo.variantFile ? (
+                                          <img
+                                            src={logo.variantFile}
+                                            alt={logoName}
+                                            style={{
+                                              maxWidth: '100%',
+                                              maxHeight: '100%',
+                                              objectFit: 'contain'
+                                            }}
+                                          />
+                                        ) : (
+                                          <div style={{
+                                            fontSize: '10px',
+                                            color: '#9ca3af',
+                                            textAlign: 'center'
+                                          }}>
+                                            No img
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                     <button
@@ -6042,24 +6055,29 @@ export default function ProductBuilderPage() {
                                         confirmDeleteLogo(logo.id);
                                       }}
                                       style={{
-                                        padding: '4px 8px',
-                                        backgroundColor: '#ff4444',
+                                        padding: '8px',
+                                        backgroundColor: 'transparent',
                                         border: 'none',
                                         borderRadius: '4px',
-                                        color: '#ffffff',
-                                        fontSize: '12px',
-                                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                                        color: '#9ca3af',
                                         cursor: 'pointer',
-                                        fontWeight: '500'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.2s'
                                       }}
                                       onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#ff3333';
+                                        e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                        e.currentTarget.style.color = '#ef4444';
                                       }}
                                       onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#ff4444';
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        e.currentTarget.style.color = '#9ca3af';
                                       }}
                                     >
-                                      ×
+                                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
                                     </button>
                                   </div>
                                 );
