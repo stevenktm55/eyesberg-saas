@@ -26,6 +26,18 @@ export function BackgroundRemovalModal({
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Log quand processedImageUrl change
+  useEffect(() => {
+    if (processedImageUrl) {
+      console.log('🔄 processedImageUrl mis à jour:', {
+        length: processedImageUrl.length,
+        preview: processedImageUrl.substring(0, 50) + '...',
+        isOpen,
+        isProcessing
+      });
+    }
+  }, [processedImageUrl, isOpen, isProcessing]);
+
   // Afficher l'aperçu de l'image originale
   useEffect(() => {
     if (imageFile && isOpen) {
