@@ -1049,6 +1049,7 @@ export default function ProductBuilderPage() {
   const [showBackgroundRemoverModal, setShowBackgroundRemoverModal] = useState(false);
   const [backgroundRemoverEnabled, setBackgroundRemoverEnabled] = useState(false);
   const [backgroundRemoverPreview, setBackgroundRemoverPreview] = useState<{original: string, processed: string} | null>(null);
+  const [isProcessingBackground, setIsProcessingBackground] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // États pour le modal de confirmation de suppression
@@ -2527,12 +2528,17 @@ export default function ProductBuilderPage() {
   const handleImportLogo = async () => {
     if (!importedFile || !importedFilePreview) return;
     
-    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+    const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === mobileActivePanel);
     if (!activeModule || activeModule.contentType !== 'logos') return;
     
     // Si background remover est activé, ouvrir le modal de confirmation
     if (activeModule.enableBackgroundRemover) {
+      setIsProcessingBackground(true);
       setShowBackgroundRemoverModal(true);
+      setBackgroundRemoverPreview({
+        original: importedFilePreview,
+        processed: importedFilePreview // Afficher l'original en attendant
+      });
       
       // Appeler l'API de background remover
       try {
@@ -2570,6 +2576,8 @@ export default function ProductBuilderPage() {
           original: importedFilePreview,
           processed: importedFilePreview
         });
+      } finally {
+        setIsProcessingBackground(false);
       }
     } else {
       // Aller directement à la sélection de zone
@@ -9603,7 +9611,6 @@ export default function ProductBuilderPage() {
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                console.log('🔵 Mobile: Bouton Importer un logo cliqué');
                                                 // Réinitialiser les états
                                                 setImportedFile(null);
                                                 setImportedFilePreview(null);
@@ -9611,7 +9618,6 @@ export default function ProductBuilderPage() {
                                                 setBackgroundRemoverPreview(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
                                                 setShowImportModal(true);
-                                                console.log('🔵 Mobile: showImportModal mis à true');
                                               }}
                                               style={{ 
                                                 flex: 1,
@@ -11577,26 +11583,10 @@ export default function ProductBuilderPage() {
                           
                           {/* Modal d'importation de logo - Version MOBILE */}
                           {viewportMode === 'mobile' && showImportModal && (() => {
-                            console.log('🔵 Mobile: Tentative de rendu du modal d\'import', {
-                              viewportMode,
-                              showImportModal,
-                              activeCustomizerTab,
-                              mobileActivePanel
-                            });
                             const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === mobileActivePanel);
-                            console.log('🔵 Mobile: activeModule trouvé', {
-                              hasModule: !!activeModule,
-                              contentType: activeModule?.contentType,
-                              moduleId: activeModule?.id
-                            });
                             if (!activeModule || activeModule.contentType !== 'logos') {
-                              console.warn('🔵 Mobile: Modal non rendu - conditions non remplies', {
-                                hasModule: !!activeModule,
-                                contentType: activeModule?.contentType
-                              });
                               return null;
                             }
-                            console.log('🔵 Mobile: Modal d\'import rendu');
                             
                             const defaultTypes = ['svg', 'png', 'jpg', 'jpeg', 'eps', 'ai', 'pdf', 'heic'];
                             const allowedTypes = activeModule.allowedLogoFileTypes || defaultTypes;
@@ -11757,23 +11747,34 @@ export default function ProductBuilderPage() {
                                     </button>
                                     <button
                                       onClick={handleImportLogo}
-                                      disabled={!importedFile}
+                                      disabled={!importedFile || isProcessingBackground}
                                       className="btn-primary"
                                       style={{
                                         flex: 1,
                                         padding: '10px 20px',
-                                        backgroundColor: importedFile ? '#6b7280' : '#d1d5db',
+                                        backgroundColor: importedFile && !isProcessingBackground ? '#6b7280' : '#d1d5db',
                                         border: 'none',
                                         borderRadius: '8px',
                                         fontSize: '14px',
                                         fontFamily: CONFIGURATOR_PANEL_FONT,
                                         color: '#ffffff',
-                                        cursor: importedFile ? 'pointer' : 'not-allowed',
+                                        cursor: importedFile && !isProcessingBackground ? 'pointer' : 'not-allowed',
                                         fontWeight: '500',
-                                        transition: 'all 0.2s ease'
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
                                       }}
                                     >
-                                      Importer
+                                      {isProcessingBackground ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                          <span>Traitement...</span>
+                                        </>
+                                      ) : (
+                                        'Importer'
+                                      )}
                                     </button>
                                   </div>
                                 </div>
@@ -11782,7 +11783,7 @@ export default function ProductBuilderPage() {
                           })()}
                           
                           {/* Modal de background remover - Version MOBILE */}
-                          {viewportMode === 'mobile' && showBackgroundRemoverModal && backgroundRemoverPreview && (
+                          {viewportMode === 'mobile' && showBackgroundRemoverModal && (backgroundRemoverPreview || isProcessingBackground) && (
                               <div
                                 className="configurator-panel-modal-overlay"
                                 style={{
@@ -11795,7 +11796,8 @@ export default function ProductBuilderPage() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  zIndex: 10001
+                                  zIndex: 10001,
+                                  padding: '16px'
                                 }}
                               onClick={(e) => {
                                 if (e.target === e.currentTarget) {
@@ -11808,15 +11810,16 @@ export default function ProductBuilderPage() {
                                 style={{
                                   backgroundColor: '#ffffff',
                                   borderRadius: '12px',
-                                  padding: '24px',
-                                  width: '90%',
-                                  maxWidth: '500px',
+                                  padding: '20px',
+                                  width: '100%',
+                                  maxWidth: 'calc(100vw - 32px)',
                                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                                   display: 'flex',
                                   flexDirection: 'column',
-                                  gap: '20px',
-                                  maxHeight: '90vh',
-                                  overflow: 'auto'
+                                  gap: '16px',
+                                  maxHeight: 'calc(100vh - 32px)',
+                                  overflow: 'auto',
+                                  boxSizing: 'border-box'
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
@@ -11834,6 +11837,7 @@ export default function ProductBuilderPage() {
                                 </h2>
                                 
                                 {/* Aperçus côte à côte */}
+                                {backgroundRemoverPreview && (
                                 <div
                                   style={{
                                     display: 'grid',
@@ -11922,23 +11926,35 @@ export default function ProductBuilderPage() {
                                         border: '1px solid #e5e7eb',
                                         borderRadius: '6px',
                                         padding: '8px',
-                                        backgroundColor: '#f9fafb'
+                                        backgroundColor: '#f9fafb',
+                                        backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+                                        backgroundSize: '12px 12px',
+                                        backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0px'
                                       }}
                                     >
-                                      <img
-                                        src={backgroundRemoverPreview.processed}
-                                        alt="Sans fond"
-                                        style={{
-                                          maxWidth: '100%',
-                                          maxHeight: '100%',
-                                          objectFit: 'contain'
-                                        }}
-                                      />
+                                      {isProcessingBackground ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                          <span style={{ fontSize: '11px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>Traitement...</span>
+                                        </div>
+                                      ) : (
+                                        <img
+                                          src={backgroundRemoverPreview.processed}
+                                          alt="Sans fond"
+                                          style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '100%',
+                                            objectFit: 'contain'
+                                          }}
+                                        />
+                                      )}
                                     </div>
                                   </div>
                                 </div>
+                                )}
                                 
                                 {/* Boutons */}
+                                {backgroundRemoverPreview && !isProcessingBackground && (
                                 <div
                                   style={{
                                     display: 'flex',
@@ -11949,6 +11965,7 @@ export default function ProductBuilderPage() {
                                   <button
                                     onClick={() => handleBackgroundRemoverChoice(false)}
                                     className="btn-secondary"
+                                    disabled={isProcessingBackground}
                                     style={{
                                       flex: 1,
                                       padding: '10px 20px',
@@ -11958,9 +11975,10 @@ export default function ProductBuilderPage() {
                                       fontSize: '14px',
                                       fontFamily: CONFIGURATOR_PANEL_FONT,
                                       color: '#111827',
-                                      cursor: 'pointer',
+                                      cursor: isProcessingBackground ? 'not-allowed' : 'pointer',
                                       fontWeight: '500',
-                                      transition: 'all 0.2s ease'
+                                      transition: 'all 0.2s ease',
+                                      opacity: isProcessingBackground ? 0.5 : 1
                                     }}
                                   >
                                     Non
@@ -11968,6 +11986,7 @@ export default function ProductBuilderPage() {
                                   <button
                                     onClick={() => handleBackgroundRemoverChoice(true)}
                                     className="btn-primary"
+                                    disabled={isProcessingBackground}
                                     style={{
                                       flex: 1,
                                       padding: '10px 20px',
@@ -11977,14 +11996,16 @@ export default function ProductBuilderPage() {
                                       fontSize: '14px',
                                       fontFamily: CONFIGURATOR_PANEL_FONT,
                                       color: '#ffffff',
-                                      cursor: 'pointer',
+                                      cursor: isProcessingBackground ? 'not-allowed' : 'pointer',
                                       fontWeight: '500',
-                                      transition: 'all 0.2s ease'
+                                      transition: 'all 0.2s ease',
+                                      opacity: isProcessingBackground ? 0.5 : 1
                                     }}
                                   >
                                     Oui
                                   </button>
                                 </div>
+                                )}
                               </div>
                             </div>
                           )}
@@ -16108,22 +16129,33 @@ export default function ProductBuilderPage() {
                 </button>
                 <button
                   onClick={handleImportLogo}
-                  disabled={!importedFile}
+                  disabled={!importedFile || isProcessingBackground}
                   className="btn-primary"
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: importedFile ? '#6b7280' : '#d1d5db',
+                    backgroundColor: importedFile && !isProcessingBackground ? '#6b7280' : '#d1d5db',
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '14px',
                     fontFamily: CONFIGURATOR_PANEL_FONT,
                     color: '#ffffff',
-                    cursor: importedFile ? 'pointer' : 'not-allowed',
+                    cursor: importedFile && !isProcessingBackground ? 'pointer' : 'not-allowed',
                     fontWeight: '500',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
                   }}
                 >
-                  Importer
+                  {isProcessingBackground ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Traitement...</span>
+                    </>
+                  ) : (
+                    'Importer'
+                  )}
                 </button>
               </div>
             </div>
@@ -16132,7 +16164,7 @@ export default function ProductBuilderPage() {
       })()}
       
       {/* Modal de background remover - Version DESKTOP */}
-      {viewportMode === 'desktop' && showBackgroundRemoverModal && backgroundRemoverPreview && (
+      {viewportMode === 'desktop' && showBackgroundRemoverModal && (backgroundRemoverPreview || isProcessingBackground) && (
         <div
           className="configurator-panel-modal-overlay"
           style={{
@@ -16145,7 +16177,8 @@ export default function ProductBuilderPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 10001
+            zIndex: 10001,
+            padding: '16px'
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -16159,12 +16192,15 @@ export default function ProductBuilderPage() {
               backgroundColor: '#ffffff',
               borderRadius: '12px',
               padding: '32px',
-              width: '90%',
-              maxWidth: '600px',
+              width: '100%',
+              maxWidth: 'min(600px, calc(100vw - 32px))',
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '24px'
+              gap: '24px',
+              maxHeight: 'calc(100vh - 32px)',
+              overflow: 'auto',
+              boxSizing: 'border-box'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -16182,6 +16218,7 @@ export default function ProductBuilderPage() {
             </h2>
             
             {/* Aperçus côte à côte */}
+            {backgroundRemoverPreview && (
             <div
               style={{
                 display: 'grid',
@@ -16270,23 +16307,34 @@ export default function ProductBuilderPage() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '6px',
                     padding: '12px',
-                    backgroundColor: '#f9fafb'
+                    backgroundColor: '#f9fafb',
+                    backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+                    backgroundSize: '12px 12px',
+                    backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0px'
                   }}
                 >
-                  <img
-                    src={backgroundRemoverPreview.processed}
-                    alt="Sans fond"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain'
-                    }}
-                  />
+                  {isProcessingBackground ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span style={{ fontSize: '12px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>Traitement...</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={backgroundRemoverPreview.processed}
+                      alt="Sans fond"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
             
             {/* Boutons */}
+            {backgroundRemoverPreview && !isProcessingBackground && (
             <div
               style={{
                 display: 'flex',
@@ -16298,6 +16346,7 @@ export default function ProductBuilderPage() {
               <button
                 onClick={() => handleBackgroundRemoverChoice(false)}
                 className="btn-secondary"
+                disabled={isProcessingBackground}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#ffffff',
@@ -16306,9 +16355,10 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontFamily: CONFIGURATOR_PANEL_FONT,
                   color: '#111827',
-                  cursor: 'pointer',
+                  cursor: isProcessingBackground ? 'not-allowed' : 'pointer',
                   fontWeight: '500',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  opacity: isProcessingBackground ? 0.5 : 1
                 }}
               >
                 Non
@@ -16316,6 +16366,7 @@ export default function ProductBuilderPage() {
               <button
                 onClick={() => handleBackgroundRemoverChoice(true)}
                 className="btn-primary"
+                disabled={isProcessingBackground}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#6b7280',
@@ -16324,14 +16375,16 @@ export default function ProductBuilderPage() {
                   fontSize: '14px',
                   fontFamily: CONFIGURATOR_PANEL_FONT,
                   color: '#ffffff',
-                  cursor: 'pointer',
+                  cursor: isProcessingBackground ? 'not-allowed' : 'pointer',
                   fontWeight: '500',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  opacity: isProcessingBackground ? 0.5 : 1
                 }}
               >
                 Oui
               </button>
             </div>
+            )}
           </div>
         </div>
       )}
