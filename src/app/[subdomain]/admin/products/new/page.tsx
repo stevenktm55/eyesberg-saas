@@ -46,7 +46,12 @@ if (typeof document !== 'undefined') {
       -webkit-text-stroke-color: #ffffff !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
-    .configurator-panel-sidebar-tab-active {
+    .configurator-panel button.configurator-panel-sidebar-tab-active {
+      border-radius: 20px !important;
+      -webkit-border-radius: 20px !important;
+      -moz-border-radius: 20px !important;
+    }
+    button.configurator-panel-sidebar-tab-active {
       border-radius: 20px !important;
       -webkit-border-radius: 20px !important;
       -moz-border-radius: 20px !important;
@@ -2156,6 +2161,48 @@ export default function ProductBuilderPage() {
       setActiveCustomizerTab(customizationModules[0].id);
     }
   }, [viewportMode, selectedModel3DId, activeCustomizerTab, customizationModules]);
+
+  // Forcer le borderRadius sur les onglets actifs de la sidebar
+  useEffect(() => {
+    const forceBorderRadius = () => {
+      const activeTabs = document.querySelectorAll('.configurator-panel-sidebar-tab-active');
+      activeTabs.forEach((tab) => {
+        const htmlEl = tab as HTMLElement;
+        if (htmlEl) {
+          htmlEl.style.setProperty('border-radius', '20px', 'important');
+          htmlEl.style.setProperty('borderRadius', '20px', 'important');
+          htmlEl.style.setProperty('-webkit-border-radius', '20px', 'important');
+          htmlEl.style.setProperty('-moz-border-radius', '20px', 'important');
+        }
+      });
+    };
+    
+    // Exécuter immédiatement
+    forceBorderRadius();
+    
+    // Observer les changements DOM pour appliquer le style quand les onglets changent
+    const observer = new MutationObserver(() => {
+      forceBorderRadius();
+    });
+    
+    const panel = document.querySelector('.configurator-panel');
+    if (panel) {
+      observer.observe(panel, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+    
+    // Exécuter périodiquement aussi
+    const interval = setInterval(forceBorderRadius, 100);
+    
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, [activeCustomizerTab, viewportMode, selectedModel3DId]);
 
   function addQuestion() {
     // Ouvrir le modal de création de module
