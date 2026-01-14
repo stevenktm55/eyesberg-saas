@@ -274,13 +274,15 @@ export function BackgroundRemovalModal({
                     </div>
                   ) : processedImageUrl ? (
                     <>
-                      {console.log('🖼️ Affichage de l\'image traitée, longueur:', processedImageUrl.length)}
+                      {console.log('🖼️ Affichage de l\'image traitée, longueur:', processedImageUrl.length, 'preview:', processedImageUrl.substring(0, 80))}
                       <img
+                        key={`processed-${processedImageUrl.length}`}
                         src={processedImageUrl}
                         alt="Sans fond"
                         className="max-w-full max-h-32 mx-auto object-contain"
                         onError={(e) => {
                           console.error('❌ Erreur chargement image traitée:', e);
+                          console.error('❌ DataUrl (premiers 200 chars):', processedImageUrl.substring(0, 200));
                         }}
                         onLoad={() => {
                           console.log('✅ Image traitée chargée avec succès');
