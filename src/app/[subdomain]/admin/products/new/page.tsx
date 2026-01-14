@@ -8475,9 +8475,42 @@ export default function ProductBuilderPage() {
                                                      activeModule.selectedItems?.zoneGroupIds ||
                                                      [];
                             
-                            const availableZones = zoneGroups
+                            let availableZones = zoneGroups
                               .filter(group => logoZoneGroupIds.includes(group.id))
                               .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
+                            
+                            // Filtrer les zones selon la vue de caméra actuelle (activeLogoView)
+                            // Mapper les vues pour correspondre aux labels dans zone.view
+                            const viewMapping: Record<string, string[]> = {
+                              'front': ['front', 'Face', 'FACE', 'torse'],
+                              'back': ['back', 'Dos', 'DOS', 'dos'],
+                              'left': ['left', 'Gauche', 'GAUCHE', 'bras-gauche'],
+                              'right': ['right', 'Droite', 'DROITE', 'bras-droit']
+                            };
+                            
+                            const currentViewLabels = viewMapping[activeLogoView] || [];
+                            
+                            availableZones = availableZones.filter(zone => {
+                              // Si la zone a une vue spécifique, elle doit correspondre à la vue actuelle
+                              if (zone.view) {
+                                const zoneView = String(zone.view);
+                                return currentViewLabels.some(label => 
+                                  zoneView.toLowerCase() === label.toLowerCase() ||
+                                  zoneView === label
+                                );
+                              }
+                              
+                              // Si la zone a une catégorie qui correspond à la vue actuelle
+                              if ((zone as any).zoneCategory) {
+                                const zoneCategory = String((zone as any).zoneCategory).toLowerCase();
+                                return currentViewLabels.some(label => 
+                                  zoneCategory === label.toLowerCase()
+                                );
+                              }
+                              
+                              // Si aucune vue/catégorie spécifique, inclure la zone (zones universelles)
+                              return true;
+                            });
                             
                             return (
                               <div
@@ -11590,7 +11623,7 @@ export default function ProductBuilderPage() {
                           })()}
                           
                           {/* Modal d'importation de logo - Version MOBILE */}
-                          {viewportMode === 'mobile' && showImportModal && (() => {
+                          {viewportMode === 'mobile' && showImportModal && !showLogoZoneModal && !showBackgroundRemoverModal && (() => {
                             const activeModule = customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === mobileActivePanel);
                             if (!activeModule || activeModule.contentType !== 'logos') {
                               return null;
