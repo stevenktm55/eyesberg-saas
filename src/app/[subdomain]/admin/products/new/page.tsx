@@ -5739,12 +5739,38 @@ export default function ProductBuilderPage() {
                       };
                       
                       // Filtrer les logos selon la vue active
-                      const filteredPlacedLogos = placedLogos.filter(logo => {
-                        if (activeModule.logoPlacementMode === 'zones') {
-                          const logoView = categoryToView[logo.category];
-                          return logoView === activeLogoView;
+                      // Mapper activeLogoView (qui peut être un ID personnalisé) vers 'front'/'back'/'left'/'right'
+                      let currentViewForFilter: 'front' | 'back' | 'left' | 'right' | null = null;
+                      const activeViewConfig = customViews.find(v => v.id === activeLogoView);
+                      if (activeViewConfig) {
+                        // Si la vue personnalisée a un ID standard, l'utiliser
+                        if (activeViewConfig.id === 'front' || activeViewConfig.id === 'back' || 
+                            activeViewConfig.id === 'left' || activeViewConfig.id === 'right') {
+                          currentViewForFilter = activeViewConfig.id;
+                        } else {
+                          // Sinon, mapper le label vers la vue standard
+                          const labelToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                            'Face': 'front',
+                            'DOS': 'back',
+                            'Dos': 'back',
+                            'Gauche': 'left',
+                            'Left': 'left',
+                            'Droite': 'right',
+                            'Right': 'right'
+                          };
+                          currentViewForFilter = labelToView[activeViewConfig.label] || null;
                         }
-                        return true; // En mode libre, afficher tous les logos
+                      } else if (activeLogoView === 'front' || activeLogoView === 'back' || 
+                                 activeLogoView === 'left' || activeLogoView === 'right') {
+                        currentViewForFilter = activeLogoView;
+                      }
+                      
+                      const filteredPlacedLogos = placedLogos.filter(logo => {
+                        if (activeModule.logoPlacementMode === 'zones' && currentViewForFilter) {
+                          const logoView = categoryToView[logo.category as keyof typeof categoryToView];
+                          return logoView === currentViewForFilter;
+                        }
+                        return true; // En mode libre ou si pas de vue trouvée, afficher tous les logos
                       });
                       
                       // Utiliser uniquement les vues personnalisées configurées dans le module
@@ -9523,11 +9549,39 @@ export default function ProductBuilderPage() {
                                 let modulePlacedLogos = placedLogos.filter(l => l.category);
                                 
                                 // Filtrer selon la vue active si mode zones
+                                // Mapper activeLogoView (qui peut être un ID personnalisé) vers 'front'/'back'/'left'/'right'
+                                let currentViewForFilter: 'front' | 'back' | 'left' | 'right' | null = null;
                                 if (activeModule.logoPlacementMode === 'zones') {
-                                  modulePlacedLogos = modulePlacedLogos.filter(logo => {
-                                    const logoView = categoryToView[logo.category as keyof typeof categoryToView];
-                                    return logoView === activeLogoView;
-                                  });
+                                  const activeViewConfig = customViews.find(v => v.id === activeLogoView);
+                                  if (activeViewConfig) {
+                                    // Si la vue personnalisée a un ID standard, l'utiliser
+                                    if (activeViewConfig.id === 'front' || activeViewConfig.id === 'back' || 
+                                        activeViewConfig.id === 'left' || activeViewConfig.id === 'right') {
+                                      currentViewForFilter = activeViewConfig.id;
+                                    } else {
+                                      // Sinon, mapper le label vers la vue standard
+                                      const labelToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
+                                        'Face': 'front',
+                                        'DOS': 'back',
+                                        'Dos': 'back',
+                                        'Gauche': 'left',
+                                        'Left': 'left',
+                                        'Droite': 'right',
+                                        'Right': 'right'
+                                      };
+                                      currentViewForFilter = labelToView[activeViewConfig.label] || null;
+                                    }
+                                  } else if (activeLogoView === 'front' || activeLogoView === 'back' || 
+                                             activeLogoView === 'left' || activeLogoView === 'right') {
+                                    currentViewForFilter = activeLogoView;
+                                  }
+                                  
+                                  if (currentViewForFilter) {
+                                    modulePlacedLogos = modulePlacedLogos.filter(logo => {
+                                      const logoView = categoryToView[logo.category as keyof typeof categoryToView];
+                                      return logoView === currentViewForFilter;
+                                    });
+                                  }
                                 }
                                 
                                 // Récupérer les bibliothèques de logos sélectionnées
