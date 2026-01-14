@@ -468,14 +468,19 @@ export function ShopifyAddToCart({
       )}
 
       {/* Boutons d'action */}
-      <div className="space-y-3">
+      <div className="w-full flex flex-row gap-3">
         {/* Bouton Sauvegarder */}
         <button
           onClick={handleSaveConfiguration}
           disabled={isLoading || !isConfigurationValid()}
-          className="w-full px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors whitespace-nowrap flex items-center justify-center gap-2"
         >
-          {isLoading ? 'Sauvegarde...' : '💾 Sauvegarder la configuration'}
+          {isLoading ? 'Sauvegarde...' : (
+            <>
+              <span>💾</span>
+              <span>Sauvegarder</span>
+            </>
+          )}
         </button>
 
         {/* Bouton Ajouter au panier (seulement si Shopify configuré) */}
@@ -483,7 +488,7 @@ export function ShopifyAddToCart({
           <button
             onClick={handleAddToCart}
             disabled={isLoading || !isConfigurationValid()}
-            className="w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
           >
             {isLoading ? (
               <>
@@ -493,7 +498,7 @@ export function ShopifyAddToCart({
             ) : (
               <>
                 <span>🛒</span>
-                <span>Ajouter au panier ({quantity})</span>
+                <span>Ajouter au panier</span>
               </>
             )}
           </button>
