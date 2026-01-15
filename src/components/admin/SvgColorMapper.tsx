@@ -304,8 +304,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
         
         if (svgElement) {
-          // 1. Supprimer tous les blocs style qui contiennent des règles pour nos classes de couleur
+          // 1. Extraire les couleurs originales depuis les styles CSS AVANT de les supprimer
+          // On va mapper les classes aux couleurs qu'elles définissent dans les styles
           const styleElements = Array.from(svgDoc.querySelectorAll('style'));
+          const classToColorMap = new Map<string, string>();
+          
           styleElements.forEach(styleEl => {
             const cssText = styleEl.textContent || '';
             const hasColorClassRules = colorClassNames.some(className => {
@@ -314,12 +317,36 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             });
             
             if (hasColorClassRules) {
+              // Extraire les couleurs pour chaque classe avant de supprimer le style
+              colorClassNames.forEach(className => {
+                // Chercher fill: ou stroke: dans la règle CSS de cette classe
+                const classPattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
+                const classMatch = classPattern.exec(cssText);
+                if (classMatch) {
+                  const ruleContent = classMatch[0];
+                  // Chercher fill: couleur ou stroke: couleur
+                  const fillMatch = ruleContent.match(/fill:\s*([^;\\s]+)/i);
+                  const strokeMatch = ruleContent.match(/stroke:\s*([^;\\s]+)/i);
+                  if (fillMatch && fillMatch[1]) {
+                    const color = fillMatch[1].trim();
+                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
+                      classToColorMap.set(className, color);
+                    }
+                  } else if (strokeMatch && strokeMatch[1]) {
+                    const color = strokeMatch[1].trim();
+                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
+                      classToColorMap.set(className, color);
+                    }
+                  }
+                }
+              });
+              
+              // Maintenant supprimer le style
               styleEl.remove();
             }
           });
           
-          // 2. Parcourir tous les éléments et retirer les classes de couleur
-          // (on ne restaure pas les couleurs car elles seront détectées normalement après)
+          // 2. Parcourir tous les éléments, retirer les classes de couleur ET restaurer les couleurs originales
           const allElements = svgElement.querySelectorAll('*');
           allElements.forEach(el => {
             const classAttr = el.getAttribute('class');
@@ -328,6 +355,23 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               const colorClassesFound = classes.filter(c => colorClassNames.includes(c));
               
               if (colorClassesFound.length > 0) {
+                // Restaurer la couleur originale depuis la map si disponible
+                for (const className of colorClassesFound) {
+                  const originalColor = classToColorMap.get(className);
+                  if (originalColor && !el.hasAttribute('fill') && !el.hasAttribute('stroke')) {
+                    // Restaurer dans fill par défaut
+                    el.setAttribute('fill', originalColor);
+                  } else if (originalColor) {
+                    // Si l'élément a déjà un fill ou stroke, remplacer celui qui manque
+                    if (!el.hasAttribute('fill')) {
+                      el.setAttribute('fill', originalColor);
+                    }
+                    if (!el.hasAttribute('stroke')) {
+                      el.setAttribute('stroke', originalColor);
+                    }
+                  }
+                }
+                
                 // Retirer les classes de couleur
                 const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
                 if (remainingClasses.length > 0) {
@@ -670,15 +714,26 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   // Utiliser un état pour le SVG modifié qui se met à jour à chaque changement
   const [modifiedSvgPreview, setModifiedSvgPreview] = useState<string>('');
 
-  // Mettre à jour le SVG modifié quand les mappings changent
+  // Mettre à jour le SVG modifié quand les mappings changent - utiliser un effet séparé
   useEffect(() => {
     if (originalSvgContent || svgContent) {
+      console.log("Mise à jour SVG preview - colorMappings:", Object.keys(colorMappings).length, "previewKey:", previewKey);
       const modified = generateModifiedSvg();
+      console.log("SVG modifié généré, longueur:", modified.length);
       setModifiedSvgPreview(modified);
     } else {
       setModifiedSvgPreview('');
     }
-  }, [originalSvgContent, svgContent, colorMappings, detectedColors, palettes, previewKey, generateModifiedSvg]);
+  }, [originalSvgContent, svgContent, previewKey]); // Enlever generateModifiedSvg des dépendances pour éviter les cycles
+
+  // Un effet séparé pour les colorMappings
+  useEffect(() => {
+    if ((originalSvgContent || svgContent) && Object.keys(colorMappings).length > 0) {
+      console.log("Mise à jour SVG preview via colorMappings");
+      const modified = generateModifiedSvg();
+      setModifiedSvgPreview(modified);
+    }
+  }, [colorMappings]);
 
   return (
     <div style={{ 
