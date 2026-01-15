@@ -756,14 +756,145 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   // Mettre à jour le SVG modifié quand les mappings changent
   useEffect(() => {
     if (originalSvgContent || svgContent) {
-      console.log("Mise à jour SVG preview - colorMappings:", Object.keys(colorMappings).length, "previewKey:", previewKey);
-      const modified = generateModifiedSvg();
-      console.log("SVG modifié généré, longueur:", modified.length);
-      setModifiedSvgPreview(modified);
+      console.log("Mise à jour SVG preview - colorMappings:", Object.keys(colorMappings).length, "previewKey:", previewKey, "mappings:", JSON.stringify(colorMappings));
+      // Appeler generateModifiedSvg directement ici au lieu d'utiliser la référence
+      const baseSvg = originalSvgContent || svgContent;
+      if (baseSvg) {
+        const allPaletteColors = getAllPaletteColors();
+        try {
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(baseSvg, 'image/svg+xml');
+          const svgElement = svgDoc.querySelector('svg');
+          if (svgElement) {
+            // Fonction récursive pour remplacer les couleurs
+            const replaceColorsInElement = (element: Element) => {
+              // D'abord, nettoyer les anciennes classes de couleur
+              const classAttr = element.getAttribute('class');
+              if (classAttr) {
+                const classes = classAttr.split(/\s+/);
+                const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+                const hasOldColorClass = classes.some(c => colorClassNames.includes(c));
+                
+                if (hasOldColorClass) {
+                  // Retirer toutes les anciennes classes de couleur
+                  const cleanedClasses = classes.filter(c => !colorClassNames.includes(c));
+                  if (cleanedClasses.length > 0) {
+                    element.setAttribute('class', cleanedClasses.join(' '));
+                  } else {
+                    element.removeAttribute('class');
+                  }
+                }
+              }
+              
+              // Remplacer fill
+              const fill = element.getAttribute('fill');
+              if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
+                const normalized = normalizeColorToHex(fill);
+                if (normalized) {
+                  let mapping = colorMappings[normalized];
+                  if (!mapping) {
+                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+                    if (detectedColor) {
+                      mapping = colorMappings[detectedColor.normalizedHex];
+                    }
+                  }
+                  
+                  if (mapping?.colorClass) {
+                    element.removeAttribute('fill');
+                    const existingClass = element.getAttribute('class') || '';
+                    const classList = existingClass.split(/\s+/).filter(Boolean);
+                    const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+                    const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
+                    if (!cleanedClasses.includes(mapping.colorClass)) {
+                      cleanedClasses.push(mapping.colorClass);
+                    }
+                    element.setAttribute('class', cleanedClasses.join(' ').trim());
+                  }
+                }
+              }
+
+              // Remplacer stroke
+              const stroke = element.getAttribute('stroke');
+              if (stroke && stroke !== 'none' && stroke !== 'transparent' && stroke !== 'currentColor') {
+                const normalized = normalizeColorToHex(stroke);
+                if (normalized) {
+                  let mapping = colorMappings[normalized];
+                  if (!mapping) {
+                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+                    if (detectedColor) {
+                      mapping = colorMappings[detectedColor.normalizedHex];
+                    }
+                  }
+                  
+                  if (mapping?.colorClass) {
+                    element.removeAttribute('stroke');
+                    const existingClass = element.getAttribute('class') || '';
+                    const classList = existingClass.split(/\s+/).filter(Boolean);
+                    const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+                    const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
+                    if (!cleanedClasses.includes(mapping.colorClass)) {
+                      cleanedClasses.push(mapping.colorClass);
+                    }
+                    element.setAttribute('class', cleanedClasses.join(' ').trim());
+                  }
+                }
+              }
+
+              Array.from(element.children).forEach(child => replaceColorsInElement(child));
+            };
+
+            replaceColorsInElement(svgElement);
+
+            // Gérer les styles CSS
+            const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+            const styleElements = Array.from(svgDoc.querySelectorAll('style'));
+            styleElements.forEach(styleEl => {
+              const cssText = styleEl.textContent || '';
+              const hasColorClassRules = colorClassNames.some(className => {
+                const pattern = new RegExp(`\\.${className}\\s*\\{`);
+                return pattern.test(cssText);
+              });
+              if (hasColorClassRules) {
+                styleEl.remove();
+              }
+            });
+
+            const styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
+            const styleRules = Object.values(colorMappings)
+              .filter(m => m.colorClass && m.paletteColorId)
+              .map(m => {
+                const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
+                if (paletteColor) {
+                  return `.${m.colorClass} { fill: ${paletteColor.hex} !important; stroke: ${paletteColor.hex} !important; }`;
+                }
+                return '';
+              })
+              .filter(Boolean);
+
+            if (styleRules.length > 0) {
+              styleElement.textContent = styleRules.join('\n    ');
+              let defs = svgDoc.querySelector('defs');
+              if (!defs) {
+                defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                svgElement.insertBefore(defs, svgElement.firstChild);
+              }
+              defs.appendChild(styleElement);
+            }
+
+            const serializer = new XMLSerializer();
+            const result = serializer.serializeToString(svgDoc);
+            console.log("SVG modifié généré dans useEffect, longueur:", result.length);
+            setModifiedSvgPreview(result);
+          }
+        } catch (error) {
+          console.error("Erreur dans useEffect generateModifiedSvg:", error);
+          setModifiedSvgPreview('');
+        }
+      }
     } else {
       setModifiedSvgPreview('');
     }
-  }, [originalSvgContent, svgContent, previewKey, colorMappings, detectedColors, palettes]); // Inclure toutes les dépendances nécessaires
+  }, [originalSvgContent, svgContent, previewKey, colorMappings, detectedColors, palettes, getAllPaletteColors]); // Inclure toutes les dépendances nécessaires
 
   return (
     <div style={{ 
