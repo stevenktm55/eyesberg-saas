@@ -1081,36 +1081,38 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                       console.log("SVG avec dimensions - width:", width, "height:", height);
                       
                       return (
-                        <div
-                          style={{ 
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'auto'
-                          }}
-                        >
-                          <div
-                            dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
-                            style={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%',
-                              height: '100%'
-                            }}
-                          />
-                          <style jsx>{`
-                            div :global(svg) {
+                        <>
+                          <style dangerouslySetInnerHTML={{ __html: `
+                            .svg-preview-container svg {
                               max-width: 100% !important;
                               max-height: 100% !important;
                               width: auto !important;
                               height: auto !important;
-                              object-fit: contain;
                             }
-                          `}</style>
-                        </div>
+                          `}} />
+                          <div
+                            className="svg-preview-container"
+                            style={{ 
+                              width: '100%',
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              overflow: 'auto'
+                            }}
+                          >
+                            <div
+                              dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
+                              style={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '100%',
+                                height: '100%'
+                              }}
+                            />
+                          </div>
+                        </>
                       );
                     }
                   } catch (error) {
@@ -1125,7 +1127,52 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                     const serializerFallback = new XMLSerializer();
                     const svgAdapted = serializerFallback.serializeToString(svgDocFallback);
                     return (
+                      <>
+                        <style dangerouslySetInnerHTML={{ __html: `
+                          .svg-preview-container svg {
+                            max-width: 100% !important;
+                            max-height: 100% !important;
+                            width: auto !important;
+                            height: auto !important;
+                          }
+                        `}} />
+                        <div
+                          className="svg-preview-container"
+                          style={{ 
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'auto'
+                          }}
+                        >
+                          <div
+                            dangerouslySetInnerHTML={{ __html: svgAdapted }}
+                            style={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%',
+                              height: '100%'
+                            }}
+                          />
+                        </div>
+                      </>
+                    );
+                  }
+                  return (
+                    <>
+                      <style dangerouslySetInnerHTML={{ __html: `
+                        .svg-preview-container svg {
+                          max-width: 100% !important;
+                          max-height: 100% !important;
+                          width: auto !important;
+                          height: auto !important;
+                        }
+                      `}} />
                       <div
+                        className="svg-preview-container"
                         style={{ 
                           width: '100%',
                           height: '100%',
@@ -1136,7 +1183,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         }}
                       >
                         <div
-                          dangerouslySetInnerHTML={{ __html: svgAdapted }}
+                          dangerouslySetInnerHTML={{ __html: modifiedSvg }}
                           style={{ 
                             display: 'flex',
                             alignItems: 'center',
@@ -1145,49 +1192,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                             height: '100%'
                           }}
                         />
-                        <style jsx>{`
-                          div :global(svg) {
-                            max-width: 100% !important;
-                            max-height: 100% !important;
-                            width: auto !important;
-                            height: auto !important;
-                            object-fit: contain;
-                          }
-                        `}</style>
                       </div>
-                    );
-                  }
-                  return (
-                    <div
-                      style={{ 
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        overflow: 'auto'
-                      }}
-                    >
-                      <div
-                        dangerouslySetInnerHTML={{ __html: modifiedSvg }}
-                        style={{ 
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '100%',
-                          height: '100%'
-                        }}
-                      />
-                      <style jsx>{`
-                        div :global(svg) {
-                          max-width: 100% !important;
-                          max-height: 100% !important;
-                          width: auto !important;
-                          height: auto !important;
-                          object-fit: contain;
-                        }
-                      `}</style>
-                    </div>
+                    </>
                   );
                 }
                 return (
