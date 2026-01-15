@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary";
 
@@ -227,6 +227,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   const [designs, setDesigns] = useState<Design2D[]>([]);
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
+  const [originalSvgContent, setOriginalSvgContent] = useState<string>(""); // SVG original sans modifications
   const [detectedColors, setDetectedColors] = useState<DetectedColor[]>([]);
   const [colorMappings, setColorMappings] = useState<Record<string, ColorMapping>>({});
   const [palettes, setPalettes] = useState<ColorPalette[]>([]);
@@ -294,7 +295,32 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const text = await response.text();
         console.log("SVG chargé, longueur:", text.length);
         console.log("SVG preview (premiers 500 chars):", text.substring(0, 500));
-        setSvgContent(text);
+        
+        // Nettoyer le SVG pour enlever les styles générés par notre système
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(text, 'image/svg+xml');
+        const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+        const styleElements = Array.from(svgDoc.querySelectorAll('style'));
+        
+        // Supprimer tous les blocs style qui contiennent des règles pour nos classes de couleur
+        styleElements.forEach(styleEl => {
+          const cssText = styleEl.textContent || '';
+          const hasColorClassRules = colorClassNames.some(className => {
+            const pattern = new RegExp(`\\.${className}\\s*\\{`);
+            return pattern.test(cssText);
+          });
+          
+          if (hasColorClassRules) {
+            styleEl.remove();
+          }
+        });
+        
+        // Ré-sérialiser le SVG nettoyé
+        const serializer = new XMLSerializer();
+        const cleanedSvg = serializer.serializeToString(svgDoc);
+        
+        setOriginalSvgContent(cleanedSvg); // Garder le SVG original nettoyé
+        setSvgContent(cleanedSvg);
 
         // Détecter les couleurs
         const colors = detectColorsInSvg(text);
@@ -414,7 +440,9 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
   // Fonction pour générer le SVG modifié
   const generateModifiedSvg = useCallback((): string => {
-    if (!svgContent) {
+    // Utiliser le SVG original nettoyé comme base, pas le svgContent qui peut être modifié
+    const baseSvg = originalSvgContent || svgContent;
+    if (!baseSvg) {
       console.log("generateModifiedSvg: pas de svgContent");
       return '';
     }
@@ -424,7 +452,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
     try {
       const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+      const svgDoc = parser.parseFromString(baseSvg, 'image/svg+xml');
       const svgElement = svgDoc.querySelector('svg');
       if (!svgElement) {
         console.log("generateModifiedSvg: pas d'élément SVG trouvé");
@@ -549,9 +577,9 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       return result;
     } catch (error) {
       console.error("Erreur dans generateModifiedSvg:", error);
-      return svgContent; // Retourner le SVG original en cas d'erreur
+      return baseSvg; // Retourner le SVG original en cas d'erreur
     }
-  }, [svgContent, colorMappings, detectedColors, getAllPaletteColors]);
+  }, [originalSvgContent, svgContent, colorMappings, detectedColors, getAllPaletteColors]);
 
   // Fonction pour sauvegarder le SVG modifié
   const handleSave = useCallback(async () => {
@@ -610,6 +638,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   );
 
   const allPaletteColors = getAllPaletteColors();
+
+  // Générer le SVG modifié une fois avec useMemo pour forcer la mise à jour
+  const modifiedSvgPreview = useMemo(() => {
+    return generateModifiedSvg();
+  }, [generateModifiedSvg, colorMappings, originalSvgContent]);
 
   return (
     <div style={{ 
@@ -730,6 +763,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           <button
             onClick={() => {
               setSvgContent("");
+              setOriginalSvgContent("");
               setSelectedDesignId(null);
               setDetectedColors([]);
               setColorMappings({});
@@ -1078,9 +1112,9 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative'
-            }} key={JSON.stringify(colorMappings)}>
+            }} key={`preview-${JSON.stringify(colorMappings)}-${selectedPaletteId}`}>
               {(() => {
-                const modifiedSvg = generateModifiedSvg();
+                const modifiedSvg = modifiedSvgPreview;
                 console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
                 if (modifiedSvg) {
                   try {
