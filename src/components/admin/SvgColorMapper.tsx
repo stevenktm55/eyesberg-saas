@@ -957,27 +957,91 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             <div style={{
               flex: 1,
               overflow: 'auto',
-              backgroundColor: '#0a0a0a',
+              backgroundColor: '#ffffff',
               border: '1px solid #2a2a2a',
               borderRadius: '8px',
               padding: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '400px'
+              minHeight: '400px',
+              position: 'relative'
             }}>
               {(() => {
                 const modifiedSvg = generateModifiedSvg();
                 console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
                 if (modifiedSvg) {
-                  // Parser le SVG pour extraire les dimensions
-                  const parser = new DOMParser();
-                  const svgDoc = parser.parseFromString(modifiedSvg, 'image/svg+xml');
-                  const svgElement = svgDoc.querySelector('svg');
-                  const viewBox = svgElement?.getAttribute('viewBox');
-                  const width = svgElement?.getAttribute('width');
-                  const height = svgElement?.getAttribute('height');
+                  try {
+                    // Parser le SVG pour extraire les dimensions et s'assurer qu'il a des dimensions
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(modifiedSvg, 'image/svg+xml');
+                    const svgElement = svgDoc.querySelector('svg');
+                    
+                    if (svgElement) {
+                      // S'assurer que le SVG a des dimensions
+                      const viewBox = svgElement.getAttribute('viewBox');
+                      let width = svgElement.getAttribute('width');
+                      let height = svgElement.getAttribute('height');
+                      
+                      // Si pas de dimensions, essayer de les extraire du viewBox
+                      if (!width || !height) {
+                        if (viewBox) {
+                          const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
+                          if (vbWidth && vbHeight) {
+                            width = vbWidth.toString();
+                            height = vbHeight.toString();
+                            svgElement.setAttribute('width', width);
+                            svgElement.setAttribute('height', height);
+                          }
+                        }
+                      }
+                      
+                      // Si toujours pas de dimensions, utiliser des valeurs par défaut
+                      if (!width || !height) {
+                        width = '800';
+                        height = '800';
+                        svgElement.setAttribute('width', width);
+                        svgElement.setAttribute('height', height);
+                        if (!viewBox) {
+                          svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                        }
+                      }
+                      
+                      // Ré-sérialiser le SVG avec les dimensions
+                      const serializer = new XMLSerializer();
+                      const svgWithDimensions = serializer.serializeToString(svgDoc);
+                      
+                      console.log("SVG avec dimensions - width:", width, "height:", height);
+                      
+                      return (
+                        <div
+                          style={{ 
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'auto'
+                          }}
+                        >
+                          <div
+                            dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
+                            style={{ 
+                              display: 'block',
+                              maxWidth: '100%',
+                              maxHeight: '100%',
+                              width: 'auto',
+                              height: 'auto'
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Erreur lors du parsing du SVG:", error);
+                  }
                   
+                  // Fallback: afficher le SVG tel quel
                   return (
                     <div
                       style={{ 
@@ -985,16 +1049,16 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         height: '100%',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        overflow: 'auto'
                       }}
                     >
                       <div
                         dangerouslySetInnerHTML={{ __html: modifiedSvg }}
                         style={{ 
-                          maxWidth: '100%', 
-                          maxHeight: '100%',
-                          width: width || 'auto',
-                          height: height || 'auto'
+                          display: 'block',
+                          maxWidth: '100%',
+                          maxHeight: '100%'
                         }}
                       />
                     </div>
