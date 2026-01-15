@@ -296,24 +296,64 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         console.log("SVG chargé, longueur:", text.length);
         console.log("SVG preview (premiers 500 chars):", text.substring(0, 500));
         
-        // Nettoyer le SVG pour enlever les styles générés par notre système
+        // Nettoyer le SVG pour enlever les styles ET classes générés par notre système
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(text, 'image/svg+xml');
+        const svgElement = svgDoc.querySelector('svg');
         const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-        const styleElements = Array.from(svgDoc.querySelectorAll('style'));
         
-        // Supprimer tous les blocs style qui contiennent des règles pour nos classes de couleur
-        styleElements.forEach(styleEl => {
-          const cssText = styleEl.textContent || '';
-          const hasColorClassRules = colorClassNames.some(className => {
-            const pattern = new RegExp(`\\.${className}\\s*\\{`);
-            return pattern.test(cssText);
+        if (svgElement) {
+          // 1. Supprimer tous les blocs style qui contiennent des règles pour nos classes de couleur
+          const styleElements = Array.from(svgDoc.querySelectorAll('style'));
+          styleElements.forEach(styleEl => {
+            const cssText = styleEl.textContent || '';
+            const hasColorClassRules = colorClassNames.some(className => {
+              const pattern = new RegExp(`\\.${className}\\s*\\{`);
+              return pattern.test(cssText);
+            });
+            
+            if (hasColorClassRules) {
+              styleEl.remove();
+            }
           });
           
-          if (hasColorClassRules) {
-            styleEl.remove();
-          }
-        });
+          // 2. Retirer les classes de couleur des éléments et restaurer les couleurs originales depuis le style
+          // D'abord, extraire les couleurs originales des règles CSS avant de les supprimer
+          const originalColorsMap = new Map<string, string>();
+          styleElements.forEach(styleEl => {
+            const cssText = styleEl.textContent || '';
+            colorClassNames.forEach(className => {
+              const pattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;\\s]+)[^}]*\\}`, 'gi');
+              const match = pattern.exec(cssText);
+              if (match && match[1]) {
+                originalColorsMap.set(className, match[1].trim());
+              }
+            });
+          });
+          
+          // 3. Parcourir tous les éléments et retirer les classes de couleur
+          const allElements = svgElement.querySelectorAll('*');
+          allElements.forEach(el => {
+            const classAttr = el.getAttribute('class');
+            if (classAttr) {
+              const classes = classAttr.split(/\s+/);
+              const colorClassesFound = classes.filter(c => colorClassNames.includes(c));
+              
+              if (colorClassesFound.length > 0) {
+                // Retirer les classes de couleur
+                const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
+                if (remainingClasses.length > 0) {
+                  el.setAttribute('class', remainingClasses.join(' '));
+                } else {
+                  el.removeAttribute('class');
+                }
+                
+                // Si on a trouvé la couleur originale pour cette classe, la restaurer
+                // Sinon, on laisse l'élément sans couleur (sera détecté par detectColorsInSvg)
+              }
+            }
+          });
+        }
         
         // Ré-sérialiser le SVG nettoyé
         const serializer = new XMLSerializer();
@@ -640,9 +680,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   const allPaletteColors = getAllPaletteColors();
 
   // Générer le SVG modifié une fois avec useMemo pour forcer la mise à jour
+  // Les dépendances directes garantissent que ça se met à jour quand on change les mappings
   const modifiedSvgPreview = useMemo(() => {
+    if (!originalSvgContent && !svgContent) return '';
     return generateModifiedSvg();
-  }, [generateModifiedSvg, colorMappings, originalSvgContent]);
+  }, [originalSvgContent, svgContent, colorMappings, detectedColors, palettes, getAllPaletteColors]);
 
   return (
     <div style={{ 
