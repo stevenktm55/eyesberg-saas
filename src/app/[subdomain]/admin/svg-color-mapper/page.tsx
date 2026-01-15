@@ -12,9 +12,9 @@ export default function SvgColorMapperPage() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      <div className="flex-1 overflow-hidden">
-        <SvgColorMapper onExport={handleExport} className="h-full" />
+    <div className="flex flex-col bg-gray-50">
+      <div>
+        <SvgColorMapper onExport={handleExport} className="" />
       </div>
       {exportedSvg && (
         <div className="flex-shrink-0 border-t bg-white p-4 max-h-64 overflow-auto shadow-lg">

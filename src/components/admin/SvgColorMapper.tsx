@@ -580,7 +580,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       fontFamily: 'var(--stepn-font-body)',
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
+      minHeight: '100%',
       backgroundColor: '#000000',
       color: '#ffffff'
     }}>
@@ -933,7 +933,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       {/* Zone de contenu */}
       <div style={{
         flex: 1,
-        overflow: 'auto',
         backgroundColor: '#000000',
         padding: '24px',
         display: 'flex',
@@ -952,7 +951,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             {designs.length === 0 ? 'Aucun design disponible' : 'Sélectionnez un design 2D ci-dessus'}
           </div>
         ) : (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {/* Contrôles */}
             <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
               <button
@@ -1022,7 +1021,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              position: 'relative'
+              position: 'relative',
+              overflow: 'visible'
             }}>
               {(() => {
                 const modifiedSvg = generateModifiedSvg();
