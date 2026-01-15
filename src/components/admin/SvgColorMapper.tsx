@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary" | null;
+export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary";
 
 interface Design2D {
   id: string;
@@ -14,37 +14,139 @@ interface Design2D {
   preview_url?: string;
 }
 
+interface ColorPalette {
+  id: string;
+  name: string;
+  colors: Array<{ name: string; hex: string; cmyk?: string }>;
+}
+
+interface DetectedColor {
+  originalColor: string; // La couleur originale dans le SVG (ex: #FF0000, rgb(255,0,0), etc.)
+  normalizedHex: string; // Version normalisée en hex (ex: #FF0000)
+  count: number; // Nombre d'occurrences dans le SVG
+}
+
+interface ColorMapping {
+  originalColor: string; // La couleur originale détectée
+  colorClass: ColorClass | null; // La classe de couleur (primary, secondary, etc.)
+  paletteColorId: string | null; // L'ID de la couleur de la palette qui remplacera cette couleur
+}
+
 interface SvgColorMapperProps {
   svgInput?: string | File | null;
   onExport?: (svgString: string) => void;
   className?: string;
 }
 
-interface ColorTool {
-  id: ColorClass;
-  label: string;
-  previewColor: string;
+const COLOR_CLASSES: Array<{ id: ColorClass; label: string }> = [
+  { id: "primary", label: "Couleur Primaire" },
+  { id: "secondary", label: "Couleur Secondaire" },
+  { id: "tertiary", label: "Couleur Tertiaire" },
+  { id: "quaternary", label: "Couleur Quaternaire" },
+  { id: "quinary", label: "Couleur Quinaire" },
+  { id: "senary", label: "Couleur Senaire" },
+  { id: "septenary", label: "Couleur Septenaire" },
+  { id: "octonary", label: "Couleur Octonaire" },
+];
+
+// Fonction pour normaliser une couleur en hex
+function normalizeColorToHex(color: string): string {
+  if (!color || color === 'none' || color === 'transparent' || color === 'currentColor') {
+    return '';
+  }
+
+  // Si c'est déjà en hex
+  if (color.startsWith('#')) {
+    if (color.length === 4) {
+      // Format court #RGB -> #RRGGBB
+      return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`.toUpperCase();
+    }
+    return color.toUpperCase();
+  }
+
+  // Si c'est rgb/rgba
+  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+  if (rgbMatch) {
+    const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
+    const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
+    const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`.toUpperCase();
+  }
+
+  // Noms de couleurs CSS
+  const colorNames: Record<string, string> = {
+    'black': '#000000',
+    'white': '#FFFFFF',
+    'red': '#FF0000',
+    'green': '#00FF00',
+    'blue': '#0000FF',
+    'yellow': '#FFFF00',
+    'cyan': '#00FFFF',
+    'magenta': '#FF00FF',
+    'orange': '#FFA500',
+    'purple': '#800080',
+  };
+  if (colorNames[color.toLowerCase()]) {
+    return colorNames[color.toLowerCase()];
+  }
+
+  return '';
 }
 
-const COLOR_TOOLS: ColorTool[] = [
-  { id: "primary", label: "Couleur Primaire", previewColor: "#FF0000" },
-  { id: "secondary", label: "Couleur Secondaire", previewColor: "#0000FF" },
-  { id: "tertiary", label: "Couleur Tertiaire", previewColor: "#00FF00" },
-  { id: "quaternary", label: "Couleur Quaternaire", previewColor: "#FFFF00" },
-  { id: "quinary", label: "Couleur Quinaire", previewColor: "#FF00FF" },
-  { id: "senary", label: "Couleur Senaire", previewColor: "#00FFFF" },
-  { id: "septenary", label: "Couleur Septenaire", previewColor: "#FFA500" },
-  { id: "octonary", label: "Couleur Octonaire", previewColor: "#800080" },
-];
+// Fonction pour détecter toutes les couleurs dans un SVG
+function detectColorsInSvg(svgContent: string): DetectedColor[] {
+  const parser = new DOMParser();
+  const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+  const colorMap = new Map<string, { original: string; count: number }>();
+
+  // Fonction récursive pour parcourir tous les éléments
+  const traverseElements = (element: Element) => {
+    // Récupérer fill et stroke
+    const fill = element.getAttribute('fill');
+    const stroke = element.getAttribute('stroke');
+
+    [fill, stroke].forEach(color => {
+      if (color) {
+        const normalized = normalizeColorToHex(color);
+        if (normalized) {
+          const existing = colorMap.get(normalized);
+          if (existing) {
+            existing.count++;
+          } else {
+            colorMap.set(normalized, { original: color, count: 1 });
+          }
+        }
+      }
+    });
+
+    // Parcourir les enfants
+    Array.from(element.children).forEach(child => traverseElements(child));
+  };
+
+  const svgElement = svgDoc.querySelector('svg');
+  if (svgElement) {
+    traverseElements(svgElement);
+  }
+
+  // Convertir en tableau et trier par nombre d'occurrences
+  return Array.from(colorMap.entries())
+    .map(([hex, data]) => ({
+      originalColor: data.original,
+      normalizedHex: hex,
+      count: data.count
+    }))
+    .sort((a, b) => b.count - a.count);
+}
 
 export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorMapperProps) {
   const [designs, setDesigns] = useState<Design2D[]>([]);
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
-  const [selectedTool, setSelectedTool] = useState<ColorClass | undefined>(undefined);
-  const [svgContainer, setSvgContainer] = useState<HTMLDivElement | null>(null);
+  const [detectedColors, setDetectedColors] = useState<DetectedColor[]>([]);
+  const [colorMappings, setColorMappings] = useState<Map<string, ColorMapping>>(new Map());
+  const [palettes, setPalettes] = useState<ColorPalette[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [targetGroup, setTargetGroup] = useState(false); // Option pour cibler tout le groupe
+  const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Charger les designs 2D
@@ -68,10 +170,27 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     fetchDesigns();
   }, []);
 
+  // Charger les palettes de couleurs
+  useEffect(() => {
+    async function fetchPalettes() {
+      try {
+        const response = await fetch("/api/color-palettes");
+        if (!response.ok) throw new Error("Failed to fetch palettes");
+        const data = await response.json();
+        setPalettes(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching palettes:", error);
+      }
+    }
+    fetchPalettes();
+  }, []);
+
   // Charger le SVG depuis le design sélectionné
   useEffect(() => {
     if (!selectedDesignId) {
       setSvgContent("");
+      setDetectedColors([]);
+      setColorMappings(new Map());
       return;
     }
 
@@ -88,6 +207,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         if (!response.ok) throw new Error("Failed to fetch SVG");
         const text = await response.text();
         setSvgContent(text);
+
+        // Détecter les couleurs
+        const colors = detectColorsInSvg(text);
+        setDetectedColors(colors);
+        setColorMappings(new Map());
       } catch (error) {
         console.error("Erreur lors du chargement du SVG:", error);
         alert("Erreur lors du chargement du SVG");
@@ -99,197 +223,178 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     loadSvg();
   }, [selectedDesignId, designs]);
 
-  // Charger le SVG depuis l'input (fallback pour compatibilité)
-  useEffect(() => {
-    if (!svgInput || selectedDesignId) return;
-
-    const loadSvg = async () => {
-      setIsProcessing(true);
-      try {
-        if (typeof svgInput === "string") {
-          setSvgContent(svgInput);
-        } else if (svgInput instanceof File) {
-          const text = await svgInput.text();
-          setSvgContent(text);
-        }
-      } catch (error) {
-        console.error("Erreur lors du chargement du SVG:", error);
-        alert("Erreur lors du chargement du SVG");
-      } finally {
-        setIsProcessing(false);
-      }
-    };
-
-    loadSvg();
-  }, [svgInput, selectedDesignId]);
-
-  // Appliquer les styles de feedback visuel après le rendu
-  useEffect(() => {
-    if (!svgContainer || !svgContent) return;
-
-    const svgElement = svgContainer.querySelector("svg");
-    if (!svgElement) return;
-
-    // Injecter les styles CSS pour le feedback visuel
-    const styleId = "svg-color-mapper-styles";
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement("style");
-      style.id = styleId;
-      style.textContent = `
-        .svg-color-mapper-container .primary { fill: #FF0000 !important; }
-        .svg-color-mapper-container .secondary { fill: #0000FF !important; }
-        .svg-color-mapper-container .tertiary { fill: #00FF00 !important; }
-        .svg-color-mapper-container .quaternary { fill: #FFFF00 !important; }
-        .svg-color-mapper-container .quinary { fill: #FF00FF !important; }
-        .svg-color-mapper-container .senary { fill: #00FFFF !important; }
-        .svg-color-mapper-container .septenary { fill: #FFA500 !important; }
-        .svg-color-mapper-container .octonary { fill: #800080 !important; }
-        .svg-color-mapper-container svg * {
-          cursor: crosshair;
-          transition: fill 0.2s ease;
-        }
-        .svg-color-mapper-container svg *:hover {
-          opacity: 0.8;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Rendre tous les éléments cliquables (path, rect, circle, ellipse, polygon, polyline, line, g, etc.)
-    const makeClickable = (element: Element) => {
-      const skipTags = ["svg", "defs", "style", "metadata", "title", "desc"];
-      if (skipTags.includes(element.tagName.toLowerCase())) {
-        return;
-      }
-
-      // Marquer les éléments graphiques comme cliquables
-      const graphicTags = ["path", "rect", "circle", "ellipse", "polygon", "polyline", "line", "g", "text", "tspan", "use"];
-      if (graphicTags.includes(element.tagName.toLowerCase())) {
-        element.setAttribute("data-clickable", "true");
-      }
-      
-      // Récursivement traiter les enfants
-      Array.from(element.children).forEach(child => makeClickable(child));
-    };
-
-    makeClickable(svgElement);
-
-    // Ajouter les event listeners
-    const handleClick = (e: MouseEvent) => {
-      // Si aucun outil n'est sélectionné, on demande de sélectionner
-      if (selectedTool === undefined) {
-        alert("Veuillez d'abord sélectionner un outil de couleur ou l'outil 'Effacer'");
-        return;
-      }
-      // Si selectedTool est null, c'est l'outil "Effacer", on continue
-
-      const target = e.target as HTMLElement;
-      if (!target || target.tagName === "svg") return;
-
-      // Vérifier si l'élément ou un parent a l'attribut data-clickable
-      let clickableElement: HTMLElement | null = target;
-      while (clickableElement && clickableElement !== svgElement) {
-        if (clickableElement.hasAttribute("data-clickable")) {
-          break;
-        }
-        clickableElement = clickableElement.parentElement;
-      }
-
-      if (!clickableElement || clickableElement === svgElement) return;
-
-      e.stopPropagation();
-      e.preventDefault();
-
-      // Si l'option "targetGroup" est activée et que l'élément est dans un groupe <g>, mapper tout le groupe
-      if (targetGroup && clickableElement.parentElement?.tagName === "g") {
-        const group = clickableElement.parentElement;
-        // Appliquer la couleur à tous les enfants du groupe
-        Array.from(group.children).forEach(child => {
-          if (child.hasAttribute("data-clickable")) {
-            applyColorClass(child as HTMLElement, selectedTool);
-          }
-        });
+  // Fonction pour mettre à jour un mapping de couleur
+  const updateColorMapping = useCallback((originalColor: string, colorClass: ColorClass | null, paletteColorId: string | null) => {
+    setColorMappings(prev => {
+      const newMap = new Map(prev);
+      if (colorClass === null && paletteColorId === null) {
+        newMap.delete(originalColor);
       } else {
-        // Sinon, mapper uniquement l'élément cliqué
-        applyColorClass(clickableElement, selectedTool);
+        newMap.set(originalColor, { originalColor, colorClass, paletteColorId });
       }
-    };
-
-    svgElement.addEventListener("click", handleClick);
-    
-    return () => {
-      svgElement.removeEventListener("click", handleClick);
-    };
-  }, [svgContainer, svgContent, selectedTool, targetGroup]);
-
-  // Fonction pour appliquer une classe de couleur à un élément
-  const applyColorClass = useCallback((element: HTMLElement, colorClass: ColorClass) => {
-    if (!colorClass) {
-      // Mode "Effacer" - retirer toutes les classes de couleur
-      const colorClasses = COLOR_TOOLS.map(t => t.id).filter(Boolean) as string[];
-      colorClasses.forEach(cls => {
-        element.classList.remove(cls);
-      });
-      return;
-    }
-
-    // Nettoyer les anciennes classes de couleur
-    const colorClasses = COLOR_TOOLS.map(t => t.id).filter(Boolean) as string[];
-    colorClasses.forEach(cls => {
-      element.classList.remove(cls);
+      return newMap;
     });
-
-    // Appliquer la nouvelle classe
-    element.classList.add(colorClass);
   }, []);
 
-  // Fonction pour exporter le SVG modifié
-  const handleExport = useCallback(() => {
-    if (!svgContainer) {
-      alert("Aucun SVG à exporter");
-      return;
-    }
+  // Fonction pour générer le SVG modifié
+  const generateModifiedSvg = useCallback((): string => {
+    if (!svgContent) return '';
 
-    const svgElement = svgContainer.querySelector("svg");
-    if (!svgElement) {
-      alert("Aucun élément SVG trouvé");
-      return;
-    }
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+    const svgElement = svgDoc.querySelector('svg');
+    if (!svgElement) return svgContent;
 
-    // Cloner le SVG pour éviter de modifier l'original
-    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+    // Fonction récursive pour remplacer les couleurs
+    const replaceColorsInElement = (element: Element) => {
+      // Remplacer fill
+      const fill = element.getAttribute('fill');
+      if (fill) {
+        const normalized = normalizeColorToHex(fill);
+        if (normalized) {
+          const mapping = colorMappings.get(normalized);
+          if (mapping?.colorClass) {
+            element.setAttribute('fill', `var(--${mapping.colorClass})`);
+            // Ajouter la classe si elle n'existe pas déjà
+            const existingClass = element.getAttribute('class') || '';
+            if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
+              element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
+            }
+          }
+        }
+      }
 
-    // Nettoyer les attributs de debug
-    const cleanAttributes = (element: Element) => {
-      element.removeAttribute("data-clickable");
-      Array.from(element.children).forEach(child => cleanAttributes(child));
+      // Remplacer stroke
+      const stroke = element.getAttribute('stroke');
+      if (stroke) {
+        const normalized = normalizeColorToHex(stroke);
+        if (normalized) {
+          const mapping = colorMappings.get(normalized);
+          if (mapping?.colorClass) {
+            element.setAttribute('stroke', `var(--${mapping.colorClass})`);
+            // Ajouter la classe si elle n'existe pas déjà
+            const existingClass = element.getAttribute('class') || '';
+            if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
+              element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
+            }
+          }
+        }
+      }
+
+      // Parcourir les enfants
+      Array.from(element.children).forEach(child => replaceColorsInElement(child));
     };
-    cleanAttributes(clonedSvg);
+
+    // Appliquer les remplacements
+    replaceColorsInElement(svgElement);
+
+    // Ajouter les styles CSS pour les classes si nécessaire
+    let styleElement = svgDoc.querySelector('style');
+    if (!styleElement) {
+      styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
+      const defs = svgDoc.querySelector('defs') || svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      defs.appendChild(styleElement);
+      if (!svgDoc.querySelector('defs')) {
+        svgElement.insertBefore(defs, svgElement.firstChild);
+      }
+    }
+
+    // Ajouter les règles CSS pour chaque classe mappée
+    const styleContent = Array.from(colorMappings.values())
+      .filter(m => m.colorClass)
+      .map(m => {
+        const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
+        if (paletteColor) {
+          return `.${m.colorClass} { fill: ${paletteColor.hex} !important; }`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join('\n    ');
+
+    if (styleContent) {
+      styleElement.textContent = (styleElement.textContent || '') + '\n    ' + styleContent;
+    }
 
     // Convertir en string
     const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(clonedSvg);
+    return serializer.serializeToString(svgDoc);
+  }, [svgContent, colorMappings, allPaletteColors]);
 
-    if (onExport) {
-      onExport(svgString);
-    } else {
-      // Par défaut, télécharger le fichier
-      const blob = new Blob([svgString], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "design-mapped.svg";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  // Fonction pour sauvegarder le SVG modifié
+  const handleSave = useCallback(async () => {
+    if (!selectedDesignId) {
+      alert("Aucun design sélectionné");
+      return;
     }
-  }, [svgContainer, onExport]);
 
+    const modifiedSvg = generateModifiedSvg();
+    if (!modifiedSvg) {
+      alert("Aucun SVG à sauvegarder");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append('designId', selectedDesignId);
+      formData.append('svgContent', modifiedSvg);
+
+      const response = await fetch('/api/designs-2d/upload-svg', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save SVG');
+      }
+
+      const result = await response.json();
+      alert('✅ SVG sauvegardé avec succès !');
+      
+      // Recharger les designs pour avoir la nouvelle URL
+      const designsResponse = await fetch("/api/designs-2d");
+      if (designsResponse.ok) {
+        const data = await designsResponse.json();
+        const designsArray = Array.isArray(data) ? data : [];
+        setDesigns(designsArray.map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          svgUrl: d.svg_url || d.svgUrl,
+          thumbUrl: d.thumb_url || d.thumbUrl || d.preview_url,
+        })));
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      alert(`Erreur lors de la sauvegarde: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [selectedDesignId, generateModifiedSvg]);
+
+  // Obtenir toutes les couleurs disponibles depuis les palettes
+  const getAllPaletteColors = useCallback((): Array<{ id: string; name: string; hex: string; paletteName: string }> => {
+    const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
+    palettes.forEach((palette) => {
+      palette.colors.forEach((color, index) => {
+        const colorId = `${palette.id}-${index}-${color.hex}`;
+        allColors.push({
+          id: colorId,
+          name: color.name || '',
+          hex: color.hex || '#000000',
+          paletteName: palette.name
+        });
+      });
+    });
+    return allColors;
+  }, [palettes]);
 
   const filteredDesigns = designs.filter((design) =>
     design.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const allPaletteColors = getAllPaletteColors();
 
   return (
     <div style={{ 
@@ -386,135 +491,195 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         </div>
       )}
 
-      {/* Palette d'outils */}
-      {svgContent && (
+      {/* Zone de mapping des couleurs */}
+      {svgContent && detectedColors.length > 0 && (
         <div style={{
           flexShrink: 0,
           borderBottom: '1px solid #1a1a1a',
           backgroundColor: '#000000',
-          padding: '16px'
+          padding: '24px',
+          maxHeight: '50vh',
+          overflowY: 'auto'
         }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-            <span style={{
-              fontSize: '14px',
-              color: '#a0a0a0',
-              marginRight: '8px',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              Outils :
-            </span>
-            {COLOR_TOOLS.map((tool) => (
-              <button
-                key={tool.id}
-                onClick={() => setSelectedTool(selectedTool === tool.id ? undefined : tool.id)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: selectedTool === tool.id ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
-                  border: selectedTool === tool.id ? '2px solid #8eff36' : '2px solid #2a2a2a',
-                  borderRadius: '8px',
-                  color: selectedTool === tool.id ? '#8eff36' : '#a0a0a0',
-                  fontSize: '12px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedTool !== tool.id) {
-                    e.currentTarget.style.color = '#ffffff';
-                    e.currentTarget.style.borderColor = '#3a3a3a';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedTool !== tool.id) {
-                    e.currentTarget.style.color = '#a0a0a0';
-                    e.currentTarget.style.borderColor = '#2a2a2a';
-                  }
-                }}
-                title={tool.label}
-              >
+          <div style={{
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#8eff36',
+            marginBottom: '16px',
+            fontFamily: 'var(--stepn-font-body)'
+          }}>
+            Mapping des couleurs ({detectedColors.length} couleur{detectedColors.length > 1 ? 's' : ''} détectée{detectedColors.length > 1 ? 's' : ''})
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {detectedColors.map((detectedColor) => {
+              const mapping = colorMappings.get(detectedColor.normalizedHex);
+              const selectedPaletteColor = mapping?.paletteColorId 
+                ? allPaletteColors.find(c => c.id === mapping.paletteColorId)
+                : null;
+
+              return (
                 <div
+                  key={detectedColor.normalizedHex}
                   style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '4px',
+                    backgroundColor: '#1a1a1a',
                     border: '1px solid #2a2a2a',
-                    backgroundColor: tool.previewColor
+                    borderRadius: '8px',
+                    padding: '16px'
                   }}
-                />
-                <span>{tool.label}</span>
-              </button>
-            ))}
-            <button
-              onClick={() => setSelectedTool(selectedTool === null ? undefined : null)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: selectedTool === null ? 'rgba(255, 68, 68, 0.1)' : 'transparent',
-                border: selectedTool === null ? '2px solid #ff4444' : '2px solid #2a2a2a',
-                borderRadius: '8px',
-                color: selectedTool === null ? '#ff4444' : '#a0a0a0',
-                fontSize: '12px',
-                fontFamily: 'var(--stepn-font-body)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-              onMouseEnter={(e) => {
-                if (selectedTool !== null) {
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.borderColor = '#3a3a3a';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedTool !== null) {
-                  e.currentTarget.style.color = '#a0a0a0';
-                  e.currentTarget.style.borderColor = '#2a2a2a';
-                }
-              }}
-              title="Effacer les classes de couleur"
-            >
-              <span>🗑️</span>
-              <span>Effacer</span>
-            </button>
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    marginBottom: '12px'
+                  }}>
+                    {/* Aperçu de la couleur originale */}
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: detectedColor.normalizedHex,
+                      border: '1px solid #2a2a2a',
+                      borderRadius: '4px',
+                      flexShrink: 0
+                    }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {detectedColor.originalColor}
+                      </div>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#666666',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        {detectedColor.count} occurrence{detectedColor.count > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '12px'
+                  }}>
+                    {/* Sélection de la classe de couleur */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Classe de couleur
+                      </label>
+                      <select
+                        value={mapping?.colorClass || ''}
+                        onChange={(e) => {
+                          const colorClass = e.target.value as ColorClass | '';
+                          updateColorMapping(
+                            detectedColor.normalizedHex,
+                            colorClass || null,
+                            mapping?.paletteColorId || null
+                          );
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          backgroundColor: '#0a0a0a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: '#ffffff',
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="">Aucune classe</option>
+                        {COLOR_CLASSES.map(cls => (
+                          <option key={cls.id} value={cls.id}>{cls.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Sélection de la couleur de la palette */}
+                    <div>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        color: '#a0a0a0',
+                        marginBottom: '8px',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        Couleur de remplacement
+                      </label>
+                      <select
+                        value={mapping?.paletteColorId || ''}
+                        onChange={(e) => {
+                          updateColorMapping(
+                            detectedColor.normalizedHex,
+                            mapping?.colorClass || null,
+                            e.target.value || null
+                          );
+                        }}
+                        disabled={!mapping?.colorClass}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          backgroundColor: mapping?.colorClass ? '#0a0a0a' : '#1a1a1a',
+                          border: '1px solid #2a2a2a',
+                          borderRadius: '4px',
+                          color: mapping?.colorClass ? '#ffffff' : '#666666',
+                          fontSize: '12px',
+                          fontFamily: 'var(--stepn-font-body)',
+                          cursor: mapping?.colorClass ? 'pointer' : 'not-allowed'
+                        }}
+                      >
+                        <option value="">Sélectionner une couleur</option>
+                        {allPaletteColors.map(color => (
+                          <option key={color.id} value={color.id}>
+                            {color.paletteName} - {color.name} ({color.hex})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Aperçu du mapping */}
+                  {mapping?.colorClass && selectedPaletteColor && (
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px'
+                    }}>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: selectedPaletteColor.hex,
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px'
+                      }} />
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#8eff36',
+                        fontFamily: 'var(--stepn-font-body)'
+                      }}>
+                        → Sera remplacée par <strong>{selectedPaletteColor.name}</strong> ({selectedPaletteColor.hex}) 
+                        avec la classe <strong>.{mapping.colorClass}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              type="checkbox"
-              checked={targetGroup}
-              onChange={(e) => setTargetGroup(e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                cursor: 'pointer'
-              }}
-            />
-            <label style={{
-              fontSize: '12px',
-              color: '#a0a0a0',
-              fontFamily: 'var(--stepn-font-body)',
-              cursor: 'pointer'
-            }}>
-              Appliquer au groupe entier (si l'élément est dans un &lt;g&gt;)
-            </label>
-          </div>
-          {selectedTool !== undefined && (
-            <div style={{
-              marginTop: '12px',
-              fontSize: '12px',
-              color: '#a0a0a0',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              <span style={{ fontWeight: '500', color: '#8eff36' }}>Outil sélectionné :</span>{" "}
-              {selectedTool === null 
-                ? "Effacer - Cliquez sur les éléments pour retirer leurs classes de couleur"
-                : `${COLOR_TOOLS.find(t => t.id === selectedTool)?.label} - Cliquez sur les éléments du SVG pour leur attribuer cette couleur.`
-              }
-            </div>
-          )}
         </div>
       )}
 
@@ -547,7 +712,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                 onClick={() => {
                   setSvgContent("");
                   setSelectedDesignId(null);
-                  setSelectedTool(undefined);
+                  setDetectedColors([]);
+                  setColorMappings(new Map());
                 }}
                 style={{
                   padding: '12px 24px',
@@ -567,74 +733,55 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   e.currentTarget.style.backgroundColor = '#2a2a2a';
                 }}
               >
-                Réinitialiser
+                Changer de design
               </button>
               <button
-                onClick={handleExport}
+                onClick={handleSave}
+                disabled={isSaving || colorMappings.size === 0}
                 style={{
                   padding: '12px 24px',
-                  backgroundColor: '#8eff36',
+                  backgroundColor: (isSaving || colorMappings.size === 0) ? '#4a4a4a' : '#8eff36',
                   border: 'none',
                   borderRadius: '8px',
-                  color: '#000000',
+                  color: (isSaving || colorMappings.size === 0) ? '#a0a0a0' : '#000000',
                   fontSize: '14px',
                   fontWeight: '500',
                   fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer',
+                  cursor: (isSaving || colorMappings.size === 0) ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '0.9';
+                  if (!isSaving && colorMappings.size > 0) {
+                    e.currentTarget.style.opacity = '0.9';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '1';
+                  if (!isSaving && colorMappings.size > 0) {
+                    e.currentTarget.style.opacity = '1';
+                  }
                 }}
               >
-                💾 Exporter le SVG
-              </button>
-              <button
-                onClick={() => {
-                  setSvgContent("");
-                  setSelectedDesignId(null);
-                }}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#2a2a2a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#3a3a3a';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2a2a2a';
-                }}
-              >
-                📁 Changer de design
+                {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder le SVG'}
               </button>
             </div>
 
-            {/* SVG Container */}
-            <div
-              ref={setSvgContainer}
-              style={{
-                flex: 1,
-                overflow: 'auto',
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '8px',
-                padding: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
+            {/* Aperçu du SVG */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              backgroundColor: '#0a0a0a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              padding: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div
+                dangerouslySetInnerHTML={{ __html: generateModifiedSvg() }}
+                style={{ maxWidth: '100%', maxHeight: '100%' }}
+              />
+            </div>
           </div>
         )}
         {isProcessing && (
