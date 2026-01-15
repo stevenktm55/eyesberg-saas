@@ -720,9 +720,9 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                 cursor: 'pointer'
               }}
             >
-              <option value="">Sélectionner une bibliothèque</option>
+              <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Sélectionner une bibliothèque</option>
               {palettes.map(palette => (
-                <option key={palette.id} value={palette.id}>
+                <option key={palette.id} value={palette.id} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>
                   {palette.name}
                 </option>
               ))}
@@ -818,9 +818,9 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           cursor: 'pointer'
                         }}
                       >
-                        <option value="">Aucune classe</option>
+                        <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Aucune classe</option>
                         {COLOR_CLASSES.map(cls => (
-                          <option key={cls.id} value={cls.id}>{cls.label}</option>
+                          <option key={cls.id} value={cls.id} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>{cls.label}</option>
                         ))}
                       </select>
                     </div>
@@ -852,20 +852,21 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           backgroundColor: (mapping?.colorClass && selectedPaletteId) ? '#0a0a0a' : '#1a1a1a',
                           border: '1px solid #2a2a2a',
                           borderRadius: '4px',
-                          color: (mapping?.colorClass && selectedPaletteId) ? '#ffffff' : '#666666',
+                          color: '#ffffff',
                           fontSize: '12px',
                           fontFamily: 'var(--stepn-font-body)',
-                          cursor: (mapping?.colorClass && selectedPaletteId) ? 'pointer' : 'not-allowed'
+                          cursor: (mapping?.colorClass && selectedPaletteId) ? 'pointer' : 'not-allowed',
+                          opacity: (mapping?.colorClass && selectedPaletteId) ? 1 : 0.6
                         }}
                       >
-                        <option value="">Sélectionner une couleur</option>
+                        <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Sélectionner une couleur</option>
                         {selectedPaletteId ? (
                           (() => {
                             const selectedPalette = palettes.find(p => p.id === selectedPaletteId);
                             return selectedPalette?.colors.map((color, index) => {
                               const colorId = `${selectedPalette.id}-${index}-${color.hex}`;
                               return (
-                                <option key={colorId} value={colorId}>
+                                <option key={colorId} value={colorId} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>
                                   {color.name || 'Sans nom'} ({color.hex})
                                 </option>
                               );
@@ -948,65 +949,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Contrôles */}
-            <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
-              <button
-                onClick={() => {
-                  setSvgContent("");
-                  setSelectedDesignId(null);
-                  setDetectedColors([]);
-                  setColorMappings({});
-                }}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#2a2a2a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#3a3a3a';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2a2a2a';
-                }}
-              >
-                Changer de design
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving || Object.keys(colorMappings).length === 0}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: (isSaving || Object.keys(colorMappings).length === 0) ? '#4a4a4a' : '#8eff36',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: (isSaving || Object.keys(colorMappings).length === 0) ? '#a0a0a0' : '#000000',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  fontFamily: 'var(--stepn-font-body)',
-                  cursor: (isSaving || Object.keys(colorMappings).length === 0) ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSaving && Object.keys(colorMappings).length > 0) {
-                    e.currentTarget.style.opacity = '0.9';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSaving && Object.keys(colorMappings).length > 0) {
-                    e.currentTarget.style.opacity = '1';
-                  }
-                }}
-              >
-                {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder le SVG'}
-              </button>
-            </div>
-
             {/* Aperçu du SVG */}
             <div style={{
               width: '100%',
@@ -1199,5 +1141,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         )}
       </div>
     </div>
+    </>
   );
 }
