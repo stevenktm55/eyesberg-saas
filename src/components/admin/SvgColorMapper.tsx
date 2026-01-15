@@ -533,6 +533,33 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
     // Fonction récursive pour remplacer les couleurs
     const replaceColorsInElement = (element: Element) => {
+      // D'abord, gérer les éléments qui ont déjà des classes de couleur (venant d'un SVG précédemment sauvegardé)
+      // Il faut retirer les anciennes classes et restaurer les couleurs originales avant de réappliquer
+      const classAttr = element.getAttribute('class');
+      if (classAttr) {
+        const classes = classAttr.split(/\s+/);
+        const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+        const hasOldColorClass = classes.some(c => colorClassNames.includes(c));
+        
+        if (hasOldColorClass) {
+          // Cet élément a déjà une classe de couleur, il faut vérifier si elle correspond à un mapping actuel
+          const oldColorClass = classes.find(c => colorClassNames.includes(c));
+          if (oldColorClass) {
+            // Chercher si cette classe est mappée dans les colorMappings actuels
+            const currentMapping = Object.values(colorMappings).find(m => m.colorClass === oldColorClass);
+            if (!currentMapping) {
+              // Cette classe n'est plus mappée, la retirer
+              const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
+              if (remainingClasses.length > 0) {
+                element.setAttribute('class', remainingClasses.join(' '));
+              } else {
+                element.removeAttribute('class');
+              }
+            }
+          }
+        }
+      }
+      
       // Remplacer fill
       const fill = element.getAttribute('fill');
       if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
@@ -553,9 +580,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             // Retirer l'attribut fill et ajouter la classe
             element.removeAttribute('fill');
             const existingClass = element.getAttribute('class') || '';
-            if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
-              element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
+            const classList = existingClass.split(/\s+/).filter(Boolean);
+            // Retirer toutes les anciennes classes de couleur
+            const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+            const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
+            // Ajouter la nouvelle classe
+            if (!cleanedClasses.includes(mapping.colorClass)) {
+              cleanedClasses.push(mapping.colorClass);
             }
+            element.setAttribute('class', cleanedClasses.join(' ').trim());
           }
         }
       }
@@ -580,9 +613,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             // Retirer l'attribut stroke et ajouter la classe
             element.removeAttribute('stroke');
             const existingClass = element.getAttribute('class') || '';
-            if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
-              element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
+            const classList = existingClass.split(/\s+/).filter(Boolean);
+            // Retirer toutes les anciennes classes de couleur
+            const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+            const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
+            // Ajouter la nouvelle classe
+            if (!cleanedClasses.includes(mapping.colorClass)) {
+              cleanedClasses.push(mapping.colorClass);
             }
+            element.setAttribute('class', cleanedClasses.join(' ').trim());
           }
         }
       }
@@ -714,7 +753,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   // Utiliser un état pour le SVG modifié qui se met à jour à chaque changement
   const [modifiedSvgPreview, setModifiedSvgPreview] = useState<string>('');
 
-  // Mettre à jour le SVG modifié quand les mappings changent - utiliser un effet séparé
+  // Mettre à jour le SVG modifié quand les mappings changent
   useEffect(() => {
     if (originalSvgContent || svgContent) {
       console.log("Mise à jour SVG preview - colorMappings:", Object.keys(colorMappings).length, "previewKey:", previewKey);
@@ -724,16 +763,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     } else {
       setModifiedSvgPreview('');
     }
-  }, [originalSvgContent, svgContent, previewKey]); // Enlever generateModifiedSvg des dépendances pour éviter les cycles
-
-  // Un effet séparé pour les colorMappings
-  useEffect(() => {
-    if ((originalSvgContent || svgContent) && Object.keys(colorMappings).length > 0) {
-      console.log("Mise à jour SVG preview via colorMappings");
-      const modified = generateModifiedSvg();
-      setModifiedSvgPreview(modified);
-    }
-  }, [colorMappings]);
+  }, [originalSvgContent, svgContent, previewKey, colorMappings, detectedColors, palettes]); // Inclure toutes les dépendances nécessaires
 
   return (
     <div style={{ 
