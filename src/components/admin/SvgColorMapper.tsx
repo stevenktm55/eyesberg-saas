@@ -584,6 +584,19 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       backgroundColor: '#000000',
       color: '#ffffff'
     }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        select {
+          color: #ffffff !important;
+        }
+        select option {
+          background-color: #0a0a0a !important;
+          color: #ffffff !important;
+        }
+        select:disabled {
+          color: #666666 !important;
+          opacity: 0.6;
+        }
+      `}} />
       {/* Sélection du design */}
       {!svgContent && (
         <div style={{ padding: '24px', borderBottom: '1px solid #1a1a1a' }}>
