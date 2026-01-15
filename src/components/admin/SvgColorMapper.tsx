@@ -100,36 +100,52 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
   const colorMap = new Map<string, { original: string; count: number }>();
 
-  // 1. Détecter les couleurs dans les blocs <style>
-  const styleElements = svgDoc.querySelectorAll('style');
-  styleElements.forEach(styleEl => {
-    const cssText = styleEl.textContent || '';
-    // Chercher les règles CSS avec fill: ou stroke:
-    // Pattern: .class { fill: #color; } ou .class { stroke: #color; }
-    const colorPatterns = [
-      /fill:\s*([^;}\s]+)/gi,
-      /stroke:\s*([^;}\s]+)/gi,
-      /stop-color:\s*([^;}\s]+)/gi,
-    ];
-    
-    colorPatterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(cssText)) !== null) {
-        const color = match[1].trim();
-        if (color && !color.startsWith('url(') && !color.startsWith('var(') && color !== 'none' && color !== 'transparent' && color !== 'currentColor') {
-          const normalized = normalizeColorToHex(color);
-          if (normalized) {
-            const existing = colorMap.get(normalized);
-            if (existing) {
-              existing.count++;
-            } else {
-              colorMap.set(normalized, { original: color, count: 1 });
+  // Détecter si le SVG contient déjà des classes de couleur mappées (primary, secondary, etc.)
+  // Si c'est le cas, cela signifie que le SVG a déjà été traité par notre système
+  // et on ne doit PAS détecter les couleurs dans les <style> car elles sont générées par notre système
+  const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+  const svgEl = svgDoc.querySelector('svg');
+  const hasColorClasses = svgEl ? Array.from(svgEl.querySelectorAll('*')).some(el => {
+    const classAttr = el.getAttribute('class');
+    if (!classAttr) return false;
+    return classAttr.split(/\s+/).some(c => colorClassNames.includes(c));
+  }) : false;
+
+  // Ne détecter les couleurs dans les <style> que si le SVG n'a PAS encore de classes de couleur
+  // Si le SVG a des classes, cela signifie qu'il a été traité, donc on ignore les <style>
+  if (!hasColorClasses) {
+    // Détecter les couleurs dans les blocs <style>
+    const styleElements = svgDoc.querySelectorAll('style');
+    styleElements.forEach(styleEl => {
+      const cssText = styleEl.textContent || '';
+      // Chercher les règles CSS avec fill: ou stroke:
+      const colorPatterns = [
+        /fill:\s*([^;}\s]+)/gi,
+        /stroke:\s*([^;}\s]+)/gi,
+        /stop-color:\s*([^;}\s]+)/gi,
+      ];
+      
+      colorPatterns.forEach(pattern => {
+        let match;
+        while ((match = pattern.exec(cssText)) !== null) {
+          const color = match[1].trim();
+          if (color && !color.startsWith('url(') && !color.startsWith('var(') && color !== 'none' && color !== 'transparent' && color !== 'currentColor') {
+            const normalized = normalizeColorToHex(color);
+            if (normalized) {
+              const existing = colorMap.get(normalized);
+              if (existing) {
+                existing.count++;
+              } else {
+                colorMap.set(normalized, { original: color, count: 1 });
+              }
             }
           }
         }
-      }
+      });
     });
-  });
+  }
+  // Si hasColorClasses est true, on ignore complètement les <style> pour éviter de détecter
+  // les couleurs générées par notre système qui mappent les classes aux couleurs de palette
 
   // 2. Détecter les couleurs dans les attributs fill et stroke directement
   const traverseElements = (element: Element) => {
@@ -177,18 +193,22 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   }
 
   // 3. Détecter les couleurs directement dans le texte SVG (fallback pour les cas complexes)
-  // Chercher les patterns hexadécimaux dans le texte brut
-  const hexPattern = /#([0-9A-Fa-f]{3,6})\b/g;
-  let match;
-  while ((match = hexPattern.exec(svgContent)) !== null) {
-    const hex = '#' + match[1];
-    const normalized = normalizeColorToHex(hex);
-    if (normalized) {
-      const existing = colorMap.get(normalized);
-      if (existing) {
-        existing.count++;
-      } else {
-        colorMap.set(normalized, { original: hex, count: 1 });
+  // MAIS uniquement si le SVG n'a pas encore de classes de couleur
+  // (sinon on pourrait détecter les couleurs dans le <style> généré)
+  if (!hasColorClasses) {
+    // Chercher les patterns hexadécimaux dans le texte brut
+    const hexPattern = /#([0-9A-Fa-f]{3,6})\b/g;
+    let match;
+    while ((match = hexPattern.exec(svgContent)) !== null) {
+      const hex = '#' + match[1];
+      const normalized = normalizeColorToHex(hex);
+      if (normalized) {
+        const existing = colorMap.get(normalized);
+        if (existing) {
+          existing.count++;
+        } else {
+          colorMap.set(normalized, { original: hex, count: 1 });
+        }
       }
     }
   }
