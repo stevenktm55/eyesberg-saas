@@ -210,6 +210,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   const [detectedColors, setDetectedColors] = useState<DetectedColor[]>([]);
   const [colorMappings, setColorMappings] = useState<Record<string, ColorMapping>>({});
   const [palettes, setPalettes] = useState<ColorPalette[]>([]);
+  const [selectedPaletteId, setSelectedPaletteId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -357,7 +358,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   }, [selectedDesignId, designs]);
 
   // Fonction pour mettre à jour un mapping de couleur
-  const updateColorMapping = useCallback((originalColor: string, colorClass: ColorClass | null, paletteId: string | null, paletteColorId: string | null) => {
+  const updateColorMapping = useCallback((originalColor: string, colorClass: ColorClass | null, paletteColorId: string | null) => {
     setColorMappings(prev => {
       const newMappings = { ...prev };
       if (colorClass === null && paletteColorId === null) {
@@ -366,13 +367,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         newMappings[originalColor] = { 
           originalColor, 
           colorClass: colorClass!, 
-          paletteId: paletteId || null,
+          paletteId: selectedPaletteId,
           paletteColorId: paletteColorId || '' 
         };
       }
       return newMappings;
     });
-  }, []);
+  }, [selectedPaletteId]);
 
   // Obtenir toutes les couleurs disponibles depuis les palettes
   const getAllPaletteColors = useCallback((): Array<{ id: string; name: string; hex: string; paletteName: string }> => {
@@ -688,6 +689,50 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           }}>
             Mapping des couleurs ({detectedColors.length} couleur{detectedColors.length > 1 ? 's' : ''} détectée{detectedColors.length > 1 ? 's' : ''})
           </div>
+          
+          {/* Sélecteur de bibliothèque de couleurs */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '12px',
+              color: '#a0a0a0',
+              marginBottom: '8px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Bibliothèque de couleurs
+            </label>
+            <select
+              value={selectedPaletteId || ''}
+              onChange={(e) => {
+                const paletteId = e.target.value || null;
+                setSelectedPaletteId(paletteId);
+                // Réinitialiser les mappings de couleurs si on change de palette
+                if (paletteId !== selectedPaletteId) {
+                  setColorMappings({});
+                }
+              }}
+              style={{
+                width: '100%',
+                maxWidth: '400px',
+                padding: '8px 12px',
+                backgroundColor: '#0a0a0a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                color: '#ffffff',
+                fontSize: '12px',
+                fontFamily: 'var(--stepn-font-body)',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">Sélectionner une bibliothèque</option>
+              {palettes.map(palette => (
+                <option key={palette.id} value={palette.id}>
+                  {palette.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {detectedColors.map((detectedColor) => {
               // Utiliser la couleur normalisée comme clé pour le mapping
@@ -741,7 +786,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gridTemplateColumns: '1fr 1fr',
                     gap: '12px'
                   }}>
                     {/* Sélection de la classe de couleur */}
@@ -762,7 +807,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           updateColorMapping(
                             detectedColor.normalizedHex,
                             colorClass || null,
-                            mapping?.paletteId || null,
                             mapping?.paletteColorId || null
                           );
                         }}
@@ -785,51 +829,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                       </select>
                     </div>
 
-                    {/* Sélection de la palette */}
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '12px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Bibliothèque de couleurs
-                      </label>
-                      <select
-                        value={mapping?.paletteId || ''}
-                        onChange={(e) => {
-                          const paletteId = e.target.value || null;
-                          // Réinitialiser la couleur si on change de palette
-                          updateColorMapping(
-                            detectedColor.normalizedHex,
-                            mapping?.colorClass || null,
-                            paletteId,
-                            null
-                          );
-                        }}
-                        disabled={!mapping?.colorClass}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          backgroundColor: mapping?.colorClass ? '#0a0a0a' : '#1a1a1a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '4px',
-                          color: mapping?.colorClass ? '#ffffff' : '#666666',
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          cursor: mapping?.colorClass ? 'pointer' : 'not-allowed'
-                        }}
-                      >
-                        <option value="">Sélectionner une bibliothèque</option>
-                        {palettes.map(palette => (
-                          <option key={palette.id} value={palette.id}>
-                            {palette.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
                     {/* Sélection de la couleur de la palette */}
                     <div>
                       <label style={{
@@ -847,27 +846,26 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           updateColorMapping(
                             detectedColor.normalizedHex,
                             mapping?.colorClass || null,
-                            mapping?.paletteId || null,
                             e.target.value || null
                           );
                         }}
-                        disabled={!mapping?.colorClass || !mapping?.paletteId}
+                        disabled={!mapping?.colorClass || !selectedPaletteId}
                         style={{
                           width: '100%',
                           padding: '8px 12px',
-                          backgroundColor: (mapping?.colorClass && mapping?.paletteId) ? '#0a0a0a' : '#1a1a1a',
+                          backgroundColor: (mapping?.colorClass && selectedPaletteId) ? '#0a0a0a' : '#1a1a1a',
                           border: '1px solid #2a2a2a',
                           borderRadius: '4px',
-                          color: (mapping?.colorClass && mapping?.paletteId) ? '#ffffff' : '#666666',
+                          color: (mapping?.colorClass && selectedPaletteId) ? '#ffffff' : '#666666',
                           fontSize: '12px',
                           fontFamily: 'var(--stepn-font-body)',
-                          cursor: (mapping?.colorClass && mapping?.paletteId) ? 'pointer' : 'not-allowed'
+                          cursor: (mapping?.colorClass && selectedPaletteId) ? 'pointer' : 'not-allowed'
                         }}
                       >
                         <option value="">Sélectionner une couleur</option>
-                        {mapping?.paletteId ? (
+                        {selectedPaletteId ? (
                           (() => {
-                            const selectedPalette = palettes.find(p => p.id === mapping?.paletteId);
+                            const selectedPalette = palettes.find(p => p.id === selectedPaletteId);
                             return selectedPalette?.colors.map((color, index) => {
                               const colorId = `${selectedPalette.id}-${index}-${color.hex}`;
                               return (
@@ -877,13 +875,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                               );
                             });
                           })()
-                        ) : (
-                          allPaletteColors.map(color => (
-                            <option key={color.id} value={color.id}>
-                              {color.paletteName} - {color.name} ({color.hex})
-                            </option>
-                          ))
-                        )}
+                        ) : null}
                       </select>
                     </div>
                   </div>
@@ -1022,8 +1014,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
             {/* Aperçu du SVG */}
             <div style={{
-              flex: 1,
-              overflow: 'auto',
+              width: '100%',
               backgroundColor: '#ffffff',
               border: '1px solid #2a2a2a',
               borderRadius: '8px',
@@ -1031,7 +1022,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '400px',
               position: 'relative'
             }}>
               {(() => {
@@ -1085,8 +1075,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           <style dangerouslySetInnerHTML={{ __html: `
                             .svg-preview-container svg {
                               max-width: 100% !important;
-                              max-height: 100% !important;
-                              width: auto !important;
+                              width: 100% !important;
                               height: auto !important;
                             }
                           `}} />
@@ -1094,21 +1083,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                             className="svg-preview-container"
                             style={{ 
                               width: '100%',
-                              height: '100%',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              overflow: 'auto'
+                              justifyContent: 'center'
                             }}
                           >
                             <div
                               dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
                               style={{ 
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                height: '100%'
+                                width: '100%'
                               }}
                             />
                           </div>
@@ -1131,8 +1114,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         <style dangerouslySetInnerHTML={{ __html: `
                           .svg-preview-container svg {
                             max-width: 100% !important;
-                            max-height: 100% !important;
-                            width: auto !important;
+                            width: 100% !important;
                             height: auto !important;
                           }
                         `}} />
@@ -1140,21 +1122,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           className="svg-preview-container"
                           style={{ 
                             width: '100%',
-                            height: '100%',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'auto'
+                            justifyContent: 'center'
                           }}
                         >
                           <div
                             dangerouslySetInnerHTML={{ __html: svgAdapted }}
                             style={{ 
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%',
-                              height: '100%'
+                              width: '100%'
                             }}
                           />
                         </div>
@@ -1166,8 +1142,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                       <style dangerouslySetInnerHTML={{ __html: `
                         .svg-preview-container svg {
                           max-width: 100% !important;
-                          max-height: 100% !important;
-                          width: auto !important;
+                          width: 100% !important;
                           height: auto !important;
                         }
                       `}} />
@@ -1175,21 +1150,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         className="svg-preview-container"
                         style={{ 
                           width: '100%',
-                          height: '100%',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          overflow: 'auto'
+                          justifyContent: 'center'
                         }}
                       >
                         <div
                           dangerouslySetInnerHTML={{ __html: modifiedSvg }}
                           style={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '100%',
-                            height: '100%'
+                            width: '100%'
                           }}
                         />
                       </div>
