@@ -533,29 +533,21 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
     // Fonction récursive pour remplacer les couleurs
     const replaceColorsInElement = (element: Element) => {
-      // D'abord, gérer les éléments qui ont déjà des classes de couleur (venant d'un SVG précédemment sauvegardé)
-      // Il faut retirer les anciennes classes et restaurer les couleurs originales avant de réappliquer
+      // TOUJOURS nettoyer toutes les anciennes classes de couleur au début
+      // pour éviter les conflits avec les nouveaux mappings
       const classAttr = element.getAttribute('class');
+      const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
       if (classAttr) {
-        const classes = classAttr.split(/\s+/);
-        const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+        const classes = classAttr.split(/\s+/).filter(Boolean);
         const hasOldColorClass = classes.some(c => colorClassNames.includes(c));
         
         if (hasOldColorClass) {
-          // Cet élément a déjà une classe de couleur, il faut vérifier si elle correspond à un mapping actuel
-          const oldColorClass = classes.find(c => colorClassNames.includes(c));
-          if (oldColorClass) {
-            // Chercher si cette classe est mappée dans les colorMappings actuels
-            const currentMapping = Object.values(colorMappings).find(m => m.colorClass === oldColorClass);
-            if (!currentMapping) {
-              // Cette classe n'est plus mappée, la retirer
-              const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
-              if (remainingClasses.length > 0) {
-                element.setAttribute('class', remainingClasses.join(' '));
-              } else {
-                element.removeAttribute('class');
-              }
-            }
+          // Retirer TOUTES les anciennes classes de couleur, on va les réappliquer selon les nouveaux mappings
+          const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
+          if (remainingClasses.length > 0) {
+            element.setAttribute('class', remainingClasses.join(' '));
+          } else {
+            element.removeAttribute('class');
           }
         }
       }
