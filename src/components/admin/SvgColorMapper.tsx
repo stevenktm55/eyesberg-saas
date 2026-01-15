@@ -252,7 +252,17 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
         const normalized = normalizeColorToHex(fill);
         if (normalized) {
-          const mapping = colorMappings.get(normalized);
+          // Chercher le mapping pour cette couleur normalisée
+          let mapping = colorMappings.get(normalized);
+          
+          // Si pas trouvé, chercher dans toutes les couleurs détectées qui ont la même normalisation
+          if (!mapping) {
+            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+            if (detectedColor) {
+              mapping = colorMappings.get(detectedColor.normalizedHex);
+            }
+          }
+          
           if (mapping?.colorClass) {
             // Retirer l'attribut fill et ajouter la classe
             element.removeAttribute('fill');
@@ -269,7 +279,17 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       if (stroke && stroke !== 'none' && stroke !== 'transparent' && stroke !== 'currentColor') {
         const normalized = normalizeColorToHex(stroke);
         if (normalized) {
-          const mapping = colorMappings.get(normalized);
+          // Chercher le mapping pour cette couleur normalisée
+          let mapping = colorMappings.get(normalized);
+          
+          // Si pas trouvé, chercher dans toutes les couleurs détectées qui ont la même normalisation
+          if (!mapping) {
+            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+            if (detectedColor) {
+              mapping = colorMappings.get(detectedColor.normalizedHex);
+            }
+          }
+          
           if (mapping?.colorClass) {
             // Retirer l'attribut stroke et ajouter la classe
             element.removeAttribute('stroke');
@@ -516,6 +536,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {detectedColors.map((detectedColor) => {
+              // Utiliser la couleur normalisée comme clé pour le mapping
               const mapping = colorMappings.get(detectedColor.normalizedHex);
               const selectedPaletteColor = mapping?.paletteColorId 
                 ? allPaletteColors.find(c => c.id === mapping.paletteColorId)
