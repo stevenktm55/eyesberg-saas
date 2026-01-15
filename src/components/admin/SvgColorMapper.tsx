@@ -99,14 +99,45 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
   const colorMap = new Map<string, { original: string; count: number }>();
 
-  // Fonction récursive pour parcourir tous les éléments
+  // 1. Détecter les couleurs dans les blocs <style>
+  const styleElements = svgDoc.querySelectorAll('style');
+  styleElements.forEach(styleEl => {
+    const cssText = styleEl.textContent || '';
+    // Chercher les règles CSS avec fill: ou stroke:
+    // Pattern: .class { fill: #color; } ou .class { stroke: #color; }
+    const colorPatterns = [
+      /fill:\s*([^;}\s]+)/gi,
+      /stroke:\s*([^;}\s]+)/gi,
+      /stop-color:\s*([^;}\s]+)/gi,
+    ];
+    
+    colorPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(cssText)) !== null) {
+        const color = match[1].trim();
+        if (color && !color.startsWith('url(') && !color.startsWith('var(') && color !== 'none' && color !== 'transparent' && color !== 'currentColor') {
+          const normalized = normalizeColorToHex(color);
+          if (normalized) {
+            const existing = colorMap.get(normalized);
+            if (existing) {
+              existing.count++;
+            } else {
+              colorMap.set(normalized, { original: color, count: 1 });
+            }
+          }
+        }
+      }
+    });
+  });
+
+  // 2. Détecter les couleurs dans les attributs fill et stroke directement
   const traverseElements = (element: Element) => {
     // Récupérer fill et stroke
     const fill = element.getAttribute('fill');
     const stroke = element.getAttribute('stroke');
 
     [fill, stroke].forEach(color => {
-      if (color) {
+      if (color && color !== 'none' && color !== 'transparent' && color !== 'currentColor' && !color.startsWith('url(') && !color.startsWith('var(')) {
         const normalized = normalizeColorToHex(color);
         if (normalized) {
           const existing = colorMap.get(normalized);
@@ -119,6 +150,22 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
       }
     });
 
+    // Détecter les couleurs dans les gradients (stop-color)
+    if (element.tagName === 'stop') {
+      const stopColor = element.getAttribute('stop-color');
+      if (stopColor && stopColor !== 'none' && stopColor !== 'transparent' && stopColor !== 'currentColor') {
+        const normalized = normalizeColorToHex(stopColor);
+        if (normalized) {
+          const existing = colorMap.get(normalized);
+          if (existing) {
+            existing.count++;
+          } else {
+            colorMap.set(normalized, { original: stopColor, count: 1 });
+          }
+        }
+      }
+    }
+
     // Parcourir les enfants
     Array.from(element.children).forEach(child => traverseElements(child));
   };
@@ -126,6 +173,23 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   const svgElement = svgDoc.querySelector('svg');
   if (svgElement) {
     traverseElements(svgElement);
+  }
+
+  // 3. Détecter les couleurs directement dans le texte SVG (fallback pour les cas complexes)
+  // Chercher les patterns hexadécimaux dans le texte brut
+  const hexPattern = /#([0-9A-Fa-f]{3,6})\b/g;
+  let match;
+  while ((match = hexPattern.exec(svgContent)) !== null) {
+    const hex = '#' + match[1];
+    const normalized = normalizeColorToHex(hex);
+    if (normalized) {
+      const existing = colorMap.get(normalized);
+      if (existing) {
+        existing.count++;
+      } else {
+        colorMap.set(normalized, { original: hex, count: 1 });
+      }
+    }
   }
 
   // Convertir en tableau et trier par nombre d'occurrences
