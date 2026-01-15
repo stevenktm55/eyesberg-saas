@@ -331,7 +331,7 @@ export default function ConfigurationsAdminPage() {
       </div>
 
         {/* Content */}
-        <div style={activeTab === "svg-color-mapper" ? { height: 'calc(100vh - 200px)' } : {}}>
+        <div>
           {activeTab === "3d-models" && <ModelsConfigPage />}
           {activeTab === "material-maps" && <MaterialMapsConfigPage />}
           {activeTab === "sizes" && <SizesConfigPage />}

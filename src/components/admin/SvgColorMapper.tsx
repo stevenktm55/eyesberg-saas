@@ -617,9 +617,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '16px',
-            maxHeight: '400px',
-            overflowY: 'auto'
+            gap: '16px'
           }}>
             {filteredDesigns.map((design) => (
               <div
@@ -676,9 +674,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           flexShrink: 0,
           borderBottom: '1px solid #1a1a1a',
           backgroundColor: '#000000',
-          padding: '24px',
-          maxHeight: '50vh',
-          overflowY: 'auto'
+          padding: '24px'
         }}>
           <div style={{
             fontSize: '16px',
@@ -1021,8 +1017,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              position: 'relative',
-              overflow: 'visible'
+              position: 'relative'
             }}>
               {(() => {
                 const modifiedSvg = generateModifiedSvg();
