@@ -143,7 +143,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
   const [detectedColors, setDetectedColors] = useState<DetectedColor[]>([]);
-  const [colorMappings, setColorMappings] = useState<Map<string, ColorMapping>>(new Map());
+  const [colorMappings, setColorMappings] = useState<Record<string, ColorMapping>>({});
   const [palettes, setPalettes] = useState<ColorPalette[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -190,7 +190,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     if (!selectedDesignId) {
       setSvgContent("");
       setDetectedColors([]);
-      setColorMappings(new Map());
+      setColorMappings({});
       return;
     }
 
@@ -211,7 +211,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         // Détecter les couleurs
         const colors = detectColorsInSvg(text);
         setDetectedColors(colors);
-        setColorMappings(new Map());
+        setColorMappings({});
       } catch (error) {
         console.error("Erreur lors du chargement du SVG:", error);
         alert("Erreur lors du chargement du SVG");
@@ -226,13 +226,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
   // Fonction pour mettre à jour un mapping de couleur
   const updateColorMapping = useCallback((originalColor: string, colorClass: ColorClass | null, paletteColorId: string | null) => {
     setColorMappings(prev => {
-      const newMap = new Map(prev);
+      const newMappings = { ...prev };
       if (colorClass === null && paletteColorId === null) {
-        newMap.delete(originalColor);
+        delete newMappings[originalColor];
       } else {
-        newMap.set(originalColor, { originalColor, colorClass, paletteColorId });
+        newMappings[originalColor] = { originalColor, colorClass, paletteColorId };
       }
-      return newMap;
+      return newMappings;
     });
   }, []);
 
@@ -273,13 +273,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const normalized = normalizeColorToHex(fill);
         if (normalized) {
           // Chercher le mapping pour cette couleur normalisée
-          let mapping = colorMappings.get(normalized);
+          let mapping = colorMappings[normalized];
           
           // Si pas trouvé, chercher dans toutes les couleurs détectées qui ont la même normalisation
           if (!mapping) {
             const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
             if (detectedColor) {
-              mapping = colorMappings.get(detectedColor.normalizedHex);
+              mapping = colorMappings[detectedColor.normalizedHex];
             }
           }
           
@@ -300,13 +300,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const normalized = normalizeColorToHex(stroke);
         if (normalized) {
           // Chercher le mapping pour cette couleur normalisée
-          let mapping = colorMappings.get(normalized);
+          let mapping = colorMappings[normalized];
           
           // Si pas trouvé, chercher dans toutes les couleurs détectées qui ont la même normalisation
           if (!mapping) {
             const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
             if (detectedColor) {
-              mapping = colorMappings.get(detectedColor.normalizedHex);
+              mapping = colorMappings[detectedColor.normalizedHex];
             }
           }
           
@@ -340,7 +340,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     }
 
     // Ajouter les règles CSS pour chaque classe mappée (pour l'aperçu avec les couleurs de la palette)
-    const styleContent = Array.from(colorMappings.values())
+    const styleContent = Object.values(colorMappings)
       .filter(m => m.colorClass)
       .map(m => {
         const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
@@ -540,7 +540,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {detectedColors.map((detectedColor) => {
               // Utiliser la couleur normalisée comme clé pour le mapping
-              const mapping = colorMappings.get(detectedColor.normalizedHex);
+              const mapping = colorMappings[detectedColor.normalizedHex];
               const selectedPaletteColor = mapping?.paletteColorId 
                 ? allPaletteColors.find(c => c.id === mapping.paletteColorId)
                 : null;
@@ -765,10 +765,10 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               </button>
               <button
                 onClick={handleSave}
-                disabled={isSaving || colorMappings.size === 0}
+                disabled={isSaving || Object.keys(colorMappings).length === 0}
                 style={{
                   padding: '12px 24px',
-                  backgroundColor: (isSaving || colorMappings.size === 0) ? '#4a4a4a' : '#8eff36',
+                  backgroundColor: (isSaving || Object.keys(colorMappings).length === 0) ? '#4a4a4a' : '#8eff36',
                   border: 'none',
                   borderRadius: '8px',
                   color: (isSaving || colorMappings.size === 0) ? '#a0a0a0' : '#000000',
@@ -779,12 +779,12 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSaving && colorMappings.size > 0) {
+                  if (!isSaving && Object.keys(colorMappings).length > 0) {
                     e.currentTarget.style.opacity = '0.9';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isSaving && colorMappings.size > 0) {
+                  if (!isSaving && Object.keys(colorMappings).length > 0) {
                     e.currentTarget.style.opacity = '1';
                   }
                 }}
