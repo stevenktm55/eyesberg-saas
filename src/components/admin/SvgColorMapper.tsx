@@ -840,19 +840,34 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                 const modifiedSvg = generateModifiedSvg();
                 console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
                 if (modifiedSvg) {
+                  // Parser le SVG pour extraire les dimensions
+                  const parser = new DOMParser();
+                  const svgDoc = parser.parseFromString(modifiedSvg, 'image/svg+xml');
+                  const svgElement = svgDoc.querySelector('svg');
+                  const viewBox = svgElement?.getAttribute('viewBox');
+                  const width = svgElement?.getAttribute('width');
+                  const height = svgElement?.getAttribute('height');
+                  
                   return (
                     <div
-                      dangerouslySetInnerHTML={{ __html: modifiedSvg }}
                       style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '100%',
                         width: '100%',
                         height: '100%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}
-                    />
+                    >
+                      <div
+                        dangerouslySetInnerHTML={{ __html: modifiedSvg }}
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '100%',
+                          width: width || 'auto',
+                          height: height || 'auto'
+                        }}
+                      />
+                    </div>
                   );
                 }
                 return (
