@@ -206,10 +206,12 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const response = await fetch(design.svgUrl);
         if (!response.ok) throw new Error("Failed to fetch SVG");
         const text = await response.text();
+        console.log("SVG chargé, longueur:", text.length);
         setSvgContent(text);
 
         // Détecter les couleurs
         const colors = detectColorsInSvg(text);
+        console.log("Couleurs détectées:", colors);
         setDetectedColors(colors);
         setColorMappings({});
       } catch (error) {
@@ -255,15 +257,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
   // Fonction pour générer le SVG modifié
   const generateModifiedSvg = useCallback((): string => {
-    if (!svgContent) return '';
+    if (!svgContent) {
+      console.log("generateModifiedSvg: pas de svgContent");
+      return '';
+    }
 
     // Calculer allPaletteColors ici pour éviter la dépendance circulaire
     const allPaletteColors = getAllPaletteColors();
 
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-    const svgElement = svgDoc.querySelector('svg');
-    if (!svgElement) return svgContent;
+    try {
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+      const svgElement = svgDoc.querySelector('svg');
+      if (!svgElement) {
+        console.log("generateModifiedSvg: pas d'élément SVG trouvé");
+        return svgContent;
+      }
 
     // Fonction récursive pour remplacer les couleurs
     const replaceColorsInElement = (element: Element) => {
@@ -360,9 +369,15 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       }
     }
 
-    // Convertir en string
-    const serializer = new XMLSerializer();
-    return serializer.serializeToString(svgDoc);
+      // Convertir en string
+      const serializer = new XMLSerializer();
+      const result = serializer.serializeToString(svgDoc);
+      console.log("generateModifiedSvg: SVG généré, longueur:", result.length);
+      return result;
+    } catch (error) {
+      console.error("Erreur dans generateModifiedSvg:", error);
+      return svgContent; // Retourner le SVG original en cas d'erreur
+    }
   }, [svgContent, colorMappings, detectedColors, getAllPaletteColors]);
 
   // Fonction pour sauvegarder le SVG modifié
@@ -519,7 +534,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       )}
 
       {/* Zone de mapping des couleurs */}
-      {svgContent && detectedColors.length > 0 && (
+      {svgContent && detectedColors.length > 0 ? (
         <div style={{
           flexShrink: 0,
           borderBottom: '1px solid #1a1a1a',
@@ -709,7 +724,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             })}
           </div>
         </div>
-      )}
+      ) : svgContent ? (
+        <div style={{
+          flexShrink: 0,
+          borderBottom: '1px solid #1a1a1a',
+          backgroundColor: '#000000',
+          padding: '24px'
+        }}>
+          <div style={{
+            fontSize: '14px',
+            color: '#8eff36',
+            fontFamily: 'var(--stepn-font-body)'
+          }}>
+            ⚠️ Aucune couleur détectée dans ce SVG. Le SVG sera affiché ci-dessous.
+          </div>
+        </div>
+      ) : null}
 
       {/* Zone de contenu */}
       <div style={{
@@ -741,7 +771,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   setSvgContent("");
                   setSelectedDesignId(null);
                   setDetectedColors([]);
-                  setColorMappings(new Map());
+                  setColorMappings({});
                 }}
                 style={{
                   padding: '12px 24px',
@@ -771,11 +801,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   backgroundColor: (isSaving || Object.keys(colorMappings).length === 0) ? '#4a4a4a' : '#8eff36',
                   border: 'none',
                   borderRadius: '8px',
-                  color: (isSaving || colorMappings.size === 0) ? '#a0a0a0' : '#000000',
+                  color: (isSaving || Object.keys(colorMappings).length === 0) ? '#a0a0a0' : '#000000',
                   fontSize: '14px',
                   fontWeight: '500',
                   fontFamily: 'var(--stepn-font-body)',
-                  cursor: (isSaving || colorMappings.size === 0) ? 'not-allowed' : 'pointer',
+                  cursor: (isSaving || Object.keys(colorMappings).length === 0) ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
@@ -803,12 +833,38 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               padding: '24px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              minHeight: '400px'
             }}>
-              <div
-                dangerouslySetInnerHTML={{ __html: generateModifiedSvg() }}
-                style={{ maxWidth: '100%', maxHeight: '100%' }}
-              />
+              {(() => {
+                const modifiedSvg = generateModifiedSvg();
+                console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
+                if (modifiedSvg) {
+                  return (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: modifiedSvg }}
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '100%',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    />
+                  );
+                }
+                return (
+                  <div style={{
+                    color: '#a0a0a0',
+                    fontSize: '14px',
+                    fontFamily: 'var(--stepn-font-body)'
+                  }}>
+                    Erreur lors de la génération du SVG
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
