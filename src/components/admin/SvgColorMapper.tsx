@@ -1074,8 +1074,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         <>
                           <style dangerouslySetInnerHTML={{ __html: `
                             .svg-preview-container svg {
-                              max-width: 100% !important;
-                              width: 100% !important;
+                              max-width: 50% !important;
+                              width: 50% !important;
                               height: auto !important;
                             }
                           `}} />
@@ -1113,8 +1113,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                       <>
                         <style dangerouslySetInnerHTML={{ __html: `
                           .svg-preview-container svg {
-                            max-width: 100% !important;
-                            width: 100% !important;
+                            max-width: 50% !important;
+                            width: 50% !important;
                             height: auto !important;
                           }
                         `}} />
@@ -1141,8 +1141,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                     <>
                       <style dangerouslySetInnerHTML={{ __html: `
                         .svg-preview-container svg {
-                          max-width: 100% !important;
-                          width: 100% !important;
+                          max-width: 50% !important;
+                          width: 50% !important;
                           height: auto !important;
                         }
                       `}} />
