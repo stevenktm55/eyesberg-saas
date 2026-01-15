@@ -318,21 +318,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             }
           });
           
-          // 2. Retirer les classes de couleur des éléments et restaurer les couleurs originales depuis le style
-          // D'abord, extraire les couleurs originales des règles CSS avant de les supprimer
-          const originalColorsMap = new Map<string, string>();
-          styleElements.forEach(styleEl => {
-            const cssText = styleEl.textContent || '';
-            colorClassNames.forEach(className => {
-              const pattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;\\s]+)[^}]*\\}`, 'gi');
-              const match = pattern.exec(cssText);
-              if (match && match[1]) {
-                originalColorsMap.set(className, match[1].trim());
-              }
-            });
-          });
-          
-          // 3. Parcourir tous les éléments et retirer les classes de couleur
+          // 2. Parcourir tous les éléments et retirer les classes de couleur
+          // (on ne restaure pas les couleurs car elles seront détectées normalement après)
           const allElements = svgElement.querySelectorAll('*');
           allElements.forEach(el => {
             const classAttr = el.getAttribute('class');
@@ -348,9 +335,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                 } else {
                   el.removeAttribute('class');
                 }
-                
-                // Si on a trouvé la couleur originale pour cette classe, la restaurer
-                // Sinon, on laisse l'élément sans couleur (sera détecté par detectColorsInSvg)
               }
             }
           });
@@ -683,13 +667,18 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
   const allPaletteColors = getAllPaletteColors();
 
-  // Générer le SVG modifié - recalculer à chaque changement
-  const modifiedSvgPreview = useMemo(() => {
-    if (!originalSvgContent && !svgContent) return '';
-    const result = generateModifiedSvg();
-    console.log("modifiedSvgPreview recalculé, previewKey:", previewKey);
-    return result;
-  }, [originalSvgContent, svgContent, colorMappings, detectedColors, palettes, getAllPaletteColors, previewKey, generateModifiedSvg]);
+  // Utiliser un état pour le SVG modifié qui se met à jour à chaque changement
+  const [modifiedSvgPreview, setModifiedSvgPreview] = useState<string>('');
+
+  // Mettre à jour le SVG modifié quand les mappings changent
+  useEffect(() => {
+    if (originalSvgContent || svgContent) {
+      const modified = generateModifiedSvg();
+      setModifiedSvgPreview(modified);
+    } else {
+      setModifiedSvgPreview('');
+    }
+  }, [originalSvgContent, svgContent, colorMappings, detectedColors, palettes, previewKey, generateModifiedSvg]);
 
   return (
     <div style={{ 
