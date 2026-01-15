@@ -236,9 +236,29 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     });
   }, []);
 
+  // Obtenir toutes les couleurs disponibles depuis les palettes
+  const getAllPaletteColors = useCallback((): Array<{ id: string; name: string; hex: string; paletteName: string }> => {
+    const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
+    palettes.forEach((palette) => {
+      palette.colors.forEach((color, index) => {
+        const colorId = `${palette.id}-${index}-${color.hex}`;
+        allColors.push({
+          id: colorId,
+          name: color.name || '',
+          hex: color.hex || '#000000',
+          paletteName: palette.name
+        });
+      });
+    });
+    return allColors;
+  }, [palettes]);
+
   // Fonction pour générer le SVG modifié
   const generateModifiedSvg = useCallback((): string => {
     if (!svgContent) return '';
+
+    // Calculer allPaletteColors ici pour éviter la dépendance circulaire
+    const allPaletteColors = getAllPaletteColors();
 
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
@@ -343,7 +363,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     // Convertir en string
     const serializer = new XMLSerializer();
     return serializer.serializeToString(svgDoc);
-  }, [svgContent, colorMappings, allPaletteColors]);
+  }, [svgContent, colorMappings, detectedColors, getAllPaletteColors]);
 
   // Fonction pour sauvegarder le SVG modifié
   const handleSave = useCallback(async () => {
@@ -396,23 +416,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       setIsSaving(false);
     }
   }, [selectedDesignId, generateModifiedSvg]);
-
-  // Obtenir toutes les couleurs disponibles depuis les palettes
-  const getAllPaletteColors = useCallback((): Array<{ id: string; name: string; hex: string; paletteName: string }> => {
-    const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
-    palettes.forEach((palette) => {
-      palette.colors.forEach((color, index) => {
-        const colorId = `${palette.id}-${index}-${color.hex}`;
-        allColors.push({
-          id: colorId,
-          name: color.name || '',
-          hex: color.hex || '#000000',
-          paletteName: palette.name
-        });
-      });
-    });
-    return allColors;
-  }, [palettes]);
 
   const filteredDesigns = designs.filter((design) =>
     design.name.toLowerCase().includes(searchQuery.toLowerCase())
