@@ -668,6 +668,75 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         </div>
       )}
 
+      {/* Contrôles - Boutons */}
+      {svgContent && (
+        <div style={{
+          flexShrink: 0,
+          borderBottom: '1px solid #1a1a1a',
+          backgroundColor: '#000000',
+          padding: '24px',
+          display: 'flex',
+          gap: '12px'
+        }}>
+          <button
+            onClick={() => {
+              setSvgContent("");
+              setSelectedDesignId(null);
+              setDetectedColors([]);
+              setColorMappings({});
+              setSelectedPaletteId(null);
+            }}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#2a2a2a',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontFamily: 'var(--stepn-font-body)',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#3a3a3a';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#2a2a2a';
+            }}
+          >
+            Changer de design
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving || Object.keys(colorMappings).length === 0}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: (isSaving || Object.keys(colorMappings).length === 0) ? '#4a4a4a' : '#8eff36',
+              border: 'none',
+              borderRadius: '8px',
+              color: (isSaving || Object.keys(colorMappings).length === 0) ? '#a0a0a0' : '#000000',
+              fontSize: '14px',
+              fontWeight: '500',
+              fontFamily: 'var(--stepn-font-body)',
+              cursor: (isSaving || Object.keys(colorMappings).length === 0) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (!isSaving && Object.keys(colorMappings).length > 0) {
+                e.currentTarget.style.opacity = '0.9';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isSaving && Object.keys(colorMappings).length > 0) {
+                e.currentTarget.style.opacity = '1';
+              }
+            }}
+          >
+            {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder le SVG'}
+          </button>
+        </div>
+      )}
+
       {/* Zone de mapping des couleurs */}
       {svgContent && detectedColors.length > 0 ? (
         <div style={{
@@ -1141,6 +1210,5 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         )}
       </div>
     </div>
-    </>
   );
 }
