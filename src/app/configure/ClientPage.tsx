@@ -8152,21 +8152,21 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
           <div className="flex gap-2">
             {/* Bouton Sauvegarder (mobile) - Masqué en mode preview */}
             {!isPreviewMode && (
-            <button onClick={() => handleSaveConfiguration(buildConfigurationData())} disabled={isShopifyLoading} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors disabled:opacity-60">
+            <button onClick={() => handleSaveConfiguration(buildConfigurationData())} disabled={isShopifyLoading} className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors disabled:opacity-60 whitespace-nowrap">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
               </svg>
-              Sauvegarder
+              <span>Sauvegarder</span>
             </button>
             )}
             
             {/* Bouton Ajouter au panier (mobile) - Masqué en mode preview */}
             {!isPreviewMode && (
-            <button onClick={() => setIsSizeModalOpen(true)} disabled={isShopifyLoading} className="flex-1 bg-black text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-800 transition-colors disabled:opacity-60">
+            <button onClick={() => setIsSizeModalOpen(true)} disabled={isShopifyLoading} className="flex-1 bg-black text-white py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-800 transition-colors disabled:opacity-60 whitespace-nowrap">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 21a1 1 0 100-2 1 1 0 000 2zm-8 0a1 1 0 100-2 1 1 0 000 2z" />
               </svg>
-              Ajouter au panier
+              <span>Ajouter au panier</span>
             </button>
             )}
           </div>

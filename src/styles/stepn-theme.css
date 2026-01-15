@@ -352,9 +352,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   text-transform: none !important;
   font-style: normal !important;
   margin: 0 !important;
-}
-
-/* Textes avec spécificité plus élevée que les sélecteurs généraux stepn */
+}/* Textes avec spécificité plus élevée que les sélecteurs généraux stepn */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
@@ -451,9 +449,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   background-color: transparent !important;
   color: #9ca3af !important;
   cursor: not-allowed !important;
-}
-
-/* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
+}/* PROTECTION: Boutons de couleurs dans la grille - forcer le backgroundColor à être visible */
 /* Ces boutons ont un backgroundColor défini en inline style et doivent rester visibles */
 /* La classe color-circle-button les exclut déjà de la règle générale avec :not() */
 /* On ajoute juste les styles de base nécessaires sans surcharger le backgroundColor */
