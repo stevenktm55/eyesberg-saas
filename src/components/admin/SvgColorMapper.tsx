@@ -271,12 +271,78 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         if (!response.ok) throw new Error("Failed to fetch SVG");
         const text = await response.text();
         console.log("SVG chargé, longueur:", text.length);
+        console.log("SVG preview (premiers 500 chars):", text.substring(0, 500));
         setSvgContent(text);
 
         // Détecter les couleurs
         const colors = detectColorsInSvg(text);
         console.log("Couleurs détectées:", colors);
-        setDetectedColors(colors);
+        
+        // Si aucune couleur détectée, essayer une méthode alternative avec le DOM
+        if (colors.length === 0) {
+          console.log("Aucune couleur détectée avec la méthode standard, tentative avec le DOM...");
+          try {
+            // Créer un élément temporaire pour parser le SVG
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.width = '1px';
+            tempDiv.style.height = '1px';
+            tempDiv.innerHTML = text;
+            document.body.appendChild(tempDiv);
+            
+            const svgEl = tempDiv.querySelector('svg');
+            if (svgEl) {
+              // Récupérer tous les éléments avec fill ou stroke
+              const allElements = svgEl.querySelectorAll('*');
+              const domColorMap = new Map<string, { original: string; count: number }>();
+              
+              allElements.forEach(el => {
+                const computedStyle = window.getComputedStyle(el);
+                const fill = computedStyle.fill;
+                const stroke = computedStyle.stroke;
+                
+                [fill, stroke].forEach(color => {
+                  if (color && color !== 'none' && color !== 'transparent' && color !== 'rgb(0, 0, 0)' && color !== 'rgba(0, 0, 0, 0)') {
+                    const normalized = normalizeColorToHex(color);
+                    if (normalized && normalized !== '#000000') {
+                      const existing = domColorMap.get(normalized);
+                      if (existing) {
+                        existing.count++;
+                      } else {
+                        domColorMap.set(normalized, { original: color, count: 1 });
+                      }
+                    }
+                  }
+                });
+              });
+              
+              const domColors = Array.from(domColorMap.entries())
+                .map(([hex, data]) => ({
+                  originalColor: data.original,
+                  normalizedHex: hex,
+                  count: data.count
+                }))
+                .sort((a, b) => b.count - a.count);
+              
+              console.log("Couleurs détectées via DOM:", domColors);
+              
+              if (domColors.length > 0) {
+                setDetectedColors(domColors);
+              } else {
+                setDetectedColors([]);
+              }
+            }
+            
+            document.body.removeChild(tempDiv);
+          } catch (error) {
+            console.error("Erreur lors de la détection via DOM:", error);
+            setDetectedColors([]);
+          }
+        } else {
+          setDetectedColors(colors);
+        }
+        
         setColorMappings({});
       } catch (error) {
         console.error("Erreur lors du chargement du SVG:", error);
