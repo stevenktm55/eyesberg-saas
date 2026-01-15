@@ -249,13 +249,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     const replaceColorsInElement = (element: Element) => {
       // Remplacer fill
       const fill = element.getAttribute('fill');
-      if (fill) {
+      if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
         const normalized = normalizeColorToHex(fill);
         if (normalized) {
           const mapping = colorMappings.get(normalized);
           if (mapping?.colorClass) {
-            element.setAttribute('fill', `var(--${mapping.colorClass})`);
-            // Ajouter la classe si elle n'existe pas déjà
+            // Retirer l'attribut fill et ajouter la classe
+            element.removeAttribute('fill');
             const existingClass = element.getAttribute('class') || '';
             if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
               element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
@@ -266,13 +266,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
       // Remplacer stroke
       const stroke = element.getAttribute('stroke');
-      if (stroke) {
+      if (stroke && stroke !== 'none' && stroke !== 'transparent' && stroke !== 'currentColor') {
         const normalized = normalizeColorToHex(stroke);
         if (normalized) {
           const mapping = colorMappings.get(normalized);
           if (mapping?.colorClass) {
-            element.setAttribute('stroke', `var(--${mapping.colorClass})`);
-            // Ajouter la classe si elle n'existe pas déjà
+            // Retirer l'attribut stroke et ajouter la classe
+            element.removeAttribute('stroke');
             const existingClass = element.getAttribute('class') || '';
             if (!existingClass.split(/\s+/).includes(mapping.colorClass)) {
               element.setAttribute('class', `${existingClass} ${mapping.colorClass}`.trim());
@@ -288,7 +288,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     // Appliquer les remplacements
     replaceColorsInElement(svgElement);
 
-    // Ajouter les styles CSS pour les classes si nécessaire
+    // Ajouter les styles CSS pour les classes (pour l'aperçu uniquement)
     let styleElement = svgDoc.querySelector('style');
     if (!styleElement) {
       styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
@@ -299,7 +299,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       }
     }
 
-    // Ajouter les règles CSS pour chaque classe mappée
+    // Ajouter les règles CSS pour chaque classe mappée (pour l'aperçu avec les couleurs de la palette)
     const styleContent = Array.from(colorMappings.values())
       .filter(m => m.colorClass)
       .map(m => {
@@ -313,7 +313,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       .join('\n    ');
 
     if (styleContent) {
-      styleElement.textContent = (styleElement.textContent || '') + '\n    ' + styleContent;
+      // Vérifier si le style existe déjà pour éviter les doublons
+      const existingStyle = styleElement.textContent || '';
+      if (!existingStyle.includes(styleContent)) {
+        styleElement.textContent = existingStyle + (existingStyle ? '\n    ' : '') + styleContent;
+      }
     }
 
     // Convertir en string
