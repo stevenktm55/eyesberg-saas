@@ -494,8 +494,39 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     // Appliquer les remplacements
     replaceColorsInElement(svgElement);
 
-    // Ajouter les styles CSS pour les classes (pour l'aperçu uniquement)
-    let styleElement = svgDoc.querySelector('style');
+    // Gérer les styles CSS pour les classes
+    // Supprimer les anciens styles pour les classes de couleur (primary, secondary, etc.) si ils existent
+    const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+    const styleElements = svgDoc.querySelectorAll('style');
+    styleElements.forEach(styleEl => {
+      const cssText = styleEl.textContent || '';
+      // Supprimer les règles CSS pour les classes de couleur
+      const lines = cssText.split('\n');
+      const filteredLines = lines.filter(line => {
+        // Ignorer les lignes qui définissent des styles pour les classes de couleur
+        return !colorClassNames.some(className => {
+          const pattern = new RegExp(`\\.${className}\\s*\\{`);
+          return pattern.test(line.trim());
+        });
+      });
+      styleEl.textContent = filteredLines.join('\n').trim();
+      
+      // Si le style est vide, on peut le supprimer (mais on va le garder pour ajouter nos styles)
+      if (!styleEl.textContent.trim() && styleElements.length > 1) {
+        styleEl.remove();
+      }
+    });
+
+    // Créer ou récupérer un élément style pour nos règles
+    let styleElement = Array.from(svgDoc.querySelectorAll('style')).find(styleEl => {
+      // Chercher un style qui ne contient pas de règles pour nos classes, ou créer un nouveau
+      const text = styleEl.textContent || '';
+      return !colorClassNames.some(className => {
+        const pattern = new RegExp(`\\.${className}\\s*\\{`);
+        return pattern.test(text);
+      });
+    });
+
     if (!styleElement) {
       styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
       const defs = svgDoc.querySelector('defs') || svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -505,25 +536,25 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       }
     }
 
-    // Ajouter les règles CSS pour chaque classe mappée (pour l'aperçu avec les couleurs de la palette)
-    const styleContent = Object.values(colorMappings)
-      .filter(m => m.colorClass)
+    // Générer les règles CSS pour chaque classe mappée (REMPLACER au lieu d'ajouter)
+    const styleRules = Object.values(colorMappings)
+      .filter(m => m.colorClass && m.paletteColorId)
       .map(m => {
         const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
         if (paletteColor) {
-          return `.${m.colorClass} { fill: ${paletteColor.hex} !important; }`;
+          // Ajouter à la fois fill et stroke pour être sûr que ça fonctionne
+          return `.${m.colorClass} { fill: ${paletteColor.hex} !important; stroke: ${paletteColor.hex} !important; }`;
         }
         return '';
       })
-      .filter(Boolean)
-      .join('\n    ');
+      .filter(Boolean);
 
-    if (styleContent) {
-      // Vérifier si le style existe déjà pour éviter les doublons
-      const existingStyle = styleElement.textContent || '';
-      if (!existingStyle.includes(styleContent)) {
-        styleElement.textContent = existingStyle + (existingStyle ? '\n    ' : '') + styleContent;
-      }
+    // REMPLACER complètement le contenu du style au lieu de l'ajouter
+    if (styleRules.length > 0) {
+      styleElement.textContent = styleRules.join('\n    ');
+    } else {
+      // Si aucun mapping, on peut vider le style mais on le garde vide plutôt que de le supprimer
+      styleElement.textContent = '';
     }
 
       // Convertir en string
@@ -1062,7 +1093,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative'
-            }}>
+            }} key={JSON.stringify(colorMappings)}>
               {(() => {
                 const modifiedSvg = generateModifiedSvg();
                 console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
