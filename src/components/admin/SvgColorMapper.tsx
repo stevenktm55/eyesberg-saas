@@ -28,8 +28,9 @@ interface DetectedColor {
 
 interface ColorMapping {
   originalColor: string; // La couleur originale détectée
-  colorClass: ColorClass | null; // La classe de couleur (primary, secondary, etc.)
-  paletteColorId: string | null; // L'ID de la couleur de la palette qui remplacera cette couleur
+  colorClass: ColorClass; // La classe de couleur (primary, secondary, etc.)
+  paletteId: string | null; // ID de la palette sélectionnée
+  paletteColorId: string; // L'ID de la couleur de la palette qui remplacera cette couleur
 }
 
 interface SvgColorMapperProps {
@@ -1073,9 +1074,6 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         }
                       }
                       
-                      // Forcer le SVG à s'adapter au conteneur
-                      svgElement.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
-                      
                       // Ré-sérialiser le SVG avec les dimensions
                       const serializer = new XMLSerializer();
                       const svgWithDimensions = serializer.serializeToString(svgDoc);
@@ -1096,11 +1094,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                           <div
                             dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
                             style={{ 
-                              display: 'block',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
                               width: '100%',
                               height: '100%'
                             }}
                           />
+                          <style jsx>{`
+                            div :global(svg) {
+                              max-width: 100% !important;
+                              max-height: 100% !important;
+                              width: auto !important;
+                              height: auto !important;
+                              object-fit: contain;
+                            }
+                          `}</style>
                         </div>
                       );
                     }
@@ -1109,13 +1118,12 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   }
                   
                   // Fallback: afficher le SVG tel quel avec style pour adaptation
-                  const parser = new DOMParser();
-                  const svgDocFallback = parser.parseFromString(modifiedSvg, 'image/svg+xml');
+                  const parserFallback = new DOMParser();
+                  const svgDocFallback = parserFallback.parseFromString(modifiedSvg, 'image/svg+xml');
                   const svgElementFallback = svgDocFallback.querySelector('svg');
                   if (svgElementFallback) {
-                    svgElementFallback.setAttribute('style', 'max-width: 100%; max-height: 100%; width: auto; height: auto;');
-                    const serializer = new XMLSerializer();
-                    const svgAdapted = serializer.serializeToString(svgDocFallback);
+                    const serializerFallback = new XMLSerializer();
+                    const svgAdapted = serializerFallback.serializeToString(svgDocFallback);
                     return (
                       <div
                         style={{ 
@@ -1130,11 +1138,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                         <div
                           dangerouslySetInnerHTML={{ __html: svgAdapted }}
                           style={{ 
-                            display: 'block',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             width: '100%',
                             height: '100%'
                           }}
                         />
+                        <style jsx>{`
+                          div :global(svg) {
+                            max-width: 100% !important;
+                            max-height: 100% !important;
+                            width: auto !important;
+                            height: auto !important;
+                            object-fit: contain;
+                          }
+                        `}</style>
                       </div>
                     );
                   }
@@ -1152,11 +1171,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                       <div
                         dangerouslySetInnerHTML={{ __html: modifiedSvg }}
                         style={{ 
-                          display: 'block',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           width: '100%',
                           height: '100%'
                         }}
                       />
+                      <style jsx>{`
+                        div :global(svg) {
+                          max-width: 100% !important;
+                          max-height: 100% !important;
+                          width: auto !important;
+                          height: auto !important;
+                          object-fit: contain;
+                        }
+                      `}</style>
                     </div>
                   );
                 }
