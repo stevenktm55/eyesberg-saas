@@ -4,6 +4,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary" | null;
 
+interface Design2D {
+  id: string;
+  name: string;
+  svgUrl?: string;
+  svg_url?: string;
+  thumbUrl?: string;
+  thumb_url?: string;
+  preview_url?: string;
+}
+
 interface SvgColorMapperProps {
   svgInput?: string | File | null;
   onExport?: (svgString: string) => void;
@@ -28,19 +38,70 @@ const COLOR_TOOLS: ColorTool[] = [
 ];
 
 export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorMapperProps) {
+  const [designs, setDesigns] = useState<Design2D[]>([]);
+  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
   const [selectedTool, setSelectedTool] = useState<ColorClass | undefined>(undefined);
   const [svgContainer, setSvgContainer] = useState<HTMLDivElement | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [targetGroup, setTargetGroup] = useState(false); // Option pour cibler tout le groupe
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Charger le SVG depuis l'input
+  // Charger les designs 2D
   useEffect(() => {
-    if (!svgInput) {
+    async function fetchDesigns() {
+      try {
+        const response = await fetch("/api/designs-2d");
+        if (!response.ok) throw new Error("Failed to fetch designs");
+        const data = await response.json();
+        const designsArray = Array.isArray(data) ? data : [];
+        setDesigns(designsArray.map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          svgUrl: d.svg_url || d.svgUrl,
+          thumbUrl: d.thumb_url || d.thumbUrl || d.preview_url,
+        })));
+      } catch (error) {
+        console.error("Error fetching designs:", error);
+      }
+    }
+    fetchDesigns();
+  }, []);
+
+  // Charger le SVG depuis le design sélectionné
+  useEffect(() => {
+    if (!selectedDesignId) {
       setSvgContent("");
       return;
     }
+
+    const loadSvg = async () => {
+      setIsProcessing(true);
+      try {
+        const design = designs.find(d => d.id === selectedDesignId);
+        if (!design || !design.svgUrl) {
+          alert("Design introuvable ou URL SVG manquante");
+          return;
+        }
+
+        const response = await fetch(design.svgUrl);
+        if (!response.ok) throw new Error("Failed to fetch SVG");
+        const text = await response.text();
+        setSvgContent(text);
+      } catch (error) {
+        console.error("Erreur lors du chargement du SVG:", error);
+        alert("Erreur lors du chargement du SVG");
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    loadSvg();
+  }, [selectedDesignId, designs]);
+
+  // Charger le SVG depuis l'input (fallback pour compatibilité)
+  useEffect(() => {
+    if (!svgInput || selectedDesignId) return;
 
     const loadSvg = async () => {
       setIsProcessing(true);
@@ -60,7 +121,7 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     };
 
     loadSvg();
-  }, [svgInput]);
+  }, [svgInput, selectedDesignId]);
 
   // Appliquer les styles de feedback visuel après le rendu
   useEffect(() => {
@@ -225,165 +286,379 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     }
   }, [svgContainer, onExport]);
 
-  // Gestion du drag & drop de fichier
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === "image/svg+xml") {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setSvgContent(event.target?.result as string);
-      };
-      reader.readAsText(file);
-    } else {
-      alert("Veuillez déposer un fichier SVG");
-    }
-  }, []);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === "image/svg+xml") {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setSvgContent(event.target?.result as string);
-      };
-      reader.readAsText(file);
-    }
-  }, []);
+  const filteredDesigns = designs.filter((design) =>
+    design.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className={`svg-color-mapper-container flex flex-col ${className || "h-full"}`}>
-      {/* Palette d'outils */}
-      <div className="flex-shrink-0 border-b bg-white p-4">
-        <div className="flex flex-wrap gap-2 items-center mb-2">
-          <span className="text-sm font-medium text-gray-700 mr-2">Outils :</span>
-          {COLOR_TOOLS.map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
-              className={`px-4 py-2 rounded border-2 transition-all ${
-                selectedTool === tool.id
-                  ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-300 bg-white hover:border-gray-400"
-              }`}
-              title={tool.label}
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-6 h-6 rounded border-2 border-gray-400"
-                  style={{ backgroundColor: tool.previewColor }}
-                />
-                <span className="text-sm font-medium text-gray-700">{tool.label}</span>
+    <div style={{ 
+      fontFamily: 'var(--stepn-font-body)',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      backgroundColor: '#000000',
+      color: '#ffffff'
+    }}>
+      {/* Sélection du design */}
+      {!svgContent && (
+        <div style={{ padding: '24px', borderBottom: '1px solid #1a1a1a' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              color: '#ffffff',
+              marginBottom: '8px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Rechercher un design 2D
+            </label>
+            <input
+              type="text"
+              placeholder="Rechercher un design 2D..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: 'var(--stepn-font-body)'
+              }}
+            />
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '16px',
+            maxHeight: '400px',
+            overflowY: 'auto'
+          }}>
+            {filteredDesigns.map((design) => (
+              <div
+                key={design.id}
+                onClick={() => setSelectedDesignId(design.id)}
+                style={{
+                  backgroundColor: '#1a1a1a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#8eff36';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#2a2a2a';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  marginBottom: '8px',
+                  fontFamily: 'var(--stepn-font-body)'
+                }}>
+                  {design.name}
+                </div>
+                {design.thumbUrl && (
+                  <img
+                    src={design.thumbUrl}
+                    alt={design.name}
+                    style={{
+                      width: '100%',
+                      height: '120px',
+                      objectFit: 'contain',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '4px'
+                    }}
+                  />
+                )}
               </div>
-            </button>
-          ))}
-          <button
-            onClick={() => setSelectedTool(selectedTool === null ? undefined : null)}
-            className={`px-4 py-2 rounded border-2 transition-all ${
-              selectedTool === null
-                ? "border-red-500 bg-red-50 shadow-md"
-                : "border-gray-300 bg-white hover:border-gray-400"
-            }`}
-            title="Effacer les classes de couleur"
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🗑️</span>
-              <span className="text-sm font-medium text-gray-700">Effacer</span>
-            </div>
-          </button>
+            ))}
+          </div>
         </div>
-        <div className="mt-2 flex items-center gap-2">
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+      )}
+
+      {/* Palette d'outils */}
+      {svgContent && (
+        <div style={{
+          flexShrink: 0,
+          borderBottom: '1px solid #1a1a1a',
+          backgroundColor: '#000000',
+          padding: '16px'
+        }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+            <span style={{
+              fontSize: '14px',
+              color: '#a0a0a0',
+              marginRight: '8px',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Outils :
+            </span>
+            {COLOR_TOOLS.map((tool) => (
+              <button
+                key={tool.id}
+                onClick={() => setSelectedTool(selectedTool === tool.id ? undefined : tool.id)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: selectedTool === tool.id ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+                  border: selectedTool === tool.id ? '2px solid #8eff36' : '2px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: selectedTool === tool.id ? '#8eff36' : '#a0a0a0',
+                  fontSize: '12px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedTool !== tool.id) {
+                    e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.borderColor = '#3a3a3a';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedTool !== tool.id) {
+                    e.currentTarget.style.color = '#a0a0a0';
+                    e.currentTarget.style.borderColor = '#2a2a2a';
+                  }
+                }}
+                title={tool.label}
+              >
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '4px',
+                    border: '1px solid #2a2a2a',
+                    backgroundColor: tool.previewColor
+                  }}
+                />
+                <span>{tool.label}</span>
+              </button>
+            ))}
+            <button
+              onClick={() => setSelectedTool(selectedTool === null ? undefined : null)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: selectedTool === null ? 'rgba(255, 68, 68, 0.1)' : 'transparent',
+                border: selectedTool === null ? '2px solid #ff4444' : '2px solid #2a2a2a',
+                borderRadius: '8px',
+                color: selectedTool === null ? '#ff4444' : '#a0a0a0',
+                fontSize: '12px',
+                fontFamily: 'var(--stepn-font-body)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              onMouseEnter={(e) => {
+                if (selectedTool !== null) {
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.borderColor = '#3a3a3a';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTool !== null) {
+                  e.currentTarget.style.color = '#a0a0a0';
+                  e.currentTarget.style.borderColor = '#2a2a2a';
+                }
+              }}
+              title="Effacer les classes de couleur"
+            >
+              <span>🗑️</span>
+              <span>Effacer</span>
+            </button>
+          </div>
+          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="checkbox"
               checked={targetGroup}
               onChange={(e) => setTargetGroup(e.target.checked)}
-              className="w-4 h-4"
+              style={{
+                width: '16px',
+                height: '16px',
+                cursor: 'pointer'
+              }}
             />
-            <span>Appliquer au groupe entier (si l'élément est dans un &lt;g&gt;)</span>
-          </label>
-        </div>
-        {selectedTool !== undefined && (
-          <div className="mt-2 text-xs text-gray-600">
-            <span className="font-medium">Outil sélectionné :</span>{" "}
-            {selectedTool === null 
-              ? "Effacer - Cliquez sur les éléments pour retirer leurs classes de couleur"
-              : `${COLOR_TOOLS.find(t => t.id === selectedTool)?.label} - Cliquez sur les éléments du SVG pour leur attribuer cette couleur.`
-            }
+            <label style={{
+              fontSize: '12px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)',
+              cursor: 'pointer'
+            }}>
+              Appliquer au groupe entier (si l'élément est dans un &lt;g&gt;)
+            </label>
           </div>
-        )}
-      </div>
+          {selectedTool !== undefined && (
+            <div style={{
+              marginTop: '12px',
+              fontSize: '12px',
+              color: '#a0a0a0',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              <span style={{ fontWeight: '500', color: '#8eff36' }}>Outil sélectionné :</span>{" "}
+              {selectedTool === null 
+                ? "Effacer - Cliquez sur les éléments pour retirer leurs classes de couleur"
+                : `${COLOR_TOOLS.find(t => t.id === selectedTool)?.label} - Cliquez sur les éléments du SVG pour leur attribuer cette couleur.`
+              }
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Zone de contenu */}
-      <div className="flex-1 overflow-auto bg-gray-100 p-4">
+      <div style={{
+        flex: 1,
+        overflow: 'auto',
+        backgroundColor: '#000000',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
         {!svgContent ? (
-          <div
-            className="h-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg"
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-          >
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">Déposez un fichier SVG ici ou</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/svg+xml"
-                onChange={handleFileInput}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Choisir un fichier SVG
-              </button>
-            </div>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#a0a0a0',
+            fontSize: '14px',
+            fontFamily: 'var(--stepn-font-body)'
+          }}>
+            {designs.length === 0 ? 'Aucun design disponible' : 'Sélectionnez un design 2D ci-dessus'}
           </div>
         ) : (
-          <div className="h-full flex flex-col">
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Contrôles */}
-            <div className="mb-4 flex gap-2">
+            <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => {
                   setSvgContent("");
+                  setSelectedDesignId(null);
                   setSelectedTool(undefined);
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#2a2a2a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
               >
                 Réinitialiser
               </button>
               <button
                 onClick={handleExport}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#8eff36',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#000000',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
               >
                 💾 Exporter le SVG
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/svg+xml"
-                onChange={handleFileInput}
-                className="hidden"
-              />
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                onClick={() => {
+                  setSvgContent("");
+                  setSelectedDesignId(null);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#2a2a2a',
+                  border: '1px solid #2a2a2a',
+                  borderRadius: '8px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontFamily: 'var(--stepn-font-body)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3a3a3a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2a2a2a';
+                }}
               >
-                📁 Charger un autre SVG
+                📁 Changer de design
               </button>
             </div>
 
             {/* SVG Container */}
             <div
               ref={setSvgContainer}
-              className="flex-1 overflow-auto bg-white border-2 border-gray-300 rounded-lg p-4 flex items-center justify-center"
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                backgroundColor: '#0a0a0a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '8px',
+                padding: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
           </div>
         )}
         {isProcessing && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-4 rounded">Chargement...</div>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: '#1a1a1a',
+              padding: '24px',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontFamily: 'var(--stepn-font-body)'
+            }}>
+              Chargement...
+            </div>
           </div>
         )}
       </div>
