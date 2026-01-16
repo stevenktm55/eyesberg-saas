@@ -1865,13 +1865,26 @@ export default function ProductBuilderPage() {
 
   async function fetchDesigns2D() {
     try {
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('🔍 [FETCH DESIGNS 2D] Chargement des designs 2D');
+      console.log('═══════════════════════════════════════════════════════════');
       const res = await fetch('/api/designs-2d');
       if (res.ok) {
         const data = await res.json();
+        console.log('📦 Designs 2D chargés:', data.length);
+        data.forEach((design: any) => {
+          console.log(`   → Design ${design.id} (${design.name}):`);
+          console.log(`      - colors:`, design.colors);
+          console.log(`      - color_mappings:`, design.color_mappings);
+        });
         setDesigns2D(Array.isArray(data) ? data : []);
+        console.log('✅ Designs 2D chargés avec succès');
+      } else {
+        console.error('❌ Erreur HTTP:', res.status);
       }
+      console.log('═══════════════════════════════════════════════════════════');
     } catch (error) {
-      console.error('Error fetching 2D designs:', error);
+      console.error('❌ Error fetching 2D designs:', error);
     }
   }
 
@@ -4984,16 +4997,32 @@ export default function ProductBuilderPage() {
                       }
                       
                       const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+                      console.log('═══════════════════════════════════════════════════════════');
+                      console.log('🎨 [COLOR TAB] Détermination des classes de couleurs');
+                      console.log('═══════════════════════════════════════════════════════════');
+                      console.log('📦 Design sélectionné:', selectedDesign?.id, selectedDesign?.name);
+                      console.log('📦 Design colors (JSONB):', selectedDesign?.colors);
+                      console.log('📦 Design color_mappings:', selectedDesign?.color_mappings);
+                      
                       if (selectedDesign?.color_mappings) {
                         availableColorClasses = Object.keys(selectedDesign.color_mappings);
+                        console.log('✅ Classes depuis color_mappings:', availableColorClasses);
+                      } else if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
+                        // Extraire les classes depuis design.colors (format [{name, value}])
+                        availableColorClasses = selectedDesign.colors.map((c: any) => c.name).filter(Boolean);
+                        console.log('✅ Classes depuis design.colors:', availableColorClasses);
                       } else {
                         availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                        console.log('⚠️ Utilisation des classes par défaut:', availableColorClasses);
                       }
                       
                       availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
                       if (availableColorClasses.length === 0) {
                         availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                        console.log('⚠️ Aucune classe valide, utilisation par défaut:', availableColorClasses);
                       }
+                      console.log('📦 Classes finales disponibles:', availableColorClasses);
+                      console.log('═══════════════════════════════════════════════════════════');
                       
                       // Si on a sélectionné une classe de couleur, afficher la grille de couleurs
                       if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
