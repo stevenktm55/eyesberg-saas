@@ -3030,7 +3030,7 @@ export default function ProductBuilderPage() {
           transform: scale(0.97);
         }
       `}</style>
-      {/* Preview Mode - Show only configurator */}
+      {/* Preview Mode - Show configurator panel and viewer 3D (exact same as builder) */}
       {previewMode && productId && (
           <div style={{
             position: 'fixed',
@@ -3038,7 +3038,7 @@ export default function ProductBuilderPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: '#ffffff',
+            backgroundColor: '#0a0a0a',
             zIndex: 10000,
             display: 'flex',
             flexDirection: 'column'
@@ -3058,12 +3058,12 @@ export default function ProductBuilderPage() {
                 gap: '12px'
               }}>
                 <span style={{
-                  color: '#111827',
+                  color: '#ffffff',
                   fontSize: '14px',
                   fontFamily: CONFIGURATOR_PANEL_FONT,
                   fontWeight: '600'
                 }}>
-                  Mode Prévisualisation
+                  Mode Prévisualisation - {productName}
                 </span>
               </div>
               <button
@@ -3089,8 +3089,6 @@ export default function ProductBuilderPage() {
                 Fermer la prévisualisation
               </button>
             </div>
-            {/* Configurator iframe */}
-            <PreviewIframe productId={productId} shop={searchParams.get('shop')} />
           </div>
       )}
       
