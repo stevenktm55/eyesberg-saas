@@ -681,17 +681,28 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       })
       .filter(Boolean);
 
+    console.log("🟡 [GENERATE SVG] styleRules générées:", styleRules);
+    console.log("🟡 [GENERATE SVG] Nombre de styleRules:", styleRules.length);
+
     // Ajouter le contenu seulement s'il y a des règles
     if (styleRules.length > 0) {
       styleElement.textContent = styleRules.join('\n    ');
+      console.log("🟡 [GENERATE SVG] Contenu du styleElement:", styleElement.textContent);
       
       // Ajouter le style dans un bloc <defs>
       let defs = svgDoc.querySelector('defs');
       if (!defs) {
         defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
         svgElement.insertBefore(defs, svgElement.firstChild);
+        console.log("🟡 [GENERATE SVG] <defs> créé");
+      } else {
+        console.log("🟡 [GENERATE SVG] <defs> existant trouvé");
       }
       defs.appendChild(styleElement);
+      console.log("🟡 [GENERATE SVG] styleElement ajouté dans defs");
+      console.log("🟡 [GENERATE SVG] Nombre de <style> dans defs après ajout:", defs.querySelectorAll('style').length);
+    } else {
+      console.log("🟡 [GENERATE SVG] ⚠️ Aucune styleRule à ajouter (styleRules.length = 0)");
     }
 
       // Convertir en string
@@ -918,21 +929,45 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               })
               .filter(Boolean);
 
+            console.log("🟣 [USE EFFECT PREVIEW] styleRules générées:", styleRules);
+            console.log("🟣 [USE EFFECT PREVIEW] Nombre de styleRules:", styleRules.length);
+
             if (styleRules.length > 0) {
               styleElement.textContent = styleRules.join('\n    ');
+              console.log("🟣 [USE EFFECT PREVIEW] Contenu du styleElement:", styleElement.textContent);
               let defs = svgDoc.querySelector('defs');
               if (!defs) {
                 defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
                 svgElement.insertBefore(defs, svgElement.firstChild);
+                console.log("🟣 [USE EFFECT PREVIEW] <defs> créé");
+              } else {
+                console.log("🟣 [USE EFFECT PREVIEW] <defs> existant trouvé");
               }
               defs.appendChild(styleElement);
+              console.log("🟣 [USE EFFECT PREVIEW] styleElement ajouté dans defs");
+              console.log("🟣 [USE EFFECT PREVIEW] Nombre de <style> dans defs après ajout:", defs.querySelectorAll('style').length);
+            } else {
+              console.log("🟣 [USE EFFECT PREVIEW] Aucune styleRule à ajouter (styleRules.length = 0)");
             }
 
             const serializer = new XMLSerializer();
             const result = serializer.serializeToString(svgDoc);
             console.log("🟣 [USE EFFECT PREVIEW] SVG modifié généré, longueur:", result.length);
-            console.log("🟣 [USE EFFECT PREVIEW] Nombre de <style> dans le résultat:", svgDoc.querySelectorAll('style').length);
-            console.log("🟣 [USE EFFECT PREVIEW] Contenu des styles:", svgDoc.querySelector('style')?.textContent);
+            const allStyles = svgDoc.querySelectorAll('style');
+            console.log("🟣 [USE EFFECT PREVIEW] Nombre de <style> dans le résultat:", allStyles.length);
+            allStyles.forEach((style, index) => {
+              console.log(`🟣 [USE EFFECT PREVIEW] Style ${index}:`, style.textContent?.substring(0, 200));
+            });
+            // Chercher spécifiquement le style avec nos classes de couleur
+            const colorStyle = Array.from(allStyles).find(style => {
+              const text = style.textContent || '';
+              return text.includes('.primary') || text.includes('.secondary') || text.includes('.tertiary');
+            });
+            if (colorStyle) {
+              console.log("🟣 [USE EFFECT PREVIEW] Style avec classes de couleur trouvé:", colorStyle.textContent);
+            } else {
+              console.log("🟣 [USE EFFECT PREVIEW] ⚠️ AUCUN style avec classes de couleur trouvé !");
+            }
             console.log("🟣 [USE EFFECT PREVIEW] SVG généré (premiers 1000 chars):", result.substring(0, 1000));
             setModifiedSvgPreview(result);
             console.log("🟣 [USE EFFECT PREVIEW] modifiedSvgPreview mis à jour");
