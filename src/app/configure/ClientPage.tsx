@@ -6643,46 +6643,6 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
     return params.get('preview') === 'true';
   }, []);
 
-  // Charger la configuration du produit en mode preview (pour afficher exactement ce qui est configuré dans le builder)
-  useEffect(() => {
-    if (!isPreviewMode || !productId || !shopifyConfig.shopDomain) return;
-    
-    const loadProductConfig = async () => {
-      try {
-        console.log('🔍 Chargement configuration produit pour preview:', { productId, shop: shopifyConfig.shopDomain });
-        const response = await fetch(`/api/shopify/products/${productId}?shop=${shopifyConfig.shopDomain}`);
-        
-        if (!response.ok) {
-          console.error('❌ Erreur lors du chargement de la configuration produit:', response.status);
-          return;
-        }
-        
-        const data = await response.json();
-        
-        if (data.config) {
-          console.log('✅ Configuration produit chargée:', data.config);
-          
-          // Charger le modèle 3D si configuré
-          if (data.config.modelUrl) {
-            setConfigModelUrl(data.config.modelUrl);
-            console.log('🎯 Modèle configuré:', data.config.modelUrl);
-          }
-          
-          // Charger les design_ids autorisés depuis product.design_ids
-          if (data.product?.design_ids && Array.isArray(data.product.design_ids) && data.product.design_ids.length > 0) {
-            setConfigDesignIds(data.product.design_ids);
-            console.log('🎨 Design IDs autorisés:', data.product.design_ids);
-          }
-        } else {
-          console.log('ℹ️ Pas de configuration sauvegardée pour ce produit');
-        }
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement de la configuration produit:', error);
-      }
-    };
-    
-    loadProductConfig();
-  }, [isPreviewMode, productId, shopifyConfig.shopDomain]);
 
   // Intégration Shopify pour les actions des boutons mobiles
   const {

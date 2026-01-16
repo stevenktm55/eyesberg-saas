@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { QuestionsPanel } from "@/components/admin/QuestionsPanel";
+import { Canvas3DPreview } from "@/components/admin/Canvas3DPreview";
+import { SettingsPanel } from "@/components/admin/SettingsPanel";
+import { ProductQuestion, ProductLayer } from "@/components/admin/ProductEditor3D";
 
 interface Snapshots {
   mobile: string | null;
@@ -13,47 +17,101 @@ export default function PreviewPage() {
   // Accepter productId ou id (pour compatibilité)
   const productId = searchParams.get("productId") || searchParams.get("id");
   const shop = searchParams.get("shop");
-  const [configuratorUrl, setConfiguratorUrl] = useState<string | null>(null);
-  const [snapshots, setSnapshots] = useState<Snapshots | null>(null);
+  
+  const [productName, setProductName] = useState("Chargement...");
+  const [questions, setQuestions] = useState<ProductQuestion[]>([]);
+  const [layers, setLayers] = useState<ProductLayer[]>([]);
+  const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [snapshots, setSnapshots] = useState<Snapshots | null>(null);
   const [viewMode, setViewMode] = useState<"mobile" | "desktop">("desktop");
 
+  // Charger la configuration du produit depuis le builder
   useEffect(() => {
-    if (!productId) {
-      setError("Product ID is required");
+    if (!productId || !shop) {
+      setError("Product ID et Shop sont requis");
       setLoading(false);
       return;
     }
 
-    // Construire directement l'URL du configurateur avec les paramètres disponibles
-    const params = new URLSearchParams();
-    
-    if (shop) {
-      params.append("shop", shop);
-    }
-    
-    if (productId) {
-      params.append("productId", productId);
-    }
+    const loadProductConfig = async () => {
+      try {
+        setLoading(true);
+        console.log('🔍 Chargement configuration produit pour preview:', { productId, shop });
+        const response = await fetch(`/api/shopify/products/${productId}?shop=${shop}`);
+        
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.config) {
+          console.log('✅ Configuration produit chargée:', data.config);
+          
+          // Charger les données exactement comme dans le builder
+          setProductName(data.config.productName || data.product?.shopify_product_title || "Untitled Product");
+          setModelUrl(data.config.modelUrl || null);
+          setQuestions(data.config.questions || []);
+          setLayers(data.config.layers || []);
+        } else {
+          // Pas de configuration, utiliser des valeurs par défaut comme dans le builder
+          setProductName(data.product?.shopify_product_title || "Untitled Product");
+          setQuestions([
+            {
+              id: "q1",
+              type: "group",
+              label: "Choix des couleurs",
+              groupId: "colors",
+              visible: true,
+            },
+            {
+              id: "q2",
+              type: "text",
+              label: "Nom",
+              visible: true,
+            },
+            {
+              id: "q3",
+              type: "text",
+              label: "Numéro",
+              visible: true,
+            },
+            {
+              id: "q4",
+              type: "radio",
+              label: "Taille",
+              options: ["S", "M", "L", "XL", "XXL"],
+              visible: true,
+            },
+          ]);
+          setLayers([
+            { id: "l1", name: "shadows avant", visible: true, behindScene: true },
+            { id: "l2", name: "Couleurs 1", visible: true },
+            { id: "l3", name: "Couleurs 2", visible: true },
+            { id: "l4", name: "Couleurs 3", visible: true },
+            { id: "l5", name: "tailles", visible: true, behindScene: true },
+          ]);
+        }
 
-    // Ajouter le paramètre preview pour masquer les boutons d'action
-    params.append("preview", "true");
-
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${baseUrl}/configure?${params.toString()}`;
+        // Charger les snapshots si disponibles
+        loadSnapshots();
+      } catch (err) {
+        console.error('❌ Erreur lors du chargement de la configuration produit:', err);
+        setError(err instanceof Error ? err.message : "Erreur lors du chargement");
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    setConfiguratorUrl(url);
-
-    // Charger les snapshots
-    loadSnapshots();
+    loadProductConfig();
   }, [productId, shop]);
 
   const loadSnapshots = async () => {
-    if (!productId || !shop) {
-      setLoading(false);
-      return;
-    }
+    if (!productId || !shop) return;
 
     try {
       const response = await fetch(`/api/shopify/products/${productId}/snapshots?shop=${shop}`);
@@ -65,8 +123,6 @@ export default function PreviewPage() {
       }
     } catch (err) {
       console.error("Erreur lors du chargement des snapshots:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -75,7 +131,7 @@ export default function PreviewPage() {
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de l'aperçu...</p>
+          <p className="text-gray-600">Chargement de la configuration...</p>
         </div>
       </div>
     );
@@ -94,16 +150,6 @@ export default function PreviewPage() {
           >
             Fermer
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!configuratorUrl) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600">URL du configurateur non disponible</p>
         </div>
       </div>
     );
@@ -186,15 +232,55 @@ export default function PreviewPage() {
     );
   }
 
-  // Fallback : afficher l'iframe si pas de snapshots
+  // Afficher exactement le même layout que le builder (QuestionsPanel + Canvas3DPreview + SettingsPanel)
   return (
-    <div className="h-screen w-screen overflow-hidden">
-      <iframe
-        src={configuratorUrl || undefined}
-        className="w-full h-full border-0"
-        title="Aperçu du configurateur"
-        allow="fullscreen"
-      />
+    <div className="h-screen w-screen flex flex-col bg-white">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-900">{productName}</h1>
+        <button
+          onClick={() => window.close()}
+          className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+        >
+          Fermer
+        </button>
+      </div>
+
+      {/* Content : exactement comme dans le builder */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel: Questions */}
+        <QuestionsPanel
+          questions={questions}
+          layers={layers}
+          onQuestionsChange={setQuestions}
+          onLayersChange={setLayers}
+          selectedQuestionId={selectedQuestionId}
+          onQuestionSelect={setSelectedQuestionId}
+          selectedLayerId={selectedLayerId}
+          onLayerSelect={setSelectedLayerId}
+        />
+
+        {/* Center Panel: 3D Preview */}
+        <div className="flex-1 flex flex-col bg-gray-900">
+          <Canvas3DPreview
+            modelUrl={modelUrl}
+            questions={questions}
+            layers={layers}
+            onModelUrlChange={setModelUrl}
+          />
+        </div>
+
+        {/* Right Panel: Settings */}
+        <SettingsPanel
+          selectedQuestionId={selectedQuestionId}
+          selectedLayerId={selectedLayerId}
+          questions={questions}
+          layers={layers}
+          onQuestionsChange={setQuestions}
+          onLayersChange={setLayers}
+          shop={shop || undefined}
+        />
+      </div>
     </div>
   );
 }
