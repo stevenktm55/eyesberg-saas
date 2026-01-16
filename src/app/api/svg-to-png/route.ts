@@ -1,7 +1,16 @@
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+
+// Lazy import de sharp pour éviter les problèmes au build
+let sharp: any;
+async function getSharp() {
+  if (!sharp) {
+    sharp = (await import('sharp')).default;
+  }
+  return sharp;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +39,8 @@ export async function GET(request: NextRequest) {
     let lastErr: any = null;
     for (const a of attempts) {
       try {
-        png = await sharp(svgBuffer, { density: a.density })
+        const sharpInstance = await getSharp();
+        png = await sharpInstance(svgBuffer, { density: a.density })
           .resize({ width: a.width, height: a.height, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
           .png({ compressionLevel: 9 })
           .toBuffer();
