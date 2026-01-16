@@ -6643,6 +6643,45 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
     return params.get('preview') === 'true';
   }, []);
 
+  // Charger la configuration du produit en mode preview
+  useEffect(() => {
+    if (!isPreviewMode || !productId || !shopifyConfig.shopDomain) return;
+    
+    const loadProductConfig = async () => {
+      try {
+        console.log('🔍 Chargement configuration produit pour preview:', { productId, shop: shopifyConfig.shopDomain });
+        const response = await fetch(`/api/shopify/products/${productId}?shop=${shopifyConfig.shopDomain}`);
+        
+        if (!response.ok) {
+          console.error('❌ Erreur lors du chargement de la configuration produit:', response.status);
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.config) {
+          console.log('✅ Configuration produit chargée:', data.config);
+          
+          // Charger le modèle 3D si configuré
+          if (data.config.modelUrl) {
+            setConfigModelUrl(data.config.modelUrl);
+            console.log('🎯 Modèle configuré:', data.config.modelUrl);
+          }
+          
+          // Note: Les couleurs, textes, logos sont gérés par les configurations client (table `configurations`)
+          // Ici on charge juste la structure du produit (questions, layers, model)
+          // Pour le preview, on peut appliquer les couleurs par défaut du design sélectionné
+        } else {
+          console.log('ℹ️ Pas de configuration sauvegardée pour ce produit');
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement de la configuration produit:', error);
+      }
+    };
+    
+    loadProductConfig();
+  }, [isPreviewMode, productId, shopifyConfig.shopDomain]);
+
   // Intégration Shopify pour les actions des boutons mobiles
   const {
     isLoading: isShopifyLoading,
