@@ -101,21 +101,32 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   const colorMap = new Map<string, { original: string; count: number }>();
 
   // Détecter si le SVG contient déjà des classes de couleur mappées (primary, secondary, etc.)
+  // OU si les styles contiennent des règles pour nos classes de couleur
   // Si c'est le cas, cela signifie que le SVG a déjà été traité par notre système
-  // et on ne doit PAS détecter les couleurs dans les <style> car elles sont générées par notre système
   const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
   const svgEl = svgDoc.querySelector('svg');
-  const hasColorClasses = svgEl ? Array.from(svgEl.querySelectorAll('*')).some(el => {
+  const hasColorClassesInElements = svgEl ? Array.from(svgEl.querySelectorAll('*')).some(el => {
     const classAttr = el.getAttribute('class');
     if (!classAttr) return false;
     return classAttr.split(/\s+/).some(c => colorClassNames.includes(c));
   }) : false;
+  
+  // Vérifier aussi si les styles contiennent des règles pour nos classes
+  const styleElements = svgDoc.querySelectorAll('style');
+  const hasColorClassesInStyles = Array.from(styleElements).some(styleEl => {
+    const cssText = styleEl.textContent || '';
+    return colorClassNames.some(className => {
+      const pattern = new RegExp(`\\.${className}\\s*\\{`);
+      return pattern.test(cssText);
+    });
+  });
+  
+  const hasColorClasses = hasColorClassesInElements || hasColorClassesInStyles;
 
   // Ne détecter les couleurs dans les <style> que si le SVG n'a PAS encore de classes de couleur
   // Si le SVG a des classes, cela signifie qu'il a été traité, donc on ignore les <style>
   if (!hasColorClasses) {
     // Détecter les couleurs dans les blocs <style>
-    const styleElements = svgDoc.querySelectorAll('style');
     styleElements.forEach(styleEl => {
       const cssText = styleEl.textContent || '';
       
@@ -159,6 +170,8 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
         }
       });
     });
+  } else {
+    console.log("🔵 [DETECT COLORS] SVG contient des classes de couleur, on ignore les <style>");
   }
   // Si hasColorClasses est true, on ignore complètement les <style> pour éviter de détecter
   // les couleurs générées par notre système qui mappent les classes aux couleurs de palette
@@ -171,13 +184,15 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
 
     [fill, stroke].forEach(color => {
       if (color && color !== 'none' && color !== 'transparent' && color !== 'currentColor' && !color.startsWith('url(') && !color.startsWith('var(')) {
-        const normalized = normalizeColorToHex(color);
+        // Retirer !important si présent (au cas où il serait dans un attribut)
+        let cleanColor = color.replace(/\s*!important\s*/gi, '').trim();
+        const normalized = normalizeColorToHex(cleanColor);
         if (normalized) {
           const existing = colorMap.get(normalized);
           if (existing) {
             existing.count++;
           } else {
-            colorMap.set(normalized, { original: color, count: 1 });
+            colorMap.set(normalized, { original: cleanColor, count: 1 });
           }
         }
       }
@@ -187,13 +202,15 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
     if (element.tagName === 'stop') {
       const stopColor = element.getAttribute('stop-color');
       if (stopColor && stopColor !== 'none' && stopColor !== 'transparent' && stopColor !== 'currentColor') {
-        const normalized = normalizeColorToHex(stopColor);
+        // Retirer !important si présent
+        let cleanColor = stopColor.replace(/\s*!important\s*/gi, '').trim();
+        const normalized = normalizeColorToHex(cleanColor);
         if (normalized) {
           const existing = colorMap.get(normalized);
           if (existing) {
             existing.count++;
           } else {
-            colorMap.set(normalized, { original: stopColor, count: 1 });
+            colorMap.set(normalized, { original: cleanColor, count: 1 });
           }
         }
       }
@@ -361,12 +378,16 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
                   const fillMatch = ruleContent.match(/fill:\s*([^;\\s]+)/i);
                   const strokeMatch = ruleContent.match(/stroke:\s*([^;\\s]+)/i);
                   if (fillMatch && fillMatch[1]) {
-                    const color = fillMatch[1].trim();
+                    let color = fillMatch[1].trim();
+                    // Retirer !important si présent
+                    color = color.replace(/\s*!important\s*/gi, '').trim();
                     if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
                       classToColorMap.set(className, color);
                     }
                   } else if (strokeMatch && strokeMatch[1]) {
-                    const color = strokeMatch[1].trim();
+                    let color = strokeMatch[1].trim();
+                    // Retirer !important si présent
+                    color = color.replace(/\s*!important\s*/gi, '').trim();
                     if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
                       classToColorMap.set(className, color);
                     }
