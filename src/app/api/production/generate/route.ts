@@ -1,70 +1,47 @@
 // =====================================================
-// API PRODUCTION FILE GENERATION
+// API PRODUCTION - GÉNÉRER UN FICHIER DE PRODUCTION
 // =====================================================
 // POST /api/production/generate
-// Génère un fichier SVG de production en injectant
-// un design utilisateur dans un template de patron
+// Génère un fichier SVG de production fusionné
 // =====================================================
 
-import { NextRequest, NextResponse } from 'next/server';
-import { generateProductionFile, ProductionFileParams } from '@/lib/production-file';
+import { NextRequest, NextResponse } from "next/server";
+import { generatePrintFile } from "@/lib/production-generator";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { size, userDesignSvg, colorConfig } = body;
+    const { productId, size, userDesignSvgString, colorConfig } = body;
 
-    // Validation des paramètres
-    if (!size || !userDesignSvg || !colorConfig) {
+    if (!productId || !size || !userDesignSvgString || !colorConfig) {
       return NextResponse.json(
-        { 
-          success: false,
-          error: 'Paramètres manquants: size, userDesignSvg et colorConfig sont requis' 
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!colorConfig.primary || !colorConfig.secondary) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'colorConfig doit contenir au moins primary et secondary' 
+        {
+          error: "productId, size, userDesignSvgString, and colorConfig are required",
         },
         { status: 400 }
       );
     }
 
     // Générer le fichier de production
-    const result = await generateProductionFile({
+    const generatedSvg = await generatePrintFile(
+      productId,
       size,
-      userDesignSvg,
+      userDesignSvgString,
       colorConfig
-    } as ProductionFileParams);
+    );
 
-    if (!result.success) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: result.error || 'Erreur lors de la génération' 
-        },
-        { status: 500 }
-      );
-    }
-
+    // Retourner le SVG généré
     return NextResponse.json({
       success: true,
-      svg: result.svg
+      svg: generatedSvg,
     });
-
-  } catch (error) {
-    console.error('❌ Erreur API production/generate:', error);
+  } catch (error: any) {
+    console.error("❌ Erreur génération fichier production:", error);
     return NextResponse.json(
       {
-        success: false,
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        error: error.message || "Failed to generate production file",
       },
       { status: 500 }
     );

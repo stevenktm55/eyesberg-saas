@@ -354,7 +354,7 @@ export default function ConfigurationsAdminPage() {
             }
           }}
         >
-          Production Files
+          📄 Production Files
         </button>
       </div>
 
