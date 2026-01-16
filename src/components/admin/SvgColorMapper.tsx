@@ -118,6 +118,19 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
     const styleElements = svgDoc.querySelectorAll('style');
     styleElements.forEach(styleEl => {
       const cssText = styleEl.textContent || '';
+      
+      // Vérifier si ce style contient des règles pour nos classes de couleur
+      // Si oui, IGNORER complètement ce style
+      const hasColorClassRules = colorClassNames.some(className => {
+        const pattern = new RegExp(`\\.${className}\\s*\\{`);
+        return pattern.test(cssText);
+      });
+      
+      if (hasColorClassRules) {
+        // Ignorer ce style - ce sont nos couleurs générées
+        return;
+      }
+      
       // Chercher les règles CSS avec fill: ou stroke:
       const colorPatterns = [
         /fill:\s*([^;}\s]+)/gi,
@@ -128,7 +141,9 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
       colorPatterns.forEach(pattern => {
         let match;
         while ((match = pattern.exec(cssText)) !== null) {
-          const color = match[1].trim();
+          let color = match[1].trim();
+          // Retirer !important si présent
+          color = color.replace(/\s*!important\s*/gi, '').trim();
           if (color && !color.startsWith('url(') && !color.startsWith('var(') && color !== 'none' && color !== 'transparent' && color !== 'currentColor') {
             const normalized = normalizeColorToHex(color);
             if (normalized) {
@@ -136,6 +151,7 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
               if (existing) {
                 existing.count++;
               } else {
+                // Stocker la couleur originale sans !important
                 colorMap.set(normalized, { original: color, count: 1 });
               }
             }
@@ -197,17 +213,34 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   // (sinon on pourrait détecter les couleurs dans le <style> généré)
   if (!hasColorClasses) {
     // Chercher les patterns hexadécimaux dans le texte brut
+    // MAIS exclure ceux qui sont dans des règles CSS avec !important pour nos classes de couleur
     const hexPattern = /#([0-9A-Fa-f]{3,6})\b/g;
     let match;
     while ((match = hexPattern.exec(svgContent)) !== null) {
       const hex = '#' + match[1];
-      const normalized = normalizeColorToHex(hex);
-      if (normalized) {
-        const existing = colorMap.get(normalized);
-        if (existing) {
-          existing.count++;
-        } else {
-          colorMap.set(normalized, { original: hex, count: 1 });
+      const matchIndex = match.index;
+      
+      // Vérifier si cette couleur est dans un style avec nos classes de couleur
+      // En regardant le contexte autour de la correspondance
+      const contextStart = Math.max(0, matchIndex - 200);
+      const contextEnd = Math.min(svgContent.length, matchIndex + match[0].length + 200);
+      const context = svgContent.substring(contextStart, contextEnd);
+      
+      // Vérifier si c'est dans une règle CSS pour nos classes de couleur
+      const isInColorClassRule = colorClassNames.some(className => {
+        const classRulePattern = new RegExp(`\\.${className}\\s*\\{[^}]*${hex.replace('#', '\\#')}[^}]*!important`, 'i');
+        return classRulePattern.test(context);
+      });
+      
+      if (!isInColorClassRule) {
+        const normalized = normalizeColorToHex(hex);
+        if (normalized) {
+          const existing = colorMap.get(normalized);
+          if (existing) {
+            existing.count++;
+          } else {
+            colorMap.set(normalized, { original: hex, count: 1 });
+          }
         }
       }
     }
