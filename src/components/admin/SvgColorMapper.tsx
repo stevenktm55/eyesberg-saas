@@ -669,6 +669,32 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     // Appliquer les remplacements
     replaceColorsInElement(svgElement);
 
+    // Traiter les stop-color dans les gradients
+    const allStops = Array.from(svgDoc.querySelectorAll('stop'));
+    allStops.forEach(stop => {
+      const stopColor = stop.getAttribute('stop-color');
+      if (stopColor && stopColor !== 'none' && stopColor !== 'transparent') {
+        const normalized = normalizeColorToHex(stopColor);
+        if (normalized) {
+          let mapping = colorMappings[normalized];
+          if (!mapping) {
+            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+            if (detectedColor) {
+              mapping = colorMappings[detectedColor.normalizedHex];
+            }
+          }
+          
+          if (mapping?.colorClass && mapping.paletteColorId) {
+            const paletteColor = allPaletteColors.find(c => c.id === mapping.paletteColorId);
+            if (paletteColor) {
+              stop.setAttribute('stop-color', paletteColor.hex);
+              console.log(`🟡 [GENERATE SVG] stop-color ${stopColor} (${normalized}) remplacé par ${paletteColor.hex} (${mapping.colorClass})`);
+            }
+          }
+        }
+      }
+    });
+
     // Gérer les styles CSS pour les classes de couleur
     // Supprimer complètement les anciens blocs <style> qui contiennent des règles pour nos classes de couleur
     const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
@@ -685,6 +711,41 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       if (hasColorClassRules) {
         // Supprimer complètement ce bloc style
         styleEl.remove();
+      }
+    });
+    
+    // Supprimer les règles CSS pour les classes qui ne sont plus utilisées
+    const remainingStyleElements = Array.from(svgDoc.querySelectorAll('style'));
+    remainingStyleElements.forEach(styleEl => {
+      const cssText = styleEl.textContent || '';
+      const rulePattern = /\.(\w+)\s*\{[^}]*\}/g;
+      let match;
+      const rulesToRemove: string[] = [];
+      
+      while ((match = rulePattern.exec(cssText)) !== null) {
+        const className = match[1];
+        const fullRule = match[0];
+        
+        // Vérifier si cette classe CSS est encore utilisée dans le SVG
+        const elementsWithClass = svgElement.querySelectorAll(`.${className}`);
+        if (elementsWithClass.length === 0) {
+          rulesToRemove.push(fullRule);
+          console.log(`🟡 [GENERATE SVG] Règle CSS .${className} non utilisée, sera supprimée`);
+        }
+      }
+      
+      if (rulesToRemove.length > 0) {
+        let newCssText = cssText;
+        rulesToRemove.forEach(rule => {
+          const escapedRule = rule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          newCssText = newCssText.replace(new RegExp(escapedRule, 'g'), '');
+        });
+        newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
+        if (newCssText) {
+          styleEl.textContent = newCssText;
+        } else {
+          styleEl.remove();
+        }
       }
     });
 
@@ -978,9 +1039,38 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
 
             replaceColorsInElement(svgElement);
 
+            // Traiter les stop-color dans les gradients
+            const allStops = Array.from(svgDoc.querySelectorAll('stop'));
+            allStops.forEach(stop => {
+              const stopColor = stop.getAttribute('stop-color');
+              if (stopColor && stopColor !== 'none' && stopColor !== 'transparent') {
+                const normalized = normalizeColorToHex(stopColor);
+                if (normalized) {
+                  let mapping = colorMappings[normalized];
+                  if (!mapping) {
+                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
+                    if (detectedColor) {
+                      mapping = colorMappings[detectedColor.normalizedHex];
+                    }
+                  }
+                  
+                  if (mapping?.colorClass && mapping.paletteColorId) {
+                    const paletteColor = allPaletteColors.find(c => c.id === mapping.paletteColorId);
+                    if (paletteColor) {
+                      stop.setAttribute('stop-color', paletteColor.hex);
+                      console.log(`🟣 [USE EFFECT PREVIEW] stop-color ${stopColor} (${normalized}) remplacé par ${paletteColor.hex} (${mapping.colorClass})`);
+                    }
+                  }
+                }
+              }
+            });
+
             // Gérer les styles CSS - supprimer les anciens styles qui contiennent nos classes de couleur
+            // ET supprimer les règles CSS pour les classes qui ne sont plus utilisées
             const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
             const allStyleElements = Array.from(svgDoc.querySelectorAll('style'));
+            
+            // D'abord, supprimer les styles qui contiennent nos classes de couleur
             allStyleElements.forEach(styleEl => {
               const cssText = styleEl.textContent || '';
               const hasColorClassRules = colorClassNames.some(className => {
@@ -989,6 +1079,48 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
               });
               if (hasColorClassRules) {
                 styleEl.remove();
+              }
+            });
+            
+            // Ensuite, supprimer les règles CSS pour les classes qui ne sont plus utilisées
+            // (par exemple, si tous les éléments avec `st1` ont été remplacés par `secondary`, supprimer `.st1 { fill: #111; }`)
+            const remainingStyleElements = Array.from(svgDoc.querySelectorAll('style'));
+            remainingStyleElements.forEach(styleEl => {
+              const cssText = styleEl.textContent || '';
+              // Parser toutes les règles CSS
+              const rulePattern = /\.(\w+)\s*\{[^}]*\}/g;
+              let match;
+              const rulesToRemove: string[] = [];
+              
+              while ((match = rulePattern.exec(cssText)) !== null) {
+                const className = match[1];
+                const fullRule = match[0];
+                
+                // Vérifier si cette classe CSS est encore utilisée dans le SVG
+                const elementsWithClass = svgElement.querySelectorAll(`.${className}`);
+                if (elementsWithClass.length === 0) {
+                  // Cette classe n'est plus utilisée, on peut supprimer la règle
+                  rulesToRemove.push(fullRule);
+                  console.log(`🟣 [USE EFFECT PREVIEW] Règle CSS .${className} non utilisée, sera supprimée`);
+                }
+              }
+              
+              // Supprimer les règles inutilisées
+              if (rulesToRemove.length > 0) {
+                let newCssText = cssText;
+                rulesToRemove.forEach(rule => {
+                  // Échapper les caractères spéciaux pour le regex
+                  const escapedRule = rule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                  newCssText = newCssText.replace(new RegExp(escapedRule, 'g'), '');
+                });
+                // Nettoyer les espaces multiples et les lignes vides
+                newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
+                if (newCssText) {
+                  styleEl.textContent = newCssText;
+                } else {
+                  // Si le style est vide, le supprimer
+                  styleEl.remove();
+                }
               }
             });
 
