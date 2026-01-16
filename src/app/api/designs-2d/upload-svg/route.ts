@@ -165,6 +165,13 @@ export async function POST(request: NextRequest) {
     const updateData: any = { svg_url: publicUrl };
     if (extractedColors.length > 0) {
       updateData.colors = extractedColors;
+      console.log('📦 [UPDATE] Données à mettre à jour:', {
+        svg_url: publicUrl,
+        colors: extractedColors,
+        colorsCount: extractedColors.length
+      });
+    } else {
+      console.log('⚠️ [UPDATE] Aucune couleur à sauvegarder');
     }
 
     const { data: updatedDesign, error: updateError } = await supabaseAdmin
@@ -176,12 +183,25 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError) {
-      console.error('Supabase update error:', updateError);
+      console.error('❌ [UPDATE] Supabase update error:', updateError);
+      console.error('❌ [UPDATE] Error details:', {
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      });
       return NextResponse.json(
         { error: `Failed to update design: ${updateError.message}` },
         { status: 500 }
       );
     }
+
+    console.log('✅ [UPDATE] Design mis à jour avec succès:', {
+      id: updatedDesign?.id,
+      hasColors: !!updatedDesign?.colors,
+      colors: updatedDesign?.colors,
+      colorsType: typeof updatedDesign?.colors
+    });
 
     return NextResponse.json({ 
       success: true, 
