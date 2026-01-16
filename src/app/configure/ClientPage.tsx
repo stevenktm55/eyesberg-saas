@@ -583,11 +583,19 @@ function useColorSelection() {
     key.replace(/^--/, '').replace(/\s+/g, '-').toLowerCase();
 
   const updateColor = (colorType: string, color: string) => {
+    if (!color || typeof color !== 'string' || color.trim() === '') {
+      console.warn(`⚠️ Tentative de mise à jour avec couleur invalide: ${colorType} = ${color}`);
+      return;
+    }
     const normalizedKey = normalizeColorKey(colorType);
-    setColors(prev => ({
-      ...prev,
-      [normalizedKey]: color
-    }));
+    setColors(prev => {
+      const updated = {
+        ...prev,
+        [normalizedKey]: color.trim()
+      };
+      console.log(`🎨 [UPDATE COLOR] ${normalizedKey} = ${color.trim()}, total couleurs:`, Object.keys(updated).length, Object.keys(updated));
+      return updated;
+    });
     
     // Générer les variantes et les appliquer comme variables CSS
     const variants = generateColorVariants(color);
@@ -1925,7 +1933,25 @@ function DesignTab({
           svgUrl: design.svgUrl || design.svg_url,
           thumbUrl: design.thumbUrl || design.thumb_url || design.preview_url,
           model_type: design.model_type || design.modelType || design.type,
-          colors: Array.isArray(design.colors) ? design.colors : Array.isArray(design.design_colors) ? design.design_colors : undefined,
+          colors: (() => {
+            // Gérer différents formats de couleurs
+            if (Array.isArray(design.colors)) {
+              return design.colors;
+            }
+            if (Array.isArray(design.design_colors)) {
+              return design.design_colors;
+            }
+            // Si c'est une string JSON, la parser
+            if (typeof design.colors === 'string') {
+              try {
+                const parsed = JSON.parse(design.colors);
+                return Array.isArray(parsed) ? parsed : undefined;
+              } catch (e) {
+                console.warn('Erreur parsing colors JSON:', e);
+              }
+            }
+            return undefined;
+          })(),
           primaryColor: design.primaryColor || design.primary_color,
           secondaryColor: design.secondaryColor || design.secondary_color,
           tertiaryColor: design.tertiaryColor || design.tertiary_color,
@@ -2189,22 +2215,43 @@ function DesignTab({
                     resetColors();
                     
                     // Appliquer automatiquement les couleurs du design (nouveau système dynamique ou legacy)
+                    console.log('🎨 Design colors à appliquer:', design.colors);
+                    const colorsToApply: Record<string, string> = {};
+                    
                     if (design.colors && design.colors.length > 0) {
                       // Nouveau système dynamique
+                      console.log('🎨 Application des couleurs dynamiques:', design.colors);
                       design.colors.forEach(color => {
-                        updateColor(color.name, color.value);
+                        if (color && color.name && color.value) {
+                          const normalizedKey = normalizeColorKey(color.name);
+                          colorsToApply[normalizedKey] = color.value.trim();
+                          console.log(`🎨 Couleur ${color.name} (${normalizedKey}): ${color.value}`);
+                        } else {
+                          console.warn('⚠️ Couleur invalide ignorée:', color);
+                        }
                       });
                     } else {
                       // Système legacy
+                      console.log('🎨 Application des couleurs legacy');
                       if (design.primaryColor) {
-                        updateColor('primary', design.primaryColor);
+                        colorsToApply['primary'] = design.primaryColor.trim();
                       }
                       if (design.secondaryColor) {
-                        updateColor('secondary', design.secondaryColor);
+                        colorsToApply['secondary'] = design.secondaryColor.trim();
                       }
                       if (design.tertiaryColor) {
-                        updateColor('tertiary', design.tertiaryColor);
+                        colorsToApply['tertiary'] = design.tertiaryColor.trim();
                       }
+                    }
+                    
+                    // Appliquer toutes les couleurs en une seule fois
+                    if (Object.keys(colorsToApply).length > 0) {
+                      console.log('🎨 Application de toutes les couleurs en une fois:', colorsToApply);
+                      replaceColors(colorsToApply);
+                      // Aussi appeler updateColor pour chaque couleur pour déclencher les variantes CSS
+                      Object.entries(colorsToApply).forEach(([key, value]) => {
+                        updateColor(key, value);
+                      });
                     }
                   }}
                 >
@@ -2560,15 +2607,9 @@ function ColorTab({ colors, updateColor }: {
                 >
                   {/* Cercle de couleur */}
                   <div 
-                    className={`w-8 h-8 rounded-full border-2 ${
-                      colors[key] && colors[key] !== '#ffffff' && colors[key] !== '#FFFFFF'
-                        ? 'border-gray-300' 
-                        : 'border-gray-400'
-                    }`}
+                    className="w-8 h-8 rounded-full border-2 border-gray-300"
                     style={{ 
-                      backgroundColor: colors[key] && colors[key] !== '#ffffff' && colors[key] !== '#FFFFFF'
-                        ? colors[key]
-                        : 'transparent'
+                      backgroundColor: colors[key] || '#ffffff'
                     }}
                   />
                   
