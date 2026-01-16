@@ -38,8 +38,7 @@ export default function DesignsAdminPage() {
   ]);
   const [modelType, setModelType] = useState<'maillot' | 'pantalon'>('maillot');
   const [editingDesign, setEditingDesign] = useState<Design2D | null>(null);
-  const [palettes, setPalettes] = useState<Array<{id: string; name: string; colors: Array<{hex: string; name?: string}>}>>([]);
-  const [selectedPaletteId, setSelectedPaletteId] = useState<string | null>(null);
+  // Les palettes sont maintenant gérées via le SVG Color Mapper
   const [libraries, setLibraries] = useState<Array<{id: string; name: string}>>([]);
   const [selectedDesignLibraries, setSelectedDesignLibraries] = useState<Record<string, string[]>>({});
   const [pendingLibraryIds, setPendingLibraryIds] = useState<string[]>([]); // bibliothèques à assigner pour un nouveau design
@@ -247,19 +246,7 @@ export default function DesignsAdminPage() {
 
   useEffect(() => {
     refresh();
-    // Charger les palettes de couleurs disponibles
-    (async () => {
-      try {
-        const res = await fetch('/api/palettes');
-        const list = await res.json();
-        setPalettes(Array.isArray(list) ? list : []);
-        if (Array.isArray(list) && list.length > 0) {
-          setSelectedPaletteId(list[0].id);
-        }
-      } catch (e) {
-        console.error('❌ Erreur chargement palettes:', e);
-      }
-    })();
+    // Les palettes sont maintenant gérées via le SVG Color Mapper
     // Charger les bibliothèques disponibles
     (async () => {
       try {
@@ -574,7 +561,7 @@ export default function DesignsAdminPage() {
             primaryColor: primaryColor,
             secondaryColor: secondaryColor,
             tertiaryColor: tertiaryColor,
-            colors: colors.map(c => ({ name: c.name, hex: c.value })), // Envoyer les couleurs dynamiques
+            // Les couleurs sont maintenant gérées via le SVG Color Mapper
             thumbnail: thumb ? await fileToBase64(thumb) : null
           })
         });
@@ -680,25 +667,7 @@ export default function DesignsAdminPage() {
 
   async function onEditColors(design: Design2D) {
     setEditingDesign(design);
-    setPrimaryColor(design.primaryColor || "#000000");
-    setSecondaryColor(design.secondaryColor || "#ffffff");
-    setTertiaryColor(design.tertiaryColor || "#cccccc");
-    
-    // Charger les couleurs dynamiques ou utiliser les couleurs legacy
-    if (design.colors && design.colors.length > 0) {
-      setColors(design.colors);
-    } else {
-      // Fallback sur les couleurs legacy
-      const legacyColors: Color[] = [];
-      if (design.primaryColor) legacyColors.push({ name: "primary", value: design.primaryColor });
-      if (design.secondaryColor) legacyColors.push({ name: "secondary", value: design.secondaryColor });
-      if (design.tertiaryColor) legacyColors.push({ name: "tertiary", value: design.tertiaryColor });
-      setColors(legacyColors.length > 0 ? legacyColors : [
-        { name: "primary", value: "#000000" },
-        { name: "secondary", value: "#ffffff" },
-        { name: "tertiary", value: "#cccccc" }
-      ]);
-    }
+    // Les couleurs sont maintenant gérées via le SVG Color Mapper, on ne les charge plus ici
   }
 
   async function onSaveColors() {
@@ -802,7 +771,7 @@ export default function DesignsAdminPage() {
           </button>
         )}
       {/* No auto thumbnail generation per request */}
-      <form onSubmit={editingDesign ? (e) => { e.preventDefault(); onSaveColors(); } : onSubmit} className="space-y-3 border p-4 rounded">
+      <form onSubmit={editingDesign ? (e) => { e.preventDefault(); resetForm(); } : onSubmit} className="space-y-3 border p-4 rounded">
         {editingDesign && (
           <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-4">
             <div className="flex items-center justify-between">
@@ -860,92 +829,6 @@ export default function DesignsAdminPage() {
           </>
         )}
         
-        {/* Sélection des couleurs dynamiques */}
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">Couleurs du design</h3>
-            <button
-              type="button"
-              onClick={addColor}
-              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-              + Ajouter couleur
-            </button>
-          </div>
-
-          {/* Sélecteur de palette */}
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Palette</label>
-            <select
-              className="border rounded px-2 py-1 text-sm"
-              value={selectedPaletteId ?? ''}
-              onChange={(e) => setSelectedPaletteId(e.target.value || null)}
-            >
-              {palettes.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-            {selectedPaletteId && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {palettes.find(p => p.id === selectedPaletteId)?.colors.map((c, idx) => (
-                  <div key={idx} className="relative group">
-                    <div className="w-6 h-6 rounded border border-gray-300" style={{ backgroundColor: c.hex }}></div>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-10">
-                      {c.name || c.hex}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="space-y-3">
-            {colors.map((color, index) => (
-              <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded border">
-                {/* Swatches de la palette pour choisir la couleur */}
-                <div className="flex items-center gap-1 flex-wrap">
-                  {(palettes.find(p => p.id === selectedPaletteId)?.colors || []).map((c, i) => (
-                    <div key={i} className="relative group">
-                      <button
-                        type="button"
-                        onClick={() => updateColorValue(index, c.hex)}
-                        className={`w-6 h-6 rounded border ${color.value && c.hex && color.value.toLowerCase() === c.hex.toLowerCase() ? 'ring-2 ring-blue-500' : 'border-gray-300'}`}
-                        style={{ backgroundColor: c.hex || '#ffffff' }}
-                      />
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-10">
-                        {c.name || c.hex}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <input 
-                  type="text" 
-                  value={color.name} 
-                  readOnly
-                  className="flex-1 text-sm border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                  title="Nom automatique basé sur l'ordre (primary, secondary, tertiary, quaternary, etc.)"
-                />
-                {/* Affichage optionnel du hex sélectionné */}
-                <span className="text-xs text-gray-500 w-20 text-right truncate select-all">{color.value || ''}</span>
-                {colors.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeColor(index)}
-                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-3 text-xs text-gray-600">
-            💡 Noms automatiques : primary, secondary, tertiary, quaternary, quinary, senary, septenary, octonary<br/>
-            🎯 Correspondance avec les classes CSS de vos SVG : .primary, .secondary, .tertiary, .quaternary, etc.
-          </div>
-        </div>
-
         {/* Affectation bibliothèques de logos */}
         <div className="border-t pt-4">
           <h3 className="text-sm font-medium text-gray-900 mb-2">Bibliothèques de logos affectées au design</h3>
@@ -982,7 +865,7 @@ export default function DesignsAdminPage() {
         </div>
         
         <button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors">
-          {loading ? "Envoi..." : editingDesign ? "Sauvegarder les couleurs" : "Ajouter"}
+          {loading ? "Envoi..." : editingDesign ? "Fermer" : "Ajouter"}
         </button>
       </form>
       <ul className="grid grid-cols-2 gap-3">
