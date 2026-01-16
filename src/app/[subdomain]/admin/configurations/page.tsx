@@ -12,8 +12,9 @@ import LogosConfigPage from "./logos/page";
 import ZonesConfigPage from "./zones/page";
 import SnapLinesConfigPage from "./snap-lines/page";
 import SvgColorMapperPage from "../svg-color-mapper/page";
+import ProductionFilesPage from "./production-files/page";
 
-type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs" | "colors" | "fonts" | "logos" | "zones" | "snap-lines" | "svg-color-mapper";
+type Tab = "3d-models" | "material-maps" | "sizes" | "2d-designs" | "colors" | "fonts" | "logos" | "zones" | "snap-lines" | "svg-color-mapper" | "production-files";
 
 export default function ConfigurationsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("3d-models");
@@ -328,6 +329,33 @@ export default function ConfigurationsAdminPage() {
         >
           SVG Color Mapper
         </button>
+        <button
+          onClick={() => setActiveTab("production-files")}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            fontFamily: 'var(--stepn-font-body)',
+            color: activeTab === "production-files" ? '#8eff36' : '#a0a0a0',
+            borderBottom: activeTab === "production-files" ? '2px solid #8eff36' : '2px solid transparent',
+            backgroundColor: activeTab === "production-files" ? 'rgba(142, 255, 54, 0.1)' : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (activeTab !== "production-files") {
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (activeTab !== "production-files") {
+              e.currentTarget.style.color = '#a0a0a0';
+            }
+          }}
+        >
+          Production Files
+        </button>
       </div>
 
         {/* Content */}
@@ -342,6 +370,7 @@ export default function ConfigurationsAdminPage() {
           {activeTab === "zones" && <ZonesConfigPage />}
           {activeTab === "snap-lines" && <SnapLinesConfigPage />}
           {activeTab === "svg-color-mapper" && <SvgColorMapperPage />}
+          {activeTab === "production-files" && <ProductionFilesPage />}
         </div>
       </div>
     </div>
