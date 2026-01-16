@@ -709,9 +709,22 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
       const serializer = new XMLSerializer();
       const result = serializer.serializeToString(svgDoc);
       console.log("🟡 [GENERATE SVG] SVG généré, longueur:", result.length);
-      console.log("🟡 [GENERATE SVG] Nombre de <style> après traitement:", svgDoc.querySelectorAll('style').length);
+      const allStyles = svgDoc.querySelectorAll('style');
+      console.log("🟡 [GENERATE SVG] Nombre de <style> après traitement:", allStyles.length);
       console.log("🟡 [GENERATE SVG] Nombre d'éléments avec class après traitement:", svgElement.querySelectorAll('[class]').length);
-      console.log("🟡 [GENERATE SVG] Contenu des styles:", svgDoc.querySelector('style')?.textContent);
+      allStyles.forEach((style, index) => {
+        console.log(`🟡 [GENERATE SVG] Style ${index}:`, style.textContent?.substring(0, 200));
+      });
+      // Chercher spécifiquement le style avec nos classes de couleur
+      const colorStyle = Array.from(allStyles).find(style => {
+        const text = style.textContent || '';
+        return text.includes('.primary') || text.includes('.secondary') || text.includes('.tertiary');
+      });
+      if (colorStyle) {
+        console.log("🟡 [GENERATE SVG] Style avec classes de couleur trouvé:", colorStyle.textContent);
+      } else {
+        console.log("🟡 [GENERATE SVG] ⚠️ AUCUN style avec classes de couleur trouvé !");
+      }
       console.log("🟡 [GENERATE SVG] SVG généré (premiers 1000 chars):", result.substring(0, 1000));
       return result;
     } catch (error) {
