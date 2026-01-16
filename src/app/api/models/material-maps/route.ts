@@ -3,7 +3,6 @@ import { supabase, supabaseAdmin, hasServiceRoleKey } from "@/lib/supabase";
 import sharp from "sharp";
 
 export const runtime = "nodejs";
-export const dynamic = 'force-dynamic';
 
 // POST: Uploader une texture map pour un matériau spécifique
 export async function POST(request: Request) {
