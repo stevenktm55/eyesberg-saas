@@ -10,7 +10,8 @@ interface Snapshots {
 
 export default function PreviewPage() {
   const searchParams = useSearchParams();
-  const productId = searchParams.get("productId");
+  // Accepter productId ou id (pour compatibilité)
+  const productId = searchParams.get("productId") || searchParams.get("id");
   const shop = searchParams.get("shop");
   const [configuratorUrl, setConfiguratorUrl] = useState<string | null>(null);
   const [snapshots, setSnapshots] = useState<Snapshots | null>(null);
