@@ -3030,67 +3030,6 @@ export default function ProductBuilderPage() {
           transform: scale(0.97);
         }
       `}</style>
-      {/* Preview Mode - Show configurator panel and viewer 3D (exact same as builder) */}
-      {previewMode && productId && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: '#0a0a0a',
-            zIndex: 10000,
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Preview Header */}
-            <div style={{
-              padding: '12px 24px',
-              backgroundColor: '#0a0a0a',
-              borderBottom: '1px solid #1a1a1a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px'
-              }}>
-                <span style={{
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  fontWeight: '600'
-                }}>
-                  Mode Prévisualisation - {productName}
-                </span>
-              </div>
-              <button
-                onClick={() => setPreviewMode(false)}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#1a1a1a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '4px',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2a2a2a';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#1a1a1a';
-                }}
-              >
-                Fermer la prévisualisation
-              </button>
-            </div>
-          </div>
-      )}
       
       {/* Main Content */}
       <div style={{
@@ -3100,7 +3039,8 @@ export default function ProductBuilderPage() {
         height: '100vh',
         overflow: 'hidden'
       }}>
-        {/* Header */}
+        {/* Header - Hidden in preview mode */}
+        {!previewMode && (
         <div style={{
           backgroundColor: '#0a0a0a',
           borderBottom: '1px solid #1a1a1a',
@@ -3299,7 +3239,50 @@ export default function ProductBuilderPage() {
             <span style={{ color: '#a0a0a0', fontSize: '12px', cursor: 'pointer' }}>▼</span>
           </div>
         </div>
+        )}
 
+        {/* Preview Header (shown only in preview mode) */}
+        {previewMode && (
+          <div style={{
+            backgroundColor: '#0a0a0a',
+            borderBottom: '1px solid #1a1a1a',
+            padding: '12px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '14px',
+              fontFamily: CONFIGURATOR_PANEL_FONT,
+              fontWeight: '600'
+            }}>
+              Mode Prévisualisation - {productName}
+            </span>
+            <button
+              onClick={() => setPreviewMode(false)}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #2a2a2a',
+                borderRadius: '4px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontFamily: CONFIGURATOR_PANEL_FONT,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#2a2a2a';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1a1a1a';
+              }}
+            >
+              Fermer la prévisualisation
+            </button>
+          </div>
+        )}
 
         {/* Main Builder Area */}
         {activeTab === 'connect' ? (
