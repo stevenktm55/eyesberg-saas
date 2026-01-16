@@ -8,6 +8,8 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
+    console.log("🔍 GET /api/products - Début de la requête");
+    
     const { data: products, error } = await supabaseAdmin
       .from("shopify_products")
       .select("id, shopify_product_id, shopify_product_handle, shopify_product_title, production_templates")
@@ -21,6 +23,14 @@ export async function GET() {
       );
     }
 
+    console.log(`✅ Produits trouvés: ${products?.length || 0}`);
+
+    // Si pas de produits, retourner un tableau vide
+    if (!products || products.length === 0) {
+      console.log("⚠️ Aucun produit trouvé dans shopify_products");
+      return NextResponse.json([]);
+    }
+
     // Transformer pour correspondre au format attendu
     const transformedProducts = products.map((p: any) => ({
       id: p.id,
@@ -29,6 +39,7 @@ export async function GET() {
       productionTemplates: p.production_templates || null,
     }));
 
+    console.log(`✅ Produits transformés: ${transformedProducts.length}`);
     return NextResponse.json(transformedProducts);
   } catch (error: any) {
     console.error("❌ Erreur GET products:", error);

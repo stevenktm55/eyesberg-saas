@@ -26,13 +26,22 @@ export default function ProductionFilesPage() {
   async function loadProducts() {
     try {
       setLoading(true);
+      console.log("🔍 Chargement des produits...");
       const res = await fetch("/api/products");
-      if (!res.ok) throw new Error("Failed to load products");
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("❌ Erreur API:", errorData);
+        throw new Error(errorData.error || "Failed to load products");
+      }
+      
       const data = await res.json();
-      setProducts(data);
-    } catch (error) {
-      console.error("Erreur chargement produits:", error);
-      alert("Erreur lors du chargement des produits");
+      console.log(`✅ Produits chargés: ${data.length}`);
+      setProducts(data || []);
+    } catch (error: any) {
+      console.error("❌ Erreur chargement produits:", error);
+      alert("Erreur lors du chargement des produits: " + (error.message || "Erreur inconnue"));
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -218,9 +227,23 @@ export default function ProductionFilesPage() {
               </div>
             )}
 
-            {!selectedProduct && products.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '32px', color: '#a0a0a0' }}>
-                <p>Aucun produit disponible</p>
+            {!selectedProduct && products.length === 0 && !loading && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '48px', 
+                backgroundColor: '#1a1a1a',
+                borderRadius: '8px',
+                border: '1px solid #333'
+              }}>
+                <p style={{ fontSize: '16px', marginBottom: '16px', color: '#a0a0a0' }}>
+                  Aucun produit disponible
+                </p>
+                <p style={{ fontSize: '14px', marginBottom: '24px', color: '#666' }}>
+                  Les produits doivent être synchronisés depuis Shopify pour apparaître ici.
+                </p>
+                <p style={{ fontSize: '12px', color: '#555' }}>
+                  Allez dans la section "Produits Shopify" pour synchroniser vos produits.
+                </p>
               </div>
             )}
           </div>
