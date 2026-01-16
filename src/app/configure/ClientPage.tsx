@@ -1924,10 +1924,20 @@ function DesignTab({
   useEffect(() => {
     async function loadDesigns() {
       try {
-        // Chargement des designs
-        const response = await fetch('/api/designs');
-        const designsData = await response.json();
-        const normalizedDesigns = (Array.isArray(designsData) ? designsData : []).map((design: any) => ({
+        // Chargement des designs depuis les deux sources : designs et designs_2d
+        const [designsResponse, designs2dResponse] = await Promise.all([
+          fetch('/api/designs').catch(() => ({ json: async () => [] })),
+          fetch('/api/designs-2d').catch(() => ({ json: async () => [] }))
+        ]);
+        
+        const designsData = await designsResponse.json();
+        const designs2dData = await designs2dResponse.json();
+        
+        console.log('🔍 [LOAD DESIGNS] Designs depuis /api/designs:', designsData.length);
+        console.log('🔍 [LOAD DESIGNS] Designs depuis /api/designs-2d:', designs2dData.length);
+        
+        // Normaliser les designs de la table designs
+        const normalizedDesigns1 = (Array.isArray(designsData) ? designsData : []).map((design: any) => ({
           id: design.id,
           name: design.name || design.title || design.id,
           svgUrl: design.svgUrl || design.svg_url,
@@ -1956,6 +1966,54 @@ function DesignTab({
           secondaryColor: design.secondaryColor || design.secondary_color,
           tertiaryColor: design.tertiaryColor || design.tertiary_color,
         }));
+        
+        // Normaliser les designs de la table designs_2d
+        const normalizedDesigns2 = (Array.isArray(designs2dData) ? designs2dData : []).map((design: any) => ({
+          id: design.id,
+          name: design.name || design.title || design.id,
+          svgUrl: design.svgUrl || design.svg_url,
+          thumbUrl: design.thumbUrl || design.thumb_url || design.preview_url || design.thumbnail_url,
+          model_type: design.model_type || design.modelType || design.type,
+          colors: (() => {
+            // Gérer différents formats de couleurs
+            if (Array.isArray(design.colors)) {
+              console.log(`🔍 [LOAD DESIGNS] Design ${design.id} (designs_2d) a ${design.colors.length} couleurs:`, design.colors);
+              return design.colors;
+            }
+            if (Array.isArray(design.design_colors)) {
+              return design.design_colors;
+            }
+            // Si c'est une string JSON, la parser
+            if (typeof design.colors === 'string') {
+              try {
+                const parsed = JSON.parse(design.colors);
+                return Array.isArray(parsed) ? parsed : undefined;
+              } catch (e) {
+                console.warn('Erreur parsing colors JSON:', e);
+              }
+            }
+            return undefined;
+          })(),
+          primaryColor: design.primaryColor || design.primary_color,
+          secondaryColor: design.secondaryColor || design.secondary_color,
+          tertiaryColor: design.tertiaryColor || design.tertiary_color,
+        }));
+        
+        // Fusionner les deux listes, en priorisant designs_2d en cas de doublon (même ID)
+        const allDesigns = [...normalizedDesigns1];
+        normalizedDesigns2.forEach(design2d => {
+          const existingIndex = allDesigns.findIndex(d => d.id === design2d.id);
+          if (existingIndex >= 0) {
+            // Remplacer par la version designs_2d qui a les couleurs à jour
+            console.log(`🔄 [LOAD DESIGNS] Remplacement design ${design2d.id} par version designs_2d avec couleurs:`, design2d.colors);
+            allDesigns[existingIndex] = design2d;
+          } else {
+            // Ajouter le nouveau design
+            allDesigns.push(design2d);
+          }
+        });
+        
+        const normalizedDesigns = allDesigns;
 
         // Designs chargés
         // Si un mapping produit existe, filtrer les designs autorisés
