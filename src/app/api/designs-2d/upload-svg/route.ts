@@ -101,34 +101,65 @@ export async function POST(request: NextRequest) {
     };
     
     // Parser les styles CSS pour extraire les couleurs
-    const styleMatches = svgContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-    for (const [, cssContent] of styleMatches) {
+    console.log('🔍 [EXTRACT COLORS] Début extraction depuis SVG, longueur:', svgContent.length);
+    const styleMatches = Array.from(svgContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
+    console.log('🔍 [EXTRACT COLORS] Nombre de blocs <style> trouvés:', styleMatches.length);
+    
+    for (let styleIndex = 0; styleIndex < styleMatches.length; styleIndex++) {
+      const [, cssContent] = styleMatches[styleIndex];
+      console.log(`🔍 [EXTRACT COLORS] Traitement style bloc ${styleIndex + 1}, longueur CSS:`, cssContent.length);
+      console.log(`🔍 [EXTRACT COLORS] Aperçu CSS (premiers 500 chars):`, cssContent.substring(0, 500));
+      
       for (const className of colorClassNames) {
         // Chercher les règles CSS comme .primary { fill: #HEX !important; }
-        // Chercher aussi stroke: au cas où
-        const fillPattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;}\\s]+)`, 'i');
-        const strokePattern = new RegExp(`\\.${className}\\s*\\{[^}]*stroke:\\s*([^;}\\s]+)`, 'i');
+        // Patterns plus robustes pour gérer différents formats
+        const patterns = [
+          // Pattern 1: .primary { fill: #HEX !important; }
+          new RegExp(`\\.${className}\\s*\\{[^}]*?fill:\\s*([^;}\\s!]+)`, 'i'),
+          // Pattern 2: .primary { fill:#HEX; }
+          new RegExp(`\\.${className}\\s*\\{[^}]*?fill:\\s*([^;}\\s!]+)`, 'i'),
+          // Pattern 3: .primary{fill:#HEX}
+          new RegExp(`\\.${className}\\s*\\{[^}]*?fill:([^;}\\s!]+)`, 'i'),
+          // Pattern 4: stroke au lieu de fill
+          new RegExp(`\\.${className}\\s*\\{[^}]*?stroke:\\s*([^;}\\s!]+)`, 'i'),
+        ];
         
-        const fillMatch = cssContent.match(fillPattern);
-        const strokeMatch = cssContent.match(strokePattern);
-        
-        // Priorité à fill, sinon stroke
-        const colorMatch = fillMatch || strokeMatch;
-        if (colorMatch && colorMatch[1]) {
-          const normalizedHex = normalizeToHex(colorMatch[1]);
-          if (normalizedHex) {
-            // Vérifier si cette couleur n'a pas déjà été ajoutée (éviter les doublons)
-            const existing = extractedColors.find(c => c.name === className);
-            if (!existing) {
-              extractedColors.push({ name: className, value: normalizedHex });
-              console.log(`🎨 Couleur ${className} extraite: ${normalizedHex}`);
+        let colorFound = false;
+        for (const pattern of patterns) {
+          const match = cssContent.match(pattern);
+          if (match && match[1]) {
+            const colorValue = match[1].trim();
+            console.log(`🔍 [EXTRACT COLORS] Match trouvé pour ${className}:`, colorValue);
+            const normalizedHex = normalizeToHex(colorValue);
+            if (normalizedHex) {
+              // Vérifier si cette couleur n'a pas déjà été ajoutée (éviter les doublons)
+              const existing = extractedColors.find(c => c.name === className);
+              if (!existing) {
+                extractedColors.push({ name: className, value: normalizedHex });
+                console.log(`✅ [EXTRACT COLORS] Couleur ${className} extraite: ${normalizedHex}`);
+                colorFound = true;
+                break; // Sortir de la boucle des patterns une fois qu'on a trouvé
+              } else {
+                console.log(`⚠️ [EXTRACT COLORS] Couleur ${className} déjà extraite, ignorée`);
+              }
+            } else {
+              console.log(`⚠️ [EXTRACT COLORS] Couleur ${className} non normalisable:`, colorValue);
             }
+          }
+        }
+        
+        if (!colorFound) {
+          // Vérifier si la classe existe dans le CSS même sans couleur trouvée
+          const classExists = new RegExp(`\\.${className}\\s*\\{`, 'i').test(cssContent);
+          if (classExists) {
+            console.log(`⚠️ [EXTRACT COLORS] Classe .${className} trouvée dans CSS mais pas de couleur extractible`);
           }
         }
       }
     }
 
-    console.log('🎨 Couleurs extraites depuis le SVG:', extractedColors);
+    console.log('🎨 [EXTRACT COLORS] Couleurs extraites depuis le SVG:', extractedColors);
+    console.log('🎨 [EXTRACT COLORS] Nombre de couleurs extraites:', extractedColors.length);
 
     // Mettre à jour le design avec la nouvelle URL SVG et les couleurs extraites
     const updateData: any = { svg_url: publicUrl };
