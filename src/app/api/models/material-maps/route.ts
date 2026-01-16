@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabase, supabaseAdmin, hasServiceRoleKey } from "@/lib/supabase";
-import sharp from "sharp";
 
 export const runtime = "nodejs";
 export const dynamic = 'force-dynamic';
+
+// Lazy import de sharp pour éviter les problèmes au build
+let sharp: any;
+async function getSharp() {
+  if (!sharp) {
+    sharp = (await import("sharp")).default;
+  }
+  return sharp;
+}
 
 // POST: Uploader une texture map pour un matériau spécifique
 export async function POST(request: Request) {
@@ -63,7 +71,8 @@ export async function POST(request: Request) {
         console.log('🗜️ Optimisation de l\'image (taille originale:', Math.round(originalBuffer.length / 1024), 'KB)');
         
         // Redimensionner à 128x128px et convertir en PNG optimisé pour mobile
-        const optimizedBuffer = await sharp(originalBuffer)
+        const sharpInstance = await getSharp();
+        const optimizedBuffer = await sharpInstance(originalBuffer)
           .resize(128, 128, { 
             fit: 'inside', 
             withoutEnlargement: true 
