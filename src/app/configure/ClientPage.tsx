@@ -6643,7 +6643,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
     return params.get('preview') === 'true';
   }, []);
 
-  // Charger la configuration du produit en mode preview
+  // Charger la configuration du produit en mode preview (pour afficher exactement ce qui est configuré dans le builder)
   useEffect(() => {
     if (!isPreviewMode || !productId || !shopifyConfig.shopDomain) return;
     
@@ -6668,9 +6668,11 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
             console.log('🎯 Modèle configuré:', data.config.modelUrl);
           }
           
-          // Note: Les couleurs, textes, logos sont gérés par les configurations client (table `configurations`)
-          // Ici on charge juste la structure du produit (questions, layers, model)
-          // Pour le preview, on peut appliquer les couleurs par défaut du design sélectionné
+          // Charger les design_ids autorisés depuis product.design_ids
+          if (data.product?.design_ids && Array.isArray(data.product.design_ids) && data.product.design_ids.length > 0) {
+            setConfigDesignIds(data.product.design_ids);
+            console.log('🎨 Design IDs autorisés:', data.product.design_ids);
+          }
         } else {
           console.log('ℹ️ Pas de configuration sauvegardée pour ce produit');
         }
