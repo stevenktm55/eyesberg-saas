@@ -5007,14 +5007,16 @@ export default function ProductBuilderPage() {
                         colorsLength: Array.isArray(selectedDesign?.colors) ? selectedDesign.colors.length : 0
                       });
                       
-                      if (selectedDesign?.color_mappings) {
-                        availableColorClasses = Object.keys(selectedDesign.color_mappings);
-                        console.log('✅ Classes depuis color_mappings:', availableColorClasses);
-                      } else if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
+                      // PRIORITÉ à design.colors (source de vérité depuis SVG Color Mapper)
+                      if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
                         // Extraire les classes depuis design.colors (format [{name, value}])
                         availableColorClasses = selectedDesign.colors.map((c: any) => c.name).filter(Boolean);
-                        console.log('✅ Classes depuis design.colors:', availableColorClasses);
+                        console.log('✅ Classes depuis design.colors (priorité):', availableColorClasses);
                         console.log('📋 Détail design.colors:', selectedDesign.colors);
+                      } else if (selectedDesign?.color_mappings) {
+                        // Fallback sur color_mappings si design.colors n'existe pas
+                        availableColorClasses = Object.keys(selectedDesign.color_mappings);
+                        console.log('✅ Classes depuis color_mappings (fallback):', availableColorClasses);
                       } else {
                         availableColorClasses = ['primary', 'secondary', 'tertiary'];
                         console.log('⚠️ Utilisation des classes par défaut:', availableColorClasses);
