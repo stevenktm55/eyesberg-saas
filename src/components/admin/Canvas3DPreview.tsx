@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import ConfiguratorViewer from "@/components/ConfiguratorViewer";
+import { Suspense, useState, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, PerspectiveCamera } from "@react-three/drei";
+import { ProductQuestion, ProductLayer } from "./ProductEditor3D";
+import { Simple3DViewer } from "./Simple3DViewer";
 
 interface Canvas3DPreviewProps {
   modelUrl: string | null;
-  questions: any[];
-  layers: any[];
+  questions: ProductQuestion[];
+  layers: ProductLayer[];
   onModelUrlChange: (url: string | null) => void;
-  productId?: string;
-  shop?: string;
 }
 
 export function Canvas3DPreview({
@@ -17,13 +18,16 @@ export function Canvas3DPreview({
   questions,
   layers,
   onModelUrlChange,
-  productId,
-  shop,
 }: Canvas3DPreviewProps) {
   const [currentView, setCurrentView] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const totalViews = 5; // Comme Kickflip
+
+  // Debug: vérifier que le composant est rendu
+  useEffect(() => {
+    console.log('🎨 Canvas3DPreview rendered, viewportMode:', viewportMode);
+  }, [viewportMode]);
 
   const handleViewChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
@@ -34,40 +38,30 @@ export function Canvas3DPreview({
   };
 
   return (
-    <div className="flex flex-col h-full relative" style={{ minHeight: 0, position: 'relative', overflow: 'visible' }}>
+    <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
       {/* Viewport selector buttons - Centré en haut - Au-dessus de tout */}
       <div 
-        className="viewport-selector-container"
         style={{ 
-          position: 'fixed',
-          top: '100px',
+          position: 'absolute',
+          top: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
-          zIndex: 999999,
+          zIndex: 10000,
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 'auto',
-          height: 'auto',
-          visibility: 'visible',
-          opacity: 1
+          justifyContent: 'center'
         }}
       >
         <div 
           className="flex items-center gap-1 rounded-lg p-1"
           style={{
-            backgroundColor: '#ffffff',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-            border: '3px solid #3b82f6',
+            backgroundColor: 'white',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            border: '2px solid #d1d5db',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            padding: '8px',
-            minWidth: '100px',
-            minHeight: '50px',
-            visibility: 'visible',
-            opacity: 1
+            gap: '4px'
           }}
         >
           <button
@@ -99,269 +93,156 @@ export function Canvas3DPreview({
         </div>
       </div>
 
-      {/* Wrapper pour simuler le layout mobile du configurateur - Rectangle téléphone centré */}
-      {viewportMode === 'mobile' ? (
-        <div 
-          className="flex items-center justify-center h-full w-full"
-          style={{
-            position: 'relative',
-            overflow: 'auto',
-            padding: '20px'
-          }}
-        >
-          {/* Rectangle téléphone */}
-          <div 
-            className="flex flex-col"
-            style={{
-              width: '375px',
-              height: '667px',
-              border: '8px solid #1f2937',
-              borderRadius: '20px',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-              overflow: 'hidden',
-              backgroundColor: '#ffffff',
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
+      {/* Controls bar */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
+        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+          <button
+            onClick={() => handleViewChange("prev")}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Previous view"
           >
-            {productId && shop ? (
-              <>
-                {/* Viewer 3D - prend l'espace restant */}
-                <div 
-                  style={{ 
-                    width: '100%', 
-                    flex: '1 1 0%',
-                    minHeight: 0,
-                    overflow: 'hidden',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                    <ConfiguratorViewer
-                    productId={productId}
-                    shopDomain={shop}
-                    forceMobileLayout={false}
-                    preview={true}
-                  />
-                </div>
-                
-                {/* Barre mobile en bas du téléphone - hauteur fixe */}
-                <div
-                  style={{
-                    width: '100%',
-                    height: '70px',
-                    minHeight: '70px',
-                    maxHeight: '70px',
-                    flexShrink: 0,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-around',
-                    padding: '8px',
-                    backgroundColor: '#ffffff',
-                    borderTop: '1px solid #e5e7eb',
-                    gap: '8px'
-                  }}
-                >
-                  {/* Placeholder modules - à remplacer par les vrais modules */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    backgroundColor: '#f3f4f6',
-                    minWidth: '50px'
-                  }}>
-                    <span style={{ fontSize: '20px' }}>🎨</span>
-                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Design</span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    backgroundColor: '#f3f4f6',
-                    minWidth: '50px'
-                  }}>
-                    <span style={{ fontSize: '20px' }}>🎨</span>
-                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Couleur</span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    backgroundColor: '#f3f4f6',
-                    minWidth: '50px'
-                  }}>
-                    <span style={{ fontSize: '20px' }}>✏️</span>
-                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Texte</span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    backgroundColor: '#f3f4f6',
-                    minWidth: '50px'
-                  }}>
-                    <span style={{ fontSize: '20px' }}>🖼️</span>
-                    <span style={{ fontSize: '10px', color: '#6b7280' }}>Logo</span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center text-gray-500 p-4">
-                  <p className="text-sm">Chargement du configurateur...</p>
-                  <p className="text-xs mt-2">ProductId et shop requis pour la simulation mobile</p>
-                  <p className="text-xs mt-2">productId: {String(productId)}</p>
-                  <p className="text-xs mt-2">shop: {String(shop)}</p>
-                </div>
-              </div>
-            )}
-          </div>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <span className="text-sm font-medium px-2">{currentView}</span>
+          <button
+            onClick={() => handleViewChange("next")}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Next view"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
-      ) : (
-        <>
-          {/* Controls bar - Mode desktop */}
-          <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between">
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+
+        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
+          {/* View selector */}
+          <div className="flex gap-1">
+            {Array.from({ length: totalViews }).map((_, i) => (
               <button
-                onClick={() => handleViewChange("prev")}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                title="Previous view"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <span className="text-sm font-medium px-2">{currentView}</span>
-              <button
-                onClick={() => handleViewChange("next")}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                title="Next view"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-              {/* View selector */}
-              <div className="flex gap-1">
-                {Array.from({ length: totalViews }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentView(i + 1)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      currentView === i + 1 ? "bg-blue-600" : "bg-gray-300"
-                    }`}
-                    title={`View ${i + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Zoom controls */}
-              <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
-                <button
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  title="Zoom in"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
-                <button
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  title="Zoom out"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Share button */}
-              <button
-                className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded transition-colors"
-                title="Share"
-              >
-                Share
-              </button>
-
-              {/* Fullscreen */}
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                title="Fullscreen"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* 3D Canvas - Mode desktop - Utilise ConfiguratorViewer pour la même échelle */}
-          <div 
-            className="flex-1 relative"
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
-              margin: '0',
-              overflow: 'hidden'
-            }}
-          >
-            {productId && shop ? (
-              <ConfiguratorViewer
-                productId={productId}
-                shopDomain={shop}
-                forceMobileLayout={false}
-                preview={true}
+                key={i}
+                onClick={() => setCurrentView(i + 1)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  currentView === i + 1 ? "bg-blue-600" : "bg-gray-300"
+                }`}
+                title={`View ${i + 1}`}
               />
-            ) : (
-              <div className="h-full flex items-center justify-center bg-gray-900">
-                <div className="text-center text-gray-400">
-                  <svg
-                    className="w-16 h-16 mx-auto mb-4 opacity-50"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-sm">Configurateur requis pour la prévisualisation</p>
-                  <p className="text-xs mt-1">ProductId et shop requis</p>
-                  <p className="text-xs mt-2">productId: {String(productId)}</p>
-                  <p className="text-xs mt-2">shop: {String(shop)}</p>
-                </div>
-              </div>
-            )}
+            ))}
           </div>
 
-          {/* View indicator - Mode desktop */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
-            <span className="text-sm font-medium">View {currentView}</span>
+          {/* Zoom controls */}
+          <div className="flex items-center gap-1 border-l border-gray-300 pl-2 ml-2">
+            <button
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="Zoom in"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+            <button
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="Zoom out"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
           </div>
-        </>
-      )}
+
+          {/* Share button */}
+          <button
+            className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded transition-colors"
+            title="Share"
+          >
+            Share
+          </button>
+
+          {/* Fullscreen */}
+          <button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Fullscreen"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* 3D Canvas */}
+      <div 
+        className="flex-1 relative"
+        style={viewportMode === 'mobile' ? {
+          maxWidth: '375px',
+          maxHeight: '667px',
+          margin: '0 auto',
+          border: '8px solid #1f2937',
+          borderRadius: '20px',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+          overflow: 'hidden'
+        } : {
+          maxWidth: '100%',
+          maxHeight: '100%',
+          margin: '0',
+          overflow: 'hidden'
+        }}
+      >
+        {modelUrl ? (
+          <Canvas
+            gl={{ antialias: true, alpha: true }}
+            camera={{ position: [0, 0, 5], fov: 50 }}
+            className="bg-gray-900"
+          >
+            <Suspense fallback={null}>
+              <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <Simple3DViewer
+                url={modelUrl}
+                questions={questions}
+                layers={layers}
+              />
+              <OrbitControls
+                enablePan={true}
+                enableZoom={true}
+                enableRotate={true}
+                minDistance={2}
+                maxDistance={10}
+              />
+              <Environment preset="studio" />
+            </Suspense>
+          </Canvas>
+        ) : (
+          <div className="h-full flex items-center justify-center bg-gray-900">
+            <div className="text-center text-gray-400">
+              <svg
+                className="w-16 h-16 mx-auto mb-4 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p className="text-sm">No 3D model loaded</p>
+              <p className="text-xs mt-1">Upload a GLTF/GLB model to preview</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* View indicator */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
+        <span className="text-sm font-medium">View {currentView}</span>
+      </div>
     </div>
   );
 }

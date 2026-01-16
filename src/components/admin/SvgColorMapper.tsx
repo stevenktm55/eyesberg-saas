@@ -1,37 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
-export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary";
-
-interface Design2D {
-  id: string;
-  name: string;
-  svgUrl?: string;
-  svg_url?: string;
-  thumbUrl?: string;
-  thumb_url?: string;
-  preview_url?: string;
-}
-
-interface ColorPalette {
-  id: string;
-  name: string;
-  colors: Array<{ name: string; hex: string; cmyk?: string }>;
-}
-
-interface DetectedColor {
-  originalColor: string; // La couleur originale dans le SVG (ex: #FF0000, rgb(255,0,0), etc.)
-  normalizedHex: string; // Version normalisée en hex (ex: #FF0000)
-  count: number; // Nombre d'occurrences dans le SVG
-}
-
-interface ColorMapping {
-  originalColor: string; // La couleur originale détectée
-  colorClass: ColorClass; // La classe de couleur (primary, secondary, etc.)
-  paletteId: string | null; // ID de la palette sélectionnée
-  paletteColorId: string; // L'ID de la couleur de la palette qui remplacera cette couleur
-}
+export type ColorClass = "primary" | "secondary" | "tertiary" | "quaternary" | "quinary" | "senary" | "septenary" | "octonary" | null;
 
 interface SvgColorMapperProps {
   svgInput?: string | File | null;
@@ -39,496 +10,47 @@ interface SvgColorMapperProps {
   className?: string;
 }
 
-const COLOR_CLASSES: Array<{ id: ColorClass; label: string }> = [
-  { id: "primary", label: "Couleur Primaire" },
-  { id: "secondary", label: "Couleur Secondaire" },
-  { id: "tertiary", label: "Couleur Tertiaire" },
-  { id: "quaternary", label: "Couleur Quaternaire" },
-  { id: "quinary", label: "Couleur Quinaire" },
-  { id: "senary", label: "Couleur Senaire" },
-  { id: "septenary", label: "Couleur Septenaire" },
-  { id: "octonary", label: "Couleur Octonaire" },
+interface ColorTool {
+  id: ColorClass;
+  label: string;
+  previewColor: string;
+}
+
+const COLOR_TOOLS: ColorTool[] = [
+  { id: "primary", label: "Couleur Primaire", previewColor: "#FF0000" },
+  { id: "secondary", label: "Couleur Secondaire", previewColor: "#0000FF" },
+  { id: "tertiary", label: "Couleur Tertiaire", previewColor: "#00FF00" },
+  { id: "quaternary", label: "Couleur Quaternaire", previewColor: "#FFFF00" },
+  { id: "quinary", label: "Couleur Quinaire", previewColor: "#FF00FF" },
+  { id: "senary", label: "Couleur Senaire", previewColor: "#00FFFF" },
+  { id: "septenary", label: "Couleur Septenaire", previewColor: "#FFA500" },
+  { id: "octonary", label: "Couleur Octonaire", previewColor: "#800080" },
 ];
 
-// Fonction pour normaliser une couleur en hex
-function normalizeColorToHex(color: string): string {
-  if (!color || color === 'none' || color === 'transparent' || color === 'currentColor') {
-    return '';
-  }
-
-  // Si c'est déjà en hex
-  if (color.startsWith('#')) {
-    if (color.length === 4) {
-      // Format court #RGB -> #RRGGBB
-      return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`.toUpperCase();
-    }
-    return color.toUpperCase();
-  }
-
-  // Si c'est rgb/rgba
-  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
-  if (rgbMatch) {
-    const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
-    const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
-    const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
-    return `#${r}${g}${b}`.toUpperCase();
-  }
-
-  // Noms de couleurs CSS
-  const colorNames: Record<string, string> = {
-    'black': '#000000',
-    'white': '#FFFFFF',
-    'red': '#FF0000',
-    'green': '#00FF00',
-    'blue': '#0000FF',
-    'yellow': '#FFFF00',
-    'cyan': '#00FFFF',
-    'magenta': '#FF00FF',
-    'orange': '#FFA500',
-    'purple': '#800080',
-  };
-  if (colorNames[color.toLowerCase()]) {
-    return colorNames[color.toLowerCase()];
-  }
-
-  return '';
-}
-
-// Fonction pour détecter toutes les couleurs dans un SVG
-function detectColorsInSvg(svgContent: string): DetectedColor[] {
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-  const colorMap = new Map<string, { original: string; count: number }>();
-
-  // Détecter si le SVG contient déjà des classes de couleur mappées (primary, secondary, etc.)
-  // OU si les styles contiennent des règles pour nos classes de couleur
-  // Si c'est le cas, cela signifie que le SVG a déjà été traité par notre système
-  const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-  const svgEl = svgDoc.querySelector('svg');
-  const hasColorClassesInElements = svgEl ? Array.from(svgEl.querySelectorAll('*')).some(el => {
-    const classAttr = el.getAttribute('class');
-    if (!classAttr) return false;
-    return classAttr.split(/\s+/).some(c => colorClassNames.includes(c));
-  }) : false;
-  
-  // Vérifier aussi si les styles contiennent des règles pour nos classes
-  const styleElements = svgDoc.querySelectorAll('style');
-  const hasColorClassesInStyles = Array.from(styleElements).some(styleEl => {
-    const cssText = styleEl.textContent || '';
-    return colorClassNames.some(className => {
-      const pattern = new RegExp(`\\.${className}\\s*\\{`);
-      return pattern.test(cssText);
-    });
-  });
-  
-  const hasColorClasses = hasColorClassesInElements || hasColorClassesInStyles;
-
-  // Ne détecter les couleurs dans les <style> que si le SVG n'a PAS encore de classes de couleur
-  // Si le SVG a des classes, cela signifie qu'il a été traité, donc on ignore les <style>
-  if (!hasColorClasses) {
-    // Détecter les couleurs dans les blocs <style>
-    styleElements.forEach(styleEl => {
-      const cssText = styleEl.textContent || '';
-      
-      // Vérifier si ce style contient des règles pour nos classes de couleur
-      // Si oui, IGNORER complètement ce style
-      const hasColorClassRules = colorClassNames.some(className => {
-        const pattern = new RegExp(`\\.${className}\\s*\\{`);
-        return pattern.test(cssText);
-      });
-      
-      if (hasColorClassRules) {
-        // Ignorer ce style - ce sont nos couleurs générées
-        return;
-      }
-      
-      // Chercher les règles CSS avec fill: ou stroke:
-      const colorPatterns = [
-        /fill:\s*([^;}\s]+)/gi,
-        /stroke:\s*([^;}\s]+)/gi,
-        /stop-color:\s*([^;}\s]+)/gi,
-      ];
-      
-      colorPatterns.forEach(pattern => {
-        let match;
-        while ((match = pattern.exec(cssText)) !== null) {
-          let color = match[1].trim();
-          // Retirer !important si présent
-          color = color.replace(/\s*!important\s*/gi, '').trim();
-          if (color && !color.startsWith('url(') && !color.startsWith('var(') && color !== 'none' && color !== 'transparent' && color !== 'currentColor') {
-            const normalized = normalizeColorToHex(color);
-            if (normalized) {
-              const existing = colorMap.get(normalized);
-              if (existing) {
-                existing.count++;
-              } else {
-                // Stocker la couleur originale sans !important
-                colorMap.set(normalized, { original: color, count: 1 });
-              }
-            }
-          }
-        }
-      });
-    });
-  } else {
-    console.log("🔵 [DETECT COLORS] SVG contient des classes de couleur, on ignore les <style>");
-  }
-  // Si hasColorClasses est true, on ignore complètement les <style> pour éviter de détecter
-  // les couleurs générées par notre système qui mappent les classes aux couleurs de palette
-
-  // 2. Détecter les couleurs dans les attributs fill et stroke directement
-  const traverseElements = (element: Element) => {
-    // Récupérer fill et stroke
-    const fill = element.getAttribute('fill');
-    const stroke = element.getAttribute('stroke');
-
-    [fill, stroke].forEach(color => {
-      if (color && color !== 'none' && color !== 'transparent' && color !== 'currentColor' && !color.startsWith('url(') && !color.startsWith('var(')) {
-        // Retirer !important si présent (au cas où il serait dans un attribut)
-        let cleanColor = color.replace(/\s*!important\s*/gi, '').trim();
-        const normalized = normalizeColorToHex(cleanColor);
-        if (normalized) {
-          const existing = colorMap.get(normalized);
-          if (existing) {
-            existing.count++;
-          } else {
-            colorMap.set(normalized, { original: cleanColor, count: 1 });
-          }
-        }
-      }
-    });
-
-    // Détecter les couleurs dans les gradients (stop-color)
-    if (element.tagName === 'stop') {
-      const stopColor = element.getAttribute('stop-color');
-      if (stopColor && stopColor !== 'none' && stopColor !== 'transparent' && stopColor !== 'currentColor') {
-        // Retirer !important si présent
-        let cleanColor = stopColor.replace(/\s*!important\s*/gi, '').trim();
-        const normalized = normalizeColorToHex(cleanColor);
-        if (normalized) {
-          const existing = colorMap.get(normalized);
-          if (existing) {
-            existing.count++;
-          } else {
-            colorMap.set(normalized, { original: cleanColor, count: 1 });
-          }
-        }
-      }
-    }
-
-    // Parcourir les enfants
-    Array.from(element.children).forEach(child => traverseElements(child));
-  };
-
-  const svgElement = svgDoc.querySelector('svg');
-  if (svgElement) {
-    traverseElements(svgElement);
-  }
-
-  // 3. Détecter les couleurs directement dans le texte SVG (fallback pour les cas complexes)
-  // MAIS uniquement si le SVG n'a pas encore de classes de couleur
-  // (sinon on pourrait détecter les couleurs dans le <style> généré)
-  if (!hasColorClasses) {
-    // Chercher les patterns hexadécimaux dans le texte brut
-    // MAIS exclure ceux qui sont dans des règles CSS avec !important pour nos classes de couleur
-    const hexPattern = /#([0-9A-Fa-f]{3,6})\b/g;
-    let match;
-    while ((match = hexPattern.exec(svgContent)) !== null) {
-      const hex = '#' + match[1];
-      const matchIndex = match.index;
-      
-      // Vérifier si cette couleur est dans un style avec nos classes de couleur
-      // En regardant le contexte autour de la correspondance
-      const contextStart = Math.max(0, matchIndex - 200);
-      const contextEnd = Math.min(svgContent.length, matchIndex + match[0].length + 200);
-      const context = svgContent.substring(contextStart, contextEnd);
-      
-      // Vérifier si c'est dans une règle CSS pour nos classes de couleur
-      const isInColorClassRule = colorClassNames.some(className => {
-        const classRulePattern = new RegExp(`\\.${className}\\s*\\{[^}]*${hex.replace('#', '\\#')}[^}]*!important`, 'i');
-        return classRulePattern.test(context);
-      });
-      
-      if (!isInColorClassRule) {
-        const normalized = normalizeColorToHex(hex);
-        if (normalized) {
-          const existing = colorMap.get(normalized);
-          if (existing) {
-            existing.count++;
-          } else {
-            colorMap.set(normalized, { original: hex, count: 1 });
-          }
-        }
-      }
-    }
-  }
-
-  // Convertir en tableau et trier par nombre d'occurrences
-  const result = Array.from(colorMap.entries())
-    .map(([hex, data]) => ({
-      originalColor: data.original,
-      normalizedHex: hex,
-      count: data.count
-    }))
-    .sort((a, b) => b.count - a.count);
-  
-  console.log("🔵 [DETECT COLORS] Résultat détection:", result.length, "couleurs");
-  console.log("🔵 [DETECT COLORS] Détail:", result.map(c => `${c.originalColor} (${c.normalizedHex}) - ${c.count} occ.`));
-  
-  return result;
-}
-
 export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorMapperProps) {
-  const [designs, setDesigns] = useState<Design2D[]>([]);
-  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
-  const [originalSvgContent, setOriginalSvgContent] = useState<string>(""); // SVG original sans modifications
-  const [detectedColors, setDetectedColors] = useState<DetectedColor[]>([]);
-  const [colorMappings, setColorMappings] = useState<Record<string, ColorMapping>>({});
-  const [palettes, setPalettes] = useState<ColorPalette[]>([]);
-  const [selectedPaletteId, setSelectedPaletteId] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ColorClass | undefined>(undefined);
+  const [svgContainer, setSvgContainer] = useState<HTMLDivElement | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [previewKey, setPreviewKey] = useState(0); // Clé pour forcer le re-render de l'aperçu
+  const [targetGroup, setTargetGroup] = useState(false); // Option pour cibler tout le groupe
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Charger les designs 2D
+  // Charger le SVG depuis l'input
   useEffect(() => {
-    async function fetchDesigns() {
-      try {
-        const response = await fetch("/api/designs-2d");
-        if (!response.ok) throw new Error("Failed to fetch designs");
-        const data = await response.json();
-        const designsArray = Array.isArray(data) ? data : [];
-        setDesigns(designsArray.map((d: any) => ({
-          id: d.id,
-          name: d.name,
-          svgUrl: d.svg_url || d.svgUrl,
-          thumbUrl: d.thumb_url || d.thumbUrl || d.preview_url,
-        })));
-      } catch (error) {
-        console.error("Error fetching designs:", error);
-      }
-    }
-    fetchDesigns();
-  }, []);
-
-  // Charger les palettes de couleurs
-  useEffect(() => {
-    async function fetchPalettes() {
-      try {
-        const response = await fetch("/api/color-palettes");
-        if (!response.ok) throw new Error("Failed to fetch palettes");
-        const data = await response.json();
-        setPalettes(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error fetching palettes:", error);
-      }
-    }
-    fetchPalettes();
-  }, []);
-
-  // Charger le SVG depuis le design sélectionné
-  useEffect(() => {
-    if (!selectedDesignId) {
+    if (!svgInput) {
       setSvgContent("");
-      setDetectedColors([]);
-      setColorMappings({});
       return;
     }
 
     const loadSvg = async () => {
       setIsProcessing(true);
       try {
-        const design = designs.find(d => d.id === selectedDesignId);
-        if (!design || !design.svgUrl) {
-          alert("Design introuvable ou URL SVG manquante");
-          return;
+        if (typeof svgInput === "string") {
+          setSvgContent(svgInput);
+        } else if (svgInput instanceof File) {
+          const text = await svgInput.text();
+          setSvgContent(text);
         }
-
-        const response = await fetch(design.svgUrl);
-        if (!response.ok) throw new Error("Failed to fetch SVG");
-        const text = await response.text();
-        console.log("SVG chargé, longueur:", text.length);
-        console.log("SVG preview (premiers 500 chars):", text.substring(0, 500));
-        
-        // Nettoyer le SVG pour enlever les styles ET classes générés par notre système
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(text, 'image/svg+xml');
-        const svgElement = svgDoc.querySelector('svg');
-        const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-        
-        if (svgElement) {
-          // 1. Extraire les couleurs originales depuis les styles CSS AVANT de les supprimer
-          // On va mapper les classes aux couleurs qu'elles définissent dans les styles
-          const styleElements = Array.from(svgDoc.querySelectorAll('style'));
-          const classToColorMap = new Map<string, string>();
-          
-          styleElements.forEach(styleEl => {
-            const cssText = styleEl.textContent || '';
-            const hasColorClassRules = colorClassNames.some(className => {
-              const pattern = new RegExp(`\\.${className}\\s*\\{`);
-              return pattern.test(cssText);
-            });
-            
-            if (hasColorClassRules) {
-              // Extraire les couleurs pour chaque classe avant de supprimer le style
-              colorClassNames.forEach(className => {
-                // Chercher fill: ou stroke: dans la règle CSS de cette classe
-                const classPattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
-                const classMatch = classPattern.exec(cssText);
-                if (classMatch) {
-                  const ruleContent = classMatch[0];
-                  // Chercher fill: couleur ou stroke: couleur
-                  const fillMatch = ruleContent.match(/fill:\s*([^;\\s]+)/i);
-                  const strokeMatch = ruleContent.match(/stroke:\s*([^;\\s]+)/i);
-                  if (fillMatch && fillMatch[1]) {
-                    let color = fillMatch[1].trim();
-                    // Retirer !important si présent
-                    color = color.replace(/\s*!important\s*/gi, '').trim();
-                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
-                      classToColorMap.set(className, color);
-                    }
-                  } else if (strokeMatch && strokeMatch[1]) {
-                    let color = strokeMatch[1].trim();
-                    // Retirer !important si présent
-                    color = color.replace(/\s*!important\s*/gi, '').trim();
-                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
-                      classToColorMap.set(className, color);
-                    }
-                  }
-                }
-              });
-              
-              // Maintenant supprimer le style
-              styleEl.remove();
-            }
-          });
-          
-          // 2. Parcourir tous les éléments, retirer les classes de couleur ET restaurer les couleurs originales
-          const allElements = svgElement.querySelectorAll('*');
-          allElements.forEach(el => {
-            const classAttr = el.getAttribute('class');
-            if (classAttr) {
-              const classes = classAttr.split(/\s+/);
-              const colorClassesFound = classes.filter(c => colorClassNames.includes(c));
-              
-              if (colorClassesFound.length > 0) {
-                // Restaurer la couleur originale depuis la map si disponible
-                for (const className of colorClassesFound) {
-                  const originalColor = classToColorMap.get(className);
-                  if (originalColor && !el.hasAttribute('fill') && !el.hasAttribute('stroke')) {
-                    // Restaurer dans fill par défaut
-                    el.setAttribute('fill', originalColor);
-                  } else if (originalColor) {
-                    // Si l'élément a déjà un fill ou stroke, remplacer celui qui manque
-                    if (!el.hasAttribute('fill')) {
-                      el.setAttribute('fill', originalColor);
-                    }
-                    if (!el.hasAttribute('stroke')) {
-                      el.setAttribute('stroke', originalColor);
-                    }
-                  }
-                }
-                
-                // Retirer les classes de couleur
-                const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
-                if (remainingClasses.length > 0) {
-                  el.setAttribute('class', remainingClasses.join(' '));
-                } else {
-                  el.removeAttribute('class');
-                }
-              }
-            }
-          });
-        }
-        
-        // Ré-sérialiser le SVG nettoyé
-        const serializer = new XMLSerializer();
-        const cleanedSvg = serializer.serializeToString(svgDoc);
-        
-        console.log("🔵 [LOAD SVG] SVG nettoyé, longueur:", cleanedSvg.length);
-        console.log("🔵 [LOAD SVG] SVG nettoyé (premiers 1000 chars):", cleanedSvg.substring(0, 1000));
-        console.log("🔵 [LOAD SVG] Nombre de <style> restants:", svgDoc.querySelectorAll('style').length);
-        console.log("🔵 [LOAD SVG] Nombre d'éléments avec class:", svgElement.querySelectorAll('[class]').length);
-        
-        setOriginalSvgContent(cleanedSvg); // Garder le SVG original nettoyé
-        setSvgContent(cleanedSvg);
-
-        // Détecter les couleurs sur le SVG nettoyé, pas le texte original
-        console.log("🔵 [LOAD SVG] Appel detectColorsInSvg sur SVG nettoyé, longueur:", cleanedSvg.length);
-        const colors = detectColorsInSvg(cleanedSvg);
-        console.log("🔵 [LOAD SVG] Couleurs détectées:", colors);
-        console.log("🔵 [LOAD SVG] Nombre de couleurs:", colors.length);
-        console.log("🔵 [LOAD SVG] Détail des couleurs:", colors.map(c => `${c.originalColor} (${c.normalizedHex}) - ${c.count} occ.`));
-        
-        // Si aucune couleur détectée, essayer une méthode alternative avec le DOM
-        if (colors.length === 0) {
-          console.log("Aucune couleur détectée avec la méthode standard, tentative avec le DOM...");
-          try {
-            // Créer un élément temporaire pour parser le SVG
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.visibility = 'hidden';
-            tempDiv.style.width = '1px';
-            tempDiv.style.height = '1px';
-            tempDiv.innerHTML = cleanedSvg;
-            document.body.appendChild(tempDiv);
-            
-            const svgEl = tempDiv.querySelector('svg');
-            if (svgEl) {
-              // Récupérer tous les éléments avec fill ou stroke
-              const allElements = svgEl.querySelectorAll('*');
-              const domColorMap = new Map<string, { original: string; count: number }>();
-              
-              allElements.forEach(el => {
-                const computedStyle = window.getComputedStyle(el);
-                const fill = computedStyle.fill;
-                const stroke = computedStyle.stroke;
-                
-                [fill, stroke].forEach(color => {
-                  if (color && color !== 'none' && color !== 'transparent' && color !== 'rgb(0, 0, 0)' && color !== 'rgba(0, 0, 0, 0)') {
-                    const normalized = normalizeColorToHex(color);
-                    if (normalized && normalized !== '#000000') {
-                      const existing = domColorMap.get(normalized);
-                      if (existing) {
-                        existing.count++;
-                      } else {
-                        domColorMap.set(normalized, { original: color, count: 1 });
-                      }
-                    }
-                  }
-                });
-              });
-              
-              const domColors = Array.from(domColorMap.entries())
-                .map(([hex, data]) => ({
-                  originalColor: data.original,
-                  normalizedHex: hex,
-                  count: data.count
-                }))
-                .sort((a, b) => b.count - a.count);
-              
-              console.log("Couleurs détectées via DOM:", domColors);
-              
-              if (domColors.length > 0) {
-                setDetectedColors(domColors);
-              } else {
-                setDetectedColors([]);
-              }
-            }
-            
-            document.body.removeChild(tempDiv);
-          } catch (error) {
-            console.error("Erreur lors de la détection via DOM:", error);
-            setDetectedColors([]);
-          }
-        } else {
-          setDetectedColors(colors);
-        }
-        
-        setColorMappings({});
-        setPreviewKey(0); // Réinitialiser la clé de preview
       } catch (error) {
         console.error("Erreur lors du chargement du SVG:", error);
         alert("Erreur lors du chargement du SVG");
@@ -538,1367 +60,330 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
     };
 
     loadSvg();
-  }, [selectedDesignId, designs]);
+  }, [svgInput]);
 
-  // Fonction pour mettre à jour un mapping de couleur
-  const updateColorMapping = useCallback((originalColor: string, colorClass: ColorClass | null, paletteColorId: string | null) => {
-    console.log("🟢 [UPDATE MAPPING] originalColor:", originalColor, "colorClass:", colorClass, "paletteColorId:", paletteColorId);
-    setColorMappings(prev => {
-      const newMappings = { ...prev };
-      if (colorClass === null && paletteColorId === null) {
-        delete newMappings[originalColor];
-        console.log("🟢 [UPDATE MAPPING] Mapping supprimé pour:", originalColor);
-      } else {
-        newMappings[originalColor] = { 
-          originalColor, 
-          colorClass: colorClass!, 
-          paletteId: selectedPaletteId,
-          paletteColorId: paletteColorId || '' 
-        };
-        console.log("🟢 [UPDATE MAPPING] Nouveau mapping:", newMappings[originalColor]);
-      }
-      console.log("🟢 [UPDATE MAPPING] Total mappings:", Object.keys(newMappings).length);
-      console.log("🟢 [UPDATE MAPPING] Tous les mappings:", JSON.stringify(newMappings, null, 2));
-      // Forcer la mise à jour de l'aperçu
-      setPreviewKey(prev => prev + 1);
-      return newMappings;
-    });
-  }, [selectedPaletteId]);
+  // Appliquer les styles de feedback visuel après le rendu
+  useEffect(() => {
+    if (!svgContainer || !svgContent) return;
 
-  // Obtenir toutes les couleurs disponibles depuis les palettes
-  const getAllPaletteColors = useCallback((): Array<{ id: string; name: string; hex: string; paletteName: string }> => {
-    const allColors: Array<{ id: string; name: string; hex: string; paletteName: string }> = [];
-    palettes.forEach((palette) => {
-      palette.colors.forEach((color, index) => {
-        const colorId = `${palette.id}-${index}-${color.hex}`;
-        allColors.push({
-          id: colorId,
-          name: color.name || '',
-          hex: color.hex || '#000000',
-          paletteName: palette.name
-        });
-      });
-    });
-    return allColors;
-  }, [palettes]);
+    const svgElement = svgContainer.querySelector("svg");
+    if (!svgElement) return;
 
-  // Fonction pour générer le SVG modifié
-  const generateModifiedSvg = useCallback((): string => {
-    // Utiliser le SVG original nettoyé comme base, pas le svgContent qui peut être modifié
-    const baseSvg = originalSvgContent || svgContent;
-    if (!baseSvg) {
-      console.log("🟡 [GENERATE SVG] pas de svgContent");
-      return '';
+    // Injecter les styles CSS pour le feedback visuel
+    const styleId = "svg-color-mapper-styles";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        .svg-color-mapper-container .primary { fill: #FF0000 !important; }
+        .svg-color-mapper-container .secondary { fill: #0000FF !important; }
+        .svg-color-mapper-container .tertiary { fill: #00FF00 !important; }
+        .svg-color-mapper-container .quaternary { fill: #FFFF00 !important; }
+        .svg-color-mapper-container .quinary { fill: #FF00FF !important; }
+        .svg-color-mapper-container .senary { fill: #00FFFF !important; }
+        .svg-color-mapper-container .septenary { fill: #FFA500 !important; }
+        .svg-color-mapper-container .octonary { fill: #800080 !important; }
+        .svg-color-mapper-container svg * {
+          cursor: crosshair;
+          transition: fill 0.2s ease;
+        }
+        .svg-color-mapper-container svg *:hover {
+          opacity: 0.8;
+        }
+      `;
+      document.head.appendChild(style);
     }
 
-    console.log("🟡 [GENERATE SVG] Début génération");
-    console.log("🟡 [GENERATE SVG] baseSvg longueur:", baseSvg.length);
-    console.log("🟡 [GENERATE SVG] colorMappings:", JSON.stringify(colorMappings, null, 2));
-    console.log("🟡 [GENERATE SVG] Nombre de mappings:", Object.keys(colorMappings).length);
-
-    // Calculer allPaletteColors ici pour éviter la dépendance circulaire
-    const allPaletteColors = getAllPaletteColors();
-    console.log("🟡 [GENERATE SVG] Nombre de couleurs palette:", allPaletteColors.length);
-
-    try {
-      const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(baseSvg, 'image/svg+xml');
-      const svgElement = svgDoc.querySelector('svg');
-      if (!svgElement) {
-        console.log("🟡 [GENERATE SVG] pas d'élément SVG trouvé");
-        return svgContent;
-      }
-      
-      console.log("🟡 [GENERATE SVG] SVG parsé, nombre d'éléments:", svgElement.querySelectorAll('*').length);
-      console.log("🟡 [GENERATE SVG] Nombre de <style> avant traitement:", svgDoc.querySelectorAll('style').length);
-      console.log("🟡 [GENERATE SVG] Nombre d'éléments avec class avant traitement:", svgElement.querySelectorAll('[class]').length);
-
-      // D'abord, extraire les couleurs depuis les styles CSS existants
-      const styleElementsBefore = Array.from(svgDoc.querySelectorAll('style'));
-      const cssClassToColorMap = new Map<string, string>(); // Map: className -> color hex
-      
-      styleElementsBefore.forEach(styleEl => {
-        const cssText = styleEl.textContent || '';
-        // Parser les règles CSS comme .st1 { fill: #111; }
-        const rulePattern = /\.(\w+)\s*\{[^}]*fill:\s*([^;}\s]+)/gi;
-        let match;
-        while ((match = rulePattern.exec(cssText)) !== null) {
-          const className = match[1];
-          const colorValue = match[2].trim();
-          // Ignorer les gradients et autres valeurs complexes
-          if (!colorValue.startsWith('url(') && !colorValue.startsWith('var(') && colorValue !== 'none') {
-            const normalized = normalizeColorToHex(colorValue);
-            if (normalized) {
-              cssClassToColorMap.set(className, normalized);
-            }
-          }
-        }
-      });
-      
-      console.log("🟡 [GENERATE SVG] cssClassToColorMap:", Array.from(cssClassToColorMap.entries()));
-
-    // Fonction récursive pour remplacer les couleurs
-    const replaceColorsInElement = (element: Element) => {
-      const classAttr = element.getAttribute('class');
-      const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-      
-      if (classAttr) {
-        const classes = classAttr.split(/\s+/).filter(Boolean);
-        
-        // Vérifier si l'élément a une classe CSS qui correspond à une couleur mappée
-        for (const cssClass of classes) {
-          const colorFromCssClass = cssClassToColorMap.get(cssClass);
-          if (colorFromCssClass) {
-            const mapping = colorMappings[colorFromCssClass];
-            if (mapping?.colorClass) {
-              // Remplacer la classe CSS par notre classe de couleur
-              const cleanedClasses = classes.filter(c => c !== cssClass && !colorClassNames.includes(c));
-              cleanedClasses.push(mapping.colorClass);
-              element.setAttribute('class', cleanedClasses.join(' ').trim());
-              console.log(`🟡 [GENERATE SVG] Élément avec classe ${cssClass} (couleur ${colorFromCssClass}) remplacé par ${mapping.colorClass}`);
-              break; // Un seul mapping par élément
-            }
-          }
-        }
-        
-        // Nettoyer les anciennes classes de couleur si elles existent
-        const hasOldColorClass = classes.some(c => colorClassNames.includes(c));
-        if (hasOldColorClass && !classes.some(c => cssClassToColorMap.has(c))) {
-          const cleanedClasses = classes.filter(c => !colorClassNames.includes(c));
-          if (cleanedClasses.length > 0) {
-            element.setAttribute('class', cleanedClasses.join(' '));
-          } else {
-            element.removeAttribute('class');
-          }
-        }
-      }
-      
-      // Aussi vérifier les attributs fill/stroke directs (au cas où)
-      const fill = element.getAttribute('fill');
-      if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
-        const normalized = normalizeColorToHex(fill);
-        if (normalized) {
-          let mapping = colorMappings[normalized];
-          if (!mapping) {
-            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-            if (detectedColor) {
-              mapping = colorMappings[detectedColor.normalizedHex];
-            }
-          }
-          
-          if (mapping?.colorClass) {
-            element.removeAttribute('fill');
-            const existingClass = element.getAttribute('class') || '';
-            const classList = existingClass.split(/\s+/).filter(Boolean);
-            const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
-            if (!cleanedClasses.includes(mapping.colorClass)) {
-              cleanedClasses.push(mapping.colorClass);
-            }
-            element.setAttribute('class', cleanedClasses.join(' ').trim());
-          }
-        }
+    // Rendre tous les éléments cliquables (path, rect, circle, ellipse, polygon, polyline, line, g, etc.)
+    const makeClickable = (element: Element) => {
+      const skipTags = ["svg", "defs", "style", "metadata", "title", "desc"];
+      if (skipTags.includes(element.tagName.toLowerCase())) {
+        return;
       }
 
-      const stroke = element.getAttribute('stroke');
-      if (stroke && stroke !== 'none' && stroke !== 'transparent' && stroke !== 'currentColor') {
-        const normalized = normalizeColorToHex(stroke);
-        if (normalized) {
-          let mapping = colorMappings[normalized];
-          if (!mapping) {
-            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-            if (detectedColor) {
-              mapping = colorMappings[detectedColor.normalizedHex];
-            }
-          }
-          
-          if (mapping?.colorClass) {
-            element.removeAttribute('stroke');
-            const existingClass = element.getAttribute('class') || '';
-            const classList = existingClass.split(/\s+/).filter(Boolean);
-            const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
-            if (!cleanedClasses.includes(mapping.colorClass)) {
-              cleanedClasses.push(mapping.colorClass);
-            }
-            element.setAttribute('class', cleanedClasses.join(' ').trim());
-          }
-        }
+      // Marquer les éléments graphiques comme cliquables
+      const graphicTags = ["path", "rect", "circle", "ellipse", "polygon", "polyline", "line", "g", "text", "tspan", "use"];
+      if (graphicTags.includes(element.tagName.toLowerCase())) {
+        element.setAttribute("data-clickable", "true");
       }
-
-      Array.from(element.children).forEach(child => replaceColorsInElement(child));
+      
+      // Récursivement traiter les enfants
+      Array.from(element.children).forEach(child => makeClickable(child));
     };
 
-    // Appliquer les remplacements
-    replaceColorsInElement(svgElement);
+    makeClickable(svgElement);
 
-    // Traiter les stop-color dans les gradients
-    const allStops = Array.from(svgDoc.querySelectorAll('stop'));
-    allStops.forEach(stop => {
-      const stopColor = stop.getAttribute('stop-color');
-      if (stopColor && stopColor !== 'none' && stopColor !== 'transparent') {
-        const normalized = normalizeColorToHex(stopColor);
-        if (normalized) {
-          let mapping = colorMappings[normalized];
-          if (!mapping) {
-            const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-            if (detectedColor) {
-              mapping = colorMappings[detectedColor.normalizedHex];
-            }
-          }
-          
-          if (mapping?.colorClass && mapping.paletteColorId) {
-            const paletteColor = allPaletteColors.find(c => c.id === mapping.paletteColorId);
-            if (paletteColor) {
-              stop.setAttribute('stop-color', paletteColor.hex);
-              console.log(`🟡 [GENERATE SVG] stop-color ${stopColor} (${normalized}) remplacé par ${paletteColor.hex} (${mapping.colorClass})`);
-            }
-          }
-        }
+    // Ajouter les event listeners
+    const handleClick = (e: MouseEvent) => {
+      // Si aucun outil n'est sélectionné, on demande de sélectionner
+      if (selectedTool === undefined) {
+        alert("Veuillez d'abord sélectionner un outil de couleur ou l'outil 'Effacer'");
+        return;
       }
-    });
+      // Si selectedTool est null, c'est l'outil "Effacer", on continue
 
-    // Gérer les styles CSS pour les classes de couleur
-    // Supprimer complètement les anciens blocs <style> qui contiennent des règles pour nos classes de couleur
-    const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-    const styleElements = Array.from(svgDoc.querySelectorAll('style'));
-    
-    // Supprimer tous les blocs style qui contiennent des règles pour nos classes de couleur
-    styleElements.forEach(styleEl => {
-      const cssText = styleEl.textContent || '';
-      const hasColorClassRules = colorClassNames.some(className => {
-        const pattern = new RegExp(`\\.${className}\\s*\\{`);
-        return pattern.test(cssText);
-      });
-      
-      if (hasColorClassRules) {
-        // Supprimer complètement ce bloc style
-        styleEl.remove();
-      }
-    });
-    
-    // Supprimer les règles CSS pour les classes qui ne sont plus utilisées
-    const remainingStyleElements = Array.from(svgDoc.querySelectorAll('style'));
-    remainingStyleElements.forEach(styleEl => {
-      const cssText = styleEl.textContent || '';
-      const rulePattern = /\.(\w+)\s*\{[^}]*\}/g;
-      let match;
-      const rulesToRemove: string[] = [];
-      
-      while ((match = rulePattern.exec(cssText)) !== null) {
-        const className = match[1];
-        const fullRule = match[0];
-        
-        // Vérifier si cette classe CSS est encore utilisée dans le SVG
-        const elementsWithClass = svgElement.querySelectorAll(`.${className}`);
-        if (elementsWithClass.length === 0) {
-          rulesToRemove.push(fullRule);
-          console.log(`🟡 [GENERATE SVG] Règle CSS .${className} non utilisée, sera supprimée`);
+      const target = e.target as HTMLElement;
+      if (!target || target.tagName === "svg") return;
+
+      // Vérifier si l'élément ou un parent a l'attribut data-clickable
+      let clickableElement: HTMLElement | null = target;
+      while (clickableElement && clickableElement !== svgElement) {
+        if (clickableElement.hasAttribute("data-clickable")) {
+          break;
         }
+        clickableElement = clickableElement.parentElement;
       }
-      
-      if (rulesToRemove.length > 0) {
-        let newCssText = cssText;
-        rulesToRemove.forEach(rule => {
-          const escapedRule = rule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          newCssText = newCssText.replace(new RegExp(escapedRule, 'g'), '');
+
+      if (!clickableElement || clickableElement === svgElement) return;
+
+      e.stopPropagation();
+      e.preventDefault();
+
+      // Si l'option "targetGroup" est activée et que l'élément est dans un groupe <g>, mapper tout le groupe
+      if (targetGroup && clickableElement.parentElement?.tagName === "g") {
+        const group = clickableElement.parentElement;
+        // Appliquer la couleur à tous les enfants du groupe
+        Array.from(group.children).forEach(child => {
+          if (child.hasAttribute("data-clickable")) {
+            applyColorClass(child as HTMLElement, selectedTool);
+          }
         });
-        newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
-        if (newCssText) {
-          styleEl.textContent = newCssText;
-        } else {
-          styleEl.remove();
-        }
+      } else {
+        // Sinon, mapper uniquement l'élément cliqué
+        applyColorClass(clickableElement, selectedTool);
       }
+    };
+
+    svgElement.addEventListener("click", handleClick);
+    
+    return () => {
+      svgElement.removeEventListener("click", handleClick);
+    };
+  }, [svgContainer, svgContent, selectedTool]);
+
+  // Fonction pour appliquer une classe de couleur à un élément
+  const applyColorClass = useCallback((element: HTMLElement, colorClass: ColorClass) => {
+    if (!colorClass) {
+      // Mode "Effacer" - retirer toutes les classes de couleur
+      const colorClasses = COLOR_TOOLS.map(t => t.id).filter(Boolean) as string[];
+      colorClasses.forEach(cls => {
+        element.classList.remove(cls);
+      });
+      return;
+    }
+
+    // Nettoyer les anciennes classes de couleur
+    const colorClasses = COLOR_TOOLS.map(t => t.id).filter(Boolean) as string[];
+    colorClasses.forEach(cls => {
+      element.classList.remove(cls);
     });
 
-    // Créer un nouveau bloc style pour nos règles de classe de couleur
-    let styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
-    
-    // Générer les règles CSS pour chaque classe mappée
-    const styleRules = Object.values(colorMappings)
-      .filter(m => m.colorClass && m.paletteColorId)
-      .map(m => {
-        const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
-        if (paletteColor) {
-          // Ajouter à la fois fill et stroke pour être sûr que ça fonctionne
-          return `.${m.colorClass} { fill: ${paletteColor.hex} !important; stroke: ${paletteColor.hex} !important; }`;
-        }
-        return '';
-      })
-      .filter(Boolean);
+    // Appliquer la nouvelle classe
+    element.classList.add(colorClass);
+  }, []);
 
-    console.log("🟡 [GENERATE SVG] styleRules générées:", styleRules);
-    console.log("🟡 [GENERATE SVG] Nombre de styleRules:", styleRules.length);
-
-    // Ajouter le contenu seulement s'il y a des règles
-    if (styleRules.length > 0) {
-      styleElement.textContent = styleRules.join('\n    ');
-      console.log("🟡 [GENERATE SVG] Contenu du styleElement:", styleElement.textContent);
-      
-      // Ajouter le style dans un bloc <defs>
-      let defs = svgDoc.querySelector('defs');
-      if (!defs) {
-        defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        svgElement.insertBefore(defs, svgElement.firstChild);
-        console.log("🟡 [GENERATE SVG] <defs> créé");
-      } else {
-        console.log("🟡 [GENERATE SVG] <defs> existant trouvé");
-      }
-      defs.appendChild(styleElement);
-      console.log("🟡 [GENERATE SVG] styleElement ajouté dans defs");
-      console.log("🟡 [GENERATE SVG] Nombre de <style> dans defs après ajout:", defs.querySelectorAll('style').length);
-    } else {
-      console.log("🟡 [GENERATE SVG] ⚠️ Aucune styleRule à ajouter (styleRules.length = 0)");
-    }
-
-      // Convertir en string
-      const serializer = new XMLSerializer();
-      const result = serializer.serializeToString(svgDoc);
-      console.log("🟡 [GENERATE SVG] SVG généré, longueur:", result.length);
-      const allStyles = svgDoc.querySelectorAll('style');
-      console.log("🟡 [GENERATE SVG] Nombre de <style> après traitement:", allStyles.length);
-      console.log("🟡 [GENERATE SVG] Nombre d'éléments avec class après traitement:", svgElement.querySelectorAll('[class]').length);
-      allStyles.forEach((style, index) => {
-        console.log(`🟡 [GENERATE SVG] Style ${index}:`, style.textContent?.substring(0, 200));
-      });
-      // Chercher spécifiquement le style avec nos classes de couleur
-      const colorStyle = Array.from(allStyles).find(style => {
-        const text = style.textContent || '';
-        return text.includes('.primary') || text.includes('.secondary') || text.includes('.tertiary');
-      });
-      if (colorStyle) {
-        console.log("🟡 [GENERATE SVG] Style avec classes de couleur trouvé:", colorStyle.textContent);
-      } else {
-        console.log("🟡 [GENERATE SVG] ⚠️ AUCUN style avec classes de couleur trouvé !");
-      }
-      console.log("🟡 [GENERATE SVG] SVG généré (premiers 1000 chars):", result.substring(0, 1000));
-      return result;
-    } catch (error) {
-      console.error("🟡 [GENERATE SVG] Erreur:", error);
-      return baseSvg; // Retourner le SVG original en cas d'erreur
-    }
-  }, [originalSvgContent, svgContent, colorMappings, detectedColors, getAllPaletteColors]);
-
-  // Fonction pour sauvegarder le SVG modifié
-  const handleSave = useCallback(async () => {
-    console.log("🔴 [SAVE] Début sauvegarde");
-    if (!selectedDesignId) {
-      alert("Aucun design sélectionné");
+  // Fonction pour exporter le SVG modifié
+  const handleExport = useCallback(() => {
+    if (!svgContainer) {
+      alert("Aucun SVG à exporter");
       return;
     }
 
-    const modifiedSvg = generateModifiedSvg();
-    console.log("🔴 [SAVE] SVG généré, longueur:", modifiedSvg.length);
-    console.log("🔴 [SAVE] SVG à sauvegarder (premiers 1000 chars):", modifiedSvg.substring(0, 1000));
-    
-    // Parser pour vérifier le contenu
-    try {
-      const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(modifiedSvg, 'image/svg+xml');
-      const svgElement = svgDoc.querySelector('svg');
-      if (svgElement) {
-        console.log("🔴 [SAVE] Nombre de <style> dans SVG à sauvegarder:", svgDoc.querySelectorAll('style').length);
-        console.log("🔴 [SAVE] Contenu des styles:", svgDoc.querySelector('style')?.textContent);
-        console.log("🔴 [SAVE] Nombre d'éléments avec class:", svgElement.querySelectorAll('[class]').length);
-        const classesFound = Array.from(svgElement.querySelectorAll('[class]')).map(el => el.getAttribute('class')).filter(Boolean);
-        console.log("🔴 [SAVE] Classes trouvées:", classesFound);
-      }
-    } catch (e) {
-      console.error("🔴 [SAVE] Erreur parsing SVG avant sauvegarde:", e);
-    }
-    
-    if (!modifiedSvg) {
-      alert("Aucun SVG à sauvegarder");
+    const svgElement = svgContainer.querySelector("svg");
+    if (!svgElement) {
+      alert("Aucun élément SVG trouvé");
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const formData = new FormData();
-      formData.append('designId', selectedDesignId);
-      formData.append('svgContent', modifiedSvg);
+    // Cloner le SVG pour éviter de modifier l'original
+    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
 
-      console.log("🔴 [SAVE] Envoi au serveur...");
-      const response = await fetch('/api/designs-2d/upload-svg', {
-        method: 'POST',
-        body: formData,
-      });
+    // Nettoyer les attributs de debug
+    const cleanAttributes = (element: Element) => {
+      element.removeAttribute("data-clickable");
+      Array.from(element.children).forEach(child => cleanAttributes(child));
+    };
+    cleanAttributes(clonedSvg);
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("🔴 [SAVE] Erreur serveur:", error);
-        throw new Error(error.error || 'Failed to save SVG');
-      }
+    // Convertir en string
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(clonedSvg);
 
-      const result = await response.json();
-      console.log("🔴 [SAVE] Réponse serveur:", result);
-      alert('✅ SVG sauvegardé avec succès !');
-      
-      // Recharger les designs pour avoir la nouvelle URL
-      const designsResponse = await fetch("/api/designs-2d");
-      if (designsResponse.ok) {
-        const data = await designsResponse.json();
-        const designsArray = Array.isArray(data) ? data : [];
-        setDesigns(designsArray.map((d: any) => ({
-          id: d.id,
-          name: d.name,
-          svgUrl: d.svg_url || d.svgUrl,
-          thumbUrl: d.thumb_url || d.thumbUrl || d.preview_url,
-        })));
-      }
-    } catch (error: any) {
-      console.error("Erreur lors de la sauvegarde:", error);
-      alert(`Erreur lors de la sauvegarde: ${error.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [selectedDesignId, generateModifiedSvg]);
-
-  const filteredDesigns = designs.filter((design) =>
-    design.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const allPaletteColors = getAllPaletteColors();
-
-  // Utiliser un état pour le SVG modifié qui se met à jour à chaque changement
-  const [modifiedSvgPreview, setModifiedSvgPreview] = useState<string>('');
-
-  // Mettre à jour le SVG modifié quand les mappings changent
-  useEffect(() => {
-    console.log("🟣 [USE EFFECT PREVIEW] Déclenché - originalSvgContent:", !!originalSvgContent, "svgContent:", !!svgContent, "previewKey:", previewKey);
-    console.log("🟣 [USE EFFECT PREVIEW] colorMappings:", Object.keys(colorMappings).length, "mappings:", JSON.stringify(colorMappings));
-    console.log("🟣 [USE EFFECT PREVIEW] detectedColors:", detectedColors.length);
-    console.log("🟣 [USE EFFECT PREVIEW] palettes:", palettes.length);
-    
-    if (originalSvgContent || svgContent) {
-      // Appeler generateModifiedSvg directement ici au lieu d'utiliser la référence
-      const baseSvg = originalSvgContent || svgContent;
-      console.log("🟣 [USE EFFECT PREVIEW] baseSvg longueur:", baseSvg.length);
-      if (baseSvg) {
-        const allPaletteColors = getAllPaletteColors();
-        console.log("🟣 [USE EFFECT PREVIEW] allPaletteColors:", allPaletteColors.length);
-        try {
-          const parser = new DOMParser();
-          const svgDoc = parser.parseFromString(baseSvg, 'image/svg+xml');
-          const svgElement = svgDoc.querySelector('svg');
-          if (svgElement) {
-            console.log("🟣 [USE EFFECT PREVIEW] SVG parsé, traitement en cours...");
-            
-            // D'abord, extraire les couleurs depuis les styles CSS existants
-            const styleElements = Array.from(svgDoc.querySelectorAll('style'));
-            const cssClassToColorMap = new Map<string, string>(); // Map: className -> color hex
-            
-            styleElements.forEach(styleEl => {
-              const cssText = styleEl.textContent || '';
-              // Parser les règles CSS comme .st1 { fill: #111; }
-              const rulePattern = /\.(\w+)\s*\{[^}]*fill:\s*([^;}\s]+)/gi;
-              let match;
-              while ((match = rulePattern.exec(cssText)) !== null) {
-                const className = match[1];
-                const colorValue = match[2].trim();
-                // Ignorer les gradients et autres valeurs complexes
-                if (!colorValue.startsWith('url(') && !colorValue.startsWith('var(') && colorValue !== 'none') {
-                  const normalized = normalizeColorToHex(colorValue);
-                  if (normalized) {
-                    cssClassToColorMap.set(className, normalized);
-                  }
-                }
-              }
-            });
-            
-            console.log("🟣 [USE EFFECT PREVIEW] cssClassToColorMap:", Array.from(cssClassToColorMap.entries()));
-            
-            // Fonction récursive pour remplacer les couleurs
-            const replaceColorsInElement = (element: Element) => {
-              // D'abord, nettoyer les anciennes classes de couleur
-              const classAttr = element.getAttribute('class');
-              const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-              
-              if (classAttr) {
-                const classes = classAttr.split(/\s+/).filter(Boolean);
-                
-                // Vérifier si l'élément a une classe CSS qui correspond à une couleur mappée
-                for (const cssClass of classes) {
-                  const colorFromCssClass = cssClassToColorMap.get(cssClass);
-                  if (colorFromCssClass) {
-                    const mapping = colorMappings[colorFromCssClass];
-                    if (mapping?.colorClass) {
-                      // Remplacer la classe CSS par notre classe de couleur
-                      const cleanedClasses = classes.filter(c => c !== cssClass && !colorClassNames.includes(c));
-                      cleanedClasses.push(mapping.colorClass);
-                      element.setAttribute('class', cleanedClasses.join(' ').trim());
-                      console.log(`🟣 [USE EFFECT PREVIEW] Élément avec classe ${cssClass} (couleur ${colorFromCssClass}) remplacé par ${mapping.colorClass}`);
-                      break; // Un seul mapping par élément
-                    }
-                  }
-                }
-                
-                // Nettoyer les anciennes classes de couleur si elles existent
-                const hasOldColorClass = classes.some(c => colorClassNames.includes(c));
-                if (hasOldColorClass && !classes.some(c => cssClassToColorMap.has(c))) {
-                  const cleanedClasses = classes.filter(c => !colorClassNames.includes(c));
-                  if (cleanedClasses.length > 0) {
-                    element.setAttribute('class', cleanedClasses.join(' '));
-                  } else {
-                    element.removeAttribute('class');
-                  }
-                }
-              }
-              
-              // Aussi vérifier les attributs fill/stroke directs (au cas où)
-              const fill = element.getAttribute('fill');
-              if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
-                const normalized = normalizeColorToHex(fill);
-                if (normalized) {
-                  let mapping = colorMappings[normalized];
-                  if (!mapping) {
-                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-                    if (detectedColor) {
-                      mapping = colorMappings[detectedColor.normalizedHex];
-                    }
-                  }
-                  
-                  if (mapping?.colorClass) {
-                    element.removeAttribute('fill');
-                    const existingClass = element.getAttribute('class') || '';
-                    const classList = existingClass.split(/\s+/).filter(Boolean);
-                    const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
-                    if (!cleanedClasses.includes(mapping.colorClass)) {
-                      cleanedClasses.push(mapping.colorClass);
-                    }
-                    element.setAttribute('class', cleanedClasses.join(' ').trim());
-                  }
-                }
-              }
-
-              const stroke = element.getAttribute('stroke');
-              if (stroke && stroke !== 'none' && stroke !== 'transparent' && stroke !== 'currentColor') {
-                const normalized = normalizeColorToHex(stroke);
-                if (normalized) {
-                  let mapping = colorMappings[normalized];
-                  if (!mapping) {
-                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-                    if (detectedColor) {
-                      mapping = colorMappings[detectedColor.normalizedHex];
-                    }
-                  }
-                  
-                  if (mapping?.colorClass) {
-                    element.removeAttribute('stroke');
-                    const existingClass = element.getAttribute('class') || '';
-                    const classList = existingClass.split(/\s+/).filter(Boolean);
-                    const cleanedClasses = classList.filter(c => !colorClassNames.includes(c));
-                    if (!cleanedClasses.includes(mapping.colorClass)) {
-                      cleanedClasses.push(mapping.colorClass);
-                    }
-                    element.setAttribute('class', cleanedClasses.join(' ').trim());
-                  }
-                }
-              }
-
-              Array.from(element.children).forEach(child => replaceColorsInElement(child));
-            };
-
-            replaceColorsInElement(svgElement);
-
-            // Traiter les stop-color dans les gradients
-            const allStops = Array.from(svgDoc.querySelectorAll('stop'));
-            allStops.forEach(stop => {
-              const stopColor = stop.getAttribute('stop-color');
-              if (stopColor && stopColor !== 'none' && stopColor !== 'transparent') {
-                const normalized = normalizeColorToHex(stopColor);
-                if (normalized) {
-                  let mapping = colorMappings[normalized];
-                  if (!mapping) {
-                    const detectedColor = detectedColors.find(dc => dc.normalizedHex === normalized);
-                    if (detectedColor) {
-                      mapping = colorMappings[detectedColor.normalizedHex];
-                    }
-                  }
-                  
-                  if (mapping?.colorClass && mapping.paletteColorId) {
-                    const paletteColor = allPaletteColors.find(c => c.id === mapping.paletteColorId);
-                    if (paletteColor) {
-                      stop.setAttribute('stop-color', paletteColor.hex);
-                      console.log(`🟣 [USE EFFECT PREVIEW] stop-color ${stopColor} (${normalized}) remplacé par ${paletteColor.hex} (${mapping.colorClass})`);
-                    }
-                  }
-                }
-              }
-            });
-
-            // Gérer les styles CSS - supprimer les anciens styles qui contiennent nos classes de couleur
-            // ET supprimer les règles CSS pour les classes qui ne sont plus utilisées
-            const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
-            const allStyleElements = Array.from(svgDoc.querySelectorAll('style'));
-            
-            // D'abord, supprimer les styles qui contiennent nos classes de couleur
-            allStyleElements.forEach(styleEl => {
-              const cssText = styleEl.textContent || '';
-              const hasColorClassRules = colorClassNames.some(className => {
-                const pattern = new RegExp(`\\.${className}\\s*\\{`);
-                return pattern.test(cssText);
-              });
-              if (hasColorClassRules) {
-                styleEl.remove();
-              }
-            });
-            
-            // Ensuite, supprimer les règles CSS pour les classes qui ne sont plus utilisées
-            // (par exemple, si tous les éléments avec `st1` ont été remplacés par `secondary`, supprimer `.st1 { fill: #111; }`)
-            const remainingStyleElements = Array.from(svgDoc.querySelectorAll('style'));
-            remainingStyleElements.forEach(styleEl => {
-              const cssText = styleEl.textContent || '';
-              // Parser toutes les règles CSS
-              const rulePattern = /\.(\w+)\s*\{[^}]*\}/g;
-              let match;
-              const rulesToRemove: string[] = [];
-              
-              while ((match = rulePattern.exec(cssText)) !== null) {
-                const className = match[1];
-                const fullRule = match[0];
-                
-                // Vérifier si cette classe CSS est encore utilisée dans le SVG
-                const elementsWithClass = svgElement.querySelectorAll(`.${className}`);
-                if (elementsWithClass.length === 0) {
-                  // Cette classe n'est plus utilisée, on peut supprimer la règle
-                  rulesToRemove.push(fullRule);
-                  console.log(`🟣 [USE EFFECT PREVIEW] Règle CSS .${className} non utilisée, sera supprimée`);
-                }
-              }
-              
-              // Supprimer les règles inutilisées
-              if (rulesToRemove.length > 0) {
-                let newCssText = cssText;
-                rulesToRemove.forEach(rule => {
-                  // Échapper les caractères spéciaux pour le regex
-                  const escapedRule = rule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                  newCssText = newCssText.replace(new RegExp(escapedRule, 'g'), '');
-                });
-                // Nettoyer les espaces multiples et les lignes vides
-                newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
-                if (newCssText) {
-                  styleEl.textContent = newCssText;
-                } else {
-                  // Si le style est vide, le supprimer
-                  styleEl.remove();
-                }
-              }
-            });
-
-            const styleElement = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'style');
-            const styleRules = Object.values(colorMappings)
-              .filter(m => m.colorClass && m.paletteColorId)
-              .map(m => {
-                const paletteColor = allPaletteColors.find(c => c.id === m.paletteColorId);
-                if (paletteColor) {
-                  return `.${m.colorClass} { fill: ${paletteColor.hex} !important; stroke: ${paletteColor.hex} !important; }`;
-                }
-                return '';
-              })
-              .filter(Boolean);
-
-            console.log("🟣 [USE EFFECT PREVIEW] styleRules générées:", styleRules);
-            console.log("🟣 [USE EFFECT PREVIEW] Nombre de styleRules:", styleRules.length);
-
-            if (styleRules.length > 0) {
-              styleElement.textContent = styleRules.join('\n    ');
-              console.log("🟣 [USE EFFECT PREVIEW] Contenu du styleElement:", styleElement.textContent);
-              let defs = svgDoc.querySelector('defs');
-              if (!defs) {
-                defs = svgDoc.createElementNS('http://www.w3.org/2000/svg', 'defs');
-                svgElement.insertBefore(defs, svgElement.firstChild);
-                console.log("🟣 [USE EFFECT PREVIEW] <defs> créé");
-              } else {
-                console.log("🟣 [USE EFFECT PREVIEW] <defs> existant trouvé");
-              }
-              defs.appendChild(styleElement);
-              console.log("🟣 [USE EFFECT PREVIEW] styleElement ajouté dans defs");
-              console.log("🟣 [USE EFFECT PREVIEW] Nombre de <style> dans defs après ajout:", defs.querySelectorAll('style').length);
-            } else {
-              console.log("🟣 [USE EFFECT PREVIEW] Aucune styleRule à ajouter (styleRules.length = 0)");
-            }
-
-            const serializer = new XMLSerializer();
-            const result = serializer.serializeToString(svgDoc);
-            console.log("🟣 [USE EFFECT PREVIEW] SVG modifié généré, longueur:", result.length);
-            const allStyles = svgDoc.querySelectorAll('style');
-            console.log("🟣 [USE EFFECT PREVIEW] Nombre de <style> dans le résultat:", allStyles.length);
-            allStyles.forEach((style, index) => {
-              console.log(`🟣 [USE EFFECT PREVIEW] Style ${index}:`, style.textContent?.substring(0, 200));
-            });
-            // Chercher spécifiquement le style avec nos classes de couleur
-            const colorStyle = Array.from(allStyles).find(style => {
-              const text = style.textContent || '';
-              return text.includes('.primary') || text.includes('.secondary') || text.includes('.tertiary');
-            });
-            if (colorStyle) {
-              console.log("🟣 [USE EFFECT PREVIEW] Style avec classes de couleur trouvé:", colorStyle.textContent);
-            } else {
-              console.log("🟣 [USE EFFECT PREVIEW] ⚠️ AUCUN style avec classes de couleur trouvé !");
-            }
-            console.log("🟣 [USE EFFECT PREVIEW] SVG généré (premiers 1000 chars):", result.substring(0, 1000));
-            setModifiedSvgPreview(result);
-            console.log("🟣 [USE EFFECT PREVIEW] modifiedSvgPreview mis à jour");
-          } else {
-            console.log("🟣 [USE EFFECT PREVIEW] Pas d'élément SVG trouvé");
-          }
-        } catch (error) {
-          console.error("🟣 [USE EFFECT PREVIEW] Erreur:", error);
-          setModifiedSvgPreview('');
-        }
-      }
+    if (onExport) {
+      onExport(svgString);
     } else {
-      console.log("🟣 [USE EFFECT PREVIEW] Pas de SVG, reset preview");
-      setModifiedSvgPreview('');
+      // Par défaut, télécharger le fichier
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "design-mapped.svg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
-  }, [originalSvgContent, svgContent, previewKey, colorMappings, detectedColors, palettes, getAllPaletteColors]); // Inclure toutes les dépendances nécessaires
+  }, [svgContainer, onExport]);
+
+  // Gestion du drag & drop de fichier
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === "image/svg+xml") {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSvgContent(event.target?.result as string);
+      };
+      reader.readAsText(file);
+    } else {
+      alert("Veuillez déposer un fichier SVG");
+    }
+  }, []);
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "image/svg+xml") {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSvgContent(event.target?.result as string);
+      };
+      reader.readAsText(file);
+    }
+  }, []);
 
   return (
-    <div style={{ 
-      fontFamily: 'var(--stepn-font-body)',
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100%',
-      backgroundColor: '#000000',
-      color: '#ffffff'
-    }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        select {
-          color: #ffffff !important;
-        }
-        select option {
-          background-color: #0a0a0a !important;
-          color: #ffffff !important;
-        }
-        select:disabled {
-          color: #666666 !important;
-          opacity: 0.6;
-        }
-      `}} />
-      {/* Sélection du design */}
-      {!svgContent && (
-        <div style={{ padding: '24px', borderBottom: '1px solid #1a1a1a' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              color: '#ffffff',
-              marginBottom: '8px',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              Rechercher un design 2D
-            </label>
-            <input
-              type="text"
-              placeholder="Rechercher un design 2D..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '8px',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontFamily: 'var(--stepn-font-body)'
-              }}
-            />
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '16px'
-          }}>
-            {filteredDesigns.map((design) => (
-              <div
-                key={design.id}
-                onClick={() => setSelectedDesignId(design.id)}
-                style={{
-                  backgroundColor: '#1a1a1a',
-                  border: '1px solid #2a2a2a',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#8eff36';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#2a2a2a';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#ffffff',
-                  marginBottom: '8px',
-                  fontFamily: 'var(--stepn-font-body)'
-                }}>
-                  {design.name}
-                </div>
-                {design.thumbUrl && (
-                  <img
-                    src={design.thumbUrl}
-                    alt={design.name}
-                    style={{
-                      width: '100%',
-                      height: '120px',
-                      objectFit: 'contain',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '4px'
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Contrôles - Boutons */}
-      {svgContent && (
-        <div style={{
-          flexShrink: 0,
-          borderBottom: '1px solid #1a1a1a',
-          backgroundColor: '#000000',
-          padding: '24px',
-          display: 'flex',
-          gap: '12px'
-        }}>
-          <button
-            onClick={() => {
-              setSvgContent("");
-              setOriginalSvgContent("");
-              setSelectedDesignId(null);
-              setDetectedColors([]);
-              setColorMappings({});
-              setSelectedPaletteId(null);
-            }}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: '#2a2a2a',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              color: '#ffffff',
-              fontSize: '14px',
-              fontFamily: 'var(--stepn-font-body)',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#3a3a3a';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#2a2a2a';
-            }}
-          >
-            Changer de design
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving || Object.keys(colorMappings).length === 0}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: (isSaving || Object.keys(colorMappings).length === 0) ? '#4a4a4a' : '#8eff36',
-              border: 'none',
-              borderRadius: '8px',
-              color: (isSaving || Object.keys(colorMappings).length === 0) ? '#a0a0a0' : '#000000',
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'var(--stepn-font-body)',
-              cursor: (isSaving || Object.keys(colorMappings).length === 0) ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!isSaving && Object.keys(colorMappings).length > 0) {
-                e.currentTarget.style.opacity = '0.9';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isSaving && Object.keys(colorMappings).length > 0) {
-                e.currentTarget.style.opacity = '1';
-              }
-            }}
-          >
-            {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder le SVG'}
-          </button>
-        </div>
-      )}
-
-      {/* Zone de mapping des couleurs */}
-      {svgContent && detectedColors.length > 0 ? (
-        <div style={{
-          flexShrink: 0,
-          borderBottom: '1px solid #1a1a1a',
-          backgroundColor: '#000000',
-          padding: '24px'
-        }}>
-          <div style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#8eff36',
-            marginBottom: '16px',
-            fontFamily: 'var(--stepn-font-body)'
-          }}>
-            Mapping des couleurs ({detectedColors.length} couleur{detectedColors.length > 1 ? 's' : ''} détectée{detectedColors.length > 1 ? 's' : ''})
-          </div>
-          
-          {/* Sélecteur de bibliothèque de couleurs */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '12px',
-              color: '#a0a0a0',
-              marginBottom: '8px',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              Bibliothèque de couleurs
-            </label>
-            <select
-              value={selectedPaletteId || ''}
-              onChange={(e) => {
-                const paletteId = e.target.value || null;
-                setSelectedPaletteId(paletteId);
-                // Réinitialiser les mappings de couleurs si on change de palette
-                if (paletteId !== selectedPaletteId) {
-                  setColorMappings({});
-                  setPreviewKey(prev => prev + 1);
-                }
-              }}
-              style={{
-                width: '100%',
-                maxWidth: '400px',
-                padding: '8px 12px',
-                backgroundColor: '#0a0a0a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '4px',
-                color: '#ffffff',
-                fontSize: '12px',
-                fontFamily: 'var(--stepn-font-body)',
-                cursor: 'pointer'
-              }}
+    <div className={`svg-color-mapper-container flex flex-col ${className || "h-full"}`}>
+      {/* Palette d'outils */}
+      <div className="flex-shrink-0 border-b bg-white p-4">
+        <div className="flex flex-wrap gap-2 items-center mb-2">
+          <span className="text-sm font-medium text-gray-700 mr-2">Outils :</span>
+          {COLOR_TOOLS.map((tool) => (
+            <button
+              key={tool.id}
+              onClick={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
+              className={`px-4 py-2 rounded border-2 transition-all ${
+                selectedTool === tool.id
+                  ? "border-blue-500 bg-blue-50 shadow-md"
+                  : "border-gray-300 bg-white hover:border-gray-400"
+              }`}
+              title={tool.label}
             >
-              <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Sélectionner une bibliothèque</option>
-              {palettes.map(palette => (
-                <option key={palette.id} value={palette.id} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>
-                  {palette.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {detectedColors.map((detectedColor) => {
-              // Utiliser la couleur normalisée comme clé pour le mapping
-              const mapping = colorMappings[detectedColor.normalizedHex];
-              const selectedPaletteColor = mapping?.paletteColorId 
-                ? allPaletteColors.find(c => c.id === mapping.paletteColorId)
-                : null;
-
-              return (
+              <div className="flex items-center gap-2">
                 <div
-                  key={detectedColor.normalizedHex}
-                  style={{
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid #2a2a2a',
-                    borderRadius: '8px',
-                    padding: '16px'
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    marginBottom: '12px'
-                  }}>
-                    {/* Aperçu de la couleur originale */}
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      backgroundColor: detectedColor.normalizedHex,
-                      border: '1px solid #2a2a2a',
-                      borderRadius: '4px',
-                      flexShrink: 0
-                    }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontSize: '12px',
-                        color: '#a0a0a0',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {detectedColor.originalColor}
-                      </div>
-                      <div style={{
-                        fontSize: '11px',
-                        color: '#666666',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        {detectedColor.count} occurrence{detectedColor.count > 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '12px'
-                  }}>
-                    {/* Sélection de la classe de couleur */}
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '12px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Classe de couleur
-                      </label>
-                      <select
-                        value={mapping?.colorClass || ''}
-                        onChange={(e) => {
-                          const colorClass = e.target.value as ColorClass | '';
-                          updateColorMapping(
-                            detectedColor.normalizedHex,
-                            colorClass || null,
-                            mapping?.paletteColorId || null
-                          );
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          backgroundColor: '#0a0a0a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '4px',
-                          color: '#ffffff',
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Aucune classe</option>
-                        {COLOR_CLASSES.map(cls => (
-                          <option key={cls.id} value={cls.id} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>{cls.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Sélection de la couleur de la palette */}
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '12px',
-                        color: '#a0a0a0',
-                        marginBottom: '8px',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        Couleur de remplacement
-                      </label>
-                      <select
-                        value={mapping?.paletteColorId || ''}
-                        onChange={(e) => {
-                          updateColorMapping(
-                            detectedColor.normalizedHex,
-                            mapping?.colorClass || null,
-                            e.target.value || null
-                          );
-                        }}
-                        disabled={!mapping?.colorClass || !selectedPaletteId}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          backgroundColor: (mapping?.colorClass && selectedPaletteId) ? '#0a0a0a' : '#1a1a1a',
-                          border: '1px solid #2a2a2a',
-                          borderRadius: '4px',
-                          color: '#ffffff',
-                          fontSize: '12px',
-                          fontFamily: 'var(--stepn-font-body)',
-                          cursor: (mapping?.colorClass && selectedPaletteId) ? 'pointer' : 'not-allowed',
-                          opacity: (mapping?.colorClass && selectedPaletteId) ? 1 : 0.6
-                        }}
-                      >
-                        <option value="" style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>Sélectionner une couleur</option>
-                        {selectedPaletteId ? (
-                          (() => {
-                            const selectedPalette = palettes.find(p => p.id === selectedPaletteId);
-                            return selectedPalette?.colors.map((color, index) => {
-                              const colorId = `${selectedPalette.id}-${index}-${color.hex}`;
-                              return (
-                                <option key={colorId} value={colorId} style={{ backgroundColor: '#0a0a0a', color: '#ffffff' }}>
-                                  {color.name || 'Sans nom'} ({color.hex})
-                                </option>
-                              );
-                            });
-                          })()
-                        ) : null}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Aperçu du mapping */}
-                  {mapping?.colorClass && selectedPaletteColor && (
-                    <div style={{
-                      marginTop: '12px',
-                      padding: '12px',
-                      backgroundColor: '#0a0a0a',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px'
-                    }}>
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        backgroundColor: selectedPaletteColor.hex,
-                        border: '1px solid #2a2a2a',
-                        borderRadius: '4px'
-                      }} />
-                      <div style={{
-                        fontSize: '11px',
-                        color: '#8eff36',
-                        fontFamily: 'var(--stepn-font-body)'
-                      }}>
-                        → Sera remplacée par <strong>{selectedPaletteColor.name}</strong> ({selectedPaletteColor.hex}) 
-                        avec la classe <strong>.{mapping.colorClass}</strong>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  className="w-6 h-6 rounded border-2 border-gray-400"
+                  style={{ backgroundColor: tool.previewColor }}
+                />
+                <span className="text-sm font-medium text-gray-700">{tool.label}</span>
+              </div>
+            </button>
+          ))}
+          <button
+            onClick={() => setSelectedTool(selectedTool === null ? undefined : null)}
+            className={`px-4 py-2 rounded border-2 transition-all ${
+              selectedTool === null
+                ? "border-red-500 bg-red-50 shadow-md"
+                : "border-gray-300 bg-white hover:border-gray-400"
+            }`}
+            title="Effacer les classes de couleur"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🗑️</span>
+              <span className="text-sm font-medium text-gray-700">Effacer</span>
+            </div>
+          </button>
         </div>
-      ) : svgContent ? (
-        <div style={{
-          flexShrink: 0,
-          borderBottom: '1px solid #1a1a1a',
-          backgroundColor: '#000000',
-          padding: '24px'
-        }}>
-          <div style={{
-            fontSize: '14px',
-            color: '#8eff36',
-            fontFamily: 'var(--stepn-font-body)'
-          }}>
-            ⚠️ Aucune couleur détectée dans ce SVG. Le SVG sera affiché ci-dessous.
-          </div>
+        <div className="mt-2 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={targetGroup}
+              onChange={(e) => setTargetGroup(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <span>Appliquer au groupe entier (si l'élément est dans un &lt;g&gt;)</span>
+          </label>
         </div>
-      ) : null}
+        {selectedTool !== undefined && (
+          <div className="mt-2 text-xs text-gray-600">
+            <span className="font-medium">Outil sélectionné :</span>{" "}
+            {selectedTool === null 
+              ? "Effacer - Cliquez sur les éléments pour retirer leurs classes de couleur"
+              : `${COLOR_TOOLS.find(t => t.id === selectedTool)?.label} - Cliquez sur les éléments du SVG pour leur attribuer cette couleur.`
+            }
+          </div>
+        )}
+      </div>
 
       {/* Zone de contenu */}
-      <div style={{
-        flex: 1,
-        backgroundColor: '#000000',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <div className="flex-1 overflow-auto bg-gray-100 p-4">
         {!svgContent ? (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#a0a0a0',
-            fontSize: '14px',
-            fontFamily: 'var(--stepn-font-body)'
-          }}>
-            {designs.length === 0 ? 'Aucun design disponible' : 'Sélectionnez un design 2D ci-dessus'}
+          <div
+            className="h-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg"
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+          >
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Déposez un fichier SVG ici ou</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/svg+xml"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Choisir un fichier SVG
+              </button>
+            </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Aperçu du SVG */}
-            <div style={{
-              width: '100%',
-              backgroundColor: '#ffffff',
-              border: '1px solid #2a2a2a',
-              borderRadius: '8px',
-              padding: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative'
-            }} key={`preview-${previewKey}`}>
-              {(() => {
-                const modifiedSvg = modifiedSvgPreview;
-                console.log("Aperçu SVG - longueur:", modifiedSvg?.length || 0);
-                if (modifiedSvg) {
-                  try {
-                    // Parser le SVG pour extraire les dimensions et s'assurer qu'il a des dimensions
-                    const parser = new DOMParser();
-                    const svgDoc = parser.parseFromString(modifiedSvg, 'image/svg+xml');
-                    const svgElement = svgDoc.querySelector('svg');
-                    
-                    if (svgElement) {
-                      // S'assurer que le SVG a des dimensions
-                      const viewBox = svgElement.getAttribute('viewBox');
-                      let width = svgElement.getAttribute('width');
-                      let height = svgElement.getAttribute('height');
-                      
-                      // Si pas de dimensions, essayer de les extraire du viewBox
-                      if (!width || !height) {
-                        if (viewBox) {
-                          const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
-                          if (vbWidth && vbHeight) {
-                            width = vbWidth.toString();
-                            height = vbHeight.toString();
-                            svgElement.setAttribute('width', width);
-                            svgElement.setAttribute('height', height);
-                          }
-                        }
-                      }
-                      
-                      // Si toujours pas de dimensions, utiliser des valeurs par défaut
-                      if (!width || !height) {
-                        width = '800';
-                        height = '800';
-                        svgElement.setAttribute('width', width);
-                        svgElement.setAttribute('height', height);
-                        if (!viewBox) {
-                          svgElement.setAttribute('viewBox', `0 0 ${width} ${height}`);
-                        }
-                      }
-                      
-                      // Ré-sérialiser le SVG avec les dimensions
-                      const serializer = new XMLSerializer();
-                      const svgWithDimensions = serializer.serializeToString(svgDoc);
-                      
-                      console.log("SVG avec dimensions - width:", width, "height:", height);
-                      
-                      return (
-                        <>
-                          <style dangerouslySetInnerHTML={{ __html: `
-                            .svg-preview-container svg {
-                              max-width: 50% !important;
-                              width: 50% !important;
-                              height: auto !important;
-                            }
-                          `}} />
-                          <div
-                            className="svg-preview-container"
-                            style={{ 
-                              width: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <div
-                              dangerouslySetInnerHTML={{ __html: svgWithDimensions }}
-                              style={{ 
-                                width: '100%'
-                              }}
-                            />
-                          </div>
-                        </>
-                      );
-                    }
-                  } catch (error) {
-                    console.error("Erreur lors du parsing du SVG:", error);
-                  }
-                  
-                  // Fallback: afficher le SVG tel quel avec style pour adaptation
-                  const parserFallback = new DOMParser();
-                  const svgDocFallback = parserFallback.parseFromString(modifiedSvg, 'image/svg+xml');
-                  const svgElementFallback = svgDocFallback.querySelector('svg');
-                  if (svgElementFallback) {
-                    const serializerFallback = new XMLSerializer();
-                    const svgAdapted = serializerFallback.serializeToString(svgDocFallback);
-                    return (
-                      <>
-                        <style dangerouslySetInnerHTML={{ __html: `
-                          .svg-preview-container svg {
-                            max-width: 50% !important;
-                            width: 50% !important;
-                            height: auto !important;
-                          }
-                        `}} />
-                        <div
-                          className="svg-preview-container"
-                          style={{ 
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <div
-                            dangerouslySetInnerHTML={{ __html: svgAdapted }}
-                            style={{ 
-                              width: '100%'
-                            }}
-                          />
-                        </div>
-                      </>
-                    );
-                  }
-                  return (
-                    <>
-                      <style dangerouslySetInnerHTML={{ __html: `
-                        .svg-preview-container svg {
-                          max-width: 50% !important;
-                          width: 50% !important;
-                          height: auto !important;
-                        }
-                      `}} />
-                      <div
-                        className="svg-preview-container"
-                        style={{ 
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <div
-                          dangerouslySetInnerHTML={{ __html: modifiedSvg }}
-                          style={{ 
-                            width: '100%'
-                          }}
-                        />
-                      </div>
-                    </>
-                  );
-                }
-                return (
-                  <div style={{
-                    color: '#a0a0a0',
-                    fontSize: '14px',
-                    fontFamily: 'var(--stepn-font-body)'
-                  }}>
-                    Erreur lors de la génération du SVG
-                  </div>
-                );
-              })()}
+          <div className="h-full flex flex-col">
+            {/* Contrôles */}
+            <div className="mb-4 flex gap-2">
+              <button
+                onClick={() => {
+                  setSvgContent("");
+                  setSelectedTool(undefined);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              >
+                Réinitialiser
+              </button>
+              <button
+                onClick={handleExport}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+              >
+                💾 Exporter le SVG
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/svg+xml"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                📁 Charger un autre SVG
+              </button>
             </div>
+
+            {/* SVG Container */}
+            <div
+              ref={setSvgContainer}
+              className="flex-1 overflow-auto bg-white border-2 border-gray-300 rounded-lg p-4 flex items-center justify-center"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
           </div>
         )}
         {isProcessing && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}>
-            <div style={{
-              backgroundColor: '#1a1a1a',
-              padding: '24px',
-              borderRadius: '8px',
-              color: '#ffffff',
-              fontFamily: 'var(--stepn-font-body)'
-            }}>
-              Chargement...
-            </div>
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-4 rounded">Chargement...</div>
           </div>
         )}
       </div>

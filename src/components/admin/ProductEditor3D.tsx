@@ -336,14 +336,12 @@ export function ProductEditor3D({ productId, shop, onLeave }: ProductEditor3DPro
           />
 
           {/* Center Panel: 3D Preview */}
-          <div className="flex-1 flex flex-col bg-gray-900 relative">
+          <div className="flex-1 flex flex-col bg-gray-900">
             <Canvas3DPreview
               modelUrl={modelUrl}
               questions={questions}
               layers={layers}
               onModelUrlChange={setModelUrl}
-              productId={productId}
-              shop={shop}
             />
           </div>
 

@@ -1,5 +1,19 @@
 {
-  "buildCommand": "yarn install --production=false && yarn add sharp --platform=linux --cpu=x64 && yarn build",
-  "installCommand": "yarn install --production=false && yarn add sharp --platform=linux --cpu=x64",
-  "framework": "nextjs"
+  "functions": {
+    "src/app/api/designs/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/size-patterns/upload-file/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/size-patterns/upload-uv/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/shopify/products/[productId]/snapshots/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "regions": ["iad1"],
+  "installCommand": "cd ../.. && pnpm install",
+  "buildCommand": "cd ../.. && pnpm build --filter=web"
 }

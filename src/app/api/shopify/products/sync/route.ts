@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getShopByDomain } from '@/lib/shopify-shops';
+import { syncShopifyProducts } from '@/lib/shopify-products';
 
 /**
  * API pour synchroniser les produits Shopify d'une boutique
  * POST /api/shopify/products/sync?shop=eyesbergtest.myshopify.com
- * 
- * Note: Cette fonctionnalité n'est pas encore implémentée
  */
 export async function POST(request: NextRequest) {
   try {
@@ -27,24 +25,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier que la boutique est installée
-    const shopData = await getShopByDomain(shop);
-    if (!shopData || !shopData.access_token) {
-      return NextResponse.json(
-        { error: 'Boutique non trouvée ou non installée' },
-        { status: 404 }
-      );
-    }
+    console.log(`🔄 Démarrage de la synchronisation des produits pour ${shop}...`);
 
-    // TODO: Implémenter la synchronisation des produits
-    // Pour l'instant, retourner un message indiquant que c'est en cours de développement
+    // Synchroniser les produits
+    const result = await syncShopifyProducts(shop);
+
     return NextResponse.json({
       success: true,
       shop,
-      message: 'La synchronisation des produits n\'est pas encore implémentée. Cette fonctionnalité sera disponible prochainement.',
-      synced: 0,
-      updated: 0,
-      errors: 0,
+      result,
+      message: `Synchronisation terminée: ${result.synced} nouveaux, ${result.updated} mis à jour, ${result.errors} erreurs`,
     });
   } catch (error) {
     console.error('❌ Erreur lors de la synchronisation des produits:', error);
@@ -57,28 +47,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

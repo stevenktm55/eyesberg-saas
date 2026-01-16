@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ProductQuestion } from "./ProductEditor3D";
+import { BackgroundRemovalModal } from "./BackgroundRemovalModal";
 
 interface QuestionOptionsEditorProps {
   question: ProductQuestion;
@@ -13,6 +14,10 @@ export function QuestionOptionsEditor({
   onUpdate,
 }: QuestionOptionsEditorProps) {
   const [editingOption, setEditingOption] = useState<string | null>(null);
+  const [showBackgroundRemovalModal, setShowBackgroundRemovalModal] = useState(false);
+  const [selectedFileForUpload, setSelectedFileForUpload] = useState<File | null>(null);
+  const [selectedOptionForUpload, setSelectedOptionForUpload] = useState<string | null>(null);
+  const [processedImageDataUrl, setProcessedImageDataUrl] = useState<string | null>(null);
 
   if (!question.options || question.options.length === 0) {
     return null;
@@ -111,15 +116,28 @@ export function QuestionOptionsEditor({
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => {
-                      // TODO: Implémenter l'upload d'image
-                      alert("Image upload coming soon");
-                    }}
-                    className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    Upload Image
-                  </button>
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedFileForUpload(file);
+                          setSelectedOptionForUpload(option);
+                          setShowBackgroundRemovalModal(true);
+                        }
+                      }}
+                      className="hidden"
+                      id={`image-upload-${option}`}
+                    />
+                    <label
+                      htmlFor={`image-upload-${option}`}
+                      className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50 cursor-pointer inline-block"
+                    >
+                      Upload Image
+                    </label>
+                  </div>
                 )}
               </div>
             </div>
@@ -134,7 +152,86 @@ export function QuestionOptionsEditor({
             Configure options in the 3D preview
           </div>
         )}
+
+      {/* Modal de suppression de fond */}
+      <BackgroundRemovalModal
+        isOpen={showBackgroundRemovalModal}
+        imageFile={selectedFileForUpload}
+        onClose={() => {
+          setShowBackgroundRemovalModal(false);
+          setSelectedFileForUpload(null);
+          setSelectedOptionForUpload(null);
+          setProcessedImageDataUrl(null);
+        }}
+        onConfirm={(dataUrl) => {
+          if (selectedOptionForUpload) {
+            // Uploader l'image traitée vers Supabase
+            uploadProcessedImage(dataUrl, selectedOptionForUpload);
+          }
+          setShowBackgroundRemovalModal(false);
+          setSelectedFileForUpload(null);
+          setSelectedOptionForUpload(null);
+          setProcessedImageDataUrl(null);
+        }}
+        onCancel={() => {
+          // Si annulé, uploader l'image originale
+          if (selectedFileForUpload && selectedOptionForUpload) {
+            uploadOriginalImage(selectedFileForUpload, selectedOptionForUpload);
+          }
+          setShowBackgroundRemovalModal(false);
+          setSelectedFileForUpload(null);
+          setSelectedOptionForUpload(null);
+          setProcessedImageDataUrl(null);
+        }}
+      />
     </div>
   );
+
+  async function uploadProcessedImage(dataUrl: string, option: string) {
+    try {
+      // Convertir data URL en File
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `processed-${option}.png`, { type: 'image/png' });
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await fetch('/api/logos/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+        const optionImages = { ...question.optionImages };
+        optionImages[option] = uploadData.url;
+        onUpdate({ ...question, optionImages });
+      }
+    } catch (error) {
+      console.error('Erreur upload image traitée:', error);
+    }
+  }
+
+  async function uploadOriginalImage(file: File, option: string) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await fetch('/api/logos/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+        const optionImages = { ...question.optionImages };
+        optionImages[option] = uploadData.url;
+        onUpdate({ ...question, optionImages });
+      }
+    } catch (error) {
+      console.error('Erreur upload image originale:', error);
+    }
+  }
 }
 

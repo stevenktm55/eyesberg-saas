@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { SnapshotsPanel } from "./SnapshotsPanel";
 
 interface ConnectPanelProps {
   productId: string;
@@ -44,7 +45,7 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
         setShopInfo(data);
       }
     } catch (error) {
-      console.error("Error while loading shop info:", error);
+      console.error("Erreur lors du chargement des infos boutique:", error);
     } finally {
       setLoading(false);
     }
@@ -63,7 +64,7 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
         }
       }
     } catch (error) {
-      console.error("Error while loading product info:", error);
+      console.error("Erreur lors du chargement des infos produit:", error);
     }
   };
 
@@ -80,29 +81,18 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
         }),
       });
       if (response.ok) {
-        alert("Starting points saved successfully");
+        alert("Starting points sauvegardés avec succès");
       }
     } catch (error) {
-      console.error("Error while saving starting points:", error);
-      alert("Error while saving");
+      console.error("Erreur lors de la sauvegarde:", error);
+      alert("Erreur lors de la sauvegarde");
     }
-  };
-
-  const handleConnectToShopify = () => {
-    if (!shop) {
-      alert("Please provide your Shopify domain first (e.g. store.myshopify.com).");
-      return;
-    }
-
-    // Redirige vers le flow OAuth Shopify côté backend
-    const url = `/api/shopify/install?shop=${encodeURIComponent(shop)}`;
-    window.location.href = url;
   };
 
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center text-gray-400">Loading...</div>
+        <div className="text-center text-gray-400">Chargement...</div>
       </div>
     );
   }
@@ -112,7 +102,7 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            This feature requires a Shopify connection.
+            Cette fonctionnalité nécessite une connexion Shopify.
           </p>
         </div>
       </div>
@@ -161,11 +151,8 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
           </div>
         ) : (
           <div className="text-center py-4">
-            <p className="text-gray-500 mb-4">Shop not connected</p>
-            <button
-              onClick={handleConnectToShopify}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
+            <p className="text-gray-500 mb-4">Boutique non connectée</p>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               Connect to Shopify
             </button>
           </div>
@@ -215,7 +202,7 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                URL of the product page where the configurator will be embedded
+                URL de la page produit Shopify où le configurateur sera intégré
               </p>
             </div>
 
@@ -231,7 +218,7 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                URL of the page where customers start a new design from scratch
+                URL de la page où les clients peuvent commencer un design depuis zéro
               </p>
             </div>
 
@@ -245,21 +232,27 @@ export function ConnectPanel({ productId, shop }: ConnectPanelProps) {
         </div>
       )}
 
+      {/* Snapshots Section */}
+      <SnapshotsPanel productId={productId} shop={shop} />
+
       {/* Integration Instructions */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-md font-semibold text-blue-900 mb-3">Integration Instructions</h3>
         <div className="space-y-2 text-sm text-blue-800">
           <p>
-            <strong>1. Product Starting Point:</strong> Add the embed code to your Shopify product
-            template.
+            <strong>1. Product Snapshots:</strong> Générez les snapshots mobile et desktop pour vérifier l'apparence de votre produit.
           </p>
           <p>
-            <strong>2. Design Starting Point:</strong> Create a Shopify page and add the configurator
-            embed code.
+            <strong>2. Product Starting Point:</strong> Ajoutez le code d'intégration dans votre
+            template de produit Shopify.
           </p>
           <p>
-            <strong>3. Cart Integration:</strong> The configurator automatically pushes configured
-            products to the cart with the selected options.
+            <strong>3. Design Starting Point:</strong> Créez une page Shopify et ajoutez le code
+            d'intégration du configurateur.
+          </p>
+          <p>
+            <strong>4. Cart Integration:</strong> Le configurateur ajoutera automatiquement les
+            produits au panier avec les options personnalisées.
           </p>
         </div>
       </div>
