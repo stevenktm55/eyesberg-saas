@@ -359,10 +359,8 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
         
         if (svgElement) {
-          // 1. Extraire les couleurs originales depuis les styles CSS AVANT de les supprimer
-          // On va mapper les classes aux couleurs qu'elles définissent dans les styles
+          // 1. Supprimer les styles CSS générés par notre système (primary, secondary, etc.)
           const styleElements = Array.from(svgDoc.querySelectorAll('style'));
-          const classToColorMap = new Map<string, string>();
           
           styleElements.forEach(styleEl => {
             const cssText = styleEl.textContent || '';
@@ -372,66 +370,38 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             });
             
             if (hasColorClassRules) {
-              // Extraire les couleurs pour chaque classe avant de supprimer le style
+              // Supprimer uniquement les règles CSS pour nos classes de couleur
+              // Garder les autres règles CSS (comme .st0, .st1, etc.)
+              let newCssText = cssText;
               colorClassNames.forEach(className => {
-                // Chercher fill: ou stroke: dans la règle CSS de cette classe
-                const classPattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
-                const classMatch = classPattern.exec(cssText);
-                if (classMatch) {
-                  const ruleContent = classMatch[0];
-                  // Chercher fill: couleur ou stroke: couleur
-                  const fillMatch = ruleContent.match(/fill:\s*([^;\\s]+)/i);
-                  const strokeMatch = ruleContent.match(/stroke:\s*([^;\\s]+)/i);
-                  if (fillMatch && fillMatch[1]) {
-                    let color = fillMatch[1].trim();
-                    // Retirer !important si présent
-                    color = color.replace(/\s*!important\s*/gi, '').trim();
-                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
-                      classToColorMap.set(className, color);
-                    }
-                  } else if (strokeMatch && strokeMatch[1]) {
-                    let color = strokeMatch[1].trim();
-                    // Retirer !important si présent
-                    color = color.replace(/\s*!important\s*/gi, '').trim();
-                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
-                      classToColorMap.set(className, color);
-                    }
-                  }
-                }
+                // Supprimer la règle CSS pour cette classe
+                const classRulePattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
+                newCssText = newCssText.replace(classRulePattern, '');
               });
               
-              // Maintenant supprimer le style
-              styleEl.remove();
+              // Nettoyer les espaces multiples et les lignes vides
+              newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
+              
+              if (newCssText) {
+                styleEl.textContent = newCssText;
+              } else {
+                // Si le style est vide, le supprimer
+                styleEl.remove();
+              }
             }
           });
           
-          // 2. Parcourir tous les éléments, retirer les classes de couleur ET restaurer les couleurs originales
+          // 2. Parcourir tous les éléments et retirer UNIQUEMENT les classes de couleur
+          // NE PAS restaurer les couleurs - elles seront détectées depuis les styles CSS originaux
           const allElements = svgElement.querySelectorAll('*');
           allElements.forEach(el => {
             const classAttr = el.getAttribute('class');
             if (classAttr) {
-              const classes = classAttr.split(/\s+/);
+              const classes = classAttr.split(/\s+/).filter(Boolean);
               const colorClassesFound = classes.filter(c => colorClassNames.includes(c));
               
               if (colorClassesFound.length > 0) {
-                // Restaurer la couleur originale depuis la map si disponible
-                for (const className of colorClassesFound) {
-                  const originalColor = classToColorMap.get(className);
-                  if (originalColor && !el.hasAttribute('fill') && !el.hasAttribute('stroke')) {
-                    // Restaurer dans fill par défaut
-                    el.setAttribute('fill', originalColor);
-                  } else if (originalColor) {
-                    // Si l'élément a déjà un fill ou stroke, remplacer celui qui manque
-                    if (!el.hasAttribute('fill')) {
-                      el.setAttribute('fill', originalColor);
-                    }
-                    if (!el.hasAttribute('stroke')) {
-                      el.setAttribute('stroke', originalColor);
-                    }
-                  }
-                }
-                
-                // Retirer les classes de couleur
+                // Retirer uniquement les classes de couleur, garder les autres (st0, st1, etc.)
                 const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
                 if (remainingClasses.length > 0) {
                   el.setAttribute('class', remainingClasses.join(' '));
