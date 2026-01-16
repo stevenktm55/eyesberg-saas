@@ -1933,8 +1933,12 @@ function DesignTab({
         const designsData = await designsResponse.json();
         const designs2dData = await designs2dResponse.json();
         
-        console.log('🔍 [LOAD DESIGNS] Designs depuis /api/designs:', designsData.length);
-        console.log('🔍 [LOAD DESIGNS] Designs depuis /api/designs-2d:', designs2dData.length);
+        console.log('═══════════════════════════════════════════════════════════');
+        console.log('🔍 [LOAD DESIGNS] CHARGEMENT DES DESIGNS');
+        console.log('═══════════════════════════════════════════════════════════');
+        console.log('📦 Designs depuis /api/designs:', designsData.length);
+        console.log('📦 Designs depuis /api/designs-2d:', designs2dData.length);
+        console.log('📦 Données brutes designs_2d:', designs2dData);
         
         // Normaliser les designs de la table designs
         const normalizedDesigns1 = (Array.isArray(designsData) ? designsData : []).map((design: any) => ({
@@ -1977,7 +1981,10 @@ function DesignTab({
           colors: (() => {
             // Gérer différents formats de couleurs
             if (Array.isArray(design.colors)) {
-              console.log(`🔍 [LOAD DESIGNS] Design ${design.id} (designs_2d) a ${design.colors.length} couleurs:`, design.colors);
+              console.log(`🎨 [LOAD DESIGNS] Design ${design.id} (designs_2d) a ${design.colors.length} couleurs:`, design.colors);
+              design.colors.forEach((c: any) => {
+                console.log(`   → ${c.name}: ${c.value}`);
+              });
               return design.colors;
             }
             if (Array.isArray(design.design_colors)) {
@@ -2273,44 +2280,63 @@ function DesignTab({
                     resetColors();
                     
                     // Appliquer automatiquement les couleurs du design (nouveau système dynamique ou legacy)
-                    console.log('🎨 Design colors à appliquer:', design.colors);
+                    console.log('═══════════════════════════════════════════════════════════');
+                    console.log('🎨 [CLICK DESIGN] Application des couleurs après clic');
+                    console.log('═══════════════════════════════════════════════════════════');
+                    console.log('📦 Design sélectionné:', design.name, 'ID:', design.id);
+                    console.log('📦 Design colors:', design.colors);
+                    console.log('📦 Primary color (legacy):', design.primaryColor);
+                    console.log('📦 Secondary color (legacy):', design.secondaryColor);
+                    console.log('📦 Tertiary color (legacy):', design.tertiaryColor);
+                    
                     const colorsToApply: Record<string, string> = {};
                     
                     if (design.colors && design.colors.length > 0) {
                       // Nouveau système dynamique
-                      console.log('🎨 Application des couleurs dynamiques:', design.colors);
+                      console.log('✅ Utilisation du nouveau système de couleurs dynamiques');
                       design.colors.forEach(color => {
                         if (color && color.name && color.value) {
                           const normalizedKey = normalizeColorKey(color.name);
                           colorsToApply[normalizedKey] = color.value.trim();
-                          console.log(`🎨 Couleur ${color.name} (${normalizedKey}): ${color.value}`);
+                          console.log(`   → ${color.name} (${normalizedKey}) = ${color.value}`);
                         } else {
                           console.warn('⚠️ Couleur invalide ignorée:', color);
                         }
                       });
                     } else {
                       // Système legacy
-                      console.log('🎨 Application des couleurs legacy');
+                      console.log('⚠️ Utilisation du système legacy de couleurs');
                       if (design.primaryColor) {
                         colorsToApply['primary'] = design.primaryColor.trim();
+                        console.log(`   → primary = ${design.primaryColor}`);
                       }
                       if (design.secondaryColor) {
                         colorsToApply['secondary'] = design.secondaryColor.trim();
+                        console.log(`   → secondary = ${design.secondaryColor}`);
                       }
                       if (design.tertiaryColor) {
                         colorsToApply['tertiary'] = design.tertiaryColor.trim();
+                        console.log(`   → tertiary = ${design.tertiaryColor}`);
                       }
                     }
                     
                     // Appliquer toutes les couleurs en une seule fois
+                    console.log('📦 Couleurs à appliquer:', colorsToApply);
+                    console.log('📦 Nombre de couleurs:', Object.keys(colorsToApply).length);
+                    
                     if (Object.keys(colorsToApply).length > 0) {
-                      console.log('🎨 Application de toutes les couleurs en une fois:', colorsToApply);
+                      console.log('🔧 Appel de replaceColors avec:', colorsToApply);
                       replaceColors(colorsToApply);
                       // Aussi appeler updateColor pour chaque couleur pour déclencher les variantes CSS
                       Object.entries(colorsToApply).forEach(([key, value]) => {
+                        console.log(`   🔧 updateColor(${key}, ${value})`);
                         updateColor(key, value);
                       });
+                      console.log('✅ Toutes les couleurs ont été appliquées');
+                    } else {
+                      console.warn('⚠️ Aucune couleur à appliquer!');
                     }
+                    console.log('═══════════════════════════════════════════════════════════');
                   }}
                 >
                   <div className="space-y-2">
@@ -2434,21 +2460,54 @@ const applyDefaultDesignColors = (
   replaceColors: (colors: Record<string, string>) => void,
   updateColor: (colorType: string, color: string) => void
 ) => {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('🎨 [APPLY COLORS] Application des couleurs du design');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('📦 Design colors:', design.colors);
+  console.log('📦 Primary color (legacy):', design.primaryColor);
+  console.log('📦 Secondary color (legacy):', design.secondaryColor);
+  console.log('📦 Tertiary color (legacy):', design.tertiaryColor);
+  
   const result: Record<string, string> = {};
 
   if (Array.isArray(design.colors) && design.colors.length > 0) {
+    console.log('✅ Utilisation du nouveau système de couleurs dynamiques');
     design.colors.forEach((color) => {
-      if (!color?.name || typeof color.value !== 'string') return;
-      result[normalizeColorKey(color.name)] = color.value;
+      if (!color?.name || typeof color.value !== 'string') {
+        console.warn('⚠️ Couleur invalide ignorée:', color);
+        return;
+      }
+      const normalizedKey = normalizeColorKey(color.name);
+      result[normalizedKey] = color.value;
+      console.log(`   → ${color.name} (${normalizedKey}) = ${color.value}`);
     });
   } else {
-    if (design.primaryColor) result.primary = design.primaryColor;
-    if (design.secondaryColor) result.secondary = design.secondaryColor;
-    if (design.tertiaryColor) result.tertiary = design.tertiaryColor;
+    console.log('⚠️ Utilisation du système legacy de couleurs');
+    if (design.primaryColor) {
+      result.primary = design.primaryColor;
+      console.log(`   → primary = ${design.primaryColor}`);
+    }
+    if (design.secondaryColor) {
+      result.secondary = design.secondaryColor;
+      console.log(`   → secondary = ${design.secondaryColor}`);
+    }
+    if (design.tertiaryColor) {
+      result.tertiary = design.tertiaryColor;
+      console.log(`   → tertiary = ${design.tertiaryColor}`);
+    }
   }
 
+  console.log('📦 Résultat final à appliquer:', result);
+  console.log('📦 Nombre de couleurs:', Object.keys(result).length);
+  
   replaceColors(result);
-  Object.entries(result).forEach(([key, value]) => updateColor(key, value));
+  Object.entries(result).forEach(([key, value]) => {
+    console.log(`   🔧 updateColor(${key}, ${value})`);
+    updateColor(key, value);
+  });
+  
+  console.log('✅ Couleurs appliquées');
+  console.log('═══════════════════════════════════════════════════════════');
 };
 function ColorTab({ colors, updateColor }: { 
   colors: Record<string, string>;
