@@ -1197,6 +1197,12 @@ function Viewer3D({
   const controlsRef = useRef<any>(null);
   // Timestamp de la dernière modification explicite de la caméra
   const lastCameraChangeRef = useRef<number>(0);
+  
+  // Charger les vues de caméra pour le modèle actuel
+  const { cameraViews } = useCameraViews(modelId);
+  
+  // État pour suivre la vue de caméra actuellement active
+  const [currentCameraView, setCurrentCameraView] = useState<'front' | 'back' | 'left' | 'right'>('front');
 
   // Fonction de conversion pour mapper les distances de zoom entre desktop et mobile
   // Ratio basé sur maxDistance pour maintenir la cohérence du zoom
