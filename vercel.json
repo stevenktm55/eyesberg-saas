@@ -13,7 +13,5 @@
       "maxDuration": 60
     }
   },
-  "regions": ["iad1"],
-  "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm build --filter=web"
+  "regions": ["iad1"]
 }
