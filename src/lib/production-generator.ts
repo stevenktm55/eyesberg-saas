@@ -5,7 +5,7 @@
 // et injecte les couleurs en CMJN
 // =====================================================
 
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 /**
  * Convertit une couleur HEX en CMJN
@@ -63,20 +63,18 @@ export async function generatePrintFile(
   colorConfig: Record<string, string>
 ): Promise<string> {
   try {
-    // 1. Récupérer le produit et son template
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      select: {
-        id: true,
-        productionTemplates: true,
-      },
-    });
+    // 1. Récupérer le produit et son template depuis Supabase
+    const { data: product, error } = await supabaseAdmin
+      .from("shopify_products")
+      .select("id, production_templates")
+      .eq("id", productId)
+      .single();
 
-    if (!product) {
+    if (error || !product) {
       throw new Error(`Product ${productId} not found`);
     }
 
-    const templates = (product.productionTemplates as Record<string, string>) || {};
+    const templates = (product.production_templates as Record<string, string>) || {};
     const templateUrl = templates[size];
 
     if (!templateUrl) {

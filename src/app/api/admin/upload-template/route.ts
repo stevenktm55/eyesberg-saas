@@ -7,7 +7,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -64,14 +63,16 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ Template uploadé:", publicUrl);
 
-    // Mettre à jour le Product dans Prisma avec le nouveau template
+    // Mettre à jour le Product dans Supabase avec le nouveau template
     try {
       // Récupérer le produit actuel
-      const product = await prisma.product.findUnique({
-        where: { id: productId },
-      });
+      const { data: product, error: fetchError } = await supabaseAdmin
+        .from("shopify_products")
+        .select("id, production_templates")
+        .eq("id", productId)
+        .single();
 
-      if (!product) {
+      if (fetchError || !product) {
         return NextResponse.json(
           { error: "Product not found" },
           { status: 404 }
@@ -79,18 +80,20 @@ export async function POST(request: NextRequest) {
       }
 
       // Mettre à jour les templates
-      const currentTemplates = (product.productionTemplates as Record<string, string>) || {};
+      const currentTemplates = (product.production_templates as Record<string, string>) || {};
       const updatedTemplates = {
         ...currentTemplates,
         [size]: publicUrl,
       };
 
-      await prisma.product.update({
-        where: { id: productId },
-        data: {
-          productionTemplates: updatedTemplates,
-        },
-      });
+      const { error: updateError } = await supabaseAdmin
+        .from("shopify_products")
+        .update({ production_templates: updatedTemplates })
+        .eq("id", productId);
+
+      if (updateError) {
+        throw updateError;
+      }
 
       return NextResponse.json({
         success: true,
@@ -99,15 +102,15 @@ export async function POST(request: NextRequest) {
         fileName,
         templates: updatedTemplates,
       });
-    } catch (prismaError: any) {
-      console.error("❌ Erreur Prisma:", prismaError);
-      // Si Prisma échoue, on retourne quand même l'URL uploadée
+    } catch (dbError: any) {
+      console.error("❌ Erreur Supabase:", dbError);
+      // Si Supabase échoue, on retourne quand même l'URL uploadée
       return NextResponse.json({
         success: true,
         url: publicUrl,
         size,
         fileName,
-        warning: "Template uploaded but database update failed: " + prismaError.message,
+        warning: "Template uploaded but database update failed: " + dbError.message,
       });
     }
   } catch (error: any) {
