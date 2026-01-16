@@ -1865,26 +1865,13 @@ export default function ProductBuilderPage() {
 
   async function fetchDesigns2D() {
     try {
-      console.log('🔍 [FETCH DESIGNS 2D] Chargement des designs 2D');
       const res = await fetch('/api/designs-2d');
       if (res.ok) {
         const data = await res.json();
-        console.log('📦 Designs 2D chargés:', data.length);
-        data.forEach((design: any) => {
-          console.log(`Design ${design.id} (${design.name}):`, {
-            colors: design.colors,
-            color_mappings: design.color_mappings,
-            hasColors: !!design.colors,
-            colorsLength: Array.isArray(design.colors) ? design.colors.length : 0
-          });
-        });
         setDesigns2D(Array.isArray(data) ? data : []);
-        console.log('✅ Designs 2D chargés avec succès');
-      } else {
-        console.error('❌ Erreur HTTP:', res.status);
       }
     } catch (error) {
-      console.error('❌ Error fetching 2D designs:', error);
+      console.error('Error fetching 2D designs:', error);
     }
   }
 
@@ -4997,44 +4984,22 @@ export default function ProductBuilderPage() {
                       }
                       
                       const selectedDesign = designs2D.find(d => d.id === designIdToUse);
-                      console.log('🎨 [COLOR TAB] Design sélectionné:', {
-                        id: selectedDesign?.id,
-                        name: selectedDesign?.name,
-                        colors: selectedDesign?.colors,
-                        color_mappings: selectedDesign?.color_mappings,
-                        hasColors: !!selectedDesign?.colors,
-                        colorsIsArray: Array.isArray(selectedDesign?.colors),
-                        colorsLength: Array.isArray(selectedDesign?.colors) ? selectedDesign.colors.length : 0
-                      });
                       
                       // PRIORITÉ à design.colors (source de vérité depuis SVG Color Mapper)
                       if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
                         // Extraire les classes depuis design.colors (format [{name, value}])
                         availableColorClasses = selectedDesign.colors.map((c: any) => c.name).filter(Boolean);
-                        console.log('✅ Classes depuis design.colors (priorité):', availableColorClasses);
-                        console.log('📋 Détail design.colors:', selectedDesign.colors);
                       } else if (selectedDesign?.color_mappings) {
                         // Fallback sur color_mappings si design.colors n'existe pas
                         availableColorClasses = Object.keys(selectedDesign.color_mappings);
-                        console.log('✅ Classes depuis color_mappings (fallback):', availableColorClasses);
                       } else {
                         availableColorClasses = ['primary', 'secondary', 'tertiary'];
-                        console.log('⚠️ Utilisation des classes par défaut:', availableColorClasses);
                       }
                       
-                      const beforeFilter = [...availableColorClasses];
                       availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
-                      console.log('🔍 Filtrage ordinalColors:', {
-                        before: beforeFilter,
-                        after: availableColorClasses,
-                        ordinalColors: ordinalColors
-                      });
-                      
                       if (availableColorClasses.length === 0) {
                         availableColorClasses = ['primary', 'secondary', 'tertiary'];
-                        console.log('⚠️ Aucune classe valide, utilisation par défaut:', availableColorClasses);
                       }
-                      console.log('📦 Classes finales disponibles:', availableColorClasses);
                       
                       // Si on a sélectionné une classe de couleur, afficher la grille de couleurs
                       if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {

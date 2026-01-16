@@ -101,14 +101,10 @@ export async function POST(request: NextRequest) {
     };
     
     // Parser les styles CSS pour extraire les couleurs
-    console.log('🔍 [EXTRACT COLORS] Début extraction depuis SVG, longueur:', svgContent.length);
     const styleMatches = Array.from(svgContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
-    console.log('🔍 [EXTRACT COLORS] Nombre de blocs <style> trouvés:', styleMatches.length);
     
     for (let styleIndex = 0; styleIndex < styleMatches.length; styleIndex++) {
       const [, cssContent] = styleMatches[styleIndex];
-      console.log(`🔍 [EXTRACT COLORS] Traitement style bloc ${styleIndex + 1}, longueur CSS:`, cssContent.length);
-      console.log(`🔍 [EXTRACT COLORS] Aperçu CSS (premiers 500 chars):`, cssContent.substring(0, 500));
       
       for (const className of colorClassNames) {
         // Chercher les règles CSS comme .primary { fill: #HEX !important; }
@@ -129,49 +125,25 @@ export async function POST(request: NextRequest) {
           const match = cssContent.match(pattern);
           if (match && match[1]) {
             const colorValue = match[1].trim();
-            console.log(`🔍 [EXTRACT COLORS] Match trouvé pour ${className}:`, colorValue);
             const normalizedHex = normalizeToHex(colorValue);
             if (normalizedHex) {
               // Vérifier si cette couleur n'a pas déjà été ajoutée (éviter les doublons)
               const existing = extractedColors.find(c => c.name === className);
               if (!existing) {
                 extractedColors.push({ name: className, value: normalizedHex });
-                console.log(`✅ [EXTRACT COLORS] Couleur ${className} extraite: ${normalizedHex}`);
                 colorFound = true;
                 break; // Sortir de la boucle des patterns une fois qu'on a trouvé
-              } else {
-                console.log(`⚠️ [EXTRACT COLORS] Couleur ${className} déjà extraite, ignorée`);
               }
-            } else {
-              console.log(`⚠️ [EXTRACT COLORS] Couleur ${className} non normalisable:`, colorValue);
             }
-          }
-        }
-        
-        if (!colorFound) {
-          // Vérifier si la classe existe dans le CSS même sans couleur trouvée
-          const classExists = new RegExp(`\\.${className}\\s*\\{`, 'i').test(cssContent);
-          if (classExists) {
-            console.log(`⚠️ [EXTRACT COLORS] Classe .${className} trouvée dans CSS mais pas de couleur extractible`);
           }
         }
       }
     }
 
-    console.log('🎨 [EXTRACT COLORS] Couleurs extraites depuis le SVG:', extractedColors);
-    console.log('🎨 [EXTRACT COLORS] Nombre de couleurs extraites:', extractedColors.length);
-
     // Mettre à jour le design avec la nouvelle URL SVG et les couleurs extraites
     const updateData: any = { svg_url: publicUrl };
     if (extractedColors.length > 0) {
       updateData.colors = extractedColors;
-      console.log('📦 [UPDATE] Données à mettre à jour:', {
-        svg_url: publicUrl,
-        colors: extractedColors,
-        colorsCount: extractedColors.length
-      });
-    } else {
-      console.log('⚠️ [UPDATE] Aucune couleur à sauvegarder');
     }
 
     const { data: updatedDesign, error: updateError } = await supabaseAdmin
@@ -183,25 +155,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError) {
-      console.error('❌ [UPDATE] Supabase update error:', updateError);
-      console.error('❌ [UPDATE] Error details:', {
-        code: updateError.code,
-        message: updateError.message,
-        details: updateError.details,
-        hint: updateError.hint
-      });
+      console.error('Supabase update error:', updateError);
       return NextResponse.json(
         { error: `Failed to update design: ${updateError.message}` },
         { status: 500 }
       );
     }
-
-    console.log('✅ [UPDATE] Design mis à jour avec succès:', {
-      id: updatedDesign?.id,
-      hasColors: !!updatedDesign?.colors,
-      colors: updatedDesign?.colors,
-      colorsType: typeof updatedDesign?.colors
-    });
 
     return NextResponse.json({ 
       success: true, 
