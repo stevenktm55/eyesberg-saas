@@ -69,32 +69,59 @@ export async function POST(request: NextRequest) {
     const extractedColors: Array<{ name: string; value: string }> = [];
     const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
     
+    // Fonction pour normaliser une couleur en hex
+    const normalizeToHex = (colorValue: string): string | null => {
+      let normalized = colorValue.trim();
+      // Retirer !important si présent
+      normalized = normalized.replace(/\s*!important\s*/gi, '').trim();
+      
+      if (normalized.startsWith('#')) {
+        // Déjà en hex, normaliser la casse et la longueur
+        const hex = normalized.toUpperCase();
+        if (hex.length === 4) {
+          // #RGB -> #RRGGBB
+          return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+        }
+        return hex.length === 7 ? hex : null;
+      } else if (normalized.startsWith('rgb')) {
+        // Convertir rgb/rgba en hex
+        const rgbMatch = normalized.match(/\d+/g);
+        if (rgbMatch && rgbMatch.length >= 3) {
+          const r = parseInt(rgbMatch[0]);
+          const g = parseInt(rgbMatch[1]);
+          const b = parseInt(rgbMatch[2]);
+          const hex = `#${[r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+          }).join('')}`.toUpperCase();
+          return hex;
+        }
+      }
+      return null;
+    };
+    
     // Parser les styles CSS pour extraire les couleurs
     const styleMatches = svgContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
     for (const [, cssContent] of styleMatches) {
       for (const className of colorClassNames) {
         // Chercher les règles CSS comme .primary { fill: #HEX !important; }
-        const pattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;}\\s]+)`, 'i');
-        const match = cssContent.match(pattern);
-        if (match && match[1]) {
-          let colorValue = match[1].trim();
-          // Retirer !important si présent
-          colorValue = colorValue.replace(/\s*!important\s*/gi, '').trim();
-          // Normaliser en hex (gérer rgb, rgba, etc.)
-          if (colorValue.startsWith('#')) {
-            extractedColors.push({ name: className, value: colorValue });
-          } else if (colorValue.startsWith('rgb')) {
-            // Convertir rgb/rgba en hex (simplifié)
-            const rgbMatch = colorValue.match(/\d+/g);
-            if (rgbMatch && rgbMatch.length >= 3) {
-              const r = parseInt(rgbMatch[0]);
-              const g = parseInt(rgbMatch[1]);
-              const b = parseInt(rgbMatch[2]);
-              const hex = `#${[r, g, b].map(x => {
-                const hex = x.toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-              }).join('')}`;
-              extractedColors.push({ name: className, value: hex });
+        // Chercher aussi stroke: au cas où
+        const fillPattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;}\\s]+)`, 'i');
+        const strokePattern = new RegExp(`\\.${className}\\s*\\{[^}]*stroke:\\s*([^;}\\s]+)`, 'i');
+        
+        const fillMatch = cssContent.match(fillPattern);
+        const strokeMatch = cssContent.match(strokePattern);
+        
+        // Priorité à fill, sinon stroke
+        const colorMatch = fillMatch || strokeMatch;
+        if (colorMatch && colorMatch[1]) {
+          const normalizedHex = normalizeToHex(colorMatch[1]);
+          if (normalizedHex) {
+            // Vérifier si cette couleur n'a pas déjà été ajoutée (éviter les doublons)
+            const existing = extractedColors.find(c => c.name === className);
+            if (!existing) {
+              extractedColors.push({ name: className, value: normalizedHex });
+              console.log(`🎨 Couleur ${className} extraite: ${normalizedHex}`);
             }
           }
         }
