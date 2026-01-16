@@ -264,13 +264,18 @@ function detectColorsInSvg(svgContent: string): DetectedColor[] {
   }
 
   // Convertir en tableau et trier par nombre d'occurrences
-  return Array.from(colorMap.entries())
+  const result = Array.from(colorMap.entries())
     .map(([hex, data]) => ({
       originalColor: data.original,
       normalizedHex: hex,
       count: data.count
     }))
     .sort((a, b) => b.count - a.count);
+  
+  console.log("🔵 [DETECT COLORS] Résultat détection:", result.length, "couleurs");
+  console.log("🔵 [DETECT COLORS] Détail:", result.map(c => `${c.originalColor} (${c.normalizedHex}) - ${c.count} occ.`));
+  
+  return result;
 }
 
 export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorMapperProps) {
@@ -451,9 +456,11 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         setSvgContent(cleanedSvg);
 
         // Détecter les couleurs sur le SVG nettoyé, pas le texte original
+        console.log("🔵 [LOAD SVG] Appel detectColorsInSvg sur SVG nettoyé, longueur:", cleanedSvg.length);
         const colors = detectColorsInSvg(cleanedSvg);
         console.log("🔵 [LOAD SVG] Couleurs détectées:", colors);
         console.log("🔵 [LOAD SVG] Nombre de couleurs:", colors.length);
+        console.log("🔵 [LOAD SVG] Détail des couleurs:", colors.map(c => `${c.originalColor} (${c.normalizedHex}) - ${c.count} occ.`));
         
         // Si aucune couleur détectée, essayer une méthode alternative avec le DOM
         if (colors.length === 0) {
