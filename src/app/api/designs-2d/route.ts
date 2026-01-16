@@ -21,6 +21,19 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Log pour debug
+    console.log('🔍 [API designs-2d] Designs retournés:', designs?.length || 0);
+    if (designs && designs.length > 0) {
+      designs.forEach((design: any) => {
+        console.log(`Design ${design.id}:`, {
+          hasColors: !!design.colors,
+          colors: design.colors,
+          colorsType: typeof design.colors,
+          color_mappings: design.color_mappings
+        });
+      });
+    }
+
     return NextResponse.json(designs);
   } catch (error: any) {
     console.error('Error fetching designs 2D:', error);
