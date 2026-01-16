@@ -358,23 +358,13 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
         const svgElement = svgDoc.querySelector('svg');
         const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
         
-        // NE PAS nettoyer les classes de couleur ni les styles CSS générés
-        // Le configurateur a besoin des classes .primary, .secondary, etc. pour fonctionner
-        // On va juste créer une copie "nettoyée" pour la détection des couleurs originales
-        // mais garder le SVG original intact pour l'affichage
-        console.log("🔵 [LOAD SVG] SVG chargé, on garde les classes de couleur pour le configurateur");
-        
-        // Créer une copie du SVG pour la détection des couleurs originales
-        // On va créer un SVG "nettoyé" temporairement juste pour détecter les couleurs
-        // mais on garde le SVG original avec les classes pour l'affichage
-        const parserForDetection = new DOMParser();
-        const svgDocForDetection = parserForDetection.parseFromString(text, 'image/svg+xml');
-        const svgElementForDetection = svgDocForDetection.querySelector('svg');
-        
-        if (svgElementForDetection) {
-          // Supprimer temporairement les styles CSS générés pour la détection
-          const styleElementsForDetection = Array.from(svgDocForDetection.querySelectorAll('style'));
-          styleElementsForDetection.forEach(styleEl => {
+        if (svgElement) {
+          // 1. Extraire les couleurs originales depuis les styles CSS AVANT de les supprimer
+          // On va mapper les classes aux couleurs qu'elles définissent dans les styles
+          const styleElements = Array.from(svgDoc.querySelectorAll('style'));
+          const classToColorMap = new Map<string, string>();
+          
+          styleElements.forEach(styleEl => {
             const cssText = styleEl.textContent || '';
             const hasColorClassRules = colorClassNames.some(className => {
               const pattern = new RegExp(`\\.${className}\\s*\\{`);
@@ -382,31 +372,66 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
             });
             
             if (hasColorClassRules) {
-              // Supprimer uniquement les règles CSS pour nos classes de couleur
-              let newCssText = cssText;
+              // Extraire les couleurs pour chaque classe avant de supprimer le style
               colorClassNames.forEach(className => {
-                const classRulePattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
-                newCssText = newCssText.replace(classRulePattern, '');
+                // Chercher fill: ou stroke: dans la règle CSS de cette classe
+                const classPattern = new RegExp(`\\.${className}\\s*\\{[^}]*\\}`, 'gi');
+                const classMatch = classPattern.exec(cssText);
+                if (classMatch) {
+                  const ruleContent = classMatch[0];
+                  // Chercher fill: couleur ou stroke: couleur
+                  const fillMatch = ruleContent.match(/fill:\s*([^;\\s]+)/i);
+                  const strokeMatch = ruleContent.match(/stroke:\s*([^;\\s]+)/i);
+                  if (fillMatch && fillMatch[1]) {
+                    let color = fillMatch[1].trim();
+                    // Retirer !important si présent
+                    color = color.replace(/\s*!important\s*/gi, '').trim();
+                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
+                      classToColorMap.set(className, color);
+                    }
+                  } else if (strokeMatch && strokeMatch[1]) {
+                    let color = strokeMatch[1].trim();
+                    // Retirer !important si présent
+                    color = color.replace(/\s*!important\s*/gi, '').trim();
+                    if (!color.startsWith('url(') && !color.startsWith('var(') && color !== 'none') {
+                      classToColorMap.set(className, color);
+                    }
+                  }
+                }
               });
-              newCssText = newCssText.replace(/\n\s*\n\s*\n/g, '\n').trim();
               
-              if (newCssText) {
-                styleEl.textContent = newCssText;
-              } else {
-                styleEl.remove();
-              }
+              // Maintenant supprimer le style
+              styleEl.remove();
             }
           });
           
-          // Retirer temporairement les classes de couleur pour la détection
-          const allElementsForDetection = svgElementForDetection.querySelectorAll('*');
-          allElementsForDetection.forEach(el => {
+          // 2. Parcourir tous les éléments, retirer les classes de couleur ET restaurer les couleurs originales
+          const allElements = svgElement.querySelectorAll('*');
+          allElements.forEach(el => {
             const classAttr = el.getAttribute('class');
             if (classAttr) {
-              const classes = classAttr.split(/\s+/).filter(Boolean);
+              const classes = classAttr.split(/\s+/);
               const colorClassesFound = classes.filter(c => colorClassNames.includes(c));
               
               if (colorClassesFound.length > 0) {
+                // Restaurer la couleur originale depuis la map si disponible
+                for (const className of colorClassesFound) {
+                  const originalColor = classToColorMap.get(className);
+                  if (originalColor && !el.hasAttribute('fill') && !el.hasAttribute('stroke')) {
+                    // Restaurer dans fill par défaut
+                    el.setAttribute('fill', originalColor);
+                  } else if (originalColor) {
+                    // Si l'élément a déjà un fill ou stroke, remplacer celui qui manque
+                    if (!el.hasAttribute('fill')) {
+                      el.setAttribute('fill', originalColor);
+                    }
+                    if (!el.hasAttribute('stroke')) {
+                      el.setAttribute('stroke', originalColor);
+                    }
+                  }
+                }
+                
+                // Retirer les classes de couleur
                 const remainingClasses = classes.filter(c => !colorClassNames.includes(c));
                 if (remainingClasses.length > 0) {
                   el.setAttribute('class', remainingClasses.join(' '));
@@ -418,20 +443,21 @@ export function SvgColorMapper({ svgInput, onExport, className = "" }: SvgColorM
           });
         }
         
-        // Ré-sérialiser le SVG nettoyé pour la détection
-        const serializerForDetection = new XMLSerializer();
-        const cleanedSvgForDetection = serializerForDetection.serializeToString(svgDocForDetection);
+        // Ré-sérialiser le SVG nettoyé
+        const serializer = new XMLSerializer();
+        const cleanedSvg = serializer.serializeToString(svgDoc);
         
-        // Garder le SVG ORIGINAL (avec les classes) pour l'affichage et le configurateur
-        setOriginalSvgContent(text); // SVG original avec classes
-        setSvgContent(text); // SVG original avec classes
+        console.log("🔵 [LOAD SVG] SVG nettoyé, longueur:", cleanedSvg.length);
+        console.log("🔵 [LOAD SVG] SVG nettoyé (premiers 1000 chars):", cleanedSvg.substring(0, 1000));
+        console.log("🔵 [LOAD SVG] Nombre de <style> restants:", svgDoc.querySelectorAll('style').length);
+        console.log("🔵 [LOAD SVG] Nombre d'éléments avec class:", svgElement.querySelectorAll('[class]').length);
         
-        console.log("🔵 [LOAD SVG] SVG original gardé (avec classes), longueur:", text.length);
-        console.log("🔵 [LOAD SVG] SVG nettoyé pour détection, longueur:", cleanedSvgForDetection.length);
+        setOriginalSvgContent(cleanedSvg); // Garder le SVG original nettoyé
+        setSvgContent(cleanedSvg);
 
-        // Détecter les couleurs sur le SVG nettoyé (sans les classes de couleur)
-        console.log("🔵 [LOAD SVG] Appel detectColorsInSvg sur SVG nettoyé, longueur:", cleanedSvgForDetection.length);
-        const colors = detectColorsInSvg(cleanedSvgForDetection);
+        // Détecter les couleurs sur le SVG nettoyé, pas le texte original
+        console.log("🔵 [LOAD SVG] Appel detectColorsInSvg sur SVG nettoyé, longueur:", cleanedSvg.length);
+        const colors = detectColorsInSvg(cleanedSvg);
         console.log("🔵 [LOAD SVG] Couleurs détectées:", colors);
         console.log("🔵 [LOAD SVG] Nombre de couleurs:", colors.length);
         console.log("🔵 [LOAD SVG] Détail des couleurs:", colors.map(c => `${c.originalColor} (${c.normalizedHex}) - ${c.count} occ.`));
