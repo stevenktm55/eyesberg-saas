@@ -65,10 +65,53 @@ export async function POST(request: NextRequest) {
       .from('designs-2d')
       .getPublicUrl(uploadData.path);
 
-    // Mettre à jour le design avec la nouvelle URL SVG
+    // Extraire les couleurs depuis le SVG sauvegardé
+    const extractedColors: Array<{ name: string; value: string }> = [];
+    const colorClassNames = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'];
+    
+    // Parser les styles CSS pour extraire les couleurs
+    const styleMatches = svgContent.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+    for (const [, cssContent] of styleMatches) {
+      for (const className of colorClassNames) {
+        // Chercher les règles CSS comme .primary { fill: #HEX !important; }
+        const pattern = new RegExp(`\\.${className}\\s*\\{[^}]*fill:\\s*([^;}\\s]+)`, 'i');
+        const match = cssContent.match(pattern);
+        if (match && match[1]) {
+          let colorValue = match[1].trim();
+          // Retirer !important si présent
+          colorValue = colorValue.replace(/\s*!important\s*/gi, '').trim();
+          // Normaliser en hex (gérer rgb, rgba, etc.)
+          if (colorValue.startsWith('#')) {
+            extractedColors.push({ name: className, value: colorValue });
+          } else if (colorValue.startsWith('rgb')) {
+            // Convertir rgb/rgba en hex (simplifié)
+            const rgbMatch = colorValue.match(/\d+/g);
+            if (rgbMatch && rgbMatch.length >= 3) {
+              const r = parseInt(rgbMatch[0]);
+              const g = parseInt(rgbMatch[1]);
+              const b = parseInt(rgbMatch[2]);
+              const hex = `#${[r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+              }).join('')}`;
+              extractedColors.push({ name: className, value: hex });
+            }
+          }
+        }
+      }
+    }
+
+    console.log('🎨 Couleurs extraites depuis le SVG:', extractedColors);
+
+    // Mettre à jour le design avec la nouvelle URL SVG et les couleurs extraites
+    const updateData: any = { svg_url: publicUrl };
+    if (extractedColors.length > 0) {
+      updateData.colors = extractedColors;
+    }
+
     const { data: updatedDesign, error: updateError } = await supabaseAdmin
       .from('designs_2d')
-      .update({ svg_url: publicUrl })
+      .update(updateData)
       .eq('id', designId)
       .eq('subdomain', subdomain)
       .select()
