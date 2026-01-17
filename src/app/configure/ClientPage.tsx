@@ -8138,7 +8138,8 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         className="configurator-panel flex-1 flex overflow-hidden"
         style={{ border: '10px solid red', backgroundColor: 'yellow' } as React.CSSProperties}
       >
-        {/* Sidebar Desktop uniquement */}
+        {/* Sidebar Desktop uniquement - Masquée en mode preview */}
+        {!isPreviewMode && (
         <div className="sidebar-white hidden md:flex w-96 lg:w-[420px] xl:w-[480px] flex-shrink-0 bg-white border-r border-gray-200 flex-col">
           <div className="flex-1 overflow-hidden">
             <Sidebar 
@@ -8229,6 +8230,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
             </div>
           </div>
         </div>
+        )}
 
         {/* Viewer 3D - prend tout l'espace restant */}
         <div className="viewer-3d flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
