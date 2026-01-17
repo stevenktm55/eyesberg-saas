@@ -381,7 +381,8 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
 function PreviewIframe({ productId, shop }: { productId: string; shop: string | null }) {
   const configuratorUrl = useMemo(() => {
     const shopParam = shop || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-    return `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+    // Ajouter preview=true pour masquer la sidebar et les boutons dans le configurateur
+    return `/configure?shop=${shopParam}&productId=${productId}&variantId=1&preview=true`;
   }, [productId, shop]);
 
   return (
