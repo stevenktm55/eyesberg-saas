@@ -3390,7 +3390,6 @@ export default function ProductBuilderPage() {
 
         {/* Main Builder Area - Hidden in preview mode */}
         {!previewMode && (
-          <React.Fragment>
         {activeTab === 'connect' ? (
           <ConnectTabContent 
             shop={searchParams.get('shop')}
@@ -15178,7 +15177,6 @@ export default function ProductBuilderPage() {
             </div>
           )}
           </div>
-          </React.Fragment>
         )}
 
       {/* Create Module Modal */}
