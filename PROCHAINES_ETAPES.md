@@ -104,9 +104,7 @@ Si vous préférez plus de contrôle, vous pouvez utiliser le snippet Liquid (vo
 
 ### Commandes :
 - Les commandes Shopify peuvent être synchronisées (si configuré)
-- Les webhooks sont créés automatiquement lors de l'installation
-
-## 🐛 Dépannage### Le bouton "Personnaliser" n'apparaît pas :
+- Les webhooks sont créés automatiquement lors de l'installation## 🐛 Dépannage### Le bouton "Personnaliser" n'apparaît pas :
 1. Vérifiez que le tag `customizer` est bien ajouté au produit
 2. Vérifiez que le script est bien ajouté dans `theme.liquid`
 3. Ouvrez la console (F12) et vérifiez s'il y a des erreurs

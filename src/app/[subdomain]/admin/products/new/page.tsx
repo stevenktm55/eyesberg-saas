@@ -936,6 +936,8 @@ export default function ProductBuilderPage() {
   const [initialZoom, setInitialZoom] = useState(5);
   const [initialRotation, setInitialRotation] = useState(0);
   const [previewMode, setPreviewMode] = useState(false);
+  const [snapshots, setSnapshots] = useState<{ mobile: string | null; desktop: string | null } | null>(null);
+  const [previewViewMode, setPreviewViewMode] = useState<'mobile' | 'desktop'>('desktop');
   // Distances de zoom par vue
   const [viewDistance, setViewDistance] = useState<Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', number>>({
     'torse': 5,
@@ -1843,6 +1845,29 @@ export default function ProductBuilderPage() {
     fetchMaterialMaps();
     fetchZoneGroups();
   }, [searchParams, router]);
+
+  // Charger les snapshots quand on entre en preview mode
+  useEffect(() => {
+    if (previewMode && productId && searchParams.get('shop')) {
+      loadSnapshots();
+    }
+  }, [previewMode, productId, searchParams]);
+
+  const loadSnapshots = async () => {
+    if (!productId || !searchParams.get('shop')) return;
+
+    try {
+      const response = await fetch(`/api/shopify/products/${productId}/snapshots?shop=${searchParams.get('shop')}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.snapshots) {
+          setSnapshots(data.snapshots);
+        }
+      }
+    } catch (err) {
+      console.error('Erreur lors du chargement des snapshots:', err);
+    }
+  };
 
   async function fetchModels3D() {
     try {
@@ -3241,50 +3266,130 @@ export default function ProductBuilderPage() {
         </div>
         )}
 
-        {/* Preview Header (shown only in preview mode) */}
+        {/* Preview Mode - Show snapshot or iframe (no sidebar, just final render) */}
         {previewMode && (
-          <div style={{
-            backgroundColor: '#0a0a0a',
-            borderBottom: '1px solid #1a1a1a',
-            padding: '12px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{
-              color: '#ffffff',
-              fontSize: '14px',
-              fontFamily: CONFIGURATOR_PANEL_FONT,
-              fontWeight: '600'
+          <>
+            {/* Preview Header */}
+            <div style={{
+              backgroundColor: '#0a0a0a',
+              borderBottom: '1px solid #1a1a1a',
+              padding: '12px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
-              Mode Prévisualisation - {productName}
-            </span>
-            <button
-              onClick={() => setPreviewMode(false)}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #2a2a2a',
-                borderRadius: '4px',
+              <span style={{
                 color: '#ffffff',
                 fontSize: '14px',
                 fontFamily: CONFIGURATOR_PANEL_FONT,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#2a2a2a';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#1a1a1a';
-              }}
-            >
-              Fermer la prévisualisation
-            </button>
-          </div>
+                fontWeight: '600'
+              }}>
+                Mode Prévisualisation - {productName}
+              </span>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                {/* Toggle Mobile/Desktop si on a les deux snapshots */}
+                {snapshots && snapshots.mobile && snapshots.desktop && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => setPreviewViewMode('mobile')}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: previewViewMode === 'mobile' ? '#8eff36' : '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: previewViewMode === 'mobile' ? '#000000' : '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📱 Mobile
+                    </button>
+                    <button
+                      onClick={() => setPreviewViewMode('desktop')}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: previewViewMode === 'desktop' ? '#8eff36' : '#1a1a1a',
+                        border: '1px solid #2a2a2a',
+                        borderRadius: '4px',
+                        color: previewViewMode === 'desktop' ? '#000000' : '#ffffff',
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💻 Desktop
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setPreviewMode(false);
+                    setSnapshots(null);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #2a2a2a',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2a2a2a';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                  }}
+                >
+                  Fermer la prévisualisation
+                </button>
+              </div>
+            </div>
+
+            {/* Preview Content - Snapshot ou iframe */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#ffffff',
+              overflow: 'auto',
+              padding: '20px'
+            }}>
+              {snapshots && (
+                (previewViewMode === 'mobile' && snapshots.mobile) || 
+                (previewViewMode === 'desktop' && snapshots.desktop)
+              ) ? (
+                // Afficher le snapshot
+                <img
+                  src={previewViewMode === 'mobile' ? snapshots.mobile : snapshots.desktop}
+                  alt={`Snapshot ${previewViewMode} du produit`}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                  }}
+                />
+              ) : (
+                // Fallback: iframe vers /configure (configurateur client sans sidebar)
+                <PreviewIframe productId={productId} shop={searchParams.get('shop')} />
+              )}
+            </div>
+          </>
         )}
 
-        {/* Main Builder Area */}
+        {/* Main Builder Area - Hidden in preview mode */}
+        {!previewMode && (
         {activeTab === 'connect' ? (
           <ConnectTabContent 
             shop={searchParams.get('shop')}

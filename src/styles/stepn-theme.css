@@ -336,9 +336,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
   /* NE PAS forcer background-color - laisser les styles inline React gérer */
-}
-
-/* Titres avec spécificité plus élevée */
+}/* Titres avec spécificité plus élevée */
 .configurator-panel h1,
 .configurator-panel h2,
 .configurator-panel h3,
