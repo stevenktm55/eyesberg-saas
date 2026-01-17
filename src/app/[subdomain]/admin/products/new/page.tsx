@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
