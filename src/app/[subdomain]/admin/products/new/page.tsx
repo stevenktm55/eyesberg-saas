@@ -3390,7 +3390,7 @@ export default function ProductBuilderPage() {
 
         {/* Main Builder Area - Hidden in preview mode */}
         {!previewMode && (
-        {activeTab === 'connect' ? (
+          activeTab === 'connect' ? (
           <ConnectTabContent 
             shop={searchParams.get('shop')}
             productId={productId}
