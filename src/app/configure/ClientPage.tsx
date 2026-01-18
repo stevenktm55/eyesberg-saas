@@ -6010,7 +6010,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   
   // États pour le loading screen - DÉSACTIVÉ pour eyesberg-saas
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [showLoading, setShowLoading] = useState(false); // Désactivé pour éviter le logo configurator.stretchmx.com
+  const [showLoading, setShowLoading] = useState(false); // Désactivé pour eyesberg-saas
 
   // Vérifier l'accès Shopify au chargement
   useEffect(() => {
@@ -6276,8 +6276,8 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         const params = new URLSearchParams(window.location.search);
         const shopParam = params.get('shop') || '5ae84f-3.myshopify.com';
 
-        // Convertir le domaine Shopify interne vers le domaine public
-        const publicDomain = shopParam.includes('myshopify.com') ? 'stretchmx.com' : shopParam;
+        // Domaine public (remplacé pour eyesberg-saas - pas de référence à stretchmx.com)
+        const publicDomain = shopParam;
 
         const rawProductId = params.get('productId');
         const normalizedProductId =
@@ -8118,7 +8118,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   }, [isMobileModalOpen]);
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      {/* Loading Screen - DÉSACTIVÉ pour eyesberg-saas (pas de logo configurator.stretchmx.com) */}
+      {/* Loading Screen - DÉSACTIVÉ pour eyesberg-saas */}
       
       {/* Contenu principal - ConfiguratorPanel */}
       <div 

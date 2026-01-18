@@ -100,9 +100,7 @@ Si vous préférez plus de contrôle, vous pouvez utiliser le snippet Liquid (vo
 ### Produits Shopify :
 - Les produits sont récupérés en temps réel depuis l'API Shopify
 - Pas de synchronisation automatique nécessaire
-- Cliquez sur **"Charger les produits"** pour rafraîchir la liste
-
-### Commandes :
+- Cliquez sur **"Charger les produits"** pour rafraîchir la liste### Commandes :
 - Les commandes Shopify peuvent être synchronisées (si configuré)
 - Les webhooks sont créés automatiquement lors de l'installation## 🐛 Dépannage### Le bouton "Personnaliser" n'apparaît pas :
 1. Vérifiez que le tag `customizer` est bien ajouté au produit

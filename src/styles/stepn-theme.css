@@ -492,9 +492,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
    THÈME CONFIGURATOR PANEL COMPLET
    Contenu complet de configurator-panel-theme.css intégré ici
    pour s'assurer qu'il est bundlé par Next.js
-   ============================================ */
-
-/* Variables CSS - Configuration du thème */
+   ============================================ *//* Variables CSS - Configuration du thème */
 .configurator-panel {
   /* Couleurs principales */
   --config-panel-bg: #ffffff;

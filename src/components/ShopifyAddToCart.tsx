@@ -193,7 +193,7 @@ export function ShopifyAddToCart({
         });
         
         // Sauvegarder temporairement dans Supabase
-        const response = await fetch('https://configurator.stretchmx.com/api/temp-configs', {
+        const response = await fetch('/api/temp-configs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(configData),

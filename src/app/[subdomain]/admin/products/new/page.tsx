@@ -3385,7 +3385,7 @@ export default function ProductBuilderPage() {
                   />
                 </div>
               ) : (
-                // Afficher le configurateur complet avec la configuration sauvegardée (sans éléments configurator.stretchmx.com)
+                // Afficher le configurateur complet avec la configuration sauvegardée
                 (() => {
                   const shopParam = searchParams.get('shop') || '';
                   const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
@@ -9677,7 +9677,7 @@ export default function ProductBuilderPage() {
                           
                           {/* Pas d'overlay - ModelViewer gère la désélection directement */}
                           
-                          {/* Panneau de contenu mobile - Style configurator.stretchmx.com */}
+                          {/* Panneau de contenu mobile */}
                           {viewportMode === 'mobile' && mobileActivePanel && (() => {
                             const activeModule = customizationModules.find(m => m.id === mobileActivePanel);
                             if (!activeModule) {

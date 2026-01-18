@@ -2035,7 +2035,7 @@ function Viewer3D({
   );
 }
 
-// Composant LogoTab - Reprend exactement le système de configurator.stretchmx.com
+// Composant LogoTab
 function LogoTab({
   placedLogos,
   addLogo,
