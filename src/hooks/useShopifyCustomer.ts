@@ -21,8 +21,7 @@ export function useShopifyCustomer(shopDomain?: string) {
 
       try {
         // Désactiver la vérification CORS directe vers /account
-        // Cette méthode cause des erreurs CORS car configurator.stretchmx.com 
-        // ne peut pas accéder à stretchmx.com/account
+        // Cette méthode cause des erreurs CORS (remplacé pour eyesberg-saas)
         
         console.log('🔍 Vérification client Shopify désactivée (CORS)');
         

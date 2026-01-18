@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // 1. Récupérer le SVG complet
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://configurator.stretchmx.com';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
     const svgUrl = `${baseUrl}/api/export/svg`;
     
     console.log('🔄 Appel API SVG:', svgUrl);
