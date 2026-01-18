@@ -3385,56 +3385,165 @@ export default function ProductBuilderPage() {
                   />
                 </div>
               ) : (
-                // Pas de snapshot disponible
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '16px',
-                  color: '#666666',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  padding: '40px'
-                }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '600', color: '#ffffff' }}>
-                      Aucun snapshot disponible
-                    </p>
-                    <p style={{ marginBottom: '16px', color: '#a0a0a0' }}>
-                      Pour prévisualiser votre produit, vous devez d'abord générer des snapshots depuis l'onglet <strong>Connect</strong> (Snapshots).
-                    </p>
-                    <button
-                      onClick={() => {
-                        setPreviewMode(false);
-                        setActiveTab('connect');
-                      }}
-                      style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#8eff36',
-                        color: '#000000',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#7eff28';
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#8eff36';
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      Aller à l'onglet Connect
-                    </button>
-                  </div>
-                </div>
+                // Afficher le viewer 3D avec la configuration actuelle (pas de snapshot)
+                (() => {
+                  // Calculer les valeurs nécessaires pour le viewer (même logique que le builder)
+                  const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                  const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
+                  
+                  // Chercher le design sélectionné
+                  let designIdToUse: string | null = null;
+                  customizationModules.forEach(module => {
+                    if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
+                      designIdToUse = module.selectedItems.design2DId;
+                    }
+                  });
+                  if (!designIdToUse && selectedDesign2DId) {
+                    designIdToUse = selectedDesign2DId;
+                  }
+                  
+                  const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+                  const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+                  
+                  // Calculer les couleurs
+                  const designColorMappings = selectedDesign?.color_mappings || null;
+                  const allColors = colorPalettes.flatMap(p => p.colors || []);
+                  const colorsForViewer: Record<string, string> = {};
+                  
+                  if (designColorMappings) {
+                    Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+                      const overrideColor = designColors[colorClass];
+                      const colorIdToUse = overrideColor || mappedColorId;
+                      const color = allColors.find(c => c.id === colorIdToUse);
+                      if (color?.hex) {
+                        colorsForViewer[colorClass] = color.hex;
+                      }
+                    });
+                  }
+                  
+                  // Material maps
+                  const materialMapsForModel: Record<string, any> = {};
+                  if (selectedModel?.parts) {
+                    selectedModel.parts.forEach((part: any) => {
+                      if (part.material_map_id && modelMaterialMaps[part.material_map_id]) {
+                        const materialMap = modelMaterialMaps[part.material_map_id];
+                        const materialMapFiles = materialMap.material_map_files || [];
+                        materialMapsForModel[part.name] = {
+                          diffuse: materialMapFiles.find((f: any) => f.type === 'diffuse')?.file_url,
+                          normal: materialMapFiles.find((f: any) => f.type === 'normal')?.file_url,
+                          roughness: materialMapFiles.find((f: any) => f.type === 'roughness')?.file_url,
+                        };
+                      }
+                    });
+                  }
+                  
+                  // Fonts pour le viewer
+                  const allFontsForViewer: Array<{ id: string; display_name: string; font_url: string }> = [];
+                  fontGroups.forEach(group => {
+                    if (group.fonts) {
+                      group.fonts.forEach((font: any) => {
+                        if (font.file_url && (font.name || font.display_name)) {
+                          allFontsForViewer.push({
+                            id: font.id,
+                            display_name: font.display_name || font.name,
+                            font_url: font.file_url
+                          });
+                        }
+                      });
+                    }
+                  });
+                  
+                  const cameraPosition = previewViewMode === 'mobile' ? [0, 0, 8] : [0, 0, 15];
+                  const cameraFov = previewViewMode === 'mobile' ? 65 : 50;
+                  
+                  return (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      position: 'relative',
+                      ...(previewViewMode === 'mobile' ? {
+                        maxWidth: '375px',
+                        maxHeight: '667px',
+                        margin: '0 auto',
+                        border: '8px solid #1f2937',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                        overflow: 'hidden'
+                      } : {})
+                    }}>
+                      {modelUrl ? (
+                        <Canvas
+                          key={`preview-canvas-${selectedModel3DId}`}
+                          camera={{ position: cameraPosition, fov: cameraFov }}
+                          gl={{ preserveDrawingBuffer: true }}
+                          style={{ width: '100%', height: '100%' }}
+                        >
+                          <ambientLight intensity={0.4} color="#f5f5f5" />
+                          <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+                          <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+                          <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
+                          <Suspense fallback={
+                            <mesh>
+                              <boxGeometry args={[1, 1, 1]} />
+                              <meshStandardMaterial color="#3b82f6" wireframe />
+                            </mesh>
+                          }>
+                            <ModelViewer
+                              url={modelUrl}
+                              color="#ffffff"
+                              designTexture={designUrl || undefined}
+                              materialMaps={Object.keys(materialMapsForModel).length > 0 ? materialMapsForModel : undefined}
+                              colors={Object.keys(colorsForViewer).length > 0 ? colorsForViewer : undefined}
+                              selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
+                              texts={texts}
+                              fonts={allFontsForViewer}
+                              placedLogos={placedLogos}
+                              updateTextPosition={() => {}}
+                              updateTextRotation={() => {}}
+                              updateTextSize={() => {}}
+                              toggleTextLock={() => {}}
+                              removeText={() => {}}
+                              selectedTextId={null}
+                              selectText={() => {}}
+                              isDraggingText={false}
+                              setIsDraggingText={() => {}}
+                              isRotatingText={false}
+                              setIsRotatingText={() => {}}
+                              isResizingText={false}
+                              setIsResizingText={() => {}}
+                              updateLogoPosition={() => {}}
+                              updateLogoScale={() => {}}
+                              updateLogoRotation={() => {}}
+                              selectedLogoId={null}
+                              selectLogo={() => {}}
+                              toggleLogoLock={() => {}}
+                              setIsDraggingLogo={() => {}}
+                            />
+                          </Suspense>
+                          <OrbitControls
+                            enablePan={true}
+                            enableZoom={true}
+                            enableRotate={true}
+                            minDistance={previewViewMode === 'mobile' ? 3 : 5}
+                            maxDistance={previewViewMode === 'mobile' ? 15 : 25}
+                          />
+                        </Canvas>
+                      ) : (
+                        <div style={{
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#a0a0a0',
+                          fontSize: '14px',
+                          fontFamily: CONFIGURATOR_PANEL_FONT
+                        }}>
+                          Sélectionnez un modèle 3D pour voir la prévisualisation
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
               )}
             </div>
           </>
