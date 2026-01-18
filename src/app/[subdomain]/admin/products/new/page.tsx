@@ -3351,7 +3351,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
 
-            {/* Preview Content - Uniquement les snapshots (pas d'iframe) */}
+            {/* Preview Content - Snapshot ou configurateur complet */}
             <div style={{
               flex: 1,
               display: 'flex',
@@ -3363,7 +3363,7 @@ export default function ProductBuilderPage() {
                 (previewViewMode === 'mobile' && snapshots.mobile) || 
                 (previewViewMode === 'desktop' && snapshots.desktop)
               ) ? (
-                // Afficher le snapshot
+                // Afficher le snapshot si disponible
                 <div style={{
                   flex: 1,
                   display: 'flex',
@@ -3385,6 +3385,42 @@ export default function ProductBuilderPage() {
                   />
                 </div>
               ) : (
+                // Afficher le configurateur complet avec la configuration sauvegardée
+                (() => {
+                  const shopParam = searchParams.get('shop') || '';
+                  const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+                  
+                  return (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      position: 'relative',
+                      ...(previewViewMode === 'mobile' ? {
+                        maxWidth: '375px',
+                        maxHeight: '667px',
+                        margin: '0 auto',
+                        border: '8px solid #1f2937',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                        overflow: 'hidden'
+                      } : {})
+                    }}>
+                      <iframe
+                        src={configuratorUrl}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          border: 'none',
+                          backgroundColor: '#ffffff',
+                          flex: 1
+                        }}
+                        title="Configurateur Preview"
+                      />
+                    </div>
+                  );
+                })()
+              )}
+            </div>
                 // Afficher le viewer 3D avec la configuration actuelle (pas de snapshot)
                 (() => {
                   // Calculer les valeurs nécessaires pour le viewer (même logique que le builder)
