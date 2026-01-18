@@ -3389,13 +3389,51 @@ export default function ProductBuilderPage() {
                 <div style={{
                   flex: 1,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: '16px',
                   color: '#666666',
                   fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT
+                  fontFamily: CONFIGURATOR_PANEL_FONT,
+                  padding: '40px'
                 }}>
-                  Aucun snapshot disponible. Générez un snapshot depuis l'onglet Snapshots.
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '600', color: '#ffffff' }}>
+                      Aucun snapshot disponible
+                    </p>
+                    <p style={{ marginBottom: '16px', color: '#a0a0a0' }}>
+                      Pour prévisualiser votre produit, vous devez d'abord générer des snapshots depuis l'onglet <strong>Connect</strong> (Snapshots).
+                    </p>
+                    <button
+                      onClick={() => {
+                        setPreviewMode(false);
+                        setActiveTab('connect');
+                      }}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#8eff36',
+                        color: '#000000',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#7eff28';
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#8eff36';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      Aller à l'onglet Connect
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
