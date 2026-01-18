@@ -96,28 +96,27 @@ export default function ConfigurePage() {
   // Charger les modèles 3D, designs, palettes de couleurs
   useEffect(() => {
     async function loadResources() {
-      if (!shop) return;
 
       try {
         // Charger les modèles 3D
-        const modelsRes = await fetch(`/api/models?shop=${encodeURIComponent(shop)}`);
+        const modelsRes = await fetch('/api/models-3d');
         if (modelsRes.ok) {
           const modelsData = await modelsRes.json();
-          setModels3D(modelsData.models || []);
+          setModels3D(Array.isArray(modelsData) ? modelsData : []);
         }
 
         // Charger les designs 2D
-        const designsRes = await fetch(`/api/designs?shop=${encodeURIComponent(shop)}`);
+        const designsRes = await fetch('/api/designs-2d');
         if (designsRes.ok) {
           const designsData = await designsRes.json();
-          setDesigns2D(designsData.designs || []);
+          setDesigns2D(Array.isArray(designsData) ? designsData : []);
         }
 
         // Charger les palettes de couleurs
-        const colorsRes = await fetch(`/api/color-palettes?shop=${encodeURIComponent(shop)}`);
+        const colorsRes = await fetch('/api/color-palettes');
         if (colorsRes.ok) {
           const colorsData = await colorsRes.json();
-          setColorPalettes(colorsData.palettes || []);
+          setColorPalettes(Array.isArray(colorsData) ? colorsData : (colorsData.palettes || []));
         }
       } catch (error) {
         console.error('Error loading resources:', error);
@@ -125,7 +124,7 @@ export default function ConfigurePage() {
     }
 
     loadResources();
-  }, [shop]);
+  }, []);
 
   // Calculer les valeurs pour le viewer 3D
   const viewerConfig = useMemo(() => {
