@@ -3421,8 +3421,6 @@ export default function ProductBuilderPage() {
                 })()
               )}
             </div>
-                // Afficher le viewer 3D avec la configuration actuelle (pas de snapshot)
-                (() => {
                   // Calculer les valeurs nécessaires pour le viewer (même logique que le builder)
                   const selectedModel = models3D.find(m => m.id === selectedModel3DId);
                   const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
