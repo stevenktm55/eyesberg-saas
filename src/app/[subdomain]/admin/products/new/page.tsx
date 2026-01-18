@@ -377,44 +377,6 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
   return null; // Ne rend pas d'OrbitControls, utilise ceux existants
 }
 
-// Composant pour l'iframe de prévisualisation (côté client uniquement)
-function PreviewIframe({ productId, shop, viewMode }: { productId: string; shop: string | null; viewMode?: 'mobile' | 'desktop' }) {
-  const configuratorUrl = useMemo(() => {
-    const shopParam = shop || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-    // Ne pas ajouter preview=true pour afficher le configurateur complet comme le client le verra
-    return `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
-  }, [productId, shop]);
-
-  return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      position: 'relative',
-      ...(viewMode === 'mobile' ? {
-        maxWidth: '375px',
-        maxHeight: '667px',
-        margin: '0 auto',
-        border: '8px solid #1f2937',
-        borderRadius: '20px',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-        overflow: 'hidden'
-      } : {})
-    }}>
-      <iframe
-        src={configuratorUrl}
-        style={{
-          width: '100%',
-          height: '100%',
-          border: 'none',
-          backgroundColor: '#ffffff',
-          flex: 1
-        }}
-        title="Configurateur Preview"
-      />
-    </div>
-  );
-}
-
 // Composant pour l'onglet Connect
 function ConnectTabContent({ 
   shop, 
@@ -3389,7 +3351,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
 
-            {/* Preview Content - Iframe du configurateur complet */}
+            {/* Preview Content - Uniquement les snapshots (pas d'iframe) */}
             <div style={{
               flex: 1,
               display: 'flex',
@@ -3397,12 +3359,11 @@ export default function ProductBuilderPage() {
               overflow: 'hidden',
               position: 'relative'
             }}>
-              {/* Toggle Mobile/Desktop overlay (centré en haut) - Si snapshots */}
               {snapshots && (
                 (previewViewMode === 'mobile' && snapshots.mobile) || 
                 (previewViewMode === 'desktop' && snapshots.desktop)
               ) ? (
-                // Afficher le snapshot avec toggle si disponible
+                // Afficher le snapshot
                 <div style={{
                   flex: 1,
                   display: 'flex',
@@ -3424,12 +3385,18 @@ export default function ProductBuilderPage() {
                   />
                 </div>
               ) : (
-                // Iframe du configurateur complet (sidebar + viewer)
-                <PreviewIframe 
-                  productId={productId} 
-                  shop={searchParams.get('shop')}
-                  viewMode={previewViewMode}
-                />
+                // Pas de snapshot disponible
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#666666',
+                  fontSize: '14px',
+                  fontFamily: CONFIGURATOR_PANEL_FONT
+                }}>
+                  Aucun snapshot disponible. Générez un snapshot depuis l'onglet Snapshots.
+                </div>
               )}
             </div>
           </>
