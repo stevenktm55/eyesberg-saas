@@ -8229,7 +8229,6 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
             </div>
           </div>
         </div>
-        )}
 
         {/* Viewer 3D - prend tout l'espace restant */}
         <div className="viewer-3d flex-1 flex flex-col min-w-0 md:pb-0 h-screen md:h-auto fixed md:relative inset-0 md:inset-auto pb-32">
