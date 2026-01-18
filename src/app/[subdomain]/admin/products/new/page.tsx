@@ -3385,27 +3385,40 @@ export default function ProductBuilderPage() {
                   />
                 </div>
               ) : (
-                // Pas de snapshot disponible - Message pour générer des snapshots
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#666666',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  padding: '40px',
-                  textAlign: 'center'
-                }}>
-                  <div>
-                    <p style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '600', color: '#ffffff' }}>
-                      Aucun snapshot disponible
-                    </p>
-                    <p style={{ color: '#a0a0a0', marginBottom: '16px' }}>
-                      Générez des snapshots depuis l'onglet <strong>Connect</strong> pour prévisualiser votre produit configuré.
-                    </p>
-                  </div>
-                </div>
+                // Afficher le configurateur complet avec la configuration sauvegardée (sans éléments configurator.stretchmx.com)
+                (() => {
+                  const shopParam = searchParams.get('shop') || '';
+                  const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+                  
+                  return (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      position: 'relative',
+                      ...(previewViewMode === 'mobile' ? {
+                        maxWidth: '375px',
+                        maxHeight: '667px',
+                        margin: '0 auto',
+                        border: '8px solid #1f2937',
+                        borderRadius: '20px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                        overflow: 'hidden'
+                      } : {})
+                    }}>
+                      <iframe
+                        src={configuratorUrl}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          border: 'none',
+                          backgroundColor: '#ffffff',
+                          flex: 1
+                        }}
+                        title="Configurateur Preview"
+                      />
+                    </div>
+                  );
+                })()
               )}
             </div>
           </>

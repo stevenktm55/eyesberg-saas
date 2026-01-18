@@ -6008,9 +6008,9 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   // État pour le mode placement de texte
   const [isPlacingText, setIsPlacingText] = useState<'nom' | 'numero' | null>(null);
   
-  // États pour le loading screen
+  // États pour le loading screen - DÉSACTIVÉ pour eyesberg-saas
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [showLoading, setShowLoading] = useState(true);
+  const [showLoading, setShowLoading] = useState(false); // Désactivé pour éviter le logo configurator.stretchmx.com
 
   // Vérifier l'accès Shopify au chargement
   useEffect(() => {
@@ -8118,20 +8118,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
   }, [isMobileModalOpen]);
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      {/* Loading Screen */}
-      {showLoading && (
-        <div 
-          className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-300 ${
-            modelLoaded ? 'opacity-0' : 'opacity-100'
-          }`}
-        >
-          <img 
-            src="/stretch.gif" 
-            alt="Chargement..." 
-            className="max-w-md w-full"
-          />
-          </div>
-      )}
+      {/* Loading Screen - DÉSACTIVÉ pour eyesberg-saas (pas de logo configurator.stretchmx.com) */}
       
       {/* Contenu principal - ConfiguratorPanel */}
       <div 
