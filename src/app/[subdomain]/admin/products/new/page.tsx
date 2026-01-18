@@ -378,7 +378,7 @@ function CameraController({ controlsRef, minDistance = 2, maxDistance = 10, view
 }
 
 // Composant pour l'iframe de prévisualisation (côté client uniquement)
-function PreviewIframe({ productId, shop }: { productId: string; shop: string | null }) {
+function PreviewIframe({ productId, shop, viewMode }: { productId: string; shop: string | null; viewMode?: 'mobile' | 'desktop' }) {
   const configuratorUrl = useMemo(() => {
     const shopParam = shop || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
     // Ne pas ajouter preview=true pour afficher le configurateur complet comme le client le verra
@@ -386,16 +386,32 @@ function PreviewIframe({ productId, shop }: { productId: string; shop: string | 
   }, [productId, shop]);
 
   return (
-    <iframe
-      src={configuratorUrl}
-      style={{
-        flex: 1,
-        width: '100%',
-        border: 'none',
-        backgroundColor: '#ffffff'
-      }}
-      title="Configurateur Preview"
-    />
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      position: 'relative',
+      ...(viewMode === 'mobile' ? {
+        maxWidth: '375px',
+        maxHeight: '667px',
+        margin: '0 auto',
+        border: '8px solid #1f2937',
+        borderRadius: '20px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+        overflow: 'hidden'
+      } : {})
+    }}>
+      <iframe
+        src={configuratorUrl}
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+          backgroundColor: '#ffffff',
+          flex: 1
+        }}
+        title="Configurateur Preview"
+      />
+    </div>
   );
 }
 
@@ -3267,7 +3283,7 @@ export default function ProductBuilderPage() {
         </div>
         )}
 
-        {/* Preview Mode - Show snapshot or iframe (no sidebar, just final render) */}
+        {/* Preview Mode - Show configurator in iframe (sidebar + viewer) */}
         {previewMode && (
           <>
             {/* Preview Header */}
@@ -3292,41 +3308,59 @@ export default function ProductBuilderPage() {
                 alignItems: 'center',
                 gap: '12px'
               }}>
-                {/* Toggle Mobile/Desktop si on a les deux snapshots */}
-                {snapshots && snapshots.mobile && snapshots.desktop && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => setPreviewViewMode('mobile')}
-                      style={{
-                        padding: '6px 12px',
-                        backgroundColor: previewViewMode === 'mobile' ? '#8eff36' : '#1a1a1a',
-                        border: '1px solid #2a2a2a',
-                        borderRadius: '4px',
-                        color: previewViewMode === 'mobile' ? '#000000' : '#ffffff',
-                        fontSize: '14px',
-                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      📱 Mobile
-                    </button>
-                    <button
-                      onClick={() => setPreviewViewMode('desktop')}
-                      style={{
-                        padding: '6px 12px',
-                        backgroundColor: previewViewMode === 'desktop' ? '#8eff36' : '#1a1a1a',
-                        border: '1px solid #2a2a2a',
-                        borderRadius: '4px',
-                        color: previewViewMode === 'desktop' ? '#000000' : '#ffffff',
-                        fontSize: '14px',
-                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      💻 Desktop
-                    </button>
-                  </div>
-                )}
+                {/* Toggle Mobile/Desktop - Toujours visible */}
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '4px',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  border: '2px solid #d1d5db',
+                  borderRadius: '8px',
+                  padding: '4px'
+                }}>
+                  <button
+                    onClick={() => setPreviewViewMode('desktop')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: previewViewMode === 'desktop' ? '#2563eb' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: previewViewMode === 'desktop' ? '#ffffff' : '#374151',
+                      fontSize: '14px',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Vue ordinateur"
+                  >
+                    <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setPreviewViewMode('mobile')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: previewViewMode === 'mobile' ? '#2563eb' : 'transparent',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: previewViewMode === 'mobile' ? '#ffffff' : '#374151',
+                      fontSize: '14px',
+                      fontFamily: CONFIGURATOR_PANEL_FONT,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Vue téléphone"
+                  >
+                    <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     setPreviewMode(false);
@@ -3355,35 +3389,47 @@ export default function ProductBuilderPage() {
               </div>
             </div>
 
-            {/* Preview Content - Snapshot ou iframe */}
+            {/* Preview Content - Iframe du configurateur complet */}
             <div style={{
               flex: 1,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               backgroundColor: '#ffffff',
-              overflow: 'auto',
-              padding: '20px'
+              overflow: 'hidden',
+              position: 'relative'
             }}>
+              {/* Toggle Mobile/Desktop overlay (centré en haut) - Si snapshots */}
               {snapshots && (
                 (previewViewMode === 'mobile' && snapshots.mobile) || 
                 (previewViewMode === 'desktop' && snapshots.desktop)
               ) ? (
-                // Afficher le snapshot
-                <img
-                  src={previewViewMode === 'mobile' ? snapshots.mobile : snapshots.desktop}
-                  alt={`Snapshot ${previewViewMode} du produit`}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-                  }}
-                />
+                // Afficher le snapshot avec toggle si disponible
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'auto',
+                  padding: '20px'
+                }}>
+                  <img
+                    src={previewViewMode === 'mobile' ? snapshots.mobile : snapshots.desktop}
+                    alt={`Snapshot ${previewViewMode} du produit`}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                    }}
+                  />
+                </div>
               ) : (
-                // Fallback: iframe vers /configure (configurateur client sans sidebar)
-                <PreviewIframe productId={productId} shop={searchParams.get('shop')} />
+                // Iframe du configurateur complet (sidebar + viewer)
+                <PreviewIframe 
+                  productId={productId} 
+                  shop={searchParams.get('shop')}
+                  viewMode={previewViewMode}
+                />
               )}
             </div>
           </>
