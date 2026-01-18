@@ -6276,7 +6276,7 @@ const { colors, updateColor, resetColors, replaceColors } = useColorSelection();
         const params = new URLSearchParams(window.location.search);
         const shopParam = params.get('shop') || '5ae84f-3.myshopify.com';
 
-        // Domaine public (remplacé pour eyesberg-saas - pas de référence à stretchmx.com)
+        // Domaine public (pour eyesberg-saas)
         const publicDomain = shopParam;
 
         const rawProductId = params.get('productId');
