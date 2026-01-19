@@ -227,11 +227,34 @@ export default function ConfigurePage() {
         const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productId)}&shop=${encodeURIComponent(shop)}&for=admin`);
         if (res.ok) {
           const productData = await res.json();
+          
+          // DEBUG: Vérifier que le snapshot est présent
+          console.log('📦 ProductData reçu:', {
+            hasSnapshot: !!productData.snapshot,
+            hasBuilderData: !!productData.builder_data,
+            snapshotKeys: productData.snapshot ? Object.keys(productData.snapshot) : [],
+            snapshotDesign2D: productData.snapshot?.design2D,
+            snapshotResolvedColors: productData.snapshot?.resolvedColors
+          });
+          
           setProduct(productData);
           
           // Charger les customizationModules depuis snapshot ou builder_data
           const snapshot = productData.snapshot;
           const builderData = productData.builder_data;
+          
+          // DEBUG: Vérifier que le snapshot est bien utilisé
+          if (snapshot) {
+            console.log('✅ Snapshot trouvé dans productData:', {
+              hasDesign2D: !!snapshot.design2D,
+              design2DUrl: snapshot.design2D?.url,
+              design2DId: snapshot.design2D?.id,
+              hasResolvedColors: !!snapshot.resolvedColors,
+              resolvedColorsKeys: snapshot.resolvedColors ? Object.keys(snapshot.resolvedColors) : []
+            });
+          } else {
+            console.warn('⚠️ Aucun snapshot trouvé dans productData, utilisation de builder_data');
+          }
           
           // Priorité au snapshot s'il existe, sinon builder_data
           const modules = snapshot?.customizationModules || builderData?.customizationModules || [];
