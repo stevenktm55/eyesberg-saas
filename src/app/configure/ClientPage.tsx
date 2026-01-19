@@ -52,6 +52,63 @@ if (typeof document !== 'undefined') {
       -webkit-border-radius: 12px !important;
       -moz-border-radius: 12px !important;
     }
+    .configurator-panel p,
+    .configurator-panel span,
+    .configurator-panel div:not([style*="background"]):not([style*="backgroundColor"]),
+    .configurator-panel h1,
+    .configurator-panel h2,
+    .configurator-panel h3,
+    .configurator-panel h4,
+    .configurator-panel h5,
+    .configurator-panel h6,
+    .configurator-panel label {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel input,
+    .configurator-panel textarea,
+    .configurator-panel select {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel .customizer-tab-name {
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+      -webkit-text-stroke-color: #000000 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel .color-class-card-label {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel .typography-back-button,
+    .configurator-panel .typography-back-button * {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel .mobile-action-btn-black,
+    .configurator-panel .mobile-action-btn-black * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-text-stroke-color: #ffffff !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel button.configurator-panel-sidebar-tab-active {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+    }
+    button.configurator-panel-sidebar-tab-active {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -931,50 +988,6 @@ export default function ConfigurePage() {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {/* Design "Aucun" */}
-                      <button
-                        onClick={() => {
-                          const updated = {
-                            ...activeModule,
-                            selectedItems: {
-                              ...activeModule.selectedItems,
-                              design2DId: undefined
-                            }
-                          };
-                          setCustomizationModules(customizationModules.map(m =>
-                            m.id === activeModule.id ? updated : m
-                          ));
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '8px',
-                          border: !selectedDesignId ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                          backgroundColor: !selectedDesignId ? '#eff6ff' : '#ffffff',
-                          color: !selectedDesignId ? '#1e40af' : '#111827',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}
-                      >
-                        <div style={{
-                          width: '48px',
-                          height: '48px',
-                          backgroundColor: '#f3f4f6',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <span style={{ fontSize: '12px', color: '#6b7280' }}>Aucun</span>
-                        </div>
-                        <span style={{ fontWeight: '500', fontSize: '14px' }}>Aucun design</span>
-                      </button>
-
                       {/* Grille des designs */}
                       <div style={{
                         display: 'grid',
@@ -1066,42 +1079,6 @@ export default function ConfigurePage() {
                       </div>
                     </div>
                   )}
-                  
-                  {/* Message de confirmation */}
-                  {selectedDesignId && (
-                    <div style={{
-                      marginTop: '16px',
-                      padding: '12px',
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '8px',
-                      border: '1px solid #86efac'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{
-                          width: '8px',
-                          height: '8px',
-                          backgroundColor: '#22c55e',
-                          borderRadius: '50%'
-                        }} />
-                        <span style={{
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#166534',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}>
-                          Design sélectionné
-                        </span>
-                      </div>
-                      <p style={{
-                        fontSize: '12px',
-                        color: '#15803d',
-                        marginTop: '4px',
-                        fontFamily: CONFIGURATOR_PANEL_FONT
-                      }}>
-                        Le design est appliqué au modèle 3D
-                      </p>
-                    </div>
-                  )}
                 </div>
               );
             })() : activeModule.contentType === 'colors' ? (() => {
@@ -1153,7 +1130,7 @@ export default function ConfigurePage() {
                   });
                 }
                 
-                const selectedColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
+                const selectedColorId = designColors[selectedColorClass] || selectedDesign?.color_mappings?.[selectedColorClass];
                 const currentColorHex = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.hex : null;
                 const currentColorName = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.name : '';
                 
@@ -1284,7 +1261,7 @@ export default function ConfigurePage() {
                       gap: '12px'
                     }}>
                       {availableColorClasses.map((colorClass) => {
-                        const currentColorId = selectedDesign?.color_mappings?.[colorClass];
+                        const currentColorId = designColors[colorClass] || selectedDesign?.color_mappings?.[colorClass];
                         let currentColorHex = '#cccccc';
                         
                         if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
