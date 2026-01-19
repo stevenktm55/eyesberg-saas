@@ -52,14 +52,6 @@ if (typeof document !== 'undefined') {
       -webkit-border-radius: 12px !important;
       -moz-border-radius: 12px !important;
     }
-    .configurator-panel p,
-    .configurator-panel span,
-    .configurator-panel div {
-      color: #111827 !important;
-    }
-    .configurator-panel button {
-      color: inherit !important;
-    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -271,7 +263,266 @@ export default function ConfigurePage() {
     loadResources();
   }, []);
 
+  // Charger les zones de texte à partir des groupes de zones sélectionnés dans les modules
+  useEffect(() => {
+    async function loadTextZones() {
+      if (zoneGroups.length === 0 || customizationModules.length === 0) {
+        setTextZones([]);
+        return;
+      }
+
+      setIsLoadingZones(true);
+      try {
+        // Récupérer tous les zoneGroupIds sélectionnés dans les modules de texte
+        const allZoneGroupIds = new Set<string>();
+        customizationModules.forEach(module => {
+          if (module.contentType === 'texts' || module.contentType === 'text') {
+            const textZoneGroupIds = (module as any).zoneGroupIds || 
+                                   ((module as any).config as any)?.textZoneGroupIds || 
+                                   (module.selectedItems as any)?.textZoneGroupIds || 
+                                   [];
+            textZoneGroupIds.forEach((id: string) => allZoneGroupIds.add(id));
+          }
+        });
+
+        // Extraire toutes les zones des groupes sélectionnés
+        const zones: any[] = [];
+        zoneGroups.forEach(group => {
+          if (allZoneGroupIds.has(group.id) && group.zones) {
+            group.zones.forEach((zone: any) => {
+              zones.push({
+                ...zone,
+                groupId: group.id,
+                groupName: group.name,
+                categories: zone.categories || ['text']
+              });
+            });
+          }
+        });
+
+        setTextZones(zones);
+      } catch (error) {
+        console.error('Error loading text zones:', error);
+        setTextZones([]);
+      } finally {
+        setIsLoadingZones(false);
+      }
+    }
+
+    loadTextZones();
+  }, [zoneGroups, customizationModules]);
+
   // Fonctions de gestion des textes
+  // Fonction SCOPÉE pour forcer les styles UNIQUEMENT dans le configurator-panel
+  const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
+    // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
+    const isInConfiguratorPanel = (el: Element): boolean => {
+      const panel = document.querySelector('.configurator-panel');
+      if (!panel) return false;
+      
+      // Vérifier si l'élément est dans le panel
+      if (panel.contains(el)) return true;
+      
+      // Vérifier si l'élément est dans un modal du configurator
+      const isInModal = el.closest('.configurator-panel-modal') !== null ||
+                       el.closest('.zone-selection-modal-content') !== null ||
+                       el.classList.contains('configurator-panel-modal') ||
+                       el.classList.contains('zone-selection-modal-content');
+      
+      return isInModal;
+    };
+    
+    // Vérifier d'abord que le panel existe
+    const panel = document.querySelector('.configurator-panel');
+    if (!panel) return;
+    
+    // Traiter le panel ET tous les modaux même en dehors
+    const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
+    
+    const targets: Element[] = [];
+    if (element && isInConfiguratorPanel(element)) {
+      targets.push(element);
+    } else {
+      targets.push(panel);
+      modals.forEach(modal => targets.push(modal));
+    }
+    
+    if (targets.length === 0) return;
+
+    // Traiter chaque cible et tous ses enfants
+    targets.forEach(target => {
+      if (!isInConfiguratorPanel(target)) return;
+      
+      const allElements = target.querySelectorAll('*');
+      const elementsToProcess = [target, ...Array.from(allElements)];
+      
+      elementsToProcess.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        if (!htmlEl) return;
+        
+        if (!isInConfiguratorPanel(el)) return;
+        
+        // FORCER les styles pour les inputs dans les modaux
+        if (htmlEl.tagName === 'INPUT' && (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
+          htmlEl.style.setProperty('background-color', '#ffffff', 'important');
+          htmlEl.style.setProperty('color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+        }
+        
+        // FORCER les labels du background remover en noir
+        if (htmlEl.classList.contains('background-remover-label')) {
+          htmlEl.style.setProperty('color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+        }
+        
+        // FORCER les noms des zones en noir dans les modaux
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
+            (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
+          const parentDiv = htmlEl.closest('div');
+          const textContent = (htmlEl.textContent || '').toLowerCase();
+          const parentStyle = parentDiv?.getAttribute('style') || '';
+          if (parentDiv && (
+              parentDiv.style.padding === '12px' || 
+              parentDiv.style.padding === '10px' || 
+              parentStyle.includes('padding: 12px') || 
+              parentStyle.includes('padding: 10px') ||
+              textContent.includes('dos') ||
+              textContent.includes('face') ||
+              textContent.includes('nom') ||
+              textContent.includes('zone') ||
+              textContent.includes('logo') ||
+              textContent.includes('bras') ||
+              textContent.includes('torse')
+            )) {
+            htmlEl.style.setProperty('color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+          }
+        }
+        
+        // FORCER BLEU sur les boutons primaires ET FORCER TEXTE BLANC
+        if (htmlEl.tagName === 'BUTTON') {
+          if (htmlEl.classList.contains('color-circle-button')) {
+            return;
+          }
+          
+          const buttonTitle = htmlEl.getAttribute('title') || '';
+          if (buttonTitle === 'Vue ordinateur' || buttonTitle === 'Vue téléphone') {
+            htmlEl.style.setProperty('background-color', '#ffffff', 'important');
+            return;
+          }
+          
+          const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
+          const inlineStyle = htmlEl.getAttribute('style') || '';
+          
+          const isPrimaryButton = reactBgColor === 'rgb(59, 130, 246)' ||
+                                 reactBgColor === '#3b82f6' ||
+                                 reactBgColor === 'rgb(0, 0, 0)' || 
+                                 reactBgColor === '#000000' || 
+                                 reactBgColor === 'black' ||
+                                 htmlEl.classList.contains('btn-primary') ||
+                                 htmlEl.classList.contains('mobile-action-btn-black') ||
+                                 inlineStyle.includes('backgroundColor: \'#3b82f6\'') ||
+                                 inlineStyle.includes('background-color: #3b82f6') ||
+                                 inlineStyle.includes('backgroundColor: \'#000000\'') ||
+                                 inlineStyle.includes('background-color: #000000');
+          
+          const isColorButton = inlineStyle.includes('color?.hex') || 
+                               htmlEl.getAttribute('data-color-button') === 'true' ||
+                               htmlEl.closest('[class*="color"]') !== null;
+          
+          if (isPrimaryButton && !isColorButton) {
+            htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
+            htmlEl.style.setProperty('color', '#ffffff', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            
+            const children = htmlEl.querySelectorAll('*');
+            children.forEach((child: Element) => {
+              const childEl = child as HTMLElement;
+              childEl.style.setProperty('color', '#ffffff', 'important');
+              childEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            });
+          }
+        }
+      });
+    });
+  }, []);
+
+  // Utiliser useEffect avec MutationObserver pour détecter les changements DOM
+  useEffect(() => {
+    const panel = document.querySelector('.configurator-panel');
+    if (!panel) return;
+
+    const checkAndForce = () => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return;
+      forceConfiguratorPanelStyles();
+    };
+
+    checkAndForce();
+
+    const isConfiguratorElement = (element: Element): boolean => {
+      return panel.contains(element) || 
+             element.classList.contains('configurator-panel') ||
+             element.classList.contains('configurator-panel-modal') ||
+             element.classList.contains('zone-selection-modal-content') ||
+             (element.closest('.configurator-panel-modal') !== null) ||
+             (element.closest('.zone-selection-modal-content') !== null);
+    };
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              if (isConfiguratorElement(element)) {
+                forceConfiguratorPanelStyles(element);
+              }
+            }
+          });
+        }
+        
+        if (mutation.type === 'attributes') {
+          const target = mutation.target as HTMLElement;
+          const isConfiguratorModal = target.classList.contains('configurator-panel-modal') ||
+              target.classList.contains('zone-selection-modal-content') ||
+              target.closest('.configurator-panel-modal') !== null ||
+              target.closest('.zone-selection-modal-content') !== null;
+          
+          if (isConfiguratorModal) {
+            forceConfiguratorPanelStyles(target);
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+
+    const interval = setInterval(() => {
+      const currentPanel = document.querySelector('.configurator-panel');
+      if (!currentPanel) return;
+      forceConfiguratorPanelStyles();
+      
+      const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
+      modals.forEach(modal => {
+        forceConfiguratorPanelStyles(modal);
+      });
+    }, 300);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
+
   const addText = useCallback((content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number) => {
     const resolvedPosition: [number, number, number] = position || [0.5, 0.5, 0];
     const resolvedFontSize = initialFontSize || 700;
@@ -3099,6 +3350,7 @@ export default function ConfigurePage() {
             width: '100%',
             height: '100%',
             display: 'flex',
+            flexDirection: viewportMode === 'mobile' ? 'column' : 'row',
             alignItems: 'center',
             justifyContent: 'center',
             ...(viewportMode === 'mobile' ? {
@@ -3114,84 +3366,71 @@ export default function ConfigurePage() {
               backgroundColor: '#e8e8e8'
             } : {})
           }}>
-            <Canvas
-              camera={{ 
-                position: viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15], 
-                fov: viewportMode === 'mobile' ? 65 : 50 
-              }}
-              gl={{ preserveDrawingBuffer: true }}
-              style={{ width: '100%', height: '100%' }}
-            >
-            <ambientLight intensity={0.4} color="#f5f5f5" />
-            <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
-            <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
-            <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
-            <Suspense fallback={null}>
-              <ModelViewer
-                url={viewerConfig.modelUrl}
-                color="#ffffff"
-                designTexture={viewerConfig.designUrl || undefined}
-                materialMaps={Object.keys(viewerConfig.materialMaps).length > 0 ? viewerConfig.materialMaps : undefined}
-                colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
-                selectedDesign={viewerConfig.selectedDesign}
-                texts={texts}
-                fonts={[]}
-                placedLogos={placedLogos}
-                updateTextPosition={updateTextPosition}
-                updateTextRotation={updateTextRotation}
-                updateTextSize={updateTextSize}
-                toggleTextLock={toggleTextLock}
-                removeText={removeText}
-                selectedTextId={selectedTextId}
-                selectText={selectText}
-                isDraggingText={isDraggingText}
-                setIsDraggingText={setIsDraggingText}
-                isRotatingText={isRotatingText}
-                setIsRotatingText={setIsRotatingText}
-                isResizingText={isResizingText}
-                setIsResizingText={setIsResizingText}
-                updateLogoPosition={updateLogoPosition}
-                updateLogoScale={updateLogoScale}
-                updateLogoRotation={updateLogoRotation}
-                selectedLogoId={selectedLogoId}
-                selectLogo={selectLogo}
-                toggleLogoLock={toggleLogoLock}
-                setIsDraggingLogo={setIsDraggingLogo}
+            {/* Canvas 3D - prend l'espace restant */}
+            <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
+              <Canvas
+                camera={{ 
+                  position: viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15], 
+                  fov: viewportMode === 'mobile' ? 65 : 50 
+                }}
+                gl={{ preserveDrawingBuffer: true }}
+                style={{ width: '100%', height: '100%' }}
+              >
+              <ambientLight intensity={0.4} color="#f5f5f5" />
+              <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+              <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+              <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
+              <Suspense fallback={null}>
+                <ModelViewer
+                  url={viewerConfig.modelUrl}
+                  color="#ffffff"
+                  designTexture={viewerConfig.designUrl || undefined}
+                  materialMaps={Object.keys(viewerConfig.materialMaps).length > 0 ? viewerConfig.materialMaps : undefined}
+                  colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
+                  selectedDesign={viewerConfig.selectedDesign}
+                  texts={texts}
+                  fonts={[]}
+                  placedLogos={placedLogos}
+                  updateTextPosition={updateTextPosition}
+                  updateTextRotation={updateTextRotation}
+                  updateTextSize={updateTextSize}
+                  toggleTextLock={toggleTextLock}
+                  removeText={removeText}
+                  selectedTextId={selectedTextId}
+                  selectText={selectText}
+                  isDraggingText={isDraggingText}
+                  setIsDraggingText={setIsDraggingText}
+                  isRotatingText={isRotatingText}
+                  setIsRotatingText={setIsRotatingText}
+                  isResizingText={isResizingText}
+                  setIsResizingText={setIsResizingText}
+                  updateLogoPosition={updateLogoPosition}
+                  updateLogoScale={updateLogoScale}
+                  updateLogoRotation={updateLogoRotation}
+                  selectedLogoId={selectedLogoId}
+                  selectLogo={selectLogo}
+                  toggleLogoLock={toggleLogoLock}
+                  setIsDraggingLogo={setIsDraggingLogo}
+                />
+              </Suspense>
+              <OrbitControls
+                enablePan={true}
+                enableZoom={true}
+                enableRotate={true}
+                minDistance={viewportMode === 'mobile' ? 3 : 5}
+                maxDistance={viewportMode === 'mobile' ? 15 : 25}
               />
-            </Suspense>
-            <OrbitControls
-              enablePan={true}
-              enableZoom={true}
-              enableRotate={true}
-              minDistance={viewportMode === 'mobile' ? 3 : 5}
-              maxDistance={viewportMode === 'mobile' ? 15 : 25}
-            />
-          </Canvas>
-          </div>
-        ) : (
-          <div style={{
-            fontSize: '16px',
-            color: '#111827',
-            fontFamily: CONFIGURATOR_PANEL_FONT
-          }}>
-            Modèle 3D non disponible
-          </div>
-        )}
+            </Canvas>
+            </div>
 
-        {/* Barre mobile en bas du téléphone - Style stretchmx */}
-        {viewportMode === 'mobile' && (
-          <div style={{ 
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            flexShrink: 0, 
-            backgroundColor: '#ffffff', 
-            borderTop: '1px solid #e5e7eb', 
-            color: '#111827',
-            zIndex: 10000,
-            boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
-          }}>
+            {/* Barre mobile en bas du téléphone - Style stretchmx */}
+            {viewportMode === 'mobile' && (
+              <div style={{ 
+                flexShrink: 0, 
+                backgroundColor: '#ffffff', 
+                borderTop: '1px solid #e5e7eb', 
+                color: '#111827'
+              }}>
             <style>{`
               [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] *,
               [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] span {
@@ -3275,6 +3514,16 @@ export default function ConfigurePage() {
                 <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
               </button>
             </div>
+          </div>
+            )}
+          </div>
+        ) : (
+          <div style={{
+            fontSize: '16px',
+            color: '#111827',
+            fontFamily: CONFIGURATOR_PANEL_FONT
+          }}>
+            Modèle 3D non disponible
           </div>
         )}
       </div>

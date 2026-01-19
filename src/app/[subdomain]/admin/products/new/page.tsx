@@ -3351,7 +3351,7 @@ export default function ProductBuilderPage() {
               </div>
             </div>
 
-            {/* Preview Content - Snapshot ou configurateur complet */}
+            {/* Preview Content - Toujours afficher le configurateur complet avec toutes les configurations */}
             <div style={{
               flex: 1,
               display: 'flex',
@@ -3359,67 +3359,40 @@ export default function ProductBuilderPage() {
               overflow: 'hidden',
               position: 'relative'
             }}>
-              {snapshots && (
-                (previewViewMode === 'mobile' && snapshots.mobile) || 
-                (previewViewMode === 'desktop' && snapshots.desktop)
-              ) ? (
-                // Afficher le snapshot si disponible
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'auto',
-                  padding: '20px'
-                }}>
-                  <img
-                    src={previewViewMode === 'mobile' ? snapshots.mobile : snapshots.desktop}
-                    alt={`Snapshot ${previewViewMode} du produit`}
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-                    }}
-                  />
-                </div>
-              ) : (
-                // Afficher le configurateur complet avec la configuration sauvegardée
-                (() => {
-                  const shopParam = searchParams.get('shop') || '';
-                  const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
-                  
-                  return (
-                    <div style={{
-                      flex: 1,
-                      display: 'flex',
-                      position: 'relative',
-                      ...(previewViewMode === 'mobile' ? {
-                        maxWidth: '375px',
-                        maxHeight: '667px',
-                        margin: '0 auto',
-                        border: '8px solid #1f2937',
-                        borderRadius: '20px',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                        overflow: 'hidden'
-                      } : {})
-                    }}>
-                      <iframe
-                        src={configuratorUrl}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          border: 'none',
-                          backgroundColor: '#ffffff',
-                          flex: 1
-                        }}
-                        title="Configurateur Preview"
-                      />
-                    </div>
-                  );
-                })()
-              )}
+              {/* Afficher le configurateur complet avec la configuration sauvegardée */}
+              {(() => {
+                const shopParam = searchParams.get('shop') || '';
+                const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+                
+                return (
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    position: 'relative',
+                    ...(previewViewMode === 'mobile' ? {
+                      maxWidth: '375px',
+                      maxHeight: '667px',
+                      margin: '0 auto',
+                      border: '8px solid #1f2937',
+                      borderRadius: '20px',
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                      overflow: 'hidden'
+                    } : {})
+                  }}>
+                    <iframe
+                      src={configuratorUrl}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        backgroundColor: '#ffffff',
+                        flex: 1
+                      }}
+                      title="Configurateur Preview"
+                    />
+                  </div>
+                );
+              })()}
             </div>
           </>
         )}
