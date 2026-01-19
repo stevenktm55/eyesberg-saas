@@ -586,53 +586,57 @@ export default function ConfigurePage() {
           }
         }
         
-        // FORCER tous les textes dans le configurator-panel (sauf boutons avec texte blanc)
-        // Forcer sur TOUS les éléments texte dans le panel - PRIORITÉ ABSOLUE
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6' || htmlEl.tagName === 'LI' || htmlEl.tagName === 'TD' || htmlEl.tagName === 'TH')) {
-          // Vérifier si c'est dans le configurator-panel
-          if (isInConfiguratorPanel(el)) {
-            // Vérifier si c'est un bouton avec texte blanc
-            const parentButton = htmlEl.closest('button');
-            const isWhiteTextButton = parentButton && (
-              parentButton.classList.contains('btn-primary') ||
-              parentButton.classList.contains('mobile-action-btn-black') ||
-              (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
-              (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#000000\'') ||
-              (parentButton.getAttribute('style') || '').includes('background-color: #3b82f6') ||
-              (parentButton.getAttribute('style') || '').includes('background-color: #000000')
-            );
+        // FORCER TOUS les textes en noir dans le configurator-panel (sauf boutons avec texte blanc)
+        // APPROCHE AGRESSIVE : forcer sur TOUS les éléments texte dans le panel
+        if (isInConfiguratorPanel(el)) {
+          // Vérifier si c'est un bouton avec texte blanc
+          const parentButton = htmlEl.closest('button');
+          const isWhiteTextButton = parentButton && (
+            parentButton.classList.contains('btn-primary') ||
+            parentButton.classList.contains('mobile-action-btn-black') ||
+            (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
+            (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#000000\'') ||
+            (parentButton.getAttribute('style') || '').includes('background-color: #3b82f6') ||
+            (parentButton.getAttribute('style') || '').includes('background-color: #000000')
+          );
+          
+          // Si ce n'est pas un bouton avec texte blanc, forcer le texte en noir
+          if (!isWhiteTextButton) {
+            // Vérifier si c'est un élément texte (pas un bouton, pas un input avec type spécial)
+            const isTextElement = (htmlEl.tagName === 'P' || 
+                                  htmlEl.tagName === 'SPAN' || 
+                                  htmlEl.tagName === 'DIV' || 
+                                  htmlEl.tagName === 'LABEL' || 
+                                  htmlEl.tagName === 'H1' || 
+                                  htmlEl.tagName === 'H2' || 
+                                  htmlEl.tagName === 'H3' || 
+                                  htmlEl.tagName === 'H4' || 
+                                  htmlEl.tagName === 'H5' || 
+                                  htmlEl.tagName === 'H6' || 
+                                  htmlEl.tagName === 'LI' || 
+                                  htmlEl.tagName === 'TD' || 
+                                  htmlEl.tagName === 'TH' ||
+                                  htmlEl.tagName === 'INPUT' ||
+                                  htmlEl.tagName === 'TEXTAREA' ||
+                                  htmlEl.tagName === 'SELECT');
             
-            if (!isWhiteTextButton) {
+            if (isTextElement) {
               // FORCER le texte en noir avec !important sur TOUTES les propriétés
               htmlEl.style.setProperty('color', '#111827', 'important');
               htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
               htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
               htmlEl.style.color = '#111827';
-              // Forcer aussi sur tous les enfants directs
+              
+              // Forcer aussi sur tous les enfants directs (mais pas récursif pour éviter les boucles)
               Array.from(htmlEl.children).forEach((child: Element) => {
                 const childEl = child as HTMLElement;
-                if (childEl) {
+                if (childEl && !childEl.closest('button.btn-primary') && !childEl.closest('button.mobile-action-btn-black')) {
                   childEl.style.setProperty('color', '#111827', 'important');
                   childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
                   childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
                 }
               });
             }
-          }
-        }
-        
-        // FORCER aussi sur tous les éléments INPUT, TEXTAREA, SELECT dans le panel
-        if ((htmlEl.tagName === 'INPUT' || htmlEl.tagName === 'TEXTAREA' || htmlEl.tagName === 'SELECT') && isInConfiguratorPanel(el)) {
-          const parentButton = htmlEl.closest('button');
-          const isWhiteTextButton = parentButton && (
-            parentButton.classList.contains('btn-primary') ||
-            parentButton.classList.contains('mobile-action-btn-black')
-          );
-          
-          if (!isWhiteTextButton) {
-            htmlEl.style.setProperty('color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
           }
         }
         
