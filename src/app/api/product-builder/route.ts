@@ -331,7 +331,7 @@ export async function GET(request: NextRequest) {
         }
         
         return NextResponse.json(productResponse);
-      } else {
+      } else if (!isUUID) {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
         // D'abord, essayer avec shop_domain si fourni
         let query = supabaseAdmin
