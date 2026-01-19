@@ -73,7 +73,12 @@ if (typeof document !== 'undefined') {
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
     }
-    .configurator-panel *:not(button[style*="backgroundColor: '#000"]):not(button[style*="backgroundColor:'#000"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="backgroundColor:'#000000"]):not(button[style*="backgroundColor: black"]):not(button[style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]) {
+    .configurator-panel *:not(button[style*="backgroundColor: '#000"]):not(button[style*="backgroundColor:'#000"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="backgroundColor:'#000000"]):not(button[style*="backgroundColor: black"]):not(button[style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]):not(.btn-primary *):not(.mobile-action-btn-black *) {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel button:not(.btn-primary):not(.mobile-action-btn-black):not([style*="backgroundColor: '#3b82f6"]):not([style*="backgroundColor: '#000"]) * {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
@@ -197,6 +202,7 @@ interface ProductData {
       id?: string;
       url?: string;
     };
+    resolvedColors?: Record<string, string>; // Mapping final mesh → hex, prêt à être appliqué
   };
   builder_data?: {
     model3DId?: string;
@@ -514,25 +520,17 @@ export default function ConfigurePage() {
           htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
         }
         
-        // FORCER les noms des zones en noir dans les modaux
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
-            (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
-          const parentDiv = htmlEl.closest('div');
-          const textContent = (htmlEl.textContent || '').toLowerCase();
-          const parentStyle = parentDiv?.getAttribute('style') || '';
-          if (parentDiv && (
-              parentDiv.style.padding === '12px' || 
-              parentDiv.style.padding === '10px' || 
-              parentStyle.includes('padding: 12px') || 
-              parentStyle.includes('padding: 10px') ||
-              textContent.includes('dos') ||
-              textContent.includes('face') ||
-              textContent.includes('nom') ||
-              textContent.includes('zone') ||
-              textContent.includes('logo') ||
-              textContent.includes('bras') ||
-              textContent.includes('torse')
-            )) {
+        // FORCER TOUS les textes en noir dans le configurator-panel (sauf boutons avec texte blanc)
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6')) {
+          // Vérifier si c'est un bouton avec texte blanc
+          const isWhiteTextButton = htmlEl.closest('button') && (
+            htmlEl.closest('button')?.classList.contains('btn-primary') ||
+            htmlEl.closest('button')?.classList.contains('mobile-action-btn-black') ||
+            (htmlEl.closest('button')?.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
+            (htmlEl.closest('button')?.getAttribute('style') || '').includes('backgroundColor: \'#000000\'')
+          );
+          
+          if (!isWhiteTextButton) {
             htmlEl.style.setProperty('color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
@@ -848,17 +846,21 @@ export default function ConfigurePage() {
     
     // Chercher le design sélectionné - Priorité au snapshot, puis aux selectedItems des modules
     let designIdToUse: string | null = null;
+    let designUrl: string | null = null;
     const snapshot = product?.snapshot;
     
-    // 1. Vérifier le snapshot d'abord
-    if (snapshot?.design2D?.id) {
+    // 1. Vérifier le snapshot d'abord - utiliser directement l'URL si disponible
+    if (snapshot?.design2D?.url) {
+      designUrl = snapshot.design2D.url;
+      designIdToUse = snapshot.design2D.id || null;
+    } else if (snapshot?.design2D?.id) {
       designIdToUse = snapshot.design2D.id;
     } else if (snapshot?.defaultState?.design2DId) {
       designIdToUse = snapshot.defaultState.design2DId;
     }
     
     // 2. Sinon, vérifier les selectedItems des modules
-    if (!designIdToUse) {
+    if (!designUrl && !designIdToUse) {
       customizationModules.forEach(module => {
         if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
           designIdToUse = module.selectedItems.design2DId;
@@ -867,27 +869,38 @@ export default function ConfigurePage() {
     }
     
     // 3. Sinon, utiliser selectedDesign2DId
-    if (!designIdToUse) {
+    if (!designUrl && !designIdToUse) {
       designIdToUse = selectedDesign2DId;
     }
     
-    const selectedDesign = designs2D.find(d => d.id === designIdToUse);
-    const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+    // Si on n'a pas encore l'URL, chercher le design par ID
+    if (!designUrl && designIdToUse) {
+      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+      designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+    }
     
-    // Calculer les couleurs
-    const designColorMappings = selectedDesign?.color_mappings || null;
-    const allColors = colorPalettes.flatMap(p => p.colors || []);
-    const colorsForViewer: Record<string, string> = {};
+    // Calculer les couleurs - Priorité aux resolvedColors du snapshot
+    let colorsForViewer: Record<string, string> = {};
     
-    if (designColorMappings) {
-      Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
-        const overrideColor = designColors[colorClass];
-        const colorIdToUse = overrideColor || mappedColorId;
-        const color = allColors.find(c => c.id === colorIdToUse);
-        if (color?.hex) {
-          colorsForViewer[colorClass] = color.hex;
-        }
-      });
+    // 1. Utiliser resolvedColors du snapshot si disponible (déjà calculées)
+    if (snapshot?.resolvedColors && Object.keys(snapshot.resolvedColors).length > 0) {
+      colorsForViewer = snapshot.resolvedColors;
+    } else {
+      // 2. Sinon, calculer depuis le design
+      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+      const designColorMappings = selectedDesign?.color_mappings || null;
+      const allColors = colorPalettes.flatMap(p => p.colors || []);
+      
+      if (designColorMappings) {
+        Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+          const overrideColor = designColors[colorClass];
+          const colorIdToUse = overrideColor || mappedColorId;
+          const color = allColors.find(c => c.id === colorIdToUse);
+          if (color?.hex) {
+            colorsForViewer[colorClass] = color.hex;
+          }
+        });
+      }
     }
     
     // Material maps
@@ -905,6 +918,9 @@ export default function ConfigurePage() {
         }
       });
     }
+    
+    // Trouver le design pour selectedDesign
+    const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
     
     return {
       modelUrl,
