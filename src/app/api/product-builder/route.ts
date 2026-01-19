@@ -161,13 +161,27 @@ export async function GET(request: NextRequest) {
             });
           } else if (publishedSnapshot && forAdmin && !isPreview) {
             // Pour le builder admin, retourner le produit avec builder_data ET snapshot (MAIS PAS EN MODE PREVIEW)
+            console.log('✅ Retour du produit avec publishedSnapshot pour admin:', {
+              productId: product.id,
+              hasSnapshot: !!publishedSnapshot,
+              snapshotKeys: publishedSnapshot ? Object.keys(publishedSnapshot) : []
+            });
             return NextResponse.json(product);
           }
         }
 
         // Générer un snapshot automatique depuis builder_data si disponible
         // Pour le preview, on ignore publishedSnapshot et on génère uniquement depuis builder_data
+        // IMPORTANT: Pour forAdmin, toujours générer un snapshot même s'il y a un publishedSnapshot
+        // pour avoir les données à jour depuis builder_data
         if (product.builder_data) {
+          console.log('🔄 Génération automatique du snapshot depuis builder_data:', {
+            productId: product.id,
+            forAdmin,
+            isPreview,
+            hasBuilderData: !!product.builder_data,
+            builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
+          });
           // Pour le preview, supprimer publishedSnapshot de builder_data avant génération
           let builderDataForSnapshot = product.builder_data;
           if (isPreview) {
@@ -259,8 +273,11 @@ export async function GET(request: NextRequest) {
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot pour UUID:', {
               error: error.message,
+              stack: error.stack,
               productId: product.id,
-              isPreview
+              forAdmin,
+              isPreview,
+              builderDataKeys: product.builder_data ? Object.keys(product.builder_data) : []
             });
             // Pour le preview, si la génération échoue, retourner une erreur plutôt que le produit avec publishedSnapshot
             if (isPreview) {
@@ -273,7 +290,16 @@ export async function GET(request: NextRequest) {
                 }
               }, { status: 500 });
             }
+            // Pour forAdmin, même si la génération échoue, retourner le produit sans snapshot
+            // mais logger l'erreur pour debug
+            console.warn('⚠️ Retour du produit sans snapshot généré (erreur lors de la génération)');
           }
+        } else {
+          console.warn('⚠️ Pas de builder_data disponible pour générer le snapshot (UUID):', {
+            productId: product.id,
+            forAdmin,
+            isPreview
+          });
         }
 
         // Retourner le produit avec builder_data si pas de snapshot généré
