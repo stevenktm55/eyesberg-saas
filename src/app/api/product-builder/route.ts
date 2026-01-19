@@ -261,7 +261,7 @@ export async function GET(request: NextRequest) {
                 });
                 return NextResponse.json({
                   ...product,
-                  snapshot: generatedSnapshot
+                  snapshot: generatedSnapshot,
                   // builder_data reste dans la réponse pour le builder admin
                 });
               } else {
