@@ -53,6 +53,35 @@ if (typeof document !== 'undefined') {
       -webkit-border-radius: 12px !important;
       -moz-border-radius: 12px !important;
     }
+    .configurator-panel *:not(button.btn-primary):not(button.mobile-action-btn-black):not(button[style*="backgroundColor: '#3b82f6"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="background-color: #3b82f6"]):not(button[style*="background-color: #000000"]) {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel p,
+    .configurator-panel span:not(.btn-primary *):not(.mobile-action-btn-black *),
+    .configurator-panel div:not(.btn-primary):not(.mobile-action-btn-black),
+    .configurator-panel label,
+    .configurator-panel h1,
+    .configurator-panel h2,
+    .configurator-panel h3,
+    .configurator-panel h4,
+    .configurator-panel h5,
+    .configurator-panel h6,
+    .configurator-panel li,
+    .configurator-panel td,
+    .configurator-panel th {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel input,
+    .configurator-panel textarea,
+    .configurator-panel select {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -512,8 +541,8 @@ export default function ConfigurePage() {
         }
         
         // FORCER tous les textes dans le configurator-panel (sauf boutons avec texte blanc)
-        // Forcer sur TOUS les éléments texte dans le panel
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6')) {
+        // Forcer sur TOUS les éléments texte dans le panel - PRIORITÉ ABSOLUE
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6' || htmlEl.tagName === 'LI' || htmlEl.tagName === 'TD' || htmlEl.tagName === 'TH')) {
           // Vérifier si c'est dans le configurator-panel
           if (isInConfiguratorPanel(el)) {
             // Vérifier si c'est un bouton avec texte blanc
@@ -528,10 +557,36 @@ export default function ConfigurePage() {
             );
             
             if (!isWhiteTextButton) {
+              // FORCER le texte en noir avec !important sur TOUTES les propriétés
               htmlEl.style.setProperty('color', '#111827', 'important');
               htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
               htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+              htmlEl.style.color = '#111827';
+              // Forcer aussi sur tous les enfants directs
+              Array.from(htmlEl.children).forEach((child: Element) => {
+                const childEl = child as HTMLElement;
+                if (childEl) {
+                  childEl.style.setProperty('color', '#111827', 'important');
+                  childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+                  childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+                }
+              });
             }
+          }
+        }
+        
+        // FORCER aussi sur tous les éléments INPUT, TEXTAREA, SELECT dans le panel
+        if ((htmlEl.tagName === 'INPUT' || htmlEl.tagName === 'TEXTAREA' || htmlEl.tagName === 'SELECT') && isInConfiguratorPanel(el)) {
+          const parentButton = htmlEl.closest('button');
+          const isWhiteTextButton = parentButton && (
+            parentButton.classList.contains('btn-primary') ||
+            parentButton.classList.contains('mobile-action-btn-black')
+          );
+          
+          if (!isWhiteTextButton) {
+            htmlEl.style.setProperty('color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
           }
         }
         
@@ -868,14 +923,17 @@ export default function ConfigurePage() {
       designIdToUse = selectedDesign2DId;
     }
     
-    // Trouver le design et son URL
-    const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
-    
-    // Priorité à l'URL du snapshot si disponible, sinon depuis le design trouvé
+    // PRIORITÉ ABSOLUE à l'URL du snapshot si disponible (c'est la source de vérité)
     if (snapshot?.design2D?.url) {
       designUrl = snapshot.design2D.url;
-    } else if (selectedDesign) {
-      designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
+      console.log('✅ Utilisation du design 2D du snapshot:', snapshot.design2D.url);
+    } else {
+      // Trouver le design et son URL seulement si pas de snapshot
+      const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
+      if (selectedDesign) {
+        designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
+        console.log('⚠️ Utilisation du design 2D depuis designs2D:', designUrl);
+      }
     }
     
     // Calculer les couleurs - Priorité aux resolvedColors du snapshot
@@ -931,7 +989,12 @@ export default function ConfigurePage() {
     // Priorité au snapshot s'il existe
     const snapshot = product?.snapshot;
     if (snapshot?.fonts && Array.isArray(snapshot.fonts) && snapshot.fonts.length > 0) {
-      return snapshot.fonts;
+      // S'assurer que toutes les fonts ont leurs URLs complètes
+      return snapshot.fonts.map((font: any) => ({
+        ...font,
+        font_url: font.font_url || font.fontUrl || font.file_url,
+        active: true
+      }));
     }
     
     // Sinon, charger depuis les fontGroups sélectionnés dans les modules
@@ -3558,6 +3621,7 @@ export default function ConfigurePage() {
                   selectedDesign={viewerConfig.selectedDesign}
                   texts={texts}
                   fonts={fontsForViewer}
+                  textZones={textZones}
                   placedLogos={placedLogos}
                   updateTextPosition={updateTextPosition}
                   updateTextRotation={updateTextRotation}
