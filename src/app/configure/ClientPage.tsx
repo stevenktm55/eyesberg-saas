@@ -2432,7 +2432,7 @@ export default function ConfigurePage() {
             </div>
         </div>
       );
-      } else {
+    } else {
       // Afficher la bibliothèque de logos (pas de variante sélectionnée)
       // Filtrer les logos par recherche
       const filteredLibraryLogos = allLogos.filter(logo => {
