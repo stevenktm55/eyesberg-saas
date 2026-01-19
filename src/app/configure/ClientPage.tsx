@@ -137,6 +137,15 @@ interface ProductData {
       url?: string;
     };
     resolvedColors?: Record<string, string>; // Mapping final mesh → hex, prêt à être appliqué
+    cameraSettings?: {
+      initialZoom: number;
+      initialRotation: number;
+      minZoom: number;
+      maxZoom: number;
+      zoomSpeed?: number;
+      rotateSpeed?: number;
+      viewDistance?: Record<string, number>;
+    };
   };
   builder_data?: {
     model3DId?: string;
