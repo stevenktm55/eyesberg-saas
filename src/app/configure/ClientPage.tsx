@@ -13,76 +13,10 @@ const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
 
 // Style global pour forcer les couleurs de texte dans le configurator-panel
 // IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
+// Copié exactement du builder pour correspondre
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
-    .configurator-panel .customizer-tab-name {
-      color: #000000 !important;
-      -webkit-text-fill-color: #000000 !important;
-      -webkit-text-stroke-color: #000000 !important;
-      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
-    }
-    .configurator-panel .color-class-card-label {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
-    }
-    .configurator-panel .typography-back-button,
-    .configurator-panel .typography-back-button * {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
-    }
-    .configurator-panel .mobile-action-btn-black,
-    .configurator-panel .mobile-action-btn-black * {
-      color: #ffffff !important;
-      -webkit-text-fill-color: #ffffff !important;
-      -webkit-text-stroke-color: #ffffff !important;
-      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
-    }
-    .configurator-panel button.configurator-panel-sidebar-tab-active {
-      border-radius: 12px !important;
-      -webkit-border-radius: 12px !important;
-      -moz-border-radius: 12px !important;
-    }
-    button.configurator-panel-sidebar-tab-active {
-      border-radius: 12px !important;
-      -webkit-border-radius: 12px !important;
-      -moz-border-radius: 12px !important;
-    }
-    .configurator-panel p,
-    .configurator-panel span:not([style*="color: #ffffff"]):not([style*="color:#ffffff"]):not([style*="color: white"]):not([style*="color:white"]),
-    .configurator-panel div:not([style*="background"]):not([style*="backgroundColor"]):not([style*="color: #ffffff"]):not([style*="color:#ffffff"]),
-    .configurator-panel h1,
-    .configurator-panel h2,
-    .configurator-panel h3,
-    .configurator-panel h4,
-    .configurator-panel h5,
-    .configurator-panel h6,
-    .configurator-panel label {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .configurator-panel input,
-    .configurator-panel textarea,
-    .configurator-panel select {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .configurator-panel *:not(button[style*="backgroundColor: '#000"]):not(button[style*="backgroundColor:'#000"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="backgroundColor:'#000000"]):not(button[style*="backgroundColor: black"]):not(button[style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]):not(.btn-primary *):not(.mobile-action-btn-black *) {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .configurator-panel button:not(.btn-primary):not(.mobile-action-btn-black):not([style*="backgroundColor: '#3b82f6"]):not([style*="backgroundColor: '#000"]) * {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
     .configurator-panel .customizer-tab-name {
       color: #000000 !important;
       -webkit-text-fill-color: #000000 !important;
@@ -520,20 +454,66 @@ export default function ConfigurePage() {
           htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
         }
         
-        // FORCER TOUS les textes en noir dans le configurator-panel (sauf boutons avec texte blanc)
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6')) {
-          // Vérifier si c'est un bouton avec texte blanc
-          const isWhiteTextButton = htmlEl.closest('button') && (
-            htmlEl.closest('button')?.classList.contains('btn-primary') ||
-            htmlEl.closest('button')?.classList.contains('mobile-action-btn-black') ||
-            (htmlEl.closest('button')?.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
-            (htmlEl.closest('button')?.getAttribute('style') || '').includes('backgroundColor: \'#000000\'')
-          );
-          
-          if (!isWhiteTextButton) {
+        // FORCER les noms des zones en noir dans les modaux desktop
+        // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
+            (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
+          // Vérifier si c'est un label de zone (contenant le nom de la zone)
+          const parentDiv = htmlEl.closest('div');
+          const textContent = (htmlEl.textContent || '').toLowerCase();
+          const parentStyle = parentDiv?.getAttribute('style') || '';
+          // Si le texte contient des noms de zones typiques ou si le parent a un padding spécifique
+          if (parentDiv && (
+              parentDiv.style.padding === '12px' || 
+              parentDiv.style.padding === '10px' || 
+              parentStyle.includes('padding: 12px') || 
+              parentStyle.includes('padding: 10px') ||
+              parentStyle.includes("padding: '12px'") ||
+              parentStyle.includes("padding: '10px'") ||
+              textContent.includes('dos') ||
+              textContent.includes('face') ||
+              textContent.includes('nom') ||
+              textContent.includes('zone') ||
+              textContent.includes('logo') ||
+              textContent.includes('bras') ||
+              textContent.includes('torse')
+            )) {
+            // C'est probablement un label de zone - forcer la couleur noire
             htmlEl.style.setProperty('color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
             htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+            // Forcer aussi sur tous les enfants
+            const children = htmlEl.querySelectorAll('*');
+            children.forEach((child: Element) => {
+              const childEl = child as HTMLElement;
+              childEl.style.setProperty('color', '#111827', 'important');
+              childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+              childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+            });
+          }
+        }
+        
+        // FORCER tous les textes dans le configurator-panel (sauf boutons avec texte blanc)
+        // Forcer sur TOUS les éléments texte dans le panel
+        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV' || htmlEl.tagName === 'LABEL' || htmlEl.tagName === 'H1' || htmlEl.tagName === 'H2' || htmlEl.tagName === 'H3' || htmlEl.tagName === 'H4' || htmlEl.tagName === 'H5' || htmlEl.tagName === 'H6')) {
+          // Vérifier si c'est dans le configurator-panel
+          if (isInConfiguratorPanel(el)) {
+            // Vérifier si c'est un bouton avec texte blanc
+            const parentButton = htmlEl.closest('button');
+            const isWhiteTextButton = parentButton && (
+              parentButton.classList.contains('btn-primary') ||
+              parentButton.classList.contains('mobile-action-btn-black') ||
+              (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
+              (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#000000\'') ||
+              (parentButton.getAttribute('style') || '').includes('background-color: #3b82f6') ||
+              (parentButton.getAttribute('style') || '').includes('background-color: #000000')
+            );
+            
+            if (!isWhiteTextButton) {
+              htmlEl.style.setProperty('color', '#111827', 'important');
+              htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+              htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+            }
           }
         }
         
@@ -844,51 +824,51 @@ export default function ConfigurePage() {
     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
     const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
     
-    // Chercher le design sélectionné - Priorité au snapshot, puis aux selectedItems des modules
+    // Chercher le design sélectionné - Même logique que le builder (priorité aux selectedItems des modules)
     let designIdToUse: string | null = null;
     let designUrl: string | null = null;
     const snapshot = product?.snapshot;
     
-    // 1. Vérifier le snapshot d'abord - utiliser directement l'URL si disponible
-    if (snapshot?.design2D?.url) {
-      designUrl = snapshot.design2D.url;
-      designIdToUse = snapshot.design2D.id || null;
-    } else if (snapshot?.design2D?.id) {
-      designIdToUse = snapshot.design2D.id;
-    } else if (snapshot?.defaultState?.design2DId) {
-      designIdToUse = snapshot.defaultState.design2DId;
-    }
+    // 1. Vérifier les selectedItems des modules (comme le builder fait)
+    customizationModules.forEach(module => {
+      if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
+        designIdToUse = module.selectedItems.design2DId;
+      }
+    });
     
-    // 2. Sinon, vérifier les selectedItems des modules
-    if (!designUrl && !designIdToUse) {
-      customizationModules.forEach(module => {
-        if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
-          designIdToUse = module.selectedItems.design2DId;
-        }
-      });
+    // 2. Sinon, vérifier le snapshot
+    if (!designIdToUse) {
+      if (snapshot?.design2D?.id) {
+        designIdToUse = snapshot.design2D.id;
+      } else if (snapshot?.defaultState?.design2DId) {
+        designIdToUse = snapshot.defaultState.design2DId;
+      }
     }
     
     // 3. Sinon, utiliser selectedDesign2DId
-    if (!designUrl && !designIdToUse) {
+    if (!designIdToUse) {
       designIdToUse = selectedDesign2DId;
     }
     
-    // Si on n'a pas encore l'URL, chercher le design par ID
-    if (!designUrl && designIdToUse) {
-      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
-      designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+    // Trouver le design et son URL
+    const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
+    
+    // Priorité à l'URL du snapshot si disponible, sinon depuis le design trouvé
+    if (snapshot?.design2D?.url) {
+      designUrl = snapshot.design2D.url;
+    } else if (selectedDesign) {
+      designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
     }
     
     // Calculer les couleurs - Priorité aux resolvedColors du snapshot
     let colorsForViewer: Record<string, string> = {};
     
-    // 1. Utiliser resolvedColors du snapshot si disponible (déjà calculées)
+    // 1. Utiliser resolvedColors du snapshot si disponible (déjà calculées avec les bonnes couleurs)
     if (snapshot?.resolvedColors && Object.keys(snapshot.resolvedColors).length > 0) {
       colorsForViewer = snapshot.resolvedColors;
-    } else {
-      // 2. Sinon, calculer depuis le design
-      const selectedDesign = designs2D.find(d => d.id === designIdToUse);
-      const designColorMappings = selectedDesign?.color_mappings || null;
+    } else if (selectedDesign) {
+      // 2. Sinon, calculer depuis le design (comme le builder)
+      const designColorMappings = selectedDesign.color_mappings || null;
       const allColors = colorPalettes.flatMap(p => p.colors || []);
       
       if (designColorMappings) {
@@ -918,9 +898,6 @@ export default function ConfigurePage() {
         }
       });
     }
-    
-    // Trouver le design pour selectedDesign
-    const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
     
     return {
       modelUrl,
