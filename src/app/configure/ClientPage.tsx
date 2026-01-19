@@ -54,35 +54,6 @@ if (typeof document !== 'undefined') {
       -webkit-border-radius: 12px !important;
       -moz-border-radius: 12px !important;
     }
-    .configurator-panel *:not(button.btn-primary):not(button.mobile-action-btn-black):not(button[style*="backgroundColor: '#3b82f6"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="background-color: #3b82f6"]):not(button[style*="background-color: #000000"]) {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .configurator-panel p,
-    .configurator-panel span:not(.btn-primary *):not(.mobile-action-btn-black *),
-    .configurator-panel div:not(.btn-primary):not(.mobile-action-btn-black),
-    .configurator-panel label,
-    .configurator-panel h1,
-    .configurator-panel h2,
-    .configurator-panel h3,
-    .configurator-panel h4,
-    .configurator-panel h5,
-    .configurator-panel h6,
-    .configurator-panel li,
-    .configurator-panel td,
-    .configurator-panel th {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
-    .configurator-panel input,
-    .configurator-panel textarea,
-    .configurator-panel select {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
-    }
   `;
   if (!document.getElementById('customizer-tab-style')) {
     style.id = 'customizer-tab-style';
@@ -1002,12 +973,19 @@ export default function ConfigurePage() {
     const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
     
     // PRIORITÉ ABSOLUE à l'URL du snapshot si disponible (c'est la source de vérité)
+    // Le snapshot contient l'URL complète du design 2D avec toutes les couleurs appliquées
     if (snapshot?.design2D?.url) {
       designUrl = snapshot.design2D.url;
-      console.log('✅ Utilisation du design 2D du snapshot:', snapshot.design2D.url);
+      console.log('✅ Utilisation du design 2D du snapshot:', snapshot.design2D.url, 'ID:', snapshot.design2D.id);
     } else if (selectedDesign) {
+      // Fallback: utiliser l'URL depuis designs2D seulement si pas de snapshot
       designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
-      console.log('⚠️ Utilisation du design 2D depuis designs2D:', designUrl);
+      console.log('⚠️ Utilisation du design 2D depuis designs2D (pas de snapshot):', designUrl, 'ID:', selectedDesign.id);
+    }
+    
+    // DEBUG: Vérifier que l'URL est bien définie
+    if (!designUrl) {
+      console.warn('⚠️ Aucune URL de design 2D trouvée. Snapshot:', snapshot?.design2D, 'SelectedDesign:', selectedDesign);
     }
     
     // Calculer les couleurs - Priorité aux resolvedColors du snapshot
