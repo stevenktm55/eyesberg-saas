@@ -53,8 +53,8 @@ if (typeof document !== 'undefined') {
       -moz-border-radius: 12px !important;
     }
     .configurator-panel p,
-    .configurator-panel span,
-    .configurator-panel div:not([style*="background"]):not([style*="backgroundColor"]),
+    .configurator-panel span:not([style*="color: #ffffff"]):not([style*="color:#ffffff"]):not([style*="color: white"]):not([style*="color:white"]),
+    .configurator-panel div:not([style*="background"]):not([style*="backgroundColor"]):not([style*="color: #ffffff"]):not([style*="color:#ffffff"]),
     .configurator-panel h1,
     .configurator-panel h2,
     .configurator-panel h3,
@@ -69,6 +69,11 @@ if (typeof document !== 'undefined') {
     .configurator-panel input,
     .configurator-panel textarea,
     .configurator-panel select {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      -webkit-text-stroke-color: #111827 !important;
+    }
+    .configurator-panel *:not(button[style*="backgroundColor: '#000"]):not(button[style*="backgroundColor:'#000"]):not(button[style*="backgroundColor: '#000000"]):not(button[style*="backgroundColor:'#000000"]):not(button[style*="backgroundColor: black"]):not(button[style*="backgroundColor:black"]):not([style*="color: #fff"]):not([style*="color:#fff"]):not([style*="color: '#fff'"]):not([style*="color:'#fff'"]):not([style*="color: '#ffffff'"]):not([style*="color:'#ffffff'"]):not([style*="color: white"]):not([style*="color:white"]) {
       color: #111827 !important;
       -webkit-text-fill-color: #111827 !important;
       -webkit-text-stroke-color: #111827 !important;
@@ -161,10 +166,47 @@ interface CustomizationModule {
 interface ProductData {
   id: string;
   name: string;
+  snapshot?: {
+    customizationModules?: CustomizationModule[];
+    fonts?: Array<{
+      id: string;
+      name: string;
+      display_name: string;
+      font_url: string;
+      format: string;
+      category?: string;
+    }>;
+    textZones?: Array<{
+      id: string;
+      name: string;
+      categories: string[];
+      zone_category: string;
+      position: [number, number, number];
+      view?: 'front' | 'back' | 'left' | 'right';
+    }>;
+    defaultState?: {
+      texts?: any[];
+      logos?: any[];
+      design2DId?: string;
+    };
+    design2D?: {
+      id?: string;
+      url?: string;
+    };
+    model3D?: {
+      id?: string;
+      url?: string;
+    };
+  };
   builder_data?: {
     model3DId?: string;
     design2DId?: string;
     customizationModules?: CustomizationModule[];
+    defaultState?: {
+      texts?: any[];
+      logos?: any[];
+      design2DId?: string;
+    };
     settings?: any;
   };
 }
@@ -236,18 +278,49 @@ export default function ConfigurePage() {
           const productData = await res.json();
           setProduct(productData);
           
-          // Charger les customizationModules
-          const modules = productData.builder_data?.customizationModules || [];
+          // Charger les customizationModules depuis snapshot ou builder_data
+          const snapshot = productData.snapshot;
+          const builderData = productData.builder_data;
+          
+          // Priorité au snapshot s'il existe, sinon builder_data
+          const modules = snapshot?.customizationModules || builderData?.customizationModules || [];
           setCustomizationModules(modules);
+          
+          // Charger les textes depuis le snapshot ou builder_data
+          const defaultState = snapshot?.defaultState || builderData?.defaultState;
+          if (defaultState?.texts && Array.isArray(defaultState.texts)) {
+            setTexts(defaultState.texts);
+          }
+          
+          // Charger les logos depuis le snapshot ou builder_data
+          if (defaultState?.logos && Array.isArray(defaultState.logos)) {
+            setPlacedLogos(defaultState.logos);
+          }
           
           // Activer le premier module si disponible
           if (modules.length > 0) {
             setActiveCustomizerTab(modules[0].id);
           }
           
-          // Charger le modèle 3D et le design
-          setSelectedModel3DId(productData.builder_data?.model3DId || null);
-          setSelectedDesign2DId(productData.builder_data?.design2DId || null);
+          // Charger le modèle 3D et le design depuis snapshot ou builder_data
+          const model3DId = snapshot?.model3D?.id || builderData?.model3DId || null;
+          setSelectedModel3DId(model3DId);
+          
+          // Le design 2D doit être récupéré depuis les selectedItems des modules
+          let design2DId = null;
+          const designModule = modules.find((m: any) => 
+            (m.contentType === 'designs-2d' || m.type === 'designs-2d') && m.selectedItems?.design2DId
+          );
+          if (designModule?.selectedItems?.design2DId) {
+            design2DId = designModule.selectedItems.design2DId;
+          } else if (snapshot?.design2D?.id) {
+            design2DId = snapshot.design2D.id;
+          } else if (defaultState?.design2DId) {
+            design2DId = defaultState.design2DId;
+          } else if (builderData?.design2DId) {
+            design2DId = builderData.design2DId;
+          }
+          setSelectedDesign2DId(design2DId);
         }
       } catch (error) {
         console.error('Error loading product:', error);
@@ -320,9 +393,16 @@ export default function ConfigurePage() {
     loadResources();
   }, []);
 
-  // Charger les zones de texte à partir des groupes de zones sélectionnés dans les modules
+  // Charger les zones de texte à partir du snapshot ou des groupes de zones sélectionnés dans les modules
   useEffect(() => {
     async function loadTextZones() {
+      // Priorité au snapshot s'il existe
+      const snapshot = product?.snapshot;
+      if (snapshot?.textZones && Array.isArray(snapshot.textZones) && snapshot.textZones.length > 0) {
+        setTextZones(snapshot.textZones);
+        return;
+      }
+
       if (zoneGroups.length === 0 || customizationModules.length === 0) {
         setTextZones([]);
         return;
@@ -367,7 +447,7 @@ export default function ConfigurePage() {
     }
 
     loadTextZones();
-  }, [zoneGroups, customizationModules]);
+  }, [zoneGroups, customizationModules, product]);
 
   // Fonctions de gestion des textes
   // Fonction SCOPÉE pour forcer les styles UNIQUEMENT dans le configurator-panel
@@ -766,13 +846,27 @@ export default function ConfigurePage() {
     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
     const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
     
-    // Chercher le design sélectionné
+    // Chercher le design sélectionné - Priorité au snapshot, puis aux selectedItems des modules
     let designIdToUse: string | null = null;
-    customizationModules.forEach(module => {
-      if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
-        designIdToUse = module.selectedItems.design2DId;
-      }
-    });
+    const snapshot = product?.snapshot;
+    
+    // 1. Vérifier le snapshot d'abord
+    if (snapshot?.design2D?.id) {
+      designIdToUse = snapshot.design2D.id;
+    } else if (snapshot?.defaultState?.design2DId) {
+      designIdToUse = snapshot.defaultState.design2DId;
+    }
+    
+    // 2. Sinon, vérifier les selectedItems des modules
+    if (!designIdToUse) {
+      customizationModules.forEach(module => {
+        if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
+          designIdToUse = module.selectedItems.design2DId;
+        }
+      });
+    }
+    
+    // 3. Sinon, utiliser selectedDesign2DId
     if (!designIdToUse) {
       designIdToUse = selectedDesign2DId;
     }
@@ -819,7 +913,7 @@ export default function ConfigurePage() {
       materialMaps: materialMapsForModel,
       selectedDesign: selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined,
     };
-  }, [selectedModel3DId, models3D, customizationModules, selectedDesign2DId, designs2D, colorPalettes, designColors, modelMaterialMaps]);
+  }, [selectedModel3DId, models3D, customizationModules, selectedDesign2DId, designs2D, colorPalettes, designColors, modelMaterialMaps, product]);
 
   if (isLoading) {
     return (
@@ -3366,7 +3460,34 @@ export default function ConfigurePage() {
                   colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
                   selectedDesign={viewerConfig.selectedDesign}
                   texts={texts}
-                  fonts={[]}
+                  fonts={useMemo(() => {
+                    // Priorité au snapshot s'il existe
+                    const snapshot = product?.snapshot;
+                    if (snapshot?.fonts && Array.isArray(snapshot.fonts) && snapshot.fonts.length > 0) {
+                      return snapshot.fonts;
+                    }
+                    
+                    // Sinon, charger depuis les fontGroups sélectionnés dans les modules
+                    const allFonts: any[] = [];
+                    customizationModules.forEach(module => {
+                      if (module.contentType === 'texts' || module.contentType === 'text') {
+                        const fontGroupIds = (module as any).fontGroupIds || 
+                                           ((module as any).config as any)?.fontGroupIds || 
+                                           (module.selectedItems as any)?.fontGroupIds || 
+                                           [];
+                        fontGroups.forEach(group => {
+                          if (fontGroupIds.includes(group.id) && group.fonts) {
+                            group.fonts.forEach((font: any) => {
+                              if (!allFonts.find(f => f.id === font.id)) {
+                                allFonts.push(font);
+                              }
+                            });
+                          }
+                        });
+                      }
+                    });
+                    return allFonts;
+                  }, [product, customizationModules, fontGroups])}
                   placedLogos={placedLogos}
                   updateTextPosition={updateTextPosition}
                   updateTextRotation={updateTextRotation}
