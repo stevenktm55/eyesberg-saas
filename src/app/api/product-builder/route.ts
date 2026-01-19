@@ -615,7 +615,7 @@ export async function GET(request: NextRequest) {
                 // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
                 return NextResponse.json({
                   ...product,
-                  snapshot: generatedSnapshot
+                  snapshot: generatedSnapshot,
                   // builder_data reste dans la réponse pour le builder admin
                 });
               } else {
