@@ -915,6 +915,36 @@ export default function ConfigurePage() {
     };
   }, [selectedModel3DId, models3D, customizationModules, selectedDesign2DId, designs2D, colorPalettes, designColors, modelMaterialMaps, product]);
 
+  // Calculer les fonts à utiliser - Priorité au snapshot, puis aux fontGroups sélectionnés
+  const fontsForViewer = useMemo(() => {
+    // Priorité au snapshot s'il existe
+    const snapshot = product?.snapshot;
+    if (snapshot?.fonts && Array.isArray(snapshot.fonts) && snapshot.fonts.length > 0) {
+      return snapshot.fonts;
+    }
+    
+    // Sinon, charger depuis les fontGroups sélectionnés dans les modules
+    const allFonts: any[] = [];
+    customizationModules.forEach(module => {
+      if (module.contentType === 'texts' || module.contentType === 'text') {
+        const fontGroupIds = (module as any).fontGroupIds || 
+                           ((module as any).config as any)?.fontGroupIds || 
+                           (module.selectedItems as any)?.fontGroupIds || 
+                           [];
+        fontGroups.forEach(group => {
+          if (fontGroupIds.includes(group.id) && group.fonts) {
+            group.fonts.forEach((font: any) => {
+              if (!allFonts.find(f => f.id === font.id)) {
+                allFonts.push(font);
+              }
+            });
+          }
+        });
+      }
+    });
+    return allFonts;
+  }, [product, customizationModules, fontGroups]);
+
   if (isLoading) {
     return (
       <div style={{
@@ -3460,34 +3490,7 @@ export default function ConfigurePage() {
                   colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
                   selectedDesign={viewerConfig.selectedDesign}
                   texts={texts}
-                  fonts={useMemo(() => {
-                    // Priorité au snapshot s'il existe
-                    const snapshot = product?.snapshot;
-                    if (snapshot?.fonts && Array.isArray(snapshot.fonts) && snapshot.fonts.length > 0) {
-                      return snapshot.fonts;
-                    }
-                    
-                    // Sinon, charger depuis les fontGroups sélectionnés dans les modules
-                    const allFonts: any[] = [];
-                    customizationModules.forEach(module => {
-                      if (module.contentType === 'texts' || module.contentType === 'text') {
-                        const fontGroupIds = (module as any).fontGroupIds || 
-                                           ((module as any).config as any)?.fontGroupIds || 
-                                           (module.selectedItems as any)?.fontGroupIds || 
-                                           [];
-                        fontGroups.forEach(group => {
-                          if (fontGroupIds.includes(group.id) && group.fonts) {
-                            group.fonts.forEach((font: any) => {
-                              if (!allFonts.find(f => f.id === font.id)) {
-                                allFonts.push(font);
-                              }
-                            });
-                          }
-                        });
-                      }
-                    });
-                    return allFonts;
-                  }, [product, customizationModules, fontGroups])}
+                  fonts={fontsForViewer}
                   placedLogos={placedLogos}
                   updateTextPosition={updateTextPosition}
                   updateTextRotation={updateTextRotation}
