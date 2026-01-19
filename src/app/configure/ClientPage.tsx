@@ -240,6 +240,7 @@ export default function ConfigurePage() {
   const [logoSearchQuery, setLogoSearchQuery] = useState('');
   const [showVariantSelector, setShowVariantSelector] = useState<string | null>(null);
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string} | null>(null);
+  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
   const [activeLogoCategory, setActiveLogoCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
 
   // Charger le produit et sa configuration
