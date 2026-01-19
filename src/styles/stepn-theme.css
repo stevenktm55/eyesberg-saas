@@ -327,9 +327,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   -webkit-text-fill-color: #111827 !important;
   -webkit-text-stroke-width: 0 !important;
   -webkit-text-stroke-color: transparent !important;
-}
-
-/* Container lui-même - NE PAS toucher au layout (display, flex, position, etc.) pour ne pas casser les styles inline React */
+}/* Container lui-même - NE PAS toucher au layout (display, flex, position, etc.) pour ne pas casser les styles inline React */
 /* On surcharge seulement la typographie et les couleurs */
 .configurator-panel {
   /* NE PAS forcer display: flex - laisser les styles inline React gérer le layout */

@@ -95,9 +95,7 @@ Si vous préférez plus de contrôle, vous pouvez utiliser le snippet Liquid (vo
 - Pour l'instant, il faut supprimer manuellement le lien dans la base de données
 - (Fonctionnalité à venir : bouton "Délier" dans l'interface)
 
-## 🔄 6. Synchronisation des données
-
-### Produits Shopify :
+## 🔄 6. Synchronisation des données### Produits Shopify :
 - Les produits sont récupérés en temps réel depuis l'API Shopify
 - Pas de synchronisation automatique nécessaire
 - Cliquez sur **"Charger les produits"** pour rafraîchir la liste### Commandes :

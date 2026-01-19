@@ -1,0 +1,1070 @@
+"use client";
+
+import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { ModelViewer } from "@/components/ModelViewer";
+import { useSearchParams } from "next/navigation";
+
+// Constante pour la font du configurator-panel
+const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
+
+interface CustomizationModule {
+  id: string;
+  tabName: string;
+  icon?: string;
+  iconUrl?: string;
+  contentType?: 'designs-2d' | 'colors' | 'texts' | 'logos' | 'text' | 'numbers' | 'names';
+  selectedItems?: {
+    design2DId?: string;
+    design2DIds?: string[];
+    colorPaletteId?: string;
+    logoLibraryId?: string;
+    logoLibraryIds?: string[];
+    fontGroupIds?: string[];
+  };
+  colorClassLabels?: Record<string, string>;
+  // Options pour les textes
+  addTextButtonLabel?: string;
+  placedTextsLabel?: string;
+  textPlacementMode?: 'zones' | 'free';
+  enableTextContent?: boolean;
+  enableTextFont?: boolean;
+  enableTextColor?: boolean;
+  enableTextStroke?: boolean;
+  enableTextDeformation?: boolean;
+  textColorPaletteId?: string;
+  textStrokePaletteId?: string;
+  textStrokeMinWidth?: number;
+  textMinFontSize?: number;
+  textMaxFontSize?: number;
+  textStrokeMaxWidth?: number;
+  textBaseStrokeWidth?: number;
+  textDefaultColor?: string;
+  textDefaultStrokeColor?: string;
+  textDefaultFontId?: string;
+  textEnabledDeformations?: string[];
+  // Options pour les logos
+  addLogoButtonLabel?: string;
+  importLogoButtonLabel?: string;
+  placedLogosLabel?: string;
+  logoPlacementMode?: 'zones' | 'free';
+}
+
+interface ProductData {
+  id: string;
+  name: string;
+  builder_data?: {
+    model3DId?: string;
+    design2DId?: string;
+    customizationModules?: CustomizationModule[];
+    settings?: any;
+  };
+}
+
+export default function ConfigurePage() {
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('productId');
+  const shop = searchParams.get('shop');
+  const variantId = searchParams.get('variantId') || '1';
+
+  const [product, setProduct] = useState<ProductData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [customizationModules, setCustomizationModules] = useState<CustomizationModule[]>([]);
+  const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
+  const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
+  const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
+  const [models3D, setModels3D] = useState<any[]>([]);
+  const [designs2D, setDesigns2D] = useState<any[]>([]);
+  const [colorPalettes, setColorPalettes] = useState<any[]>([]);
+  const [designColors, setDesignColors] = useState<Record<string, string>>({});
+  const [texts, setTexts] = useState<any[]>([]);
+  const [placedLogos, setPlacedLogos] = useState<any[]>([]);
+  const [modelMaterialMaps, setModelMaterialMaps] = useState<Record<string, any>>({});
+  
+  // Ressources supplémentaires
+  const [logoLibraries, setLogoLibraries] = useState<any[]>([]);
+  const [fontGroups, setFontGroups] = useState<any[]>([]);
+  const [zoneGroups, setZoneGroups] = useState<any[]>([]);
+  const [sizePatterns, setSizePatterns] = useState<any[]>([]);
+  
+  // États pour la gestion des interactions
+  const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null);
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [activeTextTab, setActiveTextTab] = useState<'contenu' | 'police' | 'couleur' | 'contour' | 'deformation'>('contenu');
+  const [isPlacingText, setIsPlacingText] = useState<'text' | 'nom' | 'numero' | null>(null);
+  const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
+  const [showLogoLibrary, setShowLogoLibrary] = useState(false);
+  const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
+  const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
+  
+  // Version mobile
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [mobileActivePanel, setMobileActivePanel] = useState<string | null>(null);
+
+  // Charger le produit et sa configuration
+  useEffect(() => {
+    async function loadProduct() {
+      if (!productId || !shop) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Charger le produit depuis l'API
+        const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productId)}&shop=${encodeURIComponent(shop)}&for=admin`);
+        if (res.ok) {
+          const productData = await res.json();
+          setProduct(productData);
+          
+          // Charger les customizationModules
+          const modules = productData.builder_data?.customizationModules || [];
+          setCustomizationModules(modules);
+          
+          // Activer le premier module si disponible
+          if (modules.length > 0) {
+            setActiveCustomizerTab(modules[0].id);
+          }
+          
+          // Charger le modèle 3D et le design
+          setSelectedModel3DId(productData.builder_data?.model3DId || null);
+          setSelectedDesign2DId(productData.builder_data?.design2DId || null);
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadProduct();
+  }, [productId, shop]);
+
+  // Charger les modèles 3D, designs, palettes de couleurs
+  useEffect(() => {
+    async function loadResources() {
+
+      try {
+        // Charger les modèles 3D
+        const modelsRes = await fetch('/api/models-3d');
+        if (modelsRes.ok) {
+          const modelsData = await modelsRes.json();
+          setModels3D(Array.isArray(modelsData) ? modelsData : []);
+        }
+
+        // Charger les designs 2D
+        const designsRes = await fetch('/api/designs-2d');
+        if (designsRes.ok) {
+          const designsData = await designsRes.json();
+          setDesigns2D(Array.isArray(designsData) ? designsData : []);
+        }
+
+        // Charger les palettes de couleurs
+        const colorsRes = await fetch('/api/color-palettes');
+        if (colorsRes.ok) {
+          const colorsData = await colorsRes.json();
+          setColorPalettes(Array.isArray(colorsData) ? colorsData : (colorsData.palettes || []));
+        }
+
+        // Charger les bibliothèques de logos
+        const logosRes = await fetch('/api/logo-libraries');
+        if (logosRes.ok) {
+          const logosData = await logosRes.json();
+          setLogoLibraries(Array.isArray(logosData) ? logosData : []);
+        }
+
+        // Charger les groupes de polices
+        const fontsRes = await fetch('/api/font-groups');
+        if (fontsRes.ok) {
+          const fontsData = await fontsRes.json();
+          setFontGroups(Array.isArray(fontsData) ? fontsData : []);
+        }
+
+        // Charger les groupes de zones
+        const zonesRes = await fetch('/api/zone-groups');
+        if (zonesRes.ok) {
+          const zonesData = await zonesRes.json();
+          setZoneGroups(Array.isArray(zonesData) ? zonesData : []);
+        }
+
+        // Charger les patterns de tailles
+        const sizesRes = await fetch('/api/size-patterns');
+        if (sizesRes.ok) {
+          const sizesData = await sizesRes.json();
+          setSizePatterns(Array.isArray(sizesData) ? sizesData : []);
+        }
+      } catch (error) {
+        console.error('Error loading resources:', error);
+      }
+    }
+
+    loadResources();
+  }, []);
+
+  // Fonctions de gestion des textes
+  const addText = useCallback((content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number) => {
+    const resolvedPosition: [number, number, number] = position || [0.5, 0.5, 0];
+    const resolvedFontSize = initialFontSize || 700;
+
+    const newText = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      content,
+      position: resolvedPosition,
+      fontSize: resolvedFontSize,
+      color: '#000000',
+      editable: true,
+      rotation: 0,
+      category,
+      fontFamily: defaultFontFamily || CONFIGURATOR_PANEL_FONT,
+      strokeColor: '#000000',
+      strokeWidth: 0,
+      strokeWidthUnit: 'px' as const,
+      deformation: 'none',
+      deformationIntensity: 0,
+      fillType: 'solid' as const,
+      gradientColors: ['#000000', '#000000'],
+      gradientDirection: 'horizontal' as const
+    };
+    
+    setTexts(prev => [...prev, newText]);
+    setSelectedTextId(newText.id);
+    setIsPlacingText(null);
+  }, []);
+
+  const updateText = useCallback((id: string, updates: Partial<typeof texts[0]>) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, ...updates } : text
+    ));
+  }, []);
+
+  const removeText = useCallback((id: string) => {
+    setTexts(prev => prev.filter(text => text.id !== id));
+    if (selectedTextId === id) {
+      setSelectedTextId(null);
+    }
+  }, [selectedTextId]);
+
+  const selectText = useCallback((id: string | null) => {
+    setSelectedTextId(id);
+    if (id) {
+      setActiveTextTab('contenu');
+    }
+  }, []);
+
+  const toggleTextLock = useCallback((id: string) => {
+    setTexts(prev => prev.map(text => 
+      text.id === id ? { ...text, locked: !text.locked } : text
+    ));
+  }, []);
+
+  // Fonctions de gestion des logos
+  const removeLogo = useCallback((id: string) => {
+    setPlacedLogos(prev => prev.filter(logo => logo.id !== id));
+    if (selectedLogoId === id) {
+      setSelectedLogoId(null);
+    }
+  }, [selectedLogoId]);
+
+  const selectLogo = useCallback((id: string | null) => {
+    setSelectedLogoId(id);
+  }, []);
+
+  const toggleLogoLock = useCallback((id: string) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, locked: !logo.locked } : logo
+    ));
+  }, []);
+
+  // Fonctions pour ModelViewer
+  const [isDraggingText, setIsDraggingText] = useState(false);
+  const [isRotatingText, setIsRotatingText] = useState(false);
+  const [isResizingText, setIsResizingText] = useState(false);
+  const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+
+  const updateTextPosition = useCallback((id: string, position: [number, number, number]) => {
+    updateText(id, { position });
+  }, [updateText]);
+
+  const updateTextRotation = useCallback((id: string, rotation: number) => {
+    updateText(id, { rotation });
+  }, [updateText]);
+
+  const updateTextSize = useCallback((id: string, fontSize: number) => {
+    updateText(id, { fontSize });
+  }, [updateText]);
+
+  const updateLogoPosition = useCallback((id: string, position: [number, number, number]) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, position } : logo
+    ));
+  }, []);
+
+  const updateLogoScale = useCallback((id: string, scale: number) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, scale } : logo
+    ));
+  }, []);
+
+  const updateLogoRotation = useCallback((id: string, rotation: number) => {
+    setPlacedLogos(prev => prev.map(logo => 
+      logo.id === id ? { ...logo, rotation } : logo
+    ));
+  }, []);
+
+  // Fonction pour obtenir le module texte configuré
+  const getTextModuleConfig = useCallback(() => {
+    return customizationModules.find(m => 
+      (m.contentType === 'text' || m.contentType === 'texts') && 
+      m.id === activeCustomizerTab
+    );
+  }, [customizationModules, activeCustomizerTab]);
+
+  // Fonction pour obtenir les contraintes de texte
+  const getTextConstraintValues = useCallback(() => {
+    const module = getTextModuleConfig();
+
+    let minFontSizePx = Number(module?.textMinFontSize ?? 10);
+    let maxFontSizePx = Number(module?.textMaxFontSize ?? 500);
+    if (!Number.isFinite(minFontSizePx) || minFontSizePx <= 0) minFontSizePx = 10;
+    if (!Number.isFinite(maxFontSizePx) || maxFontSizePx <= 0) maxFontSizePx = 500;
+    if (maxFontSizePx < minFontSizePx) {
+      const temp = minFontSizePx;
+      minFontSizePx = maxFontSizePx;
+      maxFontSizePx = temp;
+    }
+
+    let strokeMinWidthPx = Number(module?.textStrokeMinWidth ?? 0);
+    if (!Number.isFinite(strokeMinWidthPx) || strokeMinWidthPx < 0) strokeMinWidthPx = 0;
+
+    let strokeMaxWidthPx = Number(module?.textStrokeMaxWidth ?? 50);
+    if (!Number.isFinite(strokeMaxWidthPx) || strokeMaxWidthPx <= strokeMinWidthPx) {
+      strokeMaxWidthPx = Math.max(strokeMinWidthPx + 1, 50);
+    }
+
+    let baseStrokeWidthPx = Number(module?.textBaseStrokeWidth ?? strokeMinWidthPx);
+    if (!Number.isFinite(baseStrokeWidthPx)) baseStrokeWidthPx = strokeMinWidthPx;
+    baseStrokeWidthPx = Math.min(strokeMaxWidthPx, Math.max(strokeMinWidthPx, baseStrokeWidthPx));
+
+    const defaultColor = module?.textDefaultColor || '#000000';
+    const defaultStrokeColor = module?.textDefaultStrokeColor || '#000000';
+
+    return {
+      minFontSizePx,
+      maxFontSizePx,
+      strokeMinWidthPx,
+      strokeMaxWidthPx,
+      baseStrokeWidthPx,
+      defaultColor,
+      defaultStrokeColor
+    };
+  }, [getTextModuleConfig]);
+
+  const textConstraints = getTextConstraintValues();
+
+  // Fonction pour confirmer la suppression de texte
+  const confirmDeleteText = useCallback((id: string) => {
+    const text = texts.find(t => t.id === id);
+    if (text) {
+      if (window.confirm(`Supprimer le texte "${text.content || 'Texte vide'}" ?`)) {
+        removeText(id);
+      }
+    }
+  }, [texts, removeText]);
+
+  // Calculer les valeurs pour le viewer 3D
+  const viewerConfig = useMemo(() => {
+    if (!selectedModel3DId) return null;
+
+    const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+    const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
+    
+    // Chercher le design sélectionné
+    let designIdToUse: string | null = null;
+    customizationModules.forEach(module => {
+      if (module.contentType === 'designs-2d' && module.selectedItems?.design2DId) {
+        designIdToUse = module.selectedItems.design2DId;
+      }
+    });
+    if (!designIdToUse) {
+      designIdToUse = selectedDesign2DId;
+    }
+    
+    const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+    const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || null;
+    
+    // Calculer les couleurs
+    const designColorMappings = selectedDesign?.color_mappings || null;
+    const allColors = colorPalettes.flatMap(p => p.colors || []);
+    const colorsForViewer: Record<string, string> = {};
+    
+    if (designColorMappings) {
+      Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+        const overrideColor = designColors[colorClass];
+        const colorIdToUse = overrideColor || mappedColorId;
+        const color = allColors.find(c => c.id === colorIdToUse);
+        if (color?.hex) {
+          colorsForViewer[colorClass] = color.hex;
+        }
+      });
+    }
+    
+    // Material maps
+    const materialMapsForModel: Record<string, any> = {};
+    if (selectedModel?.parts) {
+      selectedModel.parts.forEach((part: any) => {
+        if (part.material_map_id && modelMaterialMaps[part.material_map_id]) {
+          const materialMap = modelMaterialMaps[part.material_map_id];
+          const materialMapFiles = materialMap.material_map_files || [];
+          materialMapsForModel[part.name] = {
+            diffuse: materialMapFiles.find((f: any) => f.type === 'diffuse')?.file_url,
+            normal: materialMapFiles.find((f: any) => f.type === 'normal')?.file_url,
+            roughness: materialMapFiles.find((f: any) => f.type === 'roughness')?.file_url,
+          };
+        }
+      });
+    }
+    
+    return {
+      modelUrl,
+      designUrl,
+      colors: colorsForViewer,
+      materialMaps: materialMapsForModel,
+      selectedDesign: selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined,
+    };
+  }, [selectedModel3DId, models3D, customizationModules, selectedDesign2DId, designs2D, colorPalettes, designColors, modelMaterialMaps]);
+
+  if (isLoading) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ffffff',
+        fontFamily: CONFIGURATOR_PANEL_FONT
+      }}>
+        <div style={{ fontSize: '16px', color: '#666' }}>Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!product || !selectedModel3DId) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ffffff',
+        fontFamily: CONFIGURATOR_PANEL_FONT
+      }}>
+        <div style={{ fontSize: '16px', color: '#666' }}>Produit non trouvé ou non configuré</div>
+      </div>
+    );
+  }
+
+  const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
+
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      display: 'flex',
+      overflow: 'hidden',
+      backgroundColor: '#f8f8f8'
+    }}>
+      {/* Sidebar - Customizer Tabs */}
+      {customizationModules.length > 0 && (
+        <div style={{
+          width: '80px',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid #e0e0e0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '8px',
+          gap: '8px'
+        }}>
+          {customizationModules.map((module) => (
+            <button
+              key={module.id}
+              onClick={() => setActiveCustomizerTab(module.id)}
+              style={{
+                width: '64px',
+                height: '64px',
+                padding: '0',
+                backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
+                border: 'none',
+                borderRadius: activeCustomizerTab === module.id ? '12px' : '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                gap: '4px'
+              }}
+              title={module.tabName}
+            >
+              {module.iconUrl ? (
+                <img
+                  src={module.iconUrl}
+                  alt={module.tabName}
+                  style={{
+                    width: '14px',
+                    height: '14px',
+                    objectFit: 'contain',
+                    filter: activeCustomizerTab === module.id ? 'invert(1)' : 'invert(0)'
+                  }}
+                />
+              ) : (
+                <span style={{
+                  fontSize: '14px',
+                  color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
+                }}>
+                  {module.icon || '📦'}
+                </span>
+              )}
+              <span style={{
+                fontSize: '10px',
+                fontWeight: '400',
+                textAlign: 'center',
+                color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
+              }}>
+                {module.tabName}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Customizer Tab Panel */}
+      {activeModule && (
+        <div style={{
+          width: '420px',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid #e0e0e0',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            padding: '16px',
+            borderBottom: '1px solid #e0e0e0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            {activeModule.iconUrl ? (
+              <img
+                src={activeModule.iconUrl}
+                alt={activeModule.tabName}
+                style={{ width: '28px', height: '28px' }}
+              />
+            ) : (
+              <span style={{ fontSize: '20px' }}>{activeModule.icon || '📦'}</span>
+            )}
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              fontFamily: CONFIGURATOR_PANEL_FONT
+            }}>
+              {activeModule.tabName}
+            </span>
+          </div>
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '16px'
+          }}>
+            {/* Contenu selon le type de module */}
+            {activeModule.contentType === 'designs-2d' ? (() => {
+              const allowedIds = activeModule.selectedItems?.design2DIds;
+              const visibleDesigns = Array.isArray(allowedIds) && allowedIds.length > 0
+                ? designs2D.filter(d => allowedIds.includes(d.id))
+                : designs2D;
+              const selectedDesignId = activeModule.selectedItems?.design2DId;
+              
+              return (
+                <div>
+                  {visibleDesigns.length === 0 ? (
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                      Aucun design disponible. Cochez des designs dans les settings du module.
+                    </p>
+                  ) : (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '12px'
+                    }}>
+                      {visibleDesigns.map((design) => {
+                        const isSelected = design.id === selectedDesignId;
+                        return (
+                          <div
+                            key={design.id}
+                            onClick={() => {
+                              const updated = {
+                                ...activeModule,
+                                selectedItems: {
+                                  ...activeModule.selectedItems,
+                                  design2DId: design.id
+                                }
+                              };
+                              setCustomizationModules(customizationModules.map(m =>
+                                m.id === activeModule.id ? updated : m
+                              ));
+                            }}
+                            style={{
+                              padding: '12px',
+                              backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                              borderRadius: '4px',
+                              border: isSelected ? '2px solid #333333' : '1px solid #e0e0e0',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                          >
+                            <div style={{
+                              width: '100%',
+                              padding: '0',
+                              backgroundColor: '#f5f5f5',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minHeight: '120px',
+                              maxHeight: '120px',
+                              overflow: 'hidden'
+                            }}>
+                              {(design.preview_url && design.preview_url.trim() !== '') ? (
+                                <img
+                                  src={design.preview_url}
+                                  alt={design.name}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                  }}
+                                  onError={(e) => {
+                                    const svgUrl = design.svg_url || design.svgUrl;
+                                    if (svgUrl) {
+                                      e.currentTarget.src = svgUrl;
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <img
+                                  src={design.svg_url || design.svgUrl}
+                                  alt={design.name}
+                                  style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '100%',
+                                    objectFit: 'contain'
+                                  }}
+                                />
+                              )}
+                            </div>
+                            <p style={{
+                              color: '#000000',
+                              fontSize: '12px',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
+                              fontWeight: isSelected ? '600' : '400',
+                              textAlign: 'center',
+                              margin: 0
+                            }}>
+                              {design.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })() : activeModule.contentType === 'colors' ? (() => {
+              // Détecter automatiquement les couleurs disponibles à modifier
+              const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
+              
+              // Trouver le design 2D sélectionné pour détecter les couleurs
+              let availableColorClasses: string[] = [];
+              let designIdToUse: string | null = null;
+              customizationModules.forEach(m => {
+                if (m.contentType === 'designs-2d' && m.selectedItems?.design2DId) {
+                  designIdToUse = m.selectedItems.design2DId;
+                }
+              });
+              if (!designIdToUse) {
+                designIdToUse = selectedDesign2DId;
+              }
+              
+              const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+              
+              // PRIORITÉ à design.colors (source de vérité depuis SVG Color Mapper)
+              if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
+                availableColorClasses = selectedDesign.colors.map((c: any) => c.name).filter(Boolean);
+              } else if (selectedDesign?.color_mappings) {
+                availableColorClasses = Object.keys(selectedDesign.color_mappings);
+              } else {
+                availableColorClasses = ['primary', 'secondary', 'tertiary'];
+              }
+              
+              availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
+              if (availableColorClasses.length === 0) {
+                availableColorClasses = ['primary', 'secondary', 'tertiary'];
+              }
+              
+              // Si on a sélectionné une classe de couleur, afficher la grille de couleurs
+              if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
+                const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                if (!palette) return <p style={{ color: '#666', fontSize: '14px' }}>Palette non trouvée</p>;
+                
+                const allColors: Array<{ id: string; name: string; hex: string }> = [];
+                if (palette.colors) {
+                  palette.colors.forEach((color: any, index: number) => {
+                    const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                    allColors.push({
+                      id: colorId,
+                      name: color.name || '',
+                      hex: color.hex || '#000000'
+                    });
+                  });
+                }
+                
+                const selectedColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
+                const currentColorHex = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.hex : null;
+                const currentColorName = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.name : '';
+                
+                return (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px',
+                      borderBottom: '1px solid #e5e7eb'
+                    }}>
+                      <button
+                        onClick={() => setSelectedColorClass(null)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#111827',
+                          fontFamily: CONFIGURATOR_PANEL_FONT
+                        }}
+                      >
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Retour
+                      </button>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#111827',
+                          fontFamily: CONFIGURATOR_PANEL_FONT
+                        }}>
+                          {currentColorName || activeModule.colorClassLabels?.[selectedColorClass] || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
+                        </span>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          border: '2px solid #d1d5db',
+                          backgroundColor: currentColorHex || 'transparent'
+                        }} />
+                      </div>
+                    </div>
+                    
+                    <div style={{
+                      flex: 1,
+                      padding: '16px',
+                      overflowY: 'auto'
+                    }}>
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(6, 1fr)', 
+                        gap: '12px' 
+                      }}>
+                        {allColors.map((color) => {
+                          const isSelected = color.id === selectedColorId;
+                          return (
+                            <button
+                              key={color.id}
+                              onClick={() => {
+                                const newDesignColors = { ...designColors };
+                                newDesignColors[selectedColorClass] = color.id;
+                                setDesignColors(newDesignColors);
+                              }}
+                              style={{
+                                position: 'relative',
+                                aspectRatio: '1',
+                                borderRadius: '50%',
+                                border: '2px solid #e5e7eb',
+                                backgroundColor: color.hex,
+                                cursor: 'pointer',
+                                padding: 0,
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {isSelected && (
+                                <div style={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}>
+                                  <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    backgroundColor: '#ffffff',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                                  }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              
+              // Afficher les cartes de sélection de classe de couleur
+              return (
+                <div>
+                  {!activeModule.selectedItems?.colorPaletteId ? (
+                    <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                      Veuillez sélectionner une palette dans les paramètres du module.
+                    </p>
+                  ) : (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '12px'
+                    }}>
+                      {availableColorClasses.map((colorClass) => {
+                        const currentColorId = selectedDesign?.color_mappings?.[colorClass];
+                        let currentColorHex = '#cccccc';
+                        
+                        if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
+                          const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                          if (palette?.colors) {
+                            palette.colors.forEach((color: any, index: number) => {
+                              const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
+                              if (colorId === currentColorId) {
+                                currentColorHex = color.hex || '#cccccc';
+                              }
+                            });
+                          }
+                        }
+                        
+                        return (
+                          <div
+                            key={colorClass}
+                            onClick={() => setSelectedColorClass(colorClass)}
+                            style={{
+                              padding: '16px',
+                              backgroundColor: '#ffffff',
+                              borderRadius: '8px',
+                              border: '1px solid #e5e7eb',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                          >
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              backgroundColor: currentColorHex !== '#cccccc' ? currentColorHex : 'transparent',
+                              borderRadius: '50%',
+                              border: currentColorHex !== '#cccccc' ? '2px solid #d1d5db' : '2px solid #9ca3af'
+                            }} />
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#111827',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
+                              textAlign: 'center'
+                            }}>
+                              {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })() : activeModule.contentType === 'texts' || activeModule.contentType === 'text' ? (
+              <div>
+                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                  Gestion des textes - À implémenter
+                </p>
+              </div>
+            ) : activeModule.contentType === 'logos' ? (
+              <div>
+                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                  Gestion des logos - À implémenter
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                  Module de personnalisation: {activeModule.contentType || 'Non configuré'}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Boutons d'action en bas */}
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e0e0e0',
+            display: 'flex',
+            gap: '12px'
+          }}>
+            <button
+              onClick={async () => {
+                // TODO: Implémenter la sauvegarde
+                console.log('Sauvegarder');
+              }}
+              style={{
+                flex: 1,
+                padding: '10px 20px',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}
+            >
+              Sauvegarder
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Implémenter l'ajout au panier
+                console.log('Ajouter au panier');
+              }}
+              style={{
+                flex: 1,
+                padding: '10px 20px',
+                backgroundColor: '#3b82f6',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}
+            >
+              Ajouter au panier
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Viewer 3D */}
+      <div style={{
+        flex: 1,
+        backgroundColor: '#f8f8f8',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative'
+      }}>
+        {viewerConfig && viewerConfig.modelUrl ? (
+          <Canvas
+            camera={{ position: [0, 0, 15], fov: 50 }}
+            gl={{ preserveDrawingBuffer: true }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ambientLight intensity={0.4} color="#f5f5f5" />
+            <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+            <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+            <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
+            <Suspense fallback={null}>
+              <ModelViewer
+                url={viewerConfig.modelUrl}
+                color="#ffffff"
+                designTexture={viewerConfig.designUrl || undefined}
+                materialMaps={Object.keys(viewerConfig.materialMaps).length > 0 ? viewerConfig.materialMaps : undefined}
+                colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
+                selectedDesign={viewerConfig.selectedDesign}
+                texts={texts}
+                fonts={[]}
+                placedLogos={placedLogos}
+                updateTextPosition={updateTextPosition}
+                updateTextRotation={updateTextRotation}
+                updateTextSize={updateTextSize}
+                toggleTextLock={toggleTextLock}
+                removeText={removeText}
+                selectedTextId={selectedTextId}
+                selectText={selectText}
+                isDraggingText={isDraggingText}
+                setIsDraggingText={setIsDraggingText}
+                isRotatingText={isRotatingText}
+                setIsRotatingText={setIsRotatingText}
+                isResizingText={isResizingText}
+                setIsResizingText={setIsResizingText}
+                updateLogoPosition={updateLogoPosition}
+                updateLogoScale={updateLogoScale}
+                updateLogoRotation={updateLogoRotation}
+                selectedLogoId={selectedLogoId}
+                selectLogo={selectLogo}
+                toggleLogoLock={toggleLogoLock}
+                setIsDraggingLogo={setIsDraggingLogo}
+              />
+            </Suspense>
+            <OrbitControls
+              enablePan={true}
+              enableZoom={true}
+              enableRotate={true}
+              minDistance={5}
+              maxDistance={25}
+            />
+          </Canvas>
+        ) : (
+          <div style={{
+            fontSize: '16px',
+            color: '#666',
+            fontFamily: CONFIGURATOR_PANEL_FONT
+          }}>
+            Modèle 3D non disponible
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
