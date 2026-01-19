@@ -159,15 +159,9 @@ export async function GET(request: NextRequest) {
               snapshot: publishedSnapshot,
               builder_data: undefined
             });
-          } else if (publishedSnapshot && forAdmin && !isPreview) {
-            // Pour le builder admin, retourner le produit avec builder_data ET snapshot (MAIS PAS EN MODE PREVIEW)
-            console.log('✅ Retour du produit avec publishedSnapshot pour admin:', {
-              productId: product.id,
-              hasSnapshot: !!publishedSnapshot,
-              snapshotKeys: publishedSnapshot ? Object.keys(publishedSnapshot) : []
-            });
-            return NextResponse.json(product);
-          }
+          // IMPORTANT: Pour forAdmin, on génère TOUJOURS un nouveau snapshot depuis builder_data
+          // même s'il y a un publishedSnapshot, pour avoir les données à jour
+          // Ne pas retourner ici, continuer pour générer le snapshot depuis builder_data
         }
 
         // Générer un snapshot automatique depuis builder_data si disponible
