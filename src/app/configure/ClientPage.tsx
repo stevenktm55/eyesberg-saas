@@ -339,7 +339,16 @@ export default function ConfigurePage() {
       // Priorité au snapshot s'il existe
       const snapshot = product?.snapshot;
       if (snapshot?.textZones && Array.isArray(snapshot.textZones) && snapshot.textZones.length > 0) {
-        setTextZones(snapshot.textZones);
+        // Utiliser directement les zones du snapshot avec toutes leurs propriétés (position, taille, etc.)
+        setTextZones(snapshot.textZones.map((zone: any) => ({
+          ...zone,
+          // S'assurer que toutes les propriétés sont présentes
+          position: zone.position || [0, 0, 0],
+          width: zone.width || zone.default_text_width,
+          height: zone.height || zone.default_text_height,
+          rotation: zone.rotation || zone.default_rotation || 0,
+          categories: zone.categories || [zone.zone_category || 'text']
+        })));
         return;
       }
 
@@ -3075,38 +3084,94 @@ export default function ConfigurePage() {
             borderRadius: '8px',
             border: '1px solid #e5e7eb'
           }}>
-            {(['front', 'back', 'left', 'right'] as const).map((view) => {
-              const viewLabels: Record<'front' | 'back' | 'left' | 'right', string> = {
-                'front': 'Face',
-                'back': 'Dos',
-                'left': 'Gauche',
-                'right': 'Droite'
-              };
-              const isActive = activeLogoView === view;
-              return (
-                <button
-                  key={view}
-                  onClick={() => setActiveLogoView(view)}
-                  style={{
-                    flex: 1,
-                    height: '42px',
-                    padding: '0 16px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    backgroundColor: isActive ? '#111827' : 'transparent',
-                    cursor: 'pointer',
-                    color: isActive ? '#ffffff' : '#6b7280',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                    fontFamily: CONFIGURATOR_PANEL_FONT
-                  }}
-                >
-                  {viewLabels[view]}
-                </button>
-              );
-            })}
+            {(() => {
+              // Utiliser les viewLabels du module si disponibles, sinon les valeurs par défaut
+              const customViews = (activeModule as any).viewLabels || [];
+              const defaultViews = ['front', 'back', 'left', 'right'] as const;
+              
+              // Si des vues personnalisées sont définies, les utiliser
+              if (customViews.length > 0) {
+                return customViews.map((view: any) => {
+                  const viewId = view.id || view;
+                  const viewLabel = view.label || (view.id === 'front' ? 'Face' : view.id === 'back' ? 'Dos' : view.id === 'left' ? 'Gauche' : view.id === 'right' ? 'Droite' : view.id);
+                  const isActive = activeLogoView === viewId;
+                  
+                  return (
+                    <button
+                      key={viewId}
+                      onClick={() => {
+                        setActiveLogoView(viewId);
+                        // Si une vue de caméra est configurée, l'utiliser
+                        if (view.cameraViewId) {
+                          const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+                          const modelCameraViews = selectedModel?.cameraViews || [];
+                          const cameraView = modelCameraViews.find((cv: any) => cv.id === view.cameraViewId);
+                          if (cameraView) {
+                            window.dispatchEvent(new CustomEvent('goToCameraView', { 
+                              detail: {
+                                position: cameraView.position,
+                                target: cameraView.target
+                              }
+                            }));
+                          }
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        height: '42px',
+                        padding: '0 16px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        backgroundColor: isActive ? '#111827' : 'transparent',
+                        cursor: 'pointer',
+                        color: isActive ? '#ffffff' : '#6b7280',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap',
+                        fontFamily: CONFIGURATOR_PANEL_FONT
+                      }}
+                    >
+                      {viewLabel}
+                    </button>
+                  );
+                });
+              }
+              
+              // Sinon, utiliser les vues par défaut
+              return defaultViews.map((view) => {
+                const viewLabels: Record<'front' | 'back' | 'left' | 'right', string> = {
+                  'front': 'Face',
+                  'back': 'Dos',
+                  'left': 'Gauche',
+                  'right': 'Droite'
+                };
+                const isActive = activeLogoView === view;
+                return (
+                  <button
+                    key={view}
+                    onClick={() => setActiveLogoView(view)}
+                    style={{
+                      flex: 1,
+                      height: '42px',
+                      padding: '0 16px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      backgroundColor: isActive ? '#111827' : 'transparent',
+                      cursor: 'pointer',
+                      color: isActive ? '#ffffff' : '#6b7280',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap',
+                      fontFamily: CONFIGURATOR_PANEL_FONT
+                    }}
+                  >
+                    {viewLabels[view]}
+                  </button>
+                );
+              });
+            })()}
           </div>
         )}
         
@@ -3464,7 +3529,7 @@ export default function ConfigurePage() {
             <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
               <Canvas
                 camera={{ 
-                  position: viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, 15], 
+                  position: viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, product?.snapshot?.cameraSettings?.initialZoom || 15], 
                   fov: viewportMode === 'mobile' ? 65 : 50 
                 }}
                 gl={{ preserveDrawingBuffer: true }}
@@ -3511,8 +3576,10 @@ export default function ConfigurePage() {
                 enablePan={true}
                 enableZoom={true}
                 enableRotate={true}
-                minDistance={viewportMode === 'mobile' ? 3 : 5}
-                maxDistance={viewportMode === 'mobile' ? 15 : 25}
+                minDistance={product?.snapshot?.cameraSettings?.minZoom || (viewportMode === 'mobile' ? 3 : 5)}
+                maxDistance={product?.snapshot?.cameraSettings?.maxZoom || (viewportMode === 'mobile' ? 15 : 25)}
+                zoomSpeed={product?.snapshot?.cameraSettings?.zoomSpeed}
+                rotateSpeed={product?.snapshot?.cameraSettings?.rotateSpeed}
               />
             </Canvas>
             </div>
