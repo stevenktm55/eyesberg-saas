@@ -234,7 +234,11 @@ export async function GET(request: NextRequest) {
               console.log('✅ Snapshot généré automatiquement pour UUID:', {
                 hasModel3D: !!generatedSnapshot.model3D,
                 hasDesign2D: !!generatedSnapshot.design2D,
+                design2DUrl: generatedSnapshot.design2D?.url,
+                design2DId: generatedSnapshot.design2D?.id,
                 modulesCount: generatedSnapshot.customizationModules?.length || 0,
+                hasResolvedColors: !!generatedSnapshot.resolvedColors,
+                resolvedColorsKeys: generatedSnapshot.resolvedColors ? Object.keys(generatedSnapshot.resolvedColors) : [],
                 forAdmin: forAdmin,
                 isPreview: isPreview
               });
@@ -250,6 +254,11 @@ export async function GET(request: NextRequest) {
               
               if (forAdmin) {
                 // Pour le builder admin, retourner le produit avec builder_data ET snapshot généré
+                console.log('✅ Retour du produit avec snapshot généré pour admin:', {
+                  productId: product.id,
+                  hasSnapshot: !!generatedSnapshot,
+                  snapshotKeys: generatedSnapshot ? Object.keys(generatedSnapshot) : []
+                });
                 return NextResponse.json({
                   ...product,
                   snapshot: generatedSnapshot
@@ -263,6 +272,13 @@ export async function GET(request: NextRequest) {
                   builder_data: undefined
                 });
               }
+            } else {
+              console.error('❌ generateSnapshot a retourné null/undefined pour UUID:', {
+                productId: product.id,
+                forAdmin,
+                isPreview,
+                hasBuilderData: !!product.builder_data
+              });
             }
           } catch (error: any) {
             console.error('❌ Erreur lors de la génération automatique du snapshot pour UUID:', {
