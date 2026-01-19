@@ -591,7 +591,7 @@ export default function ConfigurePage() {
         }
         
         // FORCER TOUS les textes en noir dans le configurator-panel (sauf boutons avec texte blanc)
-        // APPROCHE AGRESSIVE : forcer sur TOUS les éléments texte dans le panel
+        // APPROCHE TRÈS AGRESSIVE : forcer sur TOUS les éléments texte dans le panel
         if (isInConfiguratorPanel(el)) {
           // Vérifier si c'est un bouton avec texte blanc
           const parentButton = htmlEl.closest('button');
@@ -625,6 +625,14 @@ export default function ConfigurePage() {
                                   htmlEl.tagName === 'SELECT');
             
             if (isTextElement) {
+              // Vérifier la couleur actuelle - si elle est blanche ou claire, forcer en noir
+              const currentColor = htmlEl.style.color || window.getComputedStyle(htmlEl).color;
+              const isWhiteOrLight = currentColor.includes('255') || 
+                                    currentColor.includes('rgb(255') ||
+                                    currentColor.includes('#fff') ||
+                                    currentColor.includes('#ffffff') ||
+                                    currentColor === 'white';
+              
               // FORCER le texte en noir avec !important sur TOUTES les propriétés
               htmlEl.style.setProperty('color', '#111827', 'important');
               htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
