@@ -258,18 +258,22 @@ export default function ConfigurePage() {
           setSelectedModel3DId(model3DId);
           
           // Le design 2D doit être récupéré depuis les selectedItems des modules
+          // PRIORITÉ ABSOLUE au snapshot pour le design 2D ID
           let design2DId = null;
-          const designModule = modules.find((m: any) => 
-            (m.contentType === 'designs-2d' || m.type === 'designs-2d') && m.selectedItems?.design2DId
-          );
-          if (designModule?.selectedItems?.design2DId) {
-            design2DId = designModule.selectedItems.design2DId;
-          } else if (snapshot?.design2D?.id) {
+          if (snapshot?.design2D?.id) {
             design2DId = snapshot.design2D.id;
-          } else if (defaultState?.design2DId) {
-            design2DId = defaultState.design2DId;
-          } else if (builderData?.design2DId) {
-            design2DId = builderData.design2DId;
+            console.log('✅ Design 2D ID depuis snapshot:', design2DId);
+          } else {
+            const designModule = modules.find((m: any) => 
+              (m.contentType === 'designs-2d' || m.type === 'designs-2d') && m.selectedItems?.design2DId
+            );
+            if (designModule?.selectedItems?.design2DId) {
+              design2DId = designModule.selectedItems.design2DId;
+            } else if (defaultState?.design2DId) {
+              design2DId = defaultState.design2DId;
+            } else if (builderData?.design2DId) {
+              design2DId = builderData.design2DId;
+            }
           }
           setSelectedDesign2DId(design2DId);
         }
