@@ -923,17 +923,16 @@ export default function ConfigurePage() {
       designIdToUse = selectedDesign2DId;
     }
     
+    // Trouver le design pour selectedDesign
+    const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
+    
     // PRIORITÉ ABSOLUE à l'URL du snapshot si disponible (c'est la source de vérité)
     if (snapshot?.design2D?.url) {
       designUrl = snapshot.design2D.url;
       console.log('✅ Utilisation du design 2D du snapshot:', snapshot.design2D.url);
-    } else {
-      // Trouver le design et son URL seulement si pas de snapshot
-      const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
-      if (selectedDesign) {
-        designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
-        console.log('⚠️ Utilisation du design 2D depuis designs2D:', designUrl);
-      }
+    } else if (selectedDesign) {
+      designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
+      console.log('⚠️ Utilisation du design 2D depuis designs2D:', designUrl);
     }
     
     // Calculer les couleurs - Priorité aux resolvedColors du snapshot
