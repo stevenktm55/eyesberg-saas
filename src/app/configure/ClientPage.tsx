@@ -5,12 +5,14 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 // Constante pour la font du configurator-panel
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
 
 // Style global pour forcer les couleurs de texte dans le configurator-panel
+// IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
@@ -33,6 +35,23 @@ if (typeof document !== 'undefined') {
       -webkit-text-stroke-color: #111827 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
+    .configurator-panel .mobile-action-btn-black,
+    .configurator-panel .mobile-action-btn-black * {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-text-stroke-color: #ffffff !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel button.configurator-panel-sidebar-tab-active {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+    }
+    button.configurator-panel-sidebar-tab-active {
+      border-radius: 12px !important;
+      -webkit-border-radius: 12px !important;
+      -moz-border-radius: 12px !important;
+    }
     .configurator-panel p,
     .configurator-panel span,
     .configurator-panel div {
@@ -42,8 +61,8 @@ if (typeof document !== 'undefined') {
       color: inherit !important;
     }
   `;
-  if (!document.getElementById('configurator-panel-style')) {
-    style.id = 'configurator-panel-style';
+  if (!document.getElementById('customizer-tab-style')) {
+    style.id = 'customizer-tab-style';
     document.head.appendChild(style);
   }
 }
@@ -126,6 +145,8 @@ export default function ConfigurePage() {
   const [fontGroups, setFontGroups] = useState<any[]>([]);
   const [zoneGroups, setZoneGroups] = useState<any[]>([]);
   const [sizePatterns, setSizePatterns] = useState<any[]>([]);
+  const [textZones, setTextZones] = useState<any[]>([]);
+  const [isLoadingZones, setIsLoadingZones] = useState(false);
   
   // États pour la gestion des interactions
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null);
@@ -666,7 +687,7 @@ export default function ConfigurePage() {
                             ...activeModule,
                             selectedItems: {
                               ...activeModule.selectedItems,
-                              design2DId: null
+                              design2DId: undefined
                             }
                           };
                           setCustomizationModules(customizationModules.map(m =>
@@ -1077,8 +1098,12 @@ export default function ConfigurePage() {
           if (activeModule.textPlacementMode === 'zones') {
             setIsAddingText(true);
             // Sélectionner automatiquement la première zone si disponible
-            const category = activeModule.zoneGroupIds && activeModule.zoneGroupIds.length > 0 ? 'text' : 'text';
-            const filteredZones = textZones.filter(zone => 
+            const textZoneGroupIds = (activeModule as any).zoneGroupIds || 
+                                     ((activeModule as any).config as any)?.textZoneGroupIds || 
+                                     (activeModule.selectedItems as any)?.textZoneGroupIds || 
+                                     [];
+            const category = textZoneGroupIds.length > 0 ? 'text' : 'text';
+            const filteredZones = textZones.filter((zone: any) => 
               zone.categories && zone.categories.includes(category)
             );
             if (filteredZones.length > 0 && !selectedZone) {
@@ -1179,8 +1204,12 @@ export default function ConfigurePage() {
                   Chargement des zones...
                 </div>
               ) : (() => {
-                const category = activeModule.zoneGroupIds && activeModule.zoneGroupIds.length > 0 ? 'text' : 'text';
-                const filteredZones = textZones.filter(zone => 
+                const textZoneGroupIds = (activeModule as any).zoneGroupIds || 
+                                         ((activeModule as any).config as any)?.textZoneGroupIds || 
+                                         (activeModule.selectedItems as any)?.textZoneGroupIds || 
+                                         [];
+                const category = textZoneGroupIds.length > 0 ? 'text' : 'text';
+                const filteredZones = textZones.filter((zone: any) => 
                   zone.categories && zone.categories.includes(category)
                 );
                 
@@ -1199,7 +1228,7 @@ export default function ConfigurePage() {
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '12px'
                   }}>
-                    {filteredZones.map(zone => (
+                    {filteredZones.map((zone: any) => (
                       <button
                         key={zone.id}
                         onClick={() => setSelectedZone(zone.id)}
@@ -1313,7 +1342,7 @@ export default function ConfigurePage() {
                 onChange={(e) => setNewTextContent(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && newTextContent.trim() && selectedZone) {
-                    const zone = textZones.find(z => z.id === selectedZone);
+                    const zone = textZones.find((z: any) => z.id === selectedZone);
                     const defaultFont = fontGroups.length > 0 && fontGroups[0]?.fonts?.[0] 
                       ? fontGroups[0].fonts[0].id 
                       : 'Arial';
@@ -1370,7 +1399,7 @@ export default function ConfigurePage() {
               <button
                 onClick={() => {
                   if (newTextContent.trim() && selectedZone) {
-                    const zone = textZones.find(z => z.id === selectedZone);
+                    const zone = textZones.find((z: any) => z.id === selectedZone);
                     const defaultFont = fontGroups.length > 0 && fontGroups[0]?.fonts?.[0] 
                       ? fontGroups[0].fonts[0].id 
                       : 'Arial';
@@ -2220,11 +2249,20 @@ export default function ConfigurePage() {
       </div>
     );
   })()}
-</div>
+            </div>
             ) : activeModule.contentType === 'logos' ? (
               <div>
-  {(() => {
+                {(() => {
     const buttonLabel = activeModule.addLogoButtonLabel || 'Ajouter un logo';
+    let content: React.JSX.Element | null = null;
+    
+    // Fonction helper pour garantir un retour JSX.Element
+    const ensureJSX = (element: React.JSX.Element | null): React.JSX.Element => {
+      return element || <div style={{ padding: '16px' }}>Aucun contenu disponible</div>;
+    };
+    
+    // Type de retour explicite pour le IIFE
+    let result: React.JSX.Element;
     const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
       Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
       activeModule.selectedItems.logoLibraryIds.length > 0;
@@ -2266,9 +2304,6 @@ export default function ConfigurePage() {
       }
       return true;
     });
-    
-    // Variable pour stocker le contenu à afficher
-    let content = null;
     
     // Afficher la bibliothèque de logos si elle est ouverte
     if (showLogoLibrary && activeCustomizerTab === activeModule.id) {
@@ -2676,16 +2711,16 @@ export default function ConfigurePage() {
               })}
             </div>
           )}
+          </div>
         </div>
       );
-      }
+    }
     }
     
     // Code par défaut : afficher la liste des logos placés (si showLogoLibrary est false)
     if (!content) {
-    // Code par défaut : afficher la liste des logos placés (si showLogoLibrary est false)
-    content = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      content = (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {activeModule.logoPlacementMode === 'zones' && (
           <div style={{ 
             display: 'flex', 
@@ -2875,198 +2910,17 @@ export default function ConfigurePage() {
     );
     }
     
-    return content;
-  })()}
-              </div>
-            ) : (
-        {activeModule.logoPlacementMode === 'zones' && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px',
-            padding: '4px',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb'
-          }}>
-            {(['front', 'back', 'left', 'right'] as const).map((view) => {
-              const viewLabels: Record<'front' | 'back' | 'left' | 'right', string> = {
-                'front': 'Face',
-                'back': 'Dos',
-                'left': 'Gauche',
-                'right': 'Droite'
-              };
-              const isActive = activeLogoView === view;
-              return (
-                <button
-                  key={view}
-                  onClick={() => setActiveLogoView(view)}
-                  style={{
-                    flex: 1,
-                    height: '42px',
-                    padding: '0 16px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    backgroundColor: isActive ? '#111827' : 'transparent',
-                    cursor: 'pointer',
-                    color: isActive ? '#ffffff' : '#6b7280',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap',
-                    fontFamily: CONFIGURATOR_PANEL_FONT
-                  }}
-                >
-                  {viewLabels[view]}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        
-        {!logoToReplace && (
-          <button
-            onClick={() => {
-              setShowLogoLibrary(true);
-            }}
-            style={{
-              width: '100%',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: '500',
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
-            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
-          </button>
-        )}
-        
-        {filteredPlacedLogos.length > 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              color: '#000000',
-              fontFamily: CONFIGURATOR_PANEL_FONT,
-              fontWeight: '600',
-              marginBottom: '4px'
-            }}>
-              {activeModule.placedLogosLabel || 'Logos placés'} ({filteredPlacedLogos.length})
-            </div>
-            {filteredPlacedLogos.map((logo) => {
-              let logoName = 'Logo';
-              for (const library of logoLibraries) {
-                const foundLogo = library.logos?.find((l: any) => l.id === logo.logoId);
-                if (foundLogo) {
-                  logoName = foundLogo.name || 'Logo';
-                  break;
-                }
-              }
-              
-              return (
-                <div
-                  key={logo.id}
-                  onClick={() => {
-                    setSelectedLogoId(logo.id);
-                    setLogoToReplace(logo.id);
-                    setShowLogoLibrary(true);
-                  }}
-                  style={{
-                    padding: '14px',
-                    backgroundColor: selectedLogoId === logo.id ? '#fafafa' : '#fafafa',
-                    border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    <div style={{
-                      width: '48px',
-                      height: '48px',
-                      backgroundColor: '#f3f4f6',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      padding: '4px'
-                    }}>
-                      {logo.variantFile ? (
-                        <img
-                          src={logo.variantFile}
-                          alt={logoName}
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      ) : (
-                        <div style={{
-                          fontSize: '10px',
-                          color: '#6b7280',
-                          textAlign: 'center'
-                        }}>
-                          No img
-                        </div>
-                      )}
-                    </div>
-                    <span style={{ fontSize: '14px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      {logoName}
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      confirmDeleteLogo(logo.id);
-                    }}
-                    style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      borderRadius: '4px',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
+    // Si content est défini (bibliothèque de logos ouverte), retourner content
+    if (content) {
+      result = content;
+    } else {
+      // Sinon, retourner le contenu par défaut avec les boutons et la liste des logos placés
+      // content est déjà défini par le if (!content) plus haut, donc on peut le retourner directement
+      // S'assurer de toujours retourner un JSX.Element
+      result = ensureJSX(content);
     }
+    
+    return result;
   })()}
               </div>
             ) : (
@@ -3324,78 +3178,103 @@ export default function ConfigurePage() {
           </div>
         )}
 
-        {/* Boutons d'action mobile en bas */}
+        {/* Barre mobile en bas du téléphone - Style stretchmx */}
         {viewportMode === 'mobile' && (
-          <div style={{
+          <div style={{ 
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
-            padding: '16px',
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #e0e0e0',
-            display: 'flex',
-            gap: '12px',
+            flexShrink: 0, 
+            backgroundColor: '#ffffff', 
+            borderTop: '1px solid #e5e7eb', 
+            color: '#111827',
             zIndex: 10000,
             boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
           }}>
-            <button
-              onClick={async () => {
-                // TODO: Implémenter la sauvegarde
-                console.log('Sauvegarder');
-              }}
-              style={{
-                flex: 1,
-                padding: '12px 20px',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s ease',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-              </svg>
-              Sauvegarder
-            </button>
-            <button
-              onClick={() => {
-                // TODO: Implémenter l'ajout au panier
-                console.log('Ajouter au panier');
-              }}
-              style={{
-                flex: 1,
-                padding: '12px 20px',
-                backgroundColor: '#3b82f6',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Ajouter au panier
-            </button>
+            <style>{`
+              [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] *,
+              [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] span {
+                color: #111827 !important;
+              }
+            `}</style>
+            {/* Onglets des modules */}
+            <div style={{ display: 'flex', padding: '8px 4px', gap: '2px', color: '#111827' }}>
+              <style>{`
+                .mobile-tab-btn,
+                .mobile-tab-btn span {
+                  color: inherit !important;
+                }
+                .mobile-tab-btn[style*="color"] span {
+                  color: inherit !important;
+                }
+              `}</style>
+              {customizationModules.length > 0 ? (
+                customizationModules.map((module) => {
+                  const isActive = mobileActivePanel === module.id;
+                  return (
+                    <button
+                      key={module.id}
+                      className="mobile-tab-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const newPanel = isActive ? null : module.id;
+                        setMobileActivePanel(newPanel);
+                        // Si on ouvre un module, on l'active aussi dans la sidebar desktop
+                        if (newPanel) {
+                          setActiveCustomizerTab(newPanel);
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '8px 4px',
+                        borderRadius: '8px',
+                        backgroundColor: isActive ? '#f3f4f6' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: isActive ? '#111827' : '#6b7280'
+                      }}
+                    >
+                      <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                        {module.iconUrl ? (
+                          <img src={module.iconUrl} alt={module.tabName} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                        ) : (
+                          <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                        {module.tabName || 'Module'}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <>
+                  {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
+                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px', color: '#111827' }}>
+                      <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
+                      <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>{name}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+            {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
+            <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
+              <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '10px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', transition: 'all 0.2s ease' }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Sauvegarder
+              </button>
+              <button className="btn-primary mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', transition: 'all 0.2s ease' }}>
+                <svg width="14" height="14" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
