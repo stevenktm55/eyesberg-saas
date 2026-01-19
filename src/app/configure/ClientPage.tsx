@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import * as THREE from "three";
 
 // Constante pour la font du configurator-panel
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
@@ -435,6 +436,79 @@ export default function ConfigurePage() {
 
     loadTextZones();
   }, [zoneGroups, customizationModules, product]);
+  
+  // Écouter les événements de caméra pour les vues de logos
+  useEffect(() => {
+    const handleGoToCameraView = (event: any) => {
+      const { position, target } = event.detail || {};
+      if (!position || !target) return;
+      
+      const controlsRef = (window as any).__orbitControlsRef;
+      if (!controlsRef) return;
+      
+      const controls = controlsRef as any;
+      const camera = controls.object;
+      
+      if (camera && controls) {
+        // Sauvegarder les limites actuelles
+        const minDistance = controls.minDistance;
+        const maxDistance = controls.maxDistance;
+        
+        // Supprimer temporairement les limites pour permettre le mouvement libre
+        controls.minDistance = 0;
+        controls.maxDistance = Infinity;
+        
+        // Animer la caméra vers la nouvelle position
+        const startPosition = camera.position.clone();
+        const startTarget = controls.target.clone();
+        const endPosition = new THREE.Vector3(position[0], position[1], position[2]);
+        const endTarget = new THREE.Vector3(target[0], target[1], target[2]);
+        
+        let progress = 0;
+        const duration = 1000; // 1 seconde
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          progress = Math.min(elapsed / duration, 1);
+          
+          // Easing function (ease-in-out)
+          const eased = progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+          
+          camera.position.lerpVectors(startPosition, endPosition, eased);
+          controls.target.lerpVectors(startTarget, endTarget, eased);
+          controls.update();
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Restaurer les limites après l'animation
+            setTimeout(() => {
+              controls.minDistance = minDistance;
+              controls.maxDistance = maxDistance;
+            }, 500);
+          }
+        };
+        
+        animate();
+      }
+    };
+    
+    const handleSetCameraView = (event: any) => {
+      // Rediriger vers handleGoToCameraView pour traitement unifié
+      handleGoToCameraView(event);
+    };
+    
+    window.addEventListener('goToCameraView', handleGoToCameraView as any);
+    window.addEventListener('setCameraView', handleSetCameraView as any);
+    
+    return () => {
+      window.removeEventListener('goToCameraView', handleGoToCameraView as any);
+      window.removeEventListener('setCameraView', handleSetCameraView as any);
+    };
+  }, []);
 
   // Fonctions de gestion des textes
   // Fonction SCOPÉE pour forcer les styles UNIQUEMENT dans le configurator-panel
@@ -1865,6 +1939,275 @@ export default function ConfigurePage() {
           </div>
         </div>
       )}
+      
+      {/* Modal de sélection de zones pour les logos */}
+      {showZoneSelector && activeModule?.logoPlacementMode === 'zones' && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)'
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowZoneSelector(null);
+            setSelectedLogoZoneId('');
+          }
+        }}
+        >
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '700px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px'
+            }}>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#111827',
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}>
+                {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowZoneSelector(null);
+                  setSelectedLogoZoneId('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#666666',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {(() => {
+              // Récupérer les zones de logos depuis logoZoneGroupIds
+              const logoZoneGroupIds = (activeModule as any).logoZoneGroupIds || 
+                                     ((activeModule as any).config as any)?.logoZoneGroupIds || 
+                                     [];
+              
+              const availableZones = zoneGroups
+                .filter(group => logoZoneGroupIds.includes(group.id))
+                .flatMap(group => group.zones.map((zone: any) => ({ ...zone, groupName: group.name })));
+              
+              // Filtrer par vue active si nécessaire
+              const filteredZones = availableZones.filter((zone: any) => {
+                if (zone.view) {
+                  const viewMap: Record<string, string> = {
+                    'front': 'front',
+                    'back': 'back',
+                    'left': 'left',
+                    'right': 'right'
+                  };
+                  return viewMap[zone.view] === activeLogoView || zone.view === activeLogoView;
+                }
+                return true;
+              });
+              
+              if (filteredZones.length === 0) {
+                return (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
+                    <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '4px' }}>
+                      Aucune zone disponible pour cette vue
+                    </p>
+                    <p style={{ fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                      Configurez des zones via l'interface admin
+                    </p>
+                  </div>
+                );
+              }
+              
+              return (
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#111827',
+                    marginBottom: '12px',
+                    fontFamily: CONFIGURATOR_PANEL_FONT
+                  }}>
+                    Choisissez une position standard
+                  </label>
+                  
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '12px',
+                    marginBottom: '24px'
+                  }}>
+                    {filteredZones.map((zone: any) => (
+                      <button
+                        key={zone.id}
+                        onClick={() => setSelectedLogoZoneId(zone.id)}
+                        style={{
+                          position: 'relative',
+                          padding: '12px',
+                          border: selectedLogoZoneId === zone.id ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+                          borderRadius: '8px',
+                          backgroundColor: selectedLogoZoneId === zone.id ? '#eff6ff' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
+                        {zone.thumbnail_url && (
+                          <img
+                            src={zone.thumbnail_url}
+                            alt={zone.name}
+                            style={{
+                              width: '100%',
+                              height: '120px',
+                              objectFit: 'cover',
+                              borderRadius: '4px'
+                            }}
+                          />
+                        )}
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          color: '#111827',
+                          textAlign: 'center',
+                          fontFamily: CONFIGURATOR_PANEL_FONT
+                        }}>
+                          {zone.name}
+                        </span>
+                        {selectedLogoZoneId === zone.id && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: '#3b82f6',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <svg width="12" height="12" fill="none" stroke="white" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button
+                      onClick={() => {
+                        setShowZoneSelector(null);
+                        setSelectedLogoZoneId('');
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px 16px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#111827',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!selectedLogoZoneId || !showZoneSelector) return;
+                        
+                        const zone = filteredZones.find((z: any) => z.id === selectedLogoZoneId);
+                        if (!zone) return;
+                        
+                        // Ajouter le logo à la zone sélectionnée
+                        const categoryMap: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
+                          'front': 'torse',
+                          'back': 'dos',
+                          'left': 'bras-gauche',
+                          'right': 'bras-droit'
+                        };
+                        
+                        const category = categoryMap[zone.view || activeLogoView] || 'torse';
+                        
+                        // Calculer le scale pour la zone (simplifié pour l'instant)
+                        const scale = 0.1;
+                        
+                        const newLogo = {
+                          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                          logoId: showZoneSelector.logoId,
+                          variantId: showZoneSelector.variantId,
+                          variantFile: showZoneSelector.variantFile,
+                          position: zone.position || [0.5, 0.5, 0],
+                          scale,
+                          rotation: zone.rotation || zone.default_rotation || 0,
+                          category,
+                          locked: false,
+                          width: zone.width || zone.default_logo_width,
+                          height: zone.height || zone.default_logo_height
+                        };
+                        
+                        setPlacedLogos(prev => [...prev, newLogo]);
+                        setShowZoneSelector(null);
+                        setSelectedLogoZoneId('');
+                        setShowLogoLibrary(false);
+                      }}
+                      disabled={!selectedLogoZoneId}
+                      style={{
+                        flex: 1,
+                        padding: '10px 16px',
+                        backgroundColor: !selectedLogoZoneId ? '#d1d5db' : '#3b82f6',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        cursor: !selectedLogoZoneId ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </>
   )}
 
@@ -3072,7 +3415,12 @@ export default function ConfigurePage() {
                       }
                       
                       if (activeModule.logoPlacementMode === 'zones') {
-                        alert('Mode zones à implémenter');
+                        // Ouvrir le modal de sélection de zones
+                        setShowZoneSelector({
+                          logoId: logo.id,
+                          variantId: 'base',
+                          variantFile: logo.file_url || ''
+                        });
                       } else {
                         console.log('Mode libre - logo sélectionné:', logo.id);
                       }
@@ -3645,6 +3993,12 @@ export default function ConfigurePage() {
                 />
               </Suspense>
               <OrbitControls
+                ref={(controls) => {
+                  if (controls) {
+                    // Stocker la référence pour les événements de caméra
+                    (window as any).__orbitControlsRef = controls;
+                  }
+                }}
                 enablePan={true}
                 enableZoom={true}
                 enableRotate={true}
