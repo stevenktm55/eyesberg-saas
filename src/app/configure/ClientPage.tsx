@@ -765,7 +765,27 @@ export default function ConfigurePage() {
       modals.forEach(modal => {
         forceConfiguratorPanelStyles(modal);
       });
-    }, 300);
+      
+      // Forcer aussi sur tous les éléments texte directement dans le panel
+      const allTextElements = currentPanel.querySelectorAll('p, span, div, label, h1, h2, h3, h4, h5, h6, li, td, th, input, textarea, select');
+      allTextElements.forEach((el: Element) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl && !htmlEl.closest('button.btn-primary') && !htmlEl.closest('button.mobile-action-btn-black')) {
+          const currentColor = window.getComputedStyle(htmlEl).color;
+          const isWhiteOrLight = currentColor.includes('255') || 
+                                currentColor.includes('rgb(255') ||
+                                currentColor.includes('#fff') ||
+                                currentColor.includes('#ffffff') ||
+                                currentColor === 'white';
+          
+          if (isWhiteOrLight || !currentColor || currentColor === 'rgba(0, 0, 0, 0)') {
+            htmlEl.style.setProperty('color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
+            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
+          }
+        }
+      });
+    }, 200);
 
     return () => {
       observer.disconnect();
