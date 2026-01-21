@@ -9462,39 +9462,6 @@ export default function ProductBuilderPage() {
                             </div>
                           )}
                         </div>
-              ) : (
-                <div style={{
-                  textAlign: 'center',
-                  color: '#666',
-                  fontFamily: CONFIGURATOR_PANEL_FONT
-                }}>
-                  <div style={{
-                    width: '400px',
-                    height: '400px',
-                    backgroundColor: '#e0e0e0',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 24px',
-                    position: 'relative'
-                  }}>
-                    <div style={{
-                      fontSize: '48px',
-                      color: '#999'
-                    }}>
-                      🎩
-                    </div>
-                  </div>
-                  <p style={{
-                    color: '#999',
-                    fontSize: '14px',
-                    fontFamily: CONFIGURATOR_PANEL_FONT
-                  }}>
-                    Sélectionnez un modèle 3D dans "Behind the scene"
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
