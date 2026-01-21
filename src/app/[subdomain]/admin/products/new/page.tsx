@@ -5217,14 +5217,26 @@ export default function ProductBuilderPage() {
           height: "100%",
         }}
       >
-        {selectedModel3DId &&
-          (() => {
-            const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+        {(() => {
+            // Utiliser le modèle sélectionné ou le premier disponible
+            const selectedModel = selectedModel3DId 
+              ? models3D.find(m => m.id === selectedModel3DId)
+              : models3D[0];
+            const modelToUse = selectedModel || models3D[0];
+            const modelUrl = modelToUse?.glbUrl || modelToUse?.glb_url;
             const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
+            
+            if (!modelUrl) {
+              return (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af" }}>
+                  <p>Aucun modèle 3D disponible</p>
+                </div>
+              );
+            }
             
             return (
               <Canvas
-                key={`canvas-${selectedModel3DId}`}
+                key={`canvas-${modelToUse?.id || 'default'}`}
                 camera={{
                   position:
                     viewportMode === "mobile" ? [0, 0, 8] : [0, 0, 15],
@@ -5249,10 +5261,9 @@ export default function ProductBuilderPage() {
                 />
                 
                 <Suspense fallback={null}>
-                  {selectedModel?.glbUrl ? (
-                    <ModelViewer 
-                      key={selectedModel.glbUrl}
-                      url={selectedModel.glbUrl}
+                  <ModelViewer 
+                      key={modelUrl}
+                      url={modelUrl}
                       designTexture={selectedDesign?.svg_url || selectedDesign?.svgUrl || undefined}
                       colors={designColors}
                       texts={texts}
@@ -5279,12 +5290,6 @@ export default function ProductBuilderPage() {
                       isResizingLogo={isResizingLogo}
                       selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: selectedDesign.svg_url || selectedDesign.svgUrl || null } : { id: null, svgUrl: null }}
                     />
-                  ) : (
-                    <mesh>
-                      <boxGeometry args={[2, 2, 2]} />
-                      <meshStandardMaterial color="#8eff36" />
-                    </mesh>
-                  )}
                 </Suspense>
                 
                 <OrbitControls 
