@@ -5164,12 +5164,621 @@ export default function ProductBuilderPage() {
             );
           }
           
-          // MODULE TEXT - Placeholder pour l'instant
+          // MODULE TEXT - Style stretchmx (bouton ajouter + textes placés OU bloc typographie si texte sélectionné)
           if (activeModule.contentType === 'text') {
+            // Récupérer les zones de texte configurées
+            const textZoneGroupIds = activeModule.config?.textZoneGroupIds || activeModule.selectedItems?.textZoneGroupIds || [];
+            const isZoneMode = activeModule.config?.textPlacementMode === 'zones' || activeModule.textPlacementMode === 'zones';
+            const textConstraints = getTextConstraintValues();
+            
+            // Si un texte est sélectionné, afficher uniquement le bloc typographie (remplace "ajouter du texte et textes placés")
+            if (selectedTextId) {
+              const selectedText = texts.find((t: any) => t.id === selectedTextId);
+              if (!selectedText) return null;
+              
+              const tabs = [
+                { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
+                { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
+                { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
+                { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
+                { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
+              ].filter(tab => tab.enabled);
+              
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+                  {/* Bloc Typographie - Style stretchmx */}
+                  <div style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid #e5e5e5'
+                  }}>
+                    {/* Onglets */}
+                    <div style={{
+                      display: 'flex',
+                      borderBottom: '1px solid #e5e5e5',
+                      backgroundColor: '#ffffff',
+                      overflowX: 'auto'
+                    }}>
+                      {tabs.map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTextTab(tab.id)}
+                          style={{
+                            flex: '1 1 0',
+                            minWidth: '60px',
+                            padding: '10px 8px',
+                            background: 'none',
+                            border: 'none',
+                            borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
+                            color: activeTextTab === tab.id ? '#111827' : '#6b7280',
+                            fontSize: '11px',
+                            fontWeight: activeTextTab === tab.id ? '600' : '400',
+                            fontFamily: CONFIGURATOR_PANEL_FONT,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Contenu de l'onglet sélectionné */}
+                    <div style={{ padding: '16px', maxHeight: '400px', overflowY: 'auto' }}>
+                      {/* Onglet Contenu */}
+                      {activeTextTab === 'contenu' && (
+                        <div>
+                          <div style={{
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#111827',
+                            marginBottom: '12px',
+                            fontFamily: CONFIGURATOR_PANEL_FONT
+                          }}>
+                            Contenu du texte
+                          </div>
+                          <input
+                            type="text"
+                            value={selectedText.content}
+                            onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              fontFamily: CONFIGURATOR_PANEL_FONT,
+                              color: '#111827',
+                              outline: 'none',
+                              boxSizing: 'border-box'
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.style.borderColor = '#3b82f6';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.borderColor = '#d1d5db';
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Onglet Police */}
+                      {activeTextTab === 'police' && (() => {
+                        // Filtrer les polices selon les groupes sélectionnés
+                        const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
+                        const visibleFonts = (() => {
+                          const allFonts: Array<{ id: string; name: string; display_name?: string; file_url?: string; file_type?: string; groupId: string }> = [];
+                          fontGroups.forEach(group => {
+                            if (group.fonts) {
+                              group.fonts.forEach((font: any) => {
+                                allFonts.push({
+                                  id: font.id,
+                                  name: font.name || font.id,
+                                  display_name: font.display_name,
+                                  file_url: font.file_url,
+                                  file_type: font.file_type || font.format,
+                                  groupId: group.id
+                                });
+                              });
+                            }
+                          });
+                          
+                          if (allowedGroupIds && allowedGroupIds.length > 0) {
+                            return allFonts.filter(font => allowedGroupIds.includes(font.groupId));
+                          }
+                          return allFonts;
+                        })();
+                        
+                        // Texte de prévisualisation
+                        const previewText = selectedText.content && selectedText.content.trim() !== '' 
+                          ? selectedText.content 
+                          : 'ZG';
+                        
+                        return (
+                          <div>
+                            <div style={{
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              color: '#111827',
+                              marginBottom: '12px',
+                              fontFamily: CONFIGURATOR_PANEL_FONT
+                            }}>
+                              Police
+                            </div>
+                            {visibleFonts.length === 0 ? (
+                              <p style={{ 
+                                color: '#6b7280', 
+                                fontSize: '12px', 
+                                fontFamily: CONFIGURATOR_PANEL_FONT,
+                                padding: '12px',
+                                backgroundColor: '#f9fafb',
+                                borderRadius: '8px'
+                              }}>
+                                Aucune police disponible. Cochez des groupes de polices dans les settings du module.
+                              </p>
+                            ) : (
+                              <div style={{
+                                position: 'relative',
+                                width: '100%',
+                                overflow: 'hidden'
+                              }}>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    overflowX: 'auto',
+                                    overflowY: 'hidden',
+                                    padding: '4px 0',
+                                    scrollBehavior: 'smooth',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none'
+                                  }}
+                                  onWheel={(e) => {
+                                    e.currentTarget.scrollLeft += e.deltaY;
+                                    e.preventDefault();
+                                  }}
+                                >
+                                  <style>{`
+                                    div::-webkit-scrollbar {
+                                      display: none;
+                                    }
+                                  `}</style>
+                                  {visibleFonts.map((font) => {
+                                    const isSelected = selectedText.fontFamily === font.id;
+                                    const fontFamilyValue = font.display_name || font.name;
+                                    
+                                    // Vérifier si la police est chargée
+                                    const fontFamilyQuoted = fontFamilyValue ? `"${fontFamilyValue}"` : '';
+                                    
+                                    return (
+                                      <div
+                                        key={font.id}
+                                        onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
+                                        style={{
+                                          flexShrink: 0,
+                                          width: '120px',
+                                          padding: '12px',
+                                          backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
+                                          borderRadius: '8px',
+                                          border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          minHeight: '100px',
+                                          position: 'relative'
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            minHeight: '60px',
+                                            fontFamily: fontFamilyValue ? `${fontFamilyQuoted}, sans-serif` : 'sans-serif',
+                                            fontSize: '18px',
+                                            fontWeight: 'bold',
+                                            color: '#111827'
+                                          }}
+                                        >
+                                          {previewText}
+                                        </div>
+                                        <span style={{
+                                          fontSize: '11px',
+                                          color: '#111827',
+                                          fontFamily: CONFIGURATOR_PANEL_FONT,
+                                          textAlign: 'center',
+                                          fontWeight: '500'
+                                        }}>
+                                          {font.display_name || font.name}
+                                        </span>
+                                        {isSelected && (
+                                          <div style={{
+                                            position: 'absolute',
+                                            bottom: '8px',
+                                            right: '8px',
+                                            width: '20px',
+                                            height: '20px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#111827',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                          }}>
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                              <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            <div style={{ marginTop: '16px' }}>
+                              <div style={{
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                color: '#111827',
+                                marginBottom: '8px',
+                                fontFamily: CONFIGURATOR_PANEL_FONT,
+                                display: 'flex',
+                                justifyContent: 'space-between'
+                              }}>
+                                <span>Taille du texte</span>
+                                <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                                  {Math.round(textConstraints.minFontSizePx)} px – {Math.round(textConstraints.maxFontSizePx)} px
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <input
+                                  type="range"
+                                  min={textConstraints.minFontSizePx}
+                                  max={textConstraints.maxFontSizePx}
+                                  step={1}
+                                  value={selectedText.fontSize}
+                                  onChange={(e) => updateText(selectedTextId, { fontSize: parseFloat(e.target.value) })}
+                                  style={{
+                                    flex: 1,
+                                    accentColor: '#111827'
+                                  }}
+                                />
+                                <span style={{
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  color: '#111827',
+                                  minWidth: '48px',
+                                  textAlign: 'right',
+                                  fontFamily: CONFIGURATOR_PANEL_FONT
+                                }}>
+                                  {Math.round(selectedText.fontSize)} px
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      
+                      {/* Onglet Couleur */}
+                      {activeTextTab === 'couleur' && (
+                        <div>
+                          <div style={{
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#111827',
+                            marginBottom: '12px',
+                            fontFamily: CONFIGURATOR_PANEL_FONT
+                          }}>
+                            Couleur
+                          </div>
+                          {activeModule.textColorPaletteId ? (() => {
+                            const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
+                            if (!palette) {
+                              return (
+                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                  Palette introuvable. Veuillez en sélectionner une autre.
+                                </p>
+                              );
+                            }
+                            const paletteColors = palette.colors || [];
+                            if (paletteColors.length === 0) {
+                              return (
+                                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                  La palette sélectionnée ne contient aucune couleur.
+                                </p>
+                              );
+                            }
+                            
+                            const scrollColors = (direction: 'left' | 'right') => {
+                              if (colorScrollRef.current) {
+                                const scrollAmount = 100;
+                                colorScrollRef.current.scrollBy({
+                                  left: direction === 'right' ? scrollAmount : -scrollAmount,
+                                  behavior: 'smooth'
+                                });
+                              }
+                            };
+                            
+                            return (
+                              <div style={{ position: 'relative', width: '100%' }}>
+                                <button
+                                  onClick={() => scrollColors('left')}
+                                  style={{
+                                    position: 'absolute',
+                                    left: 0,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 10,
+                                    width: '36px',
+                                    height: '36px',
+                                    minWidth: '36px',
+                                    minHeight: '36px',
+                                    maxWidth: '36px',
+                                    maxHeight: '36px',
+                                    borderRadius: '50%',
+                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                    padding: 0
+                                  }}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                    <path d="M15 18l-6-6 6-6"/>
+                                  </svg>
+                                </button>
+                                <div
+                                  ref={colorScrollRef}
+                                  style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    overflowX: 'auto',
+                                    overflowY: 'hidden',
+                                    padding: '8px 40px',
+                                    scrollBehavior: 'smooth',
+                                    WebkitOverflowScrolling: 'touch',
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none'
+                                  }}
+                                  onWheel={(e) => {
+                                    if (colorScrollRef.current) {
+                                      colorScrollRef.current.scrollLeft += e.deltaY;
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                >
+                                  <style>{`
+                                    div::-webkit-scrollbar {
+                                      display: none;
+                                    }
+                                  `}</style>
+                                  {paletteColors.map((color: any, index: number) => {
+                                    const hex = (color?.hex || '#000000').toLowerCase();
+                                    const isSelected = (selectedText.color || '').toLowerCase() === hex;
+                                    return (
+                                      <button
+                                        key={color?.id || `${palette.id}-${index}`}
+                                        onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
+                                        style={{
+                                          flexShrink: 0,
+                                          width: '48px',
+                                          height: '48px',
+                                          borderRadius: '50%',
+                                          border: isSelected ? '2px solid #111827' : '1px solid #d1d5db',
+                                          backgroundColor: color?.hex || '#000000',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.2s',
+                                          padding: 0,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center'
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                                <button
+                                  onClick={() => scrollColors('right')}
+                                  style={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 10,
+                                    width: '36px',
+                                    height: '36px',
+                                    minWidth: '36px',
+                                    minHeight: '36px',
+                                    maxWidth: '36px',
+                                    maxHeight: '36px',
+                                    borderRadius: '50%',
+                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                    padding: 0
+                                  }}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2">
+                                    <path d="M9 18l6-6-6-6"/>
+                                  </svg>
+                                </button>
+                              </div>
+                            );
+                          })() : (
+                            <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                              Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Onglet Contour - Version simplifiée pour l'instant */}
+                      {activeTextTab === 'contour' && (
+                        <div>
+                          <div style={{
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#111827',
+                            marginBottom: '12px',
+                            fontFamily: CONFIGURATOR_PANEL_FONT
+                          }}>
+                            Contour
+                          </div>
+                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                            Fonctionnalité de contour à implémenter complètement.
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Onglet Déformation - Version simplifiée pour l'instant */}
+                      {activeTextTab === 'deformation' && (
+                        <div>
+                          <div style={{
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#111827',
+                            marginBottom: '12px',
+                            fontFamily: CONFIGURATOR_PANEL_FONT
+                          }}>
+                            Déformation
+                          </div>
+                          <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                            Fonctionnalité de déformation à implémenter complètement.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Si aucun texte n'est sélectionné, afficher "ajouter du texte et textes placés"
             return (
-              <div style={{ padding: '16px', color: '#111827' }}>
-                <p style={{ fontSize: '14px', marginBottom: '12px', fontWeight: '500' }}>Module Texte</p>
-                <p style={{ fontSize: '13px', color: '#666' }}>Gestion des textes (à compléter avec la logique existante)</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+                {/* Bouton ajouter */}
+                <button 
+                  onClick={() => {
+                    if (isZoneMode) {
+                      // Mode zones : ouvrir le modal de sélection de zones
+                      setShowZoneSelectionModal(true);
+                      setSelectedZoneId(null);
+                      setTextInputValue('');
+                    } else {
+                      // Mode libre : activer le mode placement
+                      if (isPlacingText) {
+                        setIsPlacingText(null);
+                      } else {
+                        setIsPlacingText('nom');
+                      }
+                    }
+                  }}
+                  style={{ 
+                    width: '100%',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '8px', 
+                    padding: '10px 20px', 
+                    backgroundColor: '#3b82f6', 
+                    color: '#ffffff', 
+                    border: 'none', 
+                    borderRadius: '8px', 
+                    fontSize: '14px', 
+                    fontWeight: '500', 
+                    cursor: 'pointer', 
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  {activeModule.addTextButtonLabel || 'Ajouter du texte'}
+                </button>
+                
+                {/* Textes placés */}
+                {texts && texts.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Textes placés ({texts.length})</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {texts.map((text: any) => (
+                        <div 
+                          key={text.id}
+                          onClick={() => setSelectedTextId(text.id)}
+                          style={{
+                            padding: '10px 12px',
+                            backgroundColor: selectedTextId === text.id ? '#eff6ff' : '#f9fafb',
+                            border: selectedTextId === text.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <div>
+                            <p style={{ 
+                              fontSize: text.fontSize ? `${text.fontSize / 10}px` : '13px', 
+                              fontWeight: '500', 
+                              color: text.color || '#111827', 
+                              margin: 0,
+                              fontFamily: text.fontFamily || CONFIGURATOR_PANEL_FONT,
+                              ...(text.strokeColor && text.strokeWidth ? {
+                                WebkitTextStroke: `${text.strokeWidth}px ${text.strokeColor}`,
+                                textStroke: `${text.strokeWidth}px ${text.strokeColor}`
+                              } : {})
+                            }}>
+                              {text.content || 'Texte vide'}
+                              {text.locked && ' 🔒'}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTexts(texts.filter((t: any) => t.id !== text.id));
+                              if (selectedTextId === text.id) setSelectedTextId(null);
+                            }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* État vide */}
+                {(!texts || texts.length === 0) && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', color: '#9ca3af' }}>
+                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <p style={{ fontSize: '12px', marginTop: '8px' }}>Aucun texte ajouté</p>
+                    <p style={{ fontSize: '11px' }}>Cliquez sur le bouton ci-dessus pour commencer</p>
+                  </div>
+                )}
               </div>
             );
           }
