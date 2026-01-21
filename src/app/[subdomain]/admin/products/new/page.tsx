@@ -5235,15 +5235,27 @@ export default function ProductBuilderPage() {
             const designColorMappings = selectedDesign?.color_mappings || null;
             let colorsForViewer: Record<string, string> = {};
             
+            // Fonction helper pour extraire le hex depuis un ID (qui peut contenir le hex à la fin)
+            const getHexFromColorId = (colorId: string): string | null => {
+              // Si l'ID contient déjà un hex (format: "xxx-#HEX"), l'extraire
+              const hexMatch = colorId.match(/#([0-9a-f]{3,6})$/i);
+              if (hexMatch) {
+                return `#${hexMatch[1]}`;
+              }
+              // Sinon, chercher dans allColors
+              const color = allColors.find(c => c.id === colorId);
+              return color?.hex || null;
+            };
+            
             // 1. Couleurs de base définies par le design
             if (designColorMappings) {
               Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
                 const overrideColorId = designColors[colorClass];
                 const colorIdToUse = overrideColorId || mappedColorId;
-                const color = allColors.find(c => c.id === colorIdToUse);
-                if (color?.hex) {
+                const hex = getHexFromColorId(colorIdToUse);
+                if (hex) {
                   // Normaliser la clé en minuscules pour correspondre à la détection dans ModelViewer
-                  colorsForViewer[colorClass.toLowerCase()] = color.hex;
+                  colorsForViewer[colorClass.toLowerCase()] = hex;
                 }
               });
             }
@@ -5251,25 +5263,20 @@ export default function ProductBuilderPage() {
             // 2. Overrides explicites choisis dans le configurator (designColors)
             if (Object.keys(designColors).length > 0) {
               Object.entries(designColors).forEach(([colorClass, colorId]) => {
-                const color = allColors.find(c => c.id === colorId);
-                if (color?.hex) {
+                const hex = getHexFromColorId(colorId);
+                if (hex) {
                   // Normaliser la clé en minuscules pour correspondre à la détection dans ModelViewer
-                  colorsForViewer[colorClass.toLowerCase()] = color.hex;
+                  colorsForViewer[colorClass.toLowerCase()] = hex;
                 }
               });
             }
             
-            // Normaliser toutes les clés en minuscules pour correspondre à la détection dans ModelViewer
-            const normalizedColorsForViewer: Record<string, string> = {};
-            Object.entries(colorsForViewer).forEach(([key, value]) => {
-              normalizedColorsForViewer[key.toLowerCase()] = value;
-            });
-            
             // Debug: Log des couleurs pour vérifier
             console.log('🎨 Admin - designColors (IDs):', designColors);
-            console.log('🎨 Admin - colorsForViewer (hex):', normalizedColorsForViewer);
+            console.log('🎨 Admin - colorsForViewer (hex):', colorsForViewer);
             console.log('🎨 Admin - designColorMappings:', designColorMappings);
             console.log('🎨 Admin - allColors count:', allColors.length);
+            console.log('🎨 Admin - allColors sample:', allColors.slice(0, 3).map(c => ({ id: c.id, hex: c.hex })));
             
             if (!modelUrl) {
               return (
@@ -5309,10 +5316,10 @@ export default function ProductBuilderPage() {
                 
                 <Suspense fallback={null}>
                   <ModelViewer 
-                      key={modelUrl}
+                      key={`${modelUrl}-${selectedDesign2DId || 'no-design'}-${JSON.stringify(colorsForViewer)}`}
                       url={modelUrl}
                       designTexture={selectedDesign?.svg_url || selectedDesign?.svgUrl || undefined}
-                      colors={normalizedColorsForViewer}
+                      colors={colorsForViewer}
                       texts={texts}
                       updateTextPosition={updateTextPosition}
                       selectedTextId={selectedTextId}
