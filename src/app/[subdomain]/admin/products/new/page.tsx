@@ -2048,6 +2048,12 @@ export default function ProductBuilderPage() {
     }
   }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance]);
 
+  // Action explicite "Sauvegarder" du configurateur :
+  // on réutilise la même logique que l'auto-save.
+  const handleSaveProduct = useCallback(async () => {
+    await autoSave();
+  }, [autoSave]);
+
   // Fonction pour générer un preview snapshot à la volée
   const handlePreview = useCallback(async () => {
     try {
