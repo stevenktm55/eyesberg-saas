@@ -8,6 +8,8 @@ export interface ConfiguratorViewerProps {
   onTabChange: (id: string) => void;
   panelContent?: React.ReactNode;
   canvasContent?: React.ReactNode;
+  onSave?: () => void;
+  onAddToCart?: () => void;
 }
 
 export function ConfiguratorViewer({
@@ -16,6 +18,8 @@ export function ConfiguratorViewer({
   onTabChange,
   panelContent,
   canvasContent,
+  onSave,
+  onAddToCart,
 }: ConfiguratorViewerProps) {
   const activeModule = modules.find((m) => m.id === activeTab) ?? modules[0];
 
@@ -202,6 +206,7 @@ export function ConfiguratorViewer({
           </button>
           <button
             type="button"
+            onClick={onAddToCart}
             className="h-11 px-6 inline-flex items-center gap-2 text-sm font-medium rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:shadow-lg transition-all"
             style={{
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',

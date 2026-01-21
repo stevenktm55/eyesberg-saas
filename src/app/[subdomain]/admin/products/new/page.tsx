@@ -961,6 +961,8 @@ export default function ProductBuilderPage() {
   }>>([]);
   const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null);
   const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+  const [isRotatingLogo, setIsRotatingLogo] = useState(false);
+  const [isResizingLogo, setIsResizingLogo] = useState(false);
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const [texts, setTexts] = useState<Array<{
     id: string;
@@ -1042,6 +1044,7 @@ export default function ProductBuilderPage() {
   const [backgroundRemoverPreview, setBackgroundRemoverPreview] = useState<{original: string, processed: string} | null>(null);
   const [isProcessingBackground, setIsProcessingBackground] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const controlsRef = useRef<any>(null);
   
   // États pour le modal de confirmation de suppression
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -4988,7 +4991,202 @@ export default function ProductBuilderPage() {
         );
         if (!activeModule) return null;
 
-        // ➜ COPIE/COLLE ici TON JSX actuel du panel (le <div style={{ width: '420px', ... }}>...</div>)
+        // Fonction helper pour générer le contenu selon le contentType
+        const renderPanelContent = () => {
+          if (!activeModule.contentType) {
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', color: '#9ca3af' }}>
+                <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <p style={{ fontSize: '13px', marginTop: '12px', textAlign: 'center' }}>Configurez le module dans les paramètres</p>
+              </div>
+            );
+          }
+          
+          // MODULE COLORS
+          if (activeModule.contentType === 'colors') {
+            const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary'];
+            let availableColorClasses: string[] = [];
+            const designModule = customizationModules.find(m => m.contentType === 'designs-2d' && m.selectedItems?.design2DId);
+            const designIdToUse = designModule?.selectedItems?.design2DId || selectedDesign2DId;
+            const selectedDesign = designs2D.find(d => d.id === designIdToUse);
+            
+            if (selectedDesign?.color_mappings) {
+              availableColorClasses = Object.keys(selectedDesign.color_mappings).filter(c => ordinalColors.includes(c.toLowerCase()));
+            }
+            if (availableColorClasses.length === 0) availableColorClasses = ['primary', 'secondary', 'tertiary'];
+            
+            // Vue sélection de couleur (après clic sur classe)
+            if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
+              const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+              if (!palette) return null;
+              
+              const allColors: Array<{ id: string; name: string; hex: string }> = [];
+              palette.colors?.forEach((color: any, index: number) => {
+                allColors.push({ id: color.id || `${palette.id}-${index}-${color.hex}`, name: color.name || '', hex: color.hex || '#000000' });
+              });
+              
+              const currentColorId = selectedDesign?.color_mappings?.[selectedColorClass] || designColors[selectedColorClass];
+              const currentColor = allColors.find(c => c.id === currentColorId);
+              
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb', marginBottom: '12px' }}>
+                    <button onClick={() => setSelectedColorClass(null)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: '500' }}>
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                      Retour
+                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', color: '#374151' }}>{currentColor?.name || 'Sélectionner'}</span>
+                      <div 
+                        className="color-circle-indicator"
+                        data-color={currentColor?.hex && currentColor.hex !== '#ccc' && currentColor.hex !== '#cccccc' && currentColor.hex !== '#ffffff' && currentColor.hex !== '#FFFFFF' ? currentColor.hex : undefined}
+                        style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: currentColor?.hex || '#ccc', border: '2px solid #e5e7eb' }} 
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
+                    {allColors.map((color) => {
+                      const isSelected = color.id === currentColorId;
+                      return (
+                        <button
+                          key={color.id}
+                          onClick={() => {
+                            setDesignColors({ ...designColors, [selectedColorClass]: color.id });
+                            if (selectedDesign) {
+                              setDesigns2D(designs2D.map(d => d.id === selectedDesign.id ? { ...d, color_mappings: { ...d.color_mappings, [selectedColorClass]: color.id } } : d));
+                            }
+                          }}
+                          className="color-circle-button"
+                          data-color={color.hex}
+                          style={{ width: '44px', height: '44px', minWidth: '44px', borderRadius: '50%', backgroundColor: color.hex, border: isSelected ? '3px solid #000' : '2px solid #e5e7eb', cursor: 'pointer', position: 'relative', padding: 0 }}
+                        >
+                          {isSelected && (
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <svg width="20" height="20" fill="none" stroke="#fff" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }
+            
+            // Vue classes de couleur
+            if (!activeModule.selectedItems?.colorPaletteId) {
+              return <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Sélectionnez une palette dans les paramètres.</p>;
+            }
+            
+            return (
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', padding: '16px', flexWrap: 'wrap' }}>
+                {availableColorClasses.map((colorClass) => {
+                  const currentColorId = selectedDesign?.color_mappings?.[colorClass];
+                  let currentColorHex = '#e5e7eb';
+                  if (currentColorId) {
+                    const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
+                    palette?.colors?.forEach((c: any, i: number) => {
+                      if ((c.id || `${palette.id}-${i}-${c.hex}`) === currentColorId) currentColorHex = c.hex;
+                    });
+                  }
+                  return (
+                    <button key={colorClass} onClick={() => setSelectedColorClass(colorClass)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer', minWidth: '80px' }}>
+                      <div 
+                        className="color-circle-indicator"
+                        data-color={currentColorHex && currentColorHex !== '#e5e7eb' && currentColorHex !== '#cccccc' && currentColorHex !== '#ffffff' && currentColorHex !== '#FFFFFF' ? currentColorHex : undefined}
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: currentColorHex, border: '2px solid #d1d5db' }} 
+                      />
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>
+                        {activeModule.colorClassLabels?.[colorClass] || (colorClass === 'primary' ? 'Principal' : colorClass === 'secondary' ? 'Secondaire' : colorClass === 'tertiary' ? 'Tertiaire' : colorClass.charAt(0).toUpperCase() + colorClass.slice(1))}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
+          
+          // MODULE DESIGNS-2D
+          if (activeModule.contentType === 'designs-2d') {
+            const allowedDesignIds = activeModule.selectedItems?.design2DIds || [];
+            const filteredDesigns = allowedDesignIds.length > 0 
+              ? designs2D.filter(d => allowedDesignIds.includes(d.id))
+              : designs2D;
+            
+            if (filteredDesigns.length === 0) {
+              return <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Aucun design configuré.</p>;
+            }
+            
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', padding: '16px', overflowY: 'auto' }}>
+                {filteredDesigns.map((design) => {
+                  const isSelected = design.id === selectedDesign2DId;
+                  const colorMappings = design.color_mappings || {};
+                  const colorKeys = Object.keys(colorMappings).slice(0, 3);
+                  
+                  return (
+                    <button
+                      key={design.id}
+                      onClick={() => {
+                        setSelectedDesign2DId(design.id);
+                        setCustomizationModules(customizationModules.map(m => m.contentType === 'designs-2d' ? { ...m, selectedItems: { ...m.selectedItems, design2DId: design.id } } : m));
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px', backgroundColor: '#fff', border: isSelected ? '2px solid #000' : '1px solid #e5e7eb', borderRadius: '12px', cursor: 'pointer' }}
+                    >
+                      <div style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                        {design.svg_url ? (
+                          <img src={design.svg_url} alt={design.label || design.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        ) : (
+                          <div style={{ width: '100px', height: '100px', backgroundColor: '#f3f4f6', borderRadius: '8px' }} />
+                        )}
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: '#111827', marginBottom: '6px', textAlign: 'center' }}>{design.label || design.name || 'Design'}</span>
+                      {colorKeys.length > 0 && (
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {colorKeys.map((key) => {
+                            const colorModule = customizationModules.find(m => m.contentType === 'colors');
+                            const palette = colorPalettes.find(p => p.id === colorModule?.selectedItems?.colorPaletteId);
+                            let hex = '#ccc';
+                            palette?.colors?.forEach((c: any, i: number) => {
+                              if ((c.id || `${palette.id}-${i}-${c.hex}`) === colorMappings[key]) hex = c.hex;
+                            });
+                            return <div key={key} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: hex, border: '1px solid #d1d5db' }} />;
+                          })}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
+          
+          // MODULE TEXT - Placeholder pour l'instant
+          if (activeModule.contentType === 'text') {
+            return (
+              <div style={{ padding: '16px', color: '#111827' }}>
+                <p style={{ fontSize: '14px', marginBottom: '12px', fontWeight: '500' }}>Module Texte</p>
+                <p style={{ fontSize: '13px', color: '#666' }}>Gestion des textes (à compléter avec la logique existante)</p>
+              </div>
+            );
+          }
+          
+          // MODULE LOGOS - Placeholder pour l'instant
+          if (activeModule.contentType === 'logos') {
+            return (
+              <div style={{ padding: '16px', color: '#111827' }}>
+                <p style={{ fontSize: '14px', marginBottom: '12px', fontWeight: '500' }}>Module Logos</p>
+                <p style={{ fontSize: '13px', color: '#666' }}>Gestion des logos (à compléter avec la logique existante)</p>
+              </div>
+            );
+          }
+          
+          return null;
+        };
+
         return (
           <div
             style={{
@@ -4999,11 +5197,11 @@ export default function ProductBuilderPage() {
               flexDirection: "column",
               overflow: "hidden",
               animation: "slideIn 0.3s ease-out",
-              marginLeft: "16px",
             }}
           >
-            {/* Tab Header + Tab Content */}
-            {/* colle ton code de L5168 à ~L5537 ici */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {renderPanelContent()}
+            </div>
           </div>
         );
       })()
@@ -5021,7 +5219,9 @@ export default function ProductBuilderPage() {
       >
         {selectedModel3DId &&
           (() => {
-            // ➜ COPIE/COLLE ici TON <Canvas> actuel (L8086 à ~L8457)
+            const selectedModel = models3D.find(m => m.id === selectedModel3DId);
+            const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
+            
             return (
               <Canvas
                 key={`canvas-${selectedModel3DId}`}
@@ -5031,9 +5231,70 @@ export default function ProductBuilderPage() {
                   fov: viewportMode === "mobile" ? 65 : 50,
                 }}
                 gl={{ preserveDrawingBuffer: true }}
-                style={{ width: "100%", height: "100%" }}
+                style={{ 
+                  width: "100%", 
+                  height: "100%",
+                  background: 'linear-gradient(to bottom, #1a1a1a, #0a0a0a)'
+                }}
               >
-                {/* lights, CameraInitializer, <Suspense> + <ModelViewer />, ControlsManager, OrbitControls */}
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 5]} intensity={1} />
+                <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+                
+                <CameraController 
+                  controlsRef={controlsRef} 
+                  minDistance={minZoom} 
+                  maxDistance={maxZoom}
+                  viewHasBeenSetRef={viewHasBeenSetRef}
+                />
+                
+                <Suspense fallback={null}>
+                  {selectedModel?.glbUrl ? (
+                    <ModelViewer 
+                      key={selectedModel.glbUrl}
+                      url={selectedModel.glbUrl}
+                      designTexture={selectedDesign?.svg_url || selectedDesign?.svgUrl || undefined}
+                      colors={designColors}
+                      texts={texts}
+                      updateTextPosition={updateTextPosition}
+                      selectedTextId={selectedTextId}
+                      updateTextRotation={updateTextRotation}
+                      updateTextSize={updateTextSize}
+                      placedLogos={placedLogos}
+                      updateLogoPosition={updateLogoPosition}
+                      updateLogoRotation={updateLogoRotation}
+                      updateLogoScale={updateLogoScale}
+                      selectedLogoId={selectedLogoId}
+                      setIsDraggingText={setIsDraggingText}
+                      isDraggingText={isDraggingText}
+                      setIsRotatingText={setIsRotatingText}
+                      isRotatingText={isRotatingText}
+                      setIsResizingText={setIsResizingText}
+                      isResizingText={isResizingText}
+                      setIsDraggingLogo={setIsDraggingLogo}
+                      isDraggingLogo={isDraggingLogo}
+                      setIsRotatingLogo={setIsRotatingLogo}
+                      isRotatingLogo={isRotatingLogo}
+                      setIsResizingLogo={setIsResizingLogo}
+                      isResizingLogo={isResizingLogo}
+                      selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: selectedDesign.svg_url || selectedDesign.svgUrl || null } : { id: null, svgUrl: null }}
+                    />
+                  ) : (
+                    <mesh>
+                      <boxGeometry args={[2, 2, 2]} />
+                      <meshStandardMaterial color="#8eff36" />
+                    </mesh>
+                  )}
+                </Suspense>
+                
+                <OrbitControls 
+                  ref={controlsRef}
+                  enablePan={false}
+                  enableZoom={true}
+                  enableRotate={true}
+                  minDistance={minZoom}
+                  maxDistance={maxZoom}
+                />
               </Canvas>
             );
           })()}
