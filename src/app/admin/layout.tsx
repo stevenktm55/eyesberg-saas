@@ -22,7 +22,16 @@ export default function AdminLayout({
     const host = typeof window !== 'undefined' ? window.location.host : '';
     const hostWithoutPort = host.split(':')[0];
     const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'eyesberg.app';
-    
+
+    // En local (localhost / 127.0.0.1), on ne force pas le login
+    const isLocalhost =
+      hostWithoutPort === 'localhost' || hostWithoutPort === '127.0.0.1';
+    if (isLocalhost) {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
     // Si on est sur un sous-domaine, ne pas vérifier l'authentification (le middleware le fait)
     const isSubdomain = hostWithoutPort.includes('.') && 
                        hostWithoutPort !== rootDomain && 
