@@ -5242,7 +5242,8 @@ export default function ProductBuilderPage() {
                 const colorIdToUse = overrideColorId || mappedColorId;
                 const color = allColors.find(c => c.id === colorIdToUse);
                 if (color?.hex) {
-                  colorsForViewer[colorClass] = color.hex;
+                  // Normaliser la clé en minuscules pour correspondre à la détection dans ModelViewer
+                  colorsForViewer[colorClass.toLowerCase()] = color.hex;
                 }
               });
             }
