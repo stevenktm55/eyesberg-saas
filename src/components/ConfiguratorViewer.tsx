@@ -13,6 +13,36 @@ import SizeSelectionModal from "@/components/SizeSelectionModal";
 import { LinkedProductPromptModal } from "@/components/LinkedProductPromptModal";
 import Image from "next/image";
 import { useThree } from "@react-three/fiber";
+import type { Snapshot } from "@/lib/snapshot-generator";
+
+// Constante pour la font du configurator-panel (même que dans le builder/admin)
+const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+// Style global minimal pour garantir que le texte du configurator-panel reste lisible
+// même dans les thèmes avec texte blanc (preview storefront).
+if (typeof document !== "undefined") {
+  const existing = document.getElementById("configurator-panel-global-styles");
+  if (!existing) {
+    const style = document.createElement("style");
+    style.id = "configurator-panel-global-styles";
+    style.textContent = `
+      .configurator-panel,
+      .configurator-panel * {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        -webkit-text-stroke-color: #111827 !important;
+        font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+      }
+      .configurator-panel .mobile-action-btn-black,
+      .configurator-panel .mobile-action-btn-black * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        -webkit-text-stroke-color: #ffffff !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
 
 // Composant pour afficher les coordonnées de la caméra en temps réel
 function CameraDebugPanel({ controlsRef }: { controlsRef: React.RefObject<any> }) {
@@ -3230,6 +3260,8 @@ function Sidebar({
 // Pour l'instant, on exporte une fonction vide qui retourne null pour éviter l'erreur
 // TODO: Restructurer le fichier pour avoir une fonction ClientPage complète
 // Fonction principale ConfiguratorViewer qui combine Sidebar et Viewer3D
+// IMPORTANT: ce composant est l'unique "source de vérité" pour le layout du configurateur
+// (storefront + preview). Le mode preview injecte simplement un snapshot via initialSnapshot.
 export default function ConfiguratorViewer({
   mode = 'client',
   productId: propProductId,
@@ -3238,6 +3270,7 @@ export default function ConfiguratorViewer({
   onSave,
   onAddToCart,
   forceMobileLayout = false,
+  initialSnapshot,
 }: {
   mode?: 'client' | 'admin';
   productId?: string | null;
@@ -3246,6 +3279,7 @@ export default function ConfiguratorViewer({
   onSave?: () => void;
   onAddToCart?: () => void;
   forceMobileLayout?: boolean;
+  initialSnapshot?: Snapshot;
 }) {
   console.log('🚀 ConfiguratorViewer component loading...', {
     mode,
@@ -3283,10 +3317,30 @@ export default function ConfiguratorViewer({
   
   
   // Charger la configuration complète du produit (PASSER isPreviewMode)
-  const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(finalShopDomain, finalProductId, isPreviewMode);
+  // Si initialSnapshot est fourni, on skip le fetch (pour preview depuis sessionStorage)
+  const { config: productConfig, isLoading: isLoadingConfig } = useProductConfig(
+    finalShopDomain,
+    finalProductId,
+    isPreviewMode && !initialSnapshot // Skip fetch si snapshot injecté
+  );
   
   // Extraire le snapshot AVANT les useEffect qui l'utilisent
-  const snapshot = productConfig?.snapshot;
+  // PRIORITÉ: initialSnapshot (depuis sessionStorage) > productConfig.snapshot (depuis API)
+  const snapshot = initialSnapshot ?? productConfig?.snapshot;
+  
+  console.log('📦 Snapshot utilisé dans ConfiguratorViewer:', {
+    hasInitialSnapshot: !!initialSnapshot,
+    hasProductConfigSnapshot: !!productConfig?.snapshot,
+    finalSnapshot: snapshot ? {
+      hasDesign2D: !!snapshot.design2D,
+      design2DUrl: snapshot.design2D?.url,
+      hasTextZones: !!snapshot.textZones,
+      textZonesCount: snapshot.textZones?.length || 0,
+      hasFonts: !!snapshot.fonts,
+      fontsCount: snapshot.fonts?.length || 0,
+      modulesCount: snapshot.customizationModules?.length || 0
+    } : null
+  });
   
   // Tous les useState doivent être déclarés AVANT les useEffect qui les utilisent
   const [designs2D, setDesigns2D] = useState<any[]>([]);
@@ -3492,16 +3546,55 @@ export default function ConfiguratorViewer({
     }
   }, [snapshot]);
   
-  // Initialiser les couleurs depuis le snapshot - AUCUNE LOGIQUE, juste exécuter le snapshot
+  // Initialiser les couleurs depuis le snapshot
   // Utiliser une ref pour éviter la boucle infinie
   const colorsInitializedRef = useRef(false);
   useEffect(() => {
-    if (snapshot?.resolvedColors && !colorsInitializedRef.current) {
-      replaceColors(snapshot.resolvedColors);
-      colorsInitializedRef.current = true;
-      console.log('🎨 Couleurs appliquées depuis snapshot.resolvedColors:', snapshot.resolvedColors);
+    if (!snapshot || colorsInitializedRef.current) return;
+    
+    // Attendre que les colorPalettes soient chargées avant d'initialiser les couleurs
+    if (colorPalettes.length === 0 && snapshot.design2D?.color_mappings) {
+      console.log('⏳ En attente du chargement des colorPalettes...');
+      return;
     }
-  }, [snapshot?.resolvedColors]);
+
+    // 1. Si le snapshot contient déjà un mapping classe → HEX, l'utiliser directement
+    let initialColors: Record<string, string> = {};
+    if (snapshot.design2D?.colors && Object.keys(snapshot.design2D.colors).length > 0) {
+      initialColors = snapshot.design2D.colors;
+      console.log('✅ Couleurs directes depuis snapshot.design2D.colors:', initialColors);
+    } else if (snapshot.design2D?.color_mappings && colorPalettes.length > 0) {
+      // 2. Sinon, reconstruire les HEX depuis color_mappings (classe → id de couleur)
+      const allColors = colorPalettes.flatMap((p: any) => p.colors || []);
+      console.log('🔍 Reconstruction couleurs depuis color_mappings:', {
+        colorMappings: snapshot.design2D.color_mappings,
+        allColorsCount: allColors.length,
+        colorPalettesCount: colorPalettes.length
+      });
+      
+      Object.entries(snapshot.design2D.color_mappings).forEach(([colorClass, colorId]) => {
+        const color = allColors.find(
+          (c: any) =>
+            c.id === colorId ||
+            c.hex === colorId ||
+            c.value === colorId
+        );
+        if (color?.hex) {
+          initialColors[colorClass] = color.hex;
+        } else {
+          console.warn('⚠️ Couleur non trouvée pour', colorClass, 'avec ID', colorId);
+        }
+      });
+    }
+
+    if (Object.keys(initialColors).length > 0) {
+      replaceColors(initialColors);
+      colorsInitializedRef.current = true;
+      console.log('🎨 Couleurs initialisées depuis snapshot:', initialColors);
+    } else {
+      console.warn('⚠️ Aucune couleur initialisée depuis le snapshot');
+    }
+  }, [snapshot, colorPalettes, replaceColors]);
   
   // Charger le modèle 3D depuis le snapshot uniquement
   const modelUrl = snapshot?.model3D?.url || null;
@@ -4362,8 +4455,28 @@ export default function ConfiguratorViewer({
   // Config model URL (URL du modèle depuis la configuration)
   const configModelUrl = modelUrl || null;
   
-  // Initialiser le design 2D depuis la configuration (utiliser designs2D déjà chargé)
+  // Initialiser le design 2D depuis le snapshot (PRIORITÉ) ou la configuration
   useEffect(() => {
+    // PRIORITÉ 1: Snapshot design2D (si disponible)
+    if (snapshot?.design2D?.url && !selectedDesign.id) {
+      // Trouver le design correspondant dans designs2D pour avoir l'ID
+      const designId = snapshot.design2D.id || 
+                      designs2D.find((d: any) => d.svgUrl === snapshot.design2D?.url || d.svg_url === snapshot.design2D?.url)?.id ||
+                      null;
+      
+      selectDesign({
+        id: designId || 'snapshot-design',
+        svgUrl: snapshot.design2D.url,
+        model_type: undefined
+      });
+      console.log('✅ Design 2D initialisé depuis snapshot:', {
+        id: designId,
+        url: snapshot.design2D.url
+      });
+      return;
+    }
+    
+    // PRIORITÉ 2: Configuration (fallback)
     if (productConfig?.design2DId && !selectedDesign.id && designs2D.length > 0) {
       const design = designs2D.find((d: any) => d.id === productConfig.design2DId);
       if (design) {
@@ -4374,7 +4487,7 @@ export default function ConfiguratorViewer({
         });
       }
     }
-  }, [productConfig?.design2DId, designs2D.length]); // Retirer selectedDesign.id et selectDesign des dépendances pour éviter la boucle
+  }, [snapshot?.design2D, productConfig?.design2DId, designs2D.length, selectedDesign.id, selectDesign]);
   
   // Initialiser les paramètres de caméra depuis le snapshot ou la configuration
   useEffect(() => {
@@ -4464,9 +4577,10 @@ export default function ConfiguratorViewer({
     );
   }
   
-  // En mode preview, permettre l'affichage même sans snapshot publié
-  // Le snapshot sera généré automatiquement par l'API si nécessaire
-  if (!snapshot || !productConfig) {
+  // En mode preview, on peut fonctionner uniquement avec un snapshot injecté (initialSnapshot)
+  // donc on ne bloque PAS si productConfig est nul tant qu'on a un snapshot.
+  // Hors preview, on exige snapshot + productConfig.
+  if (!snapshot || (!productConfig && !isPreviewMode)) {
     // Si pas en mode preview, afficher le message d'erreur
     if (!isPreviewMode) {
       return (
@@ -4524,9 +4638,7 @@ export default function ConfiguratorViewer({
         height: '100%',
         overflow: 'hidden',
         flexDirection: isMobileMode ? 'column' : 'row',
-        // TEST: Style inline pour vérifier que cette div est rendue
-        border: '10px solid red',
-        backgroundColor: 'yellow'
+        backgroundColor: '#f8f8f8'
       } as React.CSSProperties}
     >
       {/* Camera Debug Panel */}
@@ -8905,6 +9017,32 @@ export default function ConfiguratorViewer({
         </div>
       )}
       {zoneModal}
+      
+      {/* Boutons fictifs Sauvegarder / Ajouter au panier (mode preview uniquement) */}
+      {propPreview && (
+        <div className="w-full px-4 py-3 border-t border-gray-200 bg-white flex gap-3 flex-shrink-0" style={{ zIndex: 100 }}>
+          <button
+            onClick={() => {
+              console.log('[PREVIEW] Sauvegarder clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
+              alert('Mode preview : Sauvegarde fictive (console.log uniquement)');
+            }}
+            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>💾</span>
+            <span>Sauvegarder</span>
+          </button>
+          <button
+            onClick={() => {
+              console.log('[PREVIEW] Ajouter au panier clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
+              alert('Mode preview : Ajout au panier fictif (console.log uniquement)');
+            }}
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>🛒</span>
+            <span>Ajouter au panier</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

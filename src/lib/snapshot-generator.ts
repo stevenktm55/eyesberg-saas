@@ -25,9 +25,12 @@ export interface Snapshot {
   customizationModules: Array<{
     id: string;
     type: string;
+    contentType?: string; // Pour compatibilité avec ClientPage
     label: string;
+    tabName?: string; // Pour compatibilité avec ClientPage
     icon?: string;
     iconUrl?: string;
+    selectedItems?: any; // Pour compatibilité avec ClientPage
     options?: any[];
     allowedDesigns?: Array<{
       label: string;
@@ -177,8 +180,41 @@ export async function generateSnapshot(
   const model3D = await resolveModel3D(model3DIdToUse);
   let design2D: Snapshot['design2D'] | undefined;
   
-  if (design2DId) {
-    console.log('🔍 Tentative de résolution du design2D:', {
+  // PRIORITÉ 1: Utiliser _forceDesignInfo si présent (design pas encore en DB)
+  const forceDesign = builderData._forceDesignInfo;
+  if (forceDesign && forceDesign.url) {
+    console.log('🎯 Utilisation de _forceDesignInfo (design forcé depuis le builder):', {
+      id: forceDesign.id,
+      url: forceDesign.url,
+      thumbnailUrl: forceDesign.thumbnailUrl
+    });
+    
+    // Résoudre les couleurs depuis le design forcé (si disponible)
+    let colors: Record<string, string> | undefined;
+    let color_mappings: Record<string, string> | undefined;
+    
+    // Essayer de résoudre les couleurs depuis la DB si on a un ID
+    if (forceDesign.id) {
+      try {
+        const resolvedDesign = await resolveDesign2D(forceDesign.id);
+        colors = resolvedDesign?.colors;
+        color_mappings = resolvedDesign?.color_mappings;
+      } catch (e) {
+        // Si le design n'est pas en DB, on continue sans couleurs résolues
+        console.warn('⚠️ Design forcé non trouvé en DB, utilisation des URLs uniquement');
+      }
+    }
+    
+    design2D = {
+      id: forceDesign.id,
+      url: forceDesign.url,
+      thumbnailUrl: forceDesign.thumbnailUrl,
+      colors: colors,
+      color_mappings: color_mappings
+    };
+  } else if (design2DId) {
+    // PRIORITÉ 2: Résoudre depuis la DB (comportement normal)
+    console.log('🔍 Tentative de résolution du design2D depuis la DB:', {
       design2DId,
       design2DIdType: typeof design2DId
     });
@@ -472,13 +508,55 @@ async function resolveCustomizationModules(
       // Déterminer le type de module (peut être contentType ou type)
       const moduleType = module.contentType || module.type || 'unknown';
       
+      // Construire selectedItems en préservant toutes les propriétés nécessaires
+      const selectedItems: any = {
+        ...(module.selectedItems || {}),
+        // Préserver les IDs des groupes pour textes et logos
+        fontGroupIds: module.selectedItems?.fontGroupIds || module.config?.fontGroupIds || [],
+        textZoneGroupIds: module.selectedItems?.textZoneGroupIds || module.config?.textZoneGroupIds || [],
+        logoLibraryIds: module.selectedItems?.logoLibraryIds || module.config?.logoLibraryIds || [],
+        logoZoneGroupIds: module.selectedItems?.logoZoneGroupIds || module.config?.logoZoneGroupIds || [],
+        design2DId: module.selectedItems?.design2DId,
+        design2DIds: module.selectedItems?.design2DIds,
+        colorPaletteId: module.selectedItems?.colorPaletteId,
+        logoLibraryId: module.selectedItems?.logoLibraryId
+      };
+      
       const resolved: Snapshot['customizationModules'][0] = {
         id: module.id,
         type: moduleType,
+        contentType: module.contentType || moduleType, // Préserver contentType pour compatibilité
         label: module.tabName || module.label || '',
+        tabName: module.tabName || module.label || '', // Préserver tabName pour compatibilité
         icon: module.icon || module.config?.icon,
         iconUrl: module.iconUrl || module.config?.iconUrl,
-        config: module.config || {}
+        selectedItems: selectedItems, // Préserver selectedItems avec toutes les propriétés
+        config: {
+          ...(module.config || {}),
+          // Préserver toutes les propriétés optionnelles du module
+          colorClassLabels: module.colorClassLabels,
+          addTextButtonLabel: module.addTextButtonLabel,
+          placedTextsLabel: module.placedTextsLabel,
+          textPlacementMode: module.textPlacementMode,
+          enableTextContent: module.enableTextContent,
+          enableTextFont: module.enableTextFont,
+          enableTextColor: module.enableTextColor,
+          enableTextStroke: module.enableTextStroke,
+          enableTextDeformation: module.enableTextDeformation,
+          textStrokeMinWidth: module.textStrokeMinWidth,
+          textMinFontSize: module.textMinFontSize,
+          textMaxFontSize: module.textMaxFontSize,
+          textStrokeMaxWidth: module.textStrokeMaxWidth,
+          textBaseStrokeWidth: module.textBaseStrokeWidth,
+          textDefaultColor: module.textDefaultColor,
+          textDefaultStrokeColor: module.textDefaultStrokeColor,
+          textDefaultFontId: module.textDefaultFontId,
+          textEnabledDeformations: module.textEnabledDeformations,
+          addLogoButtonLabel: module.addLogoButtonLabel,
+          importLogoButtonLabel: module.importLogoButtonLabel,
+          placedLogosLabel: module.placedLogosLabel,
+          logoPlacementMode: module.logoPlacementMode
+        }
       };
 
       console.log('📸 Résolution du module:', {

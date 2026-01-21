@@ -2048,6 +2048,159 @@ export default function ProductBuilderPage() {
     }
   }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance]);
 
+  // Fonction pour générer un preview snapshot à la volée
+  const handlePreview = useCallback(async () => {
+    try {
+      // --- CORRECTIF URL IMAGE ---
+      // 1. On cherche le vrai objet design dans la liste chargée en mémoire
+      // (Adapte 'designs2D' ou 'designs' selon le nom de ta variable d'état qui contient la liste)
+      const activeDesign = designs2D?.find(d => d.id === selectedDesign2DId);
+      
+      // 2. On récupère l'URL (soit du SVG, soit de l'image, soit du blob local)
+      const currentDesignUrl = activeDesign?.svgUrl || activeDesign?.svg_url || activeDesign?.url || "";
+      const currentThumbnail = activeDesign?.thumbnailUrl || activeDesign?.thumbnail_url || activeDesign?.preview_url || currentDesignUrl;
+      
+      console.log("🎨 URL Design trouvée :", currentDesignUrl); // Vérifie ça dans la console !
+      
+      if (!currentDesignUrl) {
+        console.error("❌ ERREUR: Aucune URL de design trouvée !", {
+          selectedDesign2DId,
+          activeDesign,
+          designs2DCount: designs2D?.length || 0,
+          availableDesigns: designs2D?.map(d => ({ id: d.id, hasUrl: !!(d.svgUrl || d.svg_url || d.url) }))
+        });
+        alert("Erreur: Aucune URL de design trouvée. Vérifiez que le design est bien sélectionné.");
+        return;
+      }
+
+      // 2. Construire un builderData cohérent avec ce qui est sauvegardé en DB
+      const builderData = {
+        model3DId: selectedModel3DId,
+        design2DId: selectedDesign2DId,
+        
+        // 3. On force l'info dans le snapshot
+        _forceDesignInfo: {
+          id: selectedDesign2DId,
+          url: currentDesignUrl, 
+          thumbnailUrl: currentThumbnail, // On utilise la même pour la preview
+        },
+        
+        // état par défaut pour le viewer (textes / logos déjà placés)
+        defaultState: {
+          design2DId: selectedDesign2DId,
+          texts: texts,
+          logos: placedLogos,
+        },
+        customizationModules: customizationModules,
+        questions: questions,
+        settings: {
+          zoomSpeed,
+          rotateSpeed,
+          minZoom,
+          maxZoom,
+          initialZoom,
+          initialRotation,
+          viewDistance,
+        },
+        // optionnel : infos Shopify si disponibles
+        shopify: {
+          productId: shopifyProductId,
+          variantId: shopifyVariantId,
+        },
+      };
+
+      console.log('📦 Génération preview snapshot avec builderData:', {
+        hasModel3DId: !!builderData.model3DId,
+        hasDesign2DId: !!builderData.design2DId,
+        modulesCount: builderData.customizationModules.length,
+        questionsCount: builderData.questions.length,
+        textsCount: builderData.defaultState.texts.length,
+        logosCount: builderData.defaultState.logos.length
+      });
+
+      // 2. Appeler l'API de preview (sans sauvegarder en DB)
+      const res = await fetch("/api/product-builder/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          builderData,
+          shopDomain: searchParams.get("shop") ?? null,
+          shopifyProductId: shopifyProductId ?? productId ?? "preview-product",
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error("❌ Preview snapshot error:", error);
+        alert(error?.error ?? "Erreur lors de la génération du preview.");
+        return;
+      }
+
+      const snapshot = await res.json();
+
+      console.log('✅ Snapshot preview généré:', {
+        hasSnapshot: !!snapshot,
+        snapshotKeys: snapshot ? Object.keys(snapshot) : [],
+        hasDesign2D: !!snapshot?.design2D,
+        design2DUrl: snapshot?.design2D?.url,
+        hasTextZones: !!snapshot?.textZones,
+        textZonesCount: snapshot?.textZones?.length || 0,
+        hasFonts: !!snapshot?.fonts,
+        fontsCount: snapshot?.fonts?.length || 0
+      });
+
+      // --- LE CORRECTIF "FORCE" ---
+      // Puisque tes données sont sur Supabase, l'API devrait les trouver.
+      // Mais si elle échoue, on injecte manuellement l'URL que le builder connaît déjà.
+      if (!snapshot.design2D) snapshot.design2D = {};
+      
+      // On force l'URL pour être sûr qu'elle s'affiche
+      snapshot.design2D.url = currentDesignUrl;
+      snapshot.design2D.svgUrl = currentDesignUrl; // Parfois le viewer cherche svgUrl
+      snapshot.design2D.id = selectedDesign2DId;
+      snapshot.design2D.thumbnailUrl = currentThumbnail;
+      
+      console.log("💾 Sauvegarde du snapshot pour preview:", {
+        design2DUrl: snapshot.design2D.url,
+        design2DId: snapshot.design2D.id
+      });
+
+      // 3. Stockage dans le LocalStorage (Plus fiable que l'URL sur Vercel)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("preview_snapshot_live", JSON.stringify(snapshot));
+      }
+
+      // 4. Ouverture de la page Preview (URL courte et propre)
+      // --- CHANGEMENT ICI ---
+      // On ouvre la NOUVELLE route "view-3d" qui n'a pas de cache pourri
+      if (typeof window !== "undefined") {
+        window.open("/view-3d?mode=live", "_blank", "noopener,noreferrer");
+      }
+    } catch (err) {
+      console.error("❌ handlePreview error:", err);
+      alert("Erreur inattendue lors du preview.");
+    }
+  }, [
+    selectedModel3DId,
+    selectedDesign2DId,
+    designs2D,
+    texts,
+    placedLogos,
+    customizationModules,
+    questions,
+    zoomSpeed,
+    rotateSpeed,
+    minZoom,
+    maxZoom,
+    initialZoom,
+    initialRotation,
+    viewDistance,
+    shopifyProductId,
+    shopifyVariantId,
+    productId,
+    searchParams
+  ]);
+
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
     if (!productId) return;
@@ -3210,9 +3363,29 @@ export default function ProductBuilderPage() {
                 fontSize: '16px',
                 transition: 'all 0.2s'
               }}
-              title="Prévisualiser le configurateur"
+              title="Prévisualiser le configurateur (snapshot)"
             >
               👁
+            </button>
+            <button
+              onClick={handlePreview}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px 12px',
+                backgroundColor: '#2563eb',
+                borderRadius: '4px',
+                border: '1px solid #2a2a2a',
+                cursor: 'pointer',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'all 0.2s'
+              }}
+              title="Preview 3D (snapshot live)"
+            >
+              Preview 3D
             </button>
             <div style={{
               display: 'flex',

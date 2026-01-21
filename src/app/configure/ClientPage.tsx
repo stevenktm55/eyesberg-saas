@@ -257,8 +257,85 @@ export default function ConfigurePage() {
           }
           
           // Priorité au snapshot s'il existe, sinon builder_data
-          const modules = snapshot?.customizationModules || builderData?.customizationModules || [];
+          const rawModules = snapshot?.customizationModules || builderData?.customizationModules || [];
+          
+          // Mapper les modules du snapshot vers l'interface CustomizationModule
+          // Le snapshot peut avoir `type`/`label` alors que ClientPage attend `contentType`/`tabName`
+          const modules = rawModules.map((module: any): CustomizationModule => ({
+            id: module.id,
+            tabName: module.tabName || module.label || '',
+            icon: module.icon,
+            iconUrl: module.iconUrl,
+            contentType: module.contentType || module.type || 'unknown',
+            selectedItems: module.selectedItems || {},
+            colorClassLabels: module.colorClassLabels || module.config?.colorClassLabels,
+            addTextButtonLabel: module.addTextButtonLabel || module.config?.addTextButtonLabel,
+            placedTextsLabel: module.placedTextsLabel || module.config?.placedTextsLabel,
+            textPlacementMode: module.textPlacementMode || module.config?.textPlacementMode,
+            enableTextContent: module.enableTextContent ?? module.config?.enableTextContent,
+            enableTextFont: module.enableTextFont ?? module.config?.enableTextFont,
+            enableTextColor: module.enableTextColor ?? module.config?.enableTextColor,
+            enableTextStroke: module.enableTextStroke ?? module.config?.enableTextStroke,
+            enableTextDeformation: module.enableTextDeformation ?? module.config?.enableTextDeformation,
+            textColorPaletteId: module.textColorPaletteId || module.config?.textColorPaletteId,
+            textStrokePaletteId: module.textStrokePaletteId || module.config?.textStrokePaletteId,
+            textStrokeMinWidth: module.textStrokeMinWidth || module.config?.textStrokeMinWidth,
+            textMinFontSize: module.textMinFontSize || module.config?.textMinFontSize,
+            textMaxFontSize: module.textMaxFontSize || module.config?.textMaxFontSize,
+            textStrokeMaxWidth: module.textStrokeMaxWidth || module.config?.textStrokeMaxWidth,
+            textBaseStrokeWidth: module.textBaseStrokeWidth || module.config?.textBaseStrokeWidth,
+            textDefaultColor: module.textDefaultColor || module.config?.textDefaultColor,
+            textDefaultStrokeColor: module.textDefaultStrokeColor || module.config?.textDefaultStrokeColor,
+            textDefaultFontId: module.textDefaultFontId || module.config?.textDefaultFontId,
+            textEnabledDeformations: module.textEnabledDeformations || module.config?.textEnabledDeformations,
+            addLogoButtonLabel: module.addLogoButtonLabel || module.config?.addLogoButtonLabel,
+            importLogoButtonLabel: module.importLogoButtonLabel || module.config?.importLogoButtonLabel,
+            placedLogosLabel: module.placedLogosLabel || module.config?.placedLogosLabel,
+            logoPlacementMode: module.logoPlacementMode || module.config?.logoPlacementMode
+          }));
+          
+          console.log('📦 Modules mappés:', {
+            rawCount: rawModules.length,
+            mappedCount: modules.length,
+            modules: modules.map((m: CustomizationModule) => ({
+              id: m.id,
+              tabName: m.tabName,
+              contentType: m.contentType,
+              hasSelectedItems: !!m.selectedItems
+            }))
+          });
+          
           setCustomizationModules(modules);
+          
+          // Charger les bibliothèques de logos depuis le snapshot si disponibles
+          const logoModules = modules.filter((m: CustomizationModule) => m.contentType === 'logos');
+          if (logoModules.length > 0) {
+            const allLogoLibraries: any[] = [];
+            logoModules.forEach((module: CustomizationModule) => {
+              const snapshotModule = rawModules.find((m: any) => m.id === module.id);
+              if (snapshotModule?.config?.logoLibraries && Array.isArray(snapshotModule.config.logoLibraries)) {
+                allLogoLibraries.push(...snapshotModule.config.logoLibraries);
+              }
+            });
+            if (allLogoLibraries.length > 0) {
+              setLogoLibraries(allLogoLibraries);
+            }
+          }
+          
+          // Charger les groupes de polices depuis le snapshot si disponibles
+          const textModules = modules.filter((m: CustomizationModule) => m.contentType === 'texts' || m.contentType === 'text');
+          if (textModules.length > 0) {
+            const allFontGroups: any[] = [];
+            textModules.forEach((module: CustomizationModule) => {
+              const snapshotModule = rawModules.find((m: any) => m.id === module.id);
+              if (snapshotModule?.config?.fontGroups && Array.isArray(snapshotModule.config.fontGroups)) {
+                allFontGroups.push(...snapshotModule.config.fontGroups);
+              }
+            });
+            if (allFontGroups.length > 0) {
+              setFontGroups(allFontGroups);
+            }
+          }
           
           // Charger les textes depuis le snapshot ou builder_data
           const defaultState = snapshot?.defaultState || builderData?.defaultState;
@@ -1047,27 +1124,33 @@ export default function ConfigurePage() {
       console.warn('⚠️ Aucune URL de design 2D trouvée. Snapshot:', snapshot?.design2D, 'SelectedDesign:', selectedDesign);
     }
     
-    // Calculer les couleurs - Priorité aux resolvedColors du snapshot
+    // Calculer les couleurs pour le viewer 3D
+    // IMPORTANT : on se base uniquement sur les mappings du design + overrides utilisateur,
+    // pour correspondre exactement au pipeline du builder (les clés doivent être primary, secondary, etc.)
     let colorsForViewer: Record<string, string> = {};
-    
-    // 1. Utiliser resolvedColors du snapshot si disponible (déjà calculées avec les bonnes couleurs)
-    if (snapshot?.resolvedColors && Object.keys(snapshot.resolvedColors).length > 0) {
-      colorsForViewer = snapshot.resolvedColors;
-    } else if (selectedDesign) {
-      // 2. Sinon, calculer depuis le design (comme le builder)
-      const designColorMappings = selectedDesign.color_mappings || null;
-      const allColors = colorPalettes.flatMap(p => p.colors || []);
-      
-      if (designColorMappings) {
-        Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
-          const overrideColor = designColors[colorClass];
-          const colorIdToUse = overrideColor || mappedColorId;
-          const color = allColors.find(c => c.id === colorIdToUse);
-          if (color?.hex) {
-            colorsForViewer[colorClass] = color.hex;
-          }
-        });
-      }
+    const allColors = colorPalettes.flatMap(p => p.colors || []);
+    const designColorMappings = selectedDesign?.color_mappings || null;
+
+    // 1. Couleurs de base définies par le design (même logique que le builder)
+    if (designColorMappings) {
+      Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+        const overrideColorId = designColors[colorClass];
+        const colorIdToUse = overrideColorId || mappedColorId;
+        const color = allColors.find(c => c.id === colorIdToUse);
+        if (color?.hex) {
+          colorsForViewer[colorClass] = color.hex;
+        }
+      });
+    }
+
+    // 2. Overrides explicites choisis dans le configurator (designColors)
+    if (Object.keys(designColors).length > 0) {
+      Object.entries(designColors).forEach(([colorClass, colorId]) => {
+        const color = allColors.find(c => c.id === colorId);
+        if (color?.hex) {
+          colorsForViewer[colorClass] = color.hex;
+        }
+      });
     }
     
     // Material maps

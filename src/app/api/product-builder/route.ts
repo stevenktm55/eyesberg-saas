@@ -331,8 +331,20 @@ export async function GET(request: NextRequest) {
         }
         
         return NextResponse.json(productResponse);
-      } else {
+      }
+      
+      // Si ce n'est pas un UUID, chercher dans builder_data.shopify.productId
+      if (!isUUID) {
         // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        // D'abord, essayer avec shop_domain si fourni
+        // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        // D'abord, essayer avec shop_domain si fourni
+        // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        // D'abord, essayer avec shop_domain si fourni
+        // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        // D'abord, essayer avec shop_domain si fourni
+        // C'est probablement un ID Shopify, chercher dans builder_data.shopify.productId
+        // D'abord, essayer avec shop_domain si fourni
         // D'abord, essayer avec shop_domain si fourni
         let query = supabaseAdmin
           .from('product_builder')
@@ -703,7 +715,10 @@ export async function GET(request: NextRequest) {
         }
         return NextResponse.json(productResponse);
       }
-    } else if (shopDomain) {
+      }
+    }
+    
+    if (shopDomain) {
       // Rechercher un produit existant pour ce shop
       const { data: existingProduct, error: existingError } = await supabaseAdmin
         .from('product_builder')
