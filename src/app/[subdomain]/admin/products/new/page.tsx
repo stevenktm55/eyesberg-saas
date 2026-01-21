@@ -9461,9 +9461,6 @@ export default function ProductBuilderPage() {
                               </div>
                             </div>
                           )}
-                        </div>
-            </div>
-          </div>
 
           {/* Right Sidebar - Module/Question Settings - visible même en mode mobile */}
           {showQuestionSettings && selectedModule ? (
