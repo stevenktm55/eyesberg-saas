@@ -5230,6 +5230,33 @@ export default function ProductBuilderPage() {
             const modelUrl = modelToUse?.glbUrl || modelToUse?.glb_url;
             const selectedDesign = designs2D.find(d => d.id === selectedDesign2DId);
             
+            // Convertir les IDs de couleurs en valeurs hex pour le ModelViewer
+            const allColors = colorPalettes.flatMap(p => p.colors || []);
+            const designColorMappings = selectedDesign?.color_mappings || null;
+            let colorsForViewer: Record<string, string> = {};
+            
+            // 1. Couleurs de base définies par le design
+            if (designColorMappings) {
+              Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+                const overrideColorId = designColors[colorClass];
+                const colorIdToUse = overrideColorId || mappedColorId;
+                const color = allColors.find(c => c.id === colorIdToUse);
+                if (color?.hex) {
+                  colorsForViewer[colorClass] = color.hex;
+                }
+              });
+            }
+            
+            // 2. Overrides explicites choisis dans le configurator (designColors)
+            if (Object.keys(designColors).length > 0) {
+              Object.entries(designColors).forEach(([colorClass, colorId]) => {
+                const color = allColors.find(c => c.id === colorId);
+                if (color?.hex) {
+                  colorsForViewer[colorClass] = color.hex;
+                }
+              });
+            }
+            
             if (!modelUrl) {
               return (
                 <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af" }}>
@@ -5271,7 +5298,7 @@ export default function ProductBuilderPage() {
                       key={modelUrl}
                       url={modelUrl}
                       designTexture={selectedDesign?.svg_url || selectedDesign?.svgUrl || undefined}
-                      colors={designColors}
+                      colors={colorsForViewer}
                       texts={texts}
                       updateTextPosition={updateTextPosition}
                       selectedTextId={selectedTextId}
