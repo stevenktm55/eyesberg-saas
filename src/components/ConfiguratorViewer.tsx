@@ -4777,7 +4777,7 @@ export default function ConfiguratorViewer({
         
         return (
           <div 
-            className={`sidebar-white ${isMobileMode ? 'w-full border-t border-gray-200' : 'w-[420px] min-w-[420px] border-r border-gray-200'} flex-shrink-0 bg-white flex flex-col overflow-hidden relative`}
+            className={`sidebar-white ${isMobileMode ? 'w-full border-t border-gray-200' : 'w-[420px] min-w-[420px] border-r border-gray-200'} flex-shrink-0 bg-white flex flex-col h-full overflow-hidden relative`}
             style={isMobileMode ? { 
               position: 'relative',
               width: '100%', 
@@ -8449,9 +8449,12 @@ export default function ConfiguratorViewer({
                   ))}
                 </div>
               )}
-              {/* Boutons Sauvegarder / Ajouter au panier collés en bas du panneau blanc en mode preview */}
-              {propPreview && (
-                <div className="mt-4 pt-4 border-t border-gray-200 flex gap-3 justify-between">
+            </div>
+
+            {/* Zone des boutons fixe en bas du panneau blanc (mode preview) */}
+            {propPreview && (
+              <div className="p-4 border-t border-gray-200 bg-white shrink-0">
+                <div className="flex gap-3">
                   <button
                     onClick={() => {
                       console.log('[PREVIEW] Sauvegarder clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
@@ -8473,8 +8476,8 @@ export default function ConfiguratorViewer({
                     <span>Ajouter au panier</span>
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
       })() : null}
@@ -8531,7 +8534,7 @@ export default function ConfiguratorViewer({
         {/* Container du viewer avec contrainte de viewport */}
         {/* Si preview={true} et forceMobileLayout={true}, on est dans un simulateur, donc pas de double cadre */}
         <div 
-          className={`viewer-3d ${isMobileMode ? "flex-1 relative flex flex-col" : "flex-1 relative"}`}
+          className={`viewer-3d ${isMobileMode ? "flex-1 relative flex flex-col" : "flex-1 relative flex flex-col bg-gray-100"}`}
           style={isMobileMode && preview ? {
             // Mode simulateur : utiliser tout l'espace sans créer de cadre
             position: 'relative',
@@ -8570,7 +8573,7 @@ export default function ConfiguratorViewer({
             minHeight: 0
           }}
         >
-          <div className="viewer-3d" style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+          <div className="viewer-3d" style={{ flex: '1 1 0%', minHeight: 0, height: '100%', overflow: 'hidden', position: 'relative' }}>
             {/* Overlay pour fermer le panneau mobile en cliquant sur la zone 3D */}
             {isMobileMode && activeCustomizerTab && (
               <div 
