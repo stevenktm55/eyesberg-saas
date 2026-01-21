@@ -5252,10 +5252,23 @@ export default function ProductBuilderPage() {
               Object.entries(designColors).forEach(([colorClass, colorId]) => {
                 const color = allColors.find(c => c.id === colorId);
                 if (color?.hex) {
-                  colorsForViewer[colorClass] = color.hex;
+                  // Normaliser la clé en minuscules pour correspondre à la détection dans ModelViewer
+                  colorsForViewer[colorClass.toLowerCase()] = color.hex;
                 }
               });
             }
+            
+            // Normaliser toutes les clés en minuscules pour correspondre à la détection dans ModelViewer
+            const normalizedColorsForViewer: Record<string, string> = {};
+            Object.entries(colorsForViewer).forEach(([key, value]) => {
+              normalizedColorsForViewer[key.toLowerCase()] = value;
+            });
+            
+            // Debug: Log des couleurs pour vérifier
+            console.log('🎨 Admin - designColors (IDs):', designColors);
+            console.log('🎨 Admin - colorsForViewer (hex):', normalizedColorsForViewer);
+            console.log('🎨 Admin - designColorMappings:', designColorMappings);
+            console.log('🎨 Admin - allColors count:', allColors.length);
             
             if (!modelUrl) {
               return (
@@ -5298,7 +5311,7 @@ export default function ProductBuilderPage() {
                       key={modelUrl}
                       url={modelUrl}
                       designTexture={selectedDesign?.svg_url || selectedDesign?.svgUrl || undefined}
-                      colors={colorsForViewer}
+                      colors={normalizedColorsForViewer}
                       texts={texts}
                       updateTextPosition={updateTextPosition}
                       selectedTextId={selectedTextId}
