@@ -5246,7 +5246,9 @@ export default function ProductBuilderPage() {
                 style={{ 
                   width: "100%", 
                   height: "100%",
-                  background: 'linear-gradient(to bottom, #1a1a1a, #0a0a0a)'
+                  background: '#f3f4f6',
+                  margin: 0,
+                  padding: 0,
                 }}
               >
                 <ambientLight intensity={0.5} />

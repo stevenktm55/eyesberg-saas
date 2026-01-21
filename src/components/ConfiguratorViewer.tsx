@@ -243,8 +243,16 @@ export function ConfiguratorViewer({
 
       {/* Zone 3D */}
       <section 
-        className="flex-1 bg-gray-100 flex items-center justify-center"
-        style={{ backgroundColor: '#f3f4f6' }}
+        className="flex-1 bg-gray-100"
+        style={{ 
+          backgroundColor: '#f3f4f6',
+          margin: 0,
+          padding: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
         {canvasContent || (
           <div 
