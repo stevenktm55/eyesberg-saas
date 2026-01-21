@@ -9462,7 +9462,7 @@ export default function ProductBuilderPage() {
                             </div>
                           )}
                         </div>
-                      )
+                      );
                     }
                     return null;
                   })()}
