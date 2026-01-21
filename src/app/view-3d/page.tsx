@@ -112,7 +112,6 @@ export default function View3DPage() {
           initialSnapshot={snapshot}
           shopDomain={snapshot.shopDomain || "preview"}
           productId={snapshot.productId}
-          forceMobileLayout={true}
         />
       </div>
     </main>
