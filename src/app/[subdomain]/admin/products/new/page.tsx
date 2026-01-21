@@ -5210,11 +5210,15 @@ export default function ProductBuilderPage() {
     canvasContent={
       <div
         style={{
-          flex: "1 1 0%",
-          minHeight: 0,
-          position: "relative",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           width: "100%",
           height: "100%",
+          margin: 0,
+          padding: 0,
         }}
       >
         {(() => {

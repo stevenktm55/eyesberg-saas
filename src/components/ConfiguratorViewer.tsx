@@ -63,10 +63,13 @@ export function ConfiguratorViewer({
 
   return (
     <div 
-      className="configurator-viewer-isolated flex h-full min-h-[500px] bg-gray-100" 
+      className="configurator-viewer-isolated flex h-full w-full min-h-[500px] bg-gray-100" 
       style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        color: '#111827'
+        color: '#111827',
+        width: '100%',
+        height: '100%',
+        flex: 1
       }}
     >
       {/* Sidebar gauche - modules */}
@@ -250,8 +253,10 @@ export function ConfiguratorViewer({
           padding: 0,
           width: '100%',
           height: '100%',
-          display: 'flex',
-          flexDirection: 'column'
+          minWidth: 0,
+          minHeight: 0,
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
         {canvasContent || (
