@@ -4656,15 +4656,14 @@ export default function ConfiguratorViewer({
                   if (module.contentType === 'designs-2d') setActiveTab('design');
                   else if (module.contentType === 'colors') setActiveTab('color');
                   else if (module.contentType === 'text') {
-                    // Pour les textes, on garde l'onglet actuel (numero ou nom)
                     if (activeTab !== 'numero' && activeTab !== 'nom') setActiveTab('numero');
                   }
                   else if (module.contentType === 'logos') setActiveTab('logo');
                 }}
-                className={`w-12 h-12 flex items-center justify-center rounded border transition-all relative ${
+                className={`w-12 h-12 flex flex-col items-center justify-center rounded-lg border transition-all relative ${
                   activeCustomizerTab === module.id
-                    ? 'bg-gray-100 border-gray-300'
-                    : 'bg-transparent border-gray-200 hover:bg-gray-50'
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'
                 }`}
                 title={module.tabName}
                 style={{ minWidth: '48px', minHeight: '48px' }}
@@ -4674,47 +4673,38 @@ export default function ConfiguratorViewer({
                     key={`icon-img-${module.id}`}
                     src={module.iconUrl}
                     alt={module.tabName}
-                    className="w-8 h-8 object-contain"
+                    className="w-6 h-6 object-contain"
                     style={{ 
-                      display: 'block',
-                      width: '32px',
-                      height: '32px',
-                      maxWidth: '32px',
-                      maxHeight: '32px',
-                      flexShrink: 0,
-                      pointerEvents: 'none'
+                      filter: activeCustomizerTab === module.id ? 'brightness(0) invert(1)' : 'none'
                     }}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
-                      // Créer un fallback avec l'emoji
                       const fallback = document.createElement('span');
                       fallback.className = 'text-2xl';
                       fallback.style.display = 'block';
-                      fallback.style.width = '32px';
-                      fallback.style.height = '32px';
+                      fallback.style.width = '24px';
+                      fallback.style.height = '24px';
                       fallback.style.textAlign = 'center';
-                      fallback.style.lineHeight = '32px';
+                      fallback.style.lineHeight = '24px';
                       fallback.textContent = iconToShow;
                       target.parentElement?.appendChild(fallback);
                     }}
                   />
                 ) : (
                   <span 
-                    className="text-2xl" 
-                    style={{ 
-                      display: 'block', 
-                      lineHeight: '32px',
-                      fontSize: '24px',
-                      width: '32px',
-                      height: '32px',
-                      textAlign: 'center',
-                      flexShrink: 0
-                    }}
+                    className={`text-xl ${activeCustomizerTab === module.id ? 'text-white' : 'text-gray-800'}`}
                   >
                     {iconToShow}
                   </span>
                 )}
+                <span
+                  className={`mt-1 text-[10px] font-medium ${
+                    activeCustomizerTab === module.id ? 'text-white' : 'text-gray-800'
+                  }`}
+                >
+                  {module.tabName}
+                </span>
               </button>
             );
           })}
@@ -8459,6 +8449,31 @@ export default function ConfiguratorViewer({
                   ))}
                 </div>
               )}
+              {/* Boutons Sauvegarder / Ajouter au panier collés en bas du panneau blanc en mode preview */}
+              {propPreview && (
+                <div className="mt-4 pt-4 border-t border-gray-200 flex gap-3 justify-between">
+                  <button
+                    onClick={() => {
+                      console.log('[PREVIEW] Sauvegarder clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
+                      alert('Mode preview : Sauvegarde fictive (console.log uniquement)');
+                    }}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>💾</span>
+                    <span>Sauvegarder</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('[PREVIEW] Ajouter au panier clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
+                      alert('Mode preview : Ajout au panier fictif (console.log uniquement)');
+                    }}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>🛒</span>
+                    <span>Ajouter au panier</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -9016,30 +9031,7 @@ export default function ConfiguratorViewer({
       {zoneModal}
       
       {/* Boutons fictifs Sauvegarder / Ajouter au panier (mode preview uniquement) */}
-      {propPreview && (
-        <div className="pointer-events-auto absolute bottom-0 left-0 w-full px-4 py-3 border-t border-gray-200 bg-white flex gap-3 justify-between" style={{ zIndex: 100 }}>
-          <button
-            onClick={() => {
-              console.log('[PREVIEW] Sauvegarder clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
-              alert('Mode preview : Sauvegarde fictive (console.log uniquement)');
-            }}
-            className="flex-1 px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <span>💾</span>
-            <span>Sauvegarder</span>
-          </button>
-          <button
-            onClick={() => {
-              console.log('[PREVIEW] Ajouter au panier clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
-              alert('Mode preview : Ajout au panier fictif (console.log uniquement)');
-            }}
-            className="flex-1 px-4 py-2 ml-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <span>🛒</span>
-            <span>Ajouter au panier</span>
-          </button>
-        </div>
-      )}
+      {/* Désactivés au niveau racine, maintenant inclus dans le panneau blanc pour coller au layout admin */}
     </div>
   );
 }
