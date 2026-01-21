@@ -9462,7 +9462,6 @@ export default function ProductBuilderPage() {
                             </div>
                           )}
                         </div>
-                </div>
               ) : (
                 <div style={{
                   textAlign: 'center',
