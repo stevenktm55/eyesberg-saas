@@ -5035,10 +5035,6 @@ export default function ProductBuilderPage() {
     }
   />
 </div>
-                
-                            );
-                          })()}
-                          </div>
                           
                           {/* SUPPRIMÉ : Modal de bibliothèque de logos desktop - La bibliothèque est maintenant dans la sidebar */}
                           {false && showLogoLibrary && viewportMode !== 'mobile' && (() => {
