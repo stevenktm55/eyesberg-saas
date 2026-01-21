@@ -4623,23 +4623,20 @@ export default function ConfiguratorViewer({
     );
   }
   
-  // Utiliser forceMobileLayout ou isMobile pour déterminer le layout
-  // forceMobileLayout a la priorité absolue : si true, on force le layout mobile même si la fenêtre est large
-  // isMobileMode devient la variable de contrôle UNIQUE pour tout le layout (JS > CSS)
-  const isMobileMode = forceMobileLayout === true ? true : (forceMobileLayout === false ? false : isMobile);
+  // Utiliser forceMobileLayout ou isMobile pour déterminer le layout.
+  // En mode preview (storefront / /view-3d), on force le layout desktop pour garder la sidebar verticale à gauche.
+  const isMobileMode =
+    isPreviewMode
+      ? false
+      : forceMobileLayout === true
+        ? true
+        : forceMobileLayout === false
+          ? false
+          : isMobile;
   
   return (
-    <div 
-      // Layout global contrôlé uniquement par isMobileMode (aucune classe responsive type md:hidden)
-      className={`configurator-panel ${isMobileMode ? 'flex flex-col h-full w-full relative overflow-hidden' : 'flex flex-row h-full w-full'}`}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        flexDirection: isMobileMode ? 'column' : 'row',
-        backgroundColor: '#f8f8f8'
-      } as React.CSSProperties}
+    <div
+      className="configurator-panel flex w-full h-full bg-gray-100 overflow-hidden relative"
     >
       {/* Camera Debug Panel */}
       <CameraDebugPanel controlsRef={controlsRef} />
@@ -8665,8 +8662,8 @@ export default function ConfiguratorViewer({
           />
           </div>
           
-          {/* Barre mobile en bas du téléphone avec les modules de personnalisation */}
-          {isMobileMode && (
+          {/* Barre mobile en bas du téléphone avec les modules de personnalisation (désactivée en mode preview pour garder le layout desktop) */}
+          {isMobileMode && !isPreviewMode && (
             <div
               className="w-full bg-white border-t border-gray-200 flex flex-row items-center justify-around px-3 py-3 flex-shrink-0"
               style={{
@@ -9020,13 +9017,13 @@ export default function ConfiguratorViewer({
       
       {/* Boutons fictifs Sauvegarder / Ajouter au panier (mode preview uniquement) */}
       {propPreview && (
-        <div className="w-full px-4 py-3 border-t border-gray-200 bg-white flex gap-3 flex-shrink-0" style={{ zIndex: 100 }}>
+        <div className="pointer-events-auto absolute bottom-0 left-0 w-full px-4 py-3 border-t border-gray-200 bg-white flex gap-3 justify-between" style={{ zIndex: 100 }}>
           <button
             onClick={() => {
               console.log('[PREVIEW] Sauvegarder clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
               alert('Mode preview : Sauvegarde fictive (console.log uniquement)');
             }}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
           >
             <span>💾</span>
             <span>Sauvegarder</span>
@@ -9036,7 +9033,7 @@ export default function ConfiguratorViewer({
               console.log('[PREVIEW] Ajouter au panier clic', { productId, shopDomain, snapshot: snapshot ? 'présent' : 'absent' });
               alert('Mode preview : Ajout au panier fictif (console.log uniquement)');
             }}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 ml-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
             <span>🛒</span>
             <span>Ajouter au panier</span>
