@@ -63,14 +63,16 @@ export function ConfiguratorViewer({
 
   return (
     <div 
-      className="configurator-viewer-isolated flex flex-col h-full w-full min-h-[500px]" 
+      className="configurator-viewer-isolated flex h-full w-full min-h-[500px]" 
       style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         color: '#1a1a1a',
         width: '100%',
         height: '100%',
         flex: 1,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        flexDirection: 'row'
       }}
     >
       {/* Panel central avec onglets horizontaux */}
