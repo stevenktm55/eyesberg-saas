@@ -35,22 +35,7 @@ export function ConfiguratorViewer({
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
       }
       .configurator-viewer-isolated {
-        color: #111827 !important;
-      }
-      .configurator-viewer-isolated h1,
-      .configurator-viewer-isolated h2,
-      .configurator-viewer-isolated h3,
-      .configurator-viewer-isolated h4,
-      .configurator-viewer-isolated h5,
-      .configurator-viewer-isolated h6,
-      .configurator-viewer-isolated p,
-      .configurator-viewer-isolated span,
-      .configurator-viewer-isolated div,
-      .configurator-viewer-isolated button,
-      .configurator-viewer-isolated aside,
-      .configurator-viewer-isolated section {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-        color: inherit !important;
+        color: #000000 !important;
       }
     `;
     document.head.appendChild(style);
@@ -63,138 +48,133 @@ export function ConfiguratorViewer({
 
   return (
     <div 
-      className="configurator-viewer-isolated flex h-full w-full min-h-[500px]" 
+      className="configurator-viewer-isolated"
       style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        color: '#1a1a1a',
+        color: '#000000',
         width: '100%',
         height: '100%',
-        flex: 1,
-        backgroundColor: '#ffffff',
         display: 'flex',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        backgroundColor: '#ffffff'
       }}
     >
-      {/* Panel central avec onglets horizontaux */}
-      <section 
-        className="flex flex-col"
+      {/* Sidebar gauche - Navigation verticale */}
+      <aside 
         style={{ 
-          backgroundColor: '#ffffff', 
-          borderRight: '1px solid #e8e8e8',
+          backgroundColor: '#ffffff',
+          width: '140px',
+          minWidth: '140px',
+          padding: '20px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          borderRight: '1px solid #e5e5e5'
+        }}
+      >
+        {modules.map((module) => {
+          const isActive =
+            module.id === activeTab || (!activeTab && module.id === activeModule?.id);
+          return (
+            <button
+              key={module.id}
+              type="button"
+              onClick={() => onTabChange(module.id)}
+              style={{
+                width: '100%',
+                padding: '16px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                backgroundColor: isActive ? '#000000' : '#ffffff',
+                color: isActive ? '#ffffff' : '#000000',
+                border: isActive ? 'none' : '1px solid #e5e5e5',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontWeight: 500,
+                fontSize: '13px',
+                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                }
+              }}
+            >
+              {module.icon ? (
+                <span
+                  style={{ 
+                    fontSize: '24px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                    filter: isActive ? 'none' : 'none'
+                  }}
+                >
+                  {module.icon}
+                </span>
+              ) : (
+                <span
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}
+                >
+                  {module.name[0]}
+                </span>
+              )}
+              <span style={{ fontSize: '13px', fontWeight: 500 }}>
+                {module.name}
+              </span>
+            </button>
+          );
+        })}
+      </aside>
+
+      {/* Panel central */}
+      <section 
+        style={{ 
+          backgroundColor: '#ffffff',
           width: '420px',
           minWidth: '420px',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          borderRight: '1px solid #e5e5e5'
         }}
       >
-        {/* Onglets horizontaux en haut */}
+        {/* Header avec titre */}
         <div 
           style={{ 
-            display: 'flex',
-            borderBottom: '1px solid #e8e8e8',
-            backgroundColor: '#ffffff',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-        >
-          <style>{`
-            .configurator-viewer-isolated div::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          {modules.map((module) => {
-            const isActive =
-              module.id === activeTab || (!activeTab && module.id === activeModule?.id);
-            return (
-              <button
-                key={module.id}
-                type="button"
-                onClick={() => onTabChange(module.id)}
-                style={{
-                  flex: 1,
-                  minWidth: '80px',
-                  padding: '16px 12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  backgroundColor: 'transparent',
-                  color: isActive ? '#000000' : '#666666',
-                  border: 'none',
-                  borderBottom: isActive ? '2px solid #000000' : '2px solid transparent',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  fontWeight: isActive ? 600 : 400,
-                  fontSize: '12px'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#000000';
-                    e.currentTarget.style.backgroundColor = '#f5f5f5';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#666666';
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                {module.icon ? (
-                  <span
-                    style={{ 
-                      fontSize: '20px',
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      lineHeight: 1
-                    }}
-                  >
-                    {module.icon}
-                  </span>
-                ) : (
-                  <span
-                    style={{
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    {module.name[0]}
-                  </span>
-                )}
-                <span style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
-                  {module.name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* En-tête avec titre */}
-        <div 
-          style={{ 
-            padding: '20px 24px',
-            borderBottom: '1px solid #e8e8e8',
+            padding: '24px 28px',
+            borderBottom: '1px solid #e5e5e5',
             backgroundColor: '#ffffff'
           }}
         >
           <h2 
             style={{ 
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              color: '#1a1a1a',
-              fontSize: '20px',
-              fontWeight: 600,
+              color: '#000000',
+              fontSize: '28px',
+              fontWeight: 700,
               margin: 0,
-              marginBottom: '4px',
+              marginBottom: '6px',
               letterSpacing: '-0.02em'
             }}
           >
@@ -204,8 +184,8 @@ export function ConfiguratorViewer({
             <p 
               style={{ 
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                color: '#666666',
-                fontSize: '13px',
+                color: '#000000',
+                fontSize: '14px',
                 margin: 0,
                 fontStyle: 'italic',
                 fontWeight: 400
@@ -223,8 +203,8 @@ export function ConfiguratorViewer({
           className="flex-1 overflow-auto"
           style={{ 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            color: '#1a1a1a',
-            padding: '20px 24px'
+            color: '#000000',
+            padding: '24px 28px'
           }}
         >
           {panelContent || (
@@ -245,9 +225,9 @@ export function ConfiguratorViewer({
         <div 
           className="shrink-0"
           style={{ 
-            backgroundColor: '#ffffff', 
-            borderTop: '1px solid #e8e8e8',
-            padding: '16px 24px',
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e5e5e5',
+            padding: '20px 28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
@@ -258,8 +238,8 @@ export function ConfiguratorViewer({
             type="button"
             onClick={onSave}
             style={{
-              height: '44px',
-              padding: '0 20px',
+              height: '48px',
+              padding: '0 24px',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
@@ -267,19 +247,17 @@ export function ConfiguratorViewer({
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               backgroundColor: '#ffffff',
-              border: '1px solid #d1d5db',
-              color: '#1a1a1a',
+              border: '1px solid #000000',
+              color: '#000000',
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#f5f5f5';
-              e.currentTarget.style.borderColor = '#999999';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = '#ffffff';
-              e.currentTarget.style.borderColor = '#d1d5db';
             }}
           >
             <svg
@@ -300,7 +278,7 @@ export function ConfiguratorViewer({
             type="button"
             onClick={onAddToCart}
             style={{
-              height: '44px',
+              height: '48px',
               padding: '0 24px',
               display: 'inline-flex',
               alignItems: 'center',
@@ -382,5 +360,4 @@ export function ConfiguratorViewer({
   );
 }
 
- export default ConfiguratorViewer;
-
+export default ConfiguratorViewer;
