@@ -63,19 +63,25 @@ export function ConfiguratorViewer({
 
   return (
     <div 
-      className="configurator-viewer-isolated flex h-full w-full min-h-[500px] bg-gray-100" 
+      className="configurator-viewer-isolated flex h-full w-full min-h-[500px]" 
       style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        color: '#111827',
+        color: '#1a1a1a',
         width: '100%',
         height: '100%',
-        flex: 1
+        flex: 1,
+        backgroundColor: '#f5f5f5'
       }}
     >
       {/* Sidebar gauche - modules */}
       <aside 
-        className="w-20 bg-white border-r border-gray-200 flex flex-col items-center py-4 space-y-3"
-        style={{ backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb' }}
+        className="flex flex-col items-center py-6 space-y-4"
+        style={{ 
+          backgroundColor: '#ffffff', 
+          borderRight: '1px solid #e8e8e8',
+          width: '80px',
+          minWidth: '80px'
+        }}
       >
         {modules.map((module) => {
           const isActive =
@@ -85,38 +91,73 @@ export function ConfiguratorViewer({
               key={module.id}
               type="button"
               onClick={() => onTabChange(module.id)}
-              className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
               style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                color: isActive ? '#ffffff' : '#4b5563',
-                backgroundColor: isActive ? '#2563eb' : '#f3f4f6',
+                backgroundColor: isActive ? '#000000' : '#f5f5f5',
+                color: isActive ? '#ffffff' : '#666666',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = '#e8e8e8';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                }
               }}
               title={module.name}
             >
               {module.icon ? (
                 <span
-                  className="text-lg"
-                  aria-hidden="true"
-                  style={{ color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ 
+                    fontSize: '24px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    lineHeight: 1
+                  }}
                 >
                   {module.icon}
                 </span>
               ) : (
                 <span
-                  className="text-sm font-bold"
                   style={{
-                    color: 'inherit',
+                    fontSize: '18px',
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}
                 >
                   {module.name[0]}
                 </span>
+              )}
+              {isActive && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '-4px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '3px',
+                    height: '24px',
+                    backgroundColor: '#000000',
+                    borderRadius: '0 2px 2px 0'
+                  }}
+                />
               )}
             </button>
           );
@@ -125,51 +166,70 @@ export function ConfiguratorViewer({
 
       {/* Panel central */}
       <section 
-        className="w-[420px] bg-white border-r border-gray-200 flex flex-col"
-        style={{ backgroundColor: '#ffffff', borderRight: '1px solid #e5e7eb' }}
+        className="flex flex-col"
+        style={{ 
+          backgroundColor: '#ffffff', 
+          borderRight: '1px solid #e8e8e8',
+          width: '420px',
+          minWidth: '420px'
+        }}
       >
         {/* En-tête */}
-        <div className="px-4 py-3 border-b border-gray-200" style={{ borderBottom: '1px solid #e5e7eb' }}>
+        <div 
+          style={{ 
+            padding: '20px 24px',
+            borderBottom: '1px solid #e8e8e8',
+            backgroundColor: '#ffffff'
+          }}
+        >
           <h2 
-            className="text-lg font-semibold text-gray-900"
             style={{ 
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              color: '#111827',
-              fontSize: '1.125rem',
+              color: '#1a1a1a',
+              fontSize: '20px',
               fontWeight: 600,
-              margin: 0
+              margin: 0,
+              marginBottom: '4px',
+              letterSpacing: '-0.02em'
             }}
           >
             {activeModule ? activeModule.name : "Aucun module"}
           </h2>
-          <p 
-            className="mt-1 text-xs text-slate-500"
-            style={{ 
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              color: '#6b7280',
-              fontSize: '0.75rem',
-              marginTop: '0.25rem',
-              margin: '0.25rem 0 0 0'
-            }}
-          >
-            {activeModule
-              ? activeModule.name === "Couleur"
-                ? "Personnalisez les couleurs de votre équipement."
-                : `Personnalisez les options pour "${activeModule.name}".`
-              : "Sélectionnez un module pour commencer la configuration."}
-          </p>
+          {activeModule && (
+            <p 
+              style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#666666',
+                fontSize: '13px',
+                margin: 0,
+                fontWeight: 400
+              }}
+            >
+              {activeModule.name === "Couleur"
+                ? "Sélectionnez les couleurs de votre équipement"
+                : `Personnalisez ${activeModule.name.toLowerCase()}`}
+            </p>
+          )}
         </div>
 
         {/* Contenu défilant */}
         <div 
-          className="flex-1 overflow-auto px-4 py-4 text-sm text-slate-700 space-y-3"
+          className="flex-1 overflow-auto"
           style={{ 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            color: '#334155'
+            color: '#1a1a1a',
+            padding: '20px 24px'
           }}
         >
           {panelContent || (
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded text-xs text-gray-400 text-center">
+            <div 
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#999999',
+                fontSize: '14px'
+              }}
+            >
               Aucune option disponible.
             </div>
           )}
@@ -177,32 +237,55 @@ export function ConfiguratorViewer({
 
         {/* Actions fixes en bas */}
         <div 
-          className="shrink-0 border-t border-gray-200 px-4 py-3 flex items-center justify-end gap-3 bg-white"
-          style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e5e7eb' }}
+          className="shrink-0"
+          style={{ 
+            backgroundColor: '#ffffff', 
+            borderTop: '1px solid #e8e8e8',
+            padding: '16px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '12px'
+          }}
         >
           <button
             type="button"
-            className="h-11 px-3 inline-flex items-center gap-2 text-sm font-medium rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+            onClick={onSave}
             style={{
+              height: '44px',
+              padding: '0 20px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               backgroundColor: '#ffffff',
               border: '1px solid #d1d5db',
-              color: '#374151',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              borderRadius: '0.5rem',
+              color: '#1a1a1a',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f5f5';
+              e.currentTarget.style.borderColor = '#999999';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.borderColor = '#d1d5db';
             }}
           >
-            {/* Icône disquette */}
             <svg
-              aria-hidden="true"
+              width="16"
+              height="16"
               viewBox="0 0 20 20"
-              className="w-4 h-4 text-gray-500"
-              style={{ color: '#6b7280' }}
+              fill="none"
+              style={{ flexShrink: 0 }}
             >
               <path
-                fill="currentColor"
                 d="M4 3a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V7.83a2 2 0 0 0-.59-1.41l-2.83-2.83A2 2 0 0 0 13.17 3H4zm3 2h4v3H7V5zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+                fill="currentColor"
               />
             </svg>
             <span>Sauvegarder</span>
@@ -210,45 +293,58 @@ export function ConfiguratorViewer({
           <button
             type="button"
             onClick={onAddToCart}
-            className="h-11 px-6 inline-flex items-center gap-2 text-sm font-medium rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-700 hover:shadow-lg transition-all"
             style={{
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              fontSize: '0.875rem',
+              height: '44px',
+              padding: '0 24px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
               fontWeight: 500,
-              borderRadius: '0.5rem',
-              boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.4)',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
             }}
-            >
-            {/* Icône caddie */}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#333333';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#000000';
+            }}
+          >
             <svg
-              aria-hidden="true"
+              width="16"
+              height="16"
               viewBox="0 0 20 20"
-              className="w-4 h-4 text-white"
-              style={{ color: '#ffffff' }}
+              fill="none"
+              style={{ flexShrink: 0 }}
             >
               <path
-                fill="currentColor"
                 d="M3 3h2l1 9h9l1.5-6H7.5"
                 stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                fill="none"
               />
               <circle cx="8.5" cy="16" r="1.25" fill="currentColor" />
               <circle cx="14.5" cy="16" r="1.25" fill="currentColor" />
             </svg>
-            <span className="whitespace-nowrap">Ajouter au panier</span>
+            <span>Ajouter au panier</span>
           </button>
         </div>
       </section>
 
       {/* Zone 3D */}
       <section 
-        className="flex-1 bg-gray-100"
+        className="flex-1"
         style={{ 
-          backgroundColor: '#f3f4f6',
+          backgroundColor: '#f5f5f5',
           margin: 0,
           padding: 0,
           width: '100%',
@@ -261,15 +357,15 @@ export function ConfiguratorViewer({
       >
         {canvasContent || (
           <div 
-            className="w-64 h-64 bg-white border border-dashed border-gray-300 rounded-xl flex items-center justify-center text-sm font-medium text-gray-400"
             style={{
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: '#ffffff',
-              border: '1px dashed #d1d5db',
-              borderRadius: '0.75rem',
-              color: '#9ca3af',
-              fontSize: '0.875rem',
-              fontWeight: 500,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#999999',
+              fontSize: '14px',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
             }}
           >
             Zone 3D (placeholder)
