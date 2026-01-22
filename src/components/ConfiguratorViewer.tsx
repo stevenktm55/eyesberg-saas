@@ -63,118 +63,121 @@ export function ConfiguratorViewer({
 
   return (
     <div 
-      className="configurator-viewer-isolated flex h-full w-full min-h-[500px]" 
+      className="configurator-viewer-isolated flex flex-col h-full w-full min-h-[500px]" 
       style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         color: '#1a1a1a',
         width: '100%',
         height: '100%',
         flex: 1,
-        backgroundColor: '#f5f5f5'
+        backgroundColor: '#ffffff'
       }}
     >
-      {/* Sidebar gauche - modules */}
-      <aside 
-        className="flex flex-col items-center py-6 space-y-4"
-        style={{ 
-          backgroundColor: '#ffffff', 
-          borderRight: '1px solid #e8e8e8',
-          width: '80px',
-          minWidth: '80px'
-        }}
-      >
-        {modules.map((module) => {
-          const isActive =
-            module.id === activeTab || (!activeTab && module.id === activeModule?.id);
-          return (
-            <button
-              key={module.id}
-              type="button"
-              onClick={() => onTabChange(module.id)}
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                backgroundColor: isActive ? '#000000' : '#f5f5f5',
-                color: isActive ? '#ffffff' : '#666666',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative'
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#e8e8e8';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#f5f5f5';
-                }
-              }}
-              title={module.name}
-            >
-              {module.icon ? (
-                <span
-                  style={{ 
-                    fontSize: '24px',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    lineHeight: 1
-                  }}
-                >
-                  {module.icon}
-                </span>
-              ) : (
-                <span
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  {module.name[0]}
-                </span>
-              )}
-              {isActive && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '-4px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '3px',
-                    height: '24px',
-                    backgroundColor: '#000000',
-                    borderRadius: '0 2px 2px 0'
-                  }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </aside>
-
-      {/* Panel central */}
+      {/* Panel central avec onglets horizontaux */}
       <section 
         className="flex flex-col"
         style={{ 
           backgroundColor: '#ffffff', 
           borderRight: '1px solid #e8e8e8',
           width: '420px',
-          minWidth: '420px'
+          minWidth: '420px',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        {/* En-tête */}
+        {/* Onglets horizontaux en haut */}
+        <div 
+          style={{ 
+            display: 'flex',
+            borderBottom: '1px solid #e8e8e8',
+            backgroundColor: '#ffffff',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <style>{`
+            .configurator-viewer-isolated div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          {modules.map((module) => {
+            const isActive =
+              module.id === activeTab || (!activeTab && module.id === activeModule?.id);
+            return (
+              <button
+                key={module.id}
+                type="button"
+                onClick={() => onTabChange(module.id)}
+                style={{
+                  flex: 1,
+                  minWidth: '80px',
+                  padding: '16px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'transparent',
+                  color: isActive ? '#000000' : '#666666',
+                  border: 'none',
+                  borderBottom: isActive ? '2px solid #000000' : '2px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  fontWeight: isActive ? 600 : 400,
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#000000';
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#666666';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                {module.icon ? (
+                  <span
+                    style={{ 
+                      fontSize: '20px',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      lineHeight: 1
+                    }}
+                  >
+                    {module.icon}
+                  </span>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    {module.name[0]}
+                  </span>
+                )}
+                <span style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+                  {module.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* En-tête avec titre */}
         <div 
           style={{ 
             padding: '20px 24px',
@@ -202,6 +205,7 @@ export function ConfiguratorViewer({
                 color: '#666666',
                 fontSize: '13px',
                 margin: 0,
+                fontStyle: 'italic',
                 fontWeight: 400
               }}
             >
