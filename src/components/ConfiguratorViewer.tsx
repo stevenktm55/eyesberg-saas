@@ -46,8 +46,9 @@ export function ConfiguratorViewer({
     };
   }, []);
 
-  // Couleur bleue StretchMX (bleu vif)
-  const stretchBlue = '#3b82f6'; // ou un bleu plus vif comme #2563eb ou #1d4ed8
+  // Couleurs exactes StretchMX
+  const stretchBlue = '#3366FF'; // Bleu royal principal
+  const stretchBlueActive = '#4D88FF'; // Bleu plus clair pour l'élément actif
 
   return (
     <div 
@@ -62,16 +63,16 @@ export function ConfiguratorViewer({
         backgroundColor: '#ffffff'
       }}
     >
-      {/* Sidebar gauche - Fond BLEU avec boutons bleus */}
+      {/* Sidebar gauche - Fond BLEU ROYAL avec boutons bleus */}
       <aside 
         style={{ 
           backgroundColor: stretchBlue,
-          width: '140px',
-          minWidth: '140px',
-          padding: '20px 12px',
+          width: '180px',
+          minWidth: '180px',
+          padding: '20px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
+          gap: '8px',
           borderRight: 'none'
         }}
       >
@@ -85,30 +86,32 @@ export function ConfiguratorViewer({
               onClick={() => onTabChange(module.id)}
               style={{
                 width: '100%',
-                padding: '16px 12px',
+                padding: '14px 16px',
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 gap: '12px',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                backgroundColor: stretchBlue,
+                backgroundColor: isActive ? stretchBlueActive : stretchBlue,
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: isActive ? '8px 0 0 8px' : '8px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 fontWeight: 500,
                 fontSize: '14px',
-                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
+                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#2563eb';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = stretchBlueActive;
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = stretchBlue;
-                e.currentTarget.style.boxShadow = isActive ? '0 2px 8px rgba(0,0,0,0.2)' : 'none';
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = stretchBlue;
+                }
               }}
             >
               {module.icon ? (
@@ -118,7 +121,8 @@ export function ConfiguratorViewer({
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    lineHeight: 1
+                    lineHeight: 1,
+                    color: '#ffffff'
                   }}
                 >
                   {module.icon}
@@ -134,7 +138,8 @@ export function ConfiguratorViewer({
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     width: '24px',
-                    height: '24px'
+                    height: '24px',
+                    color: '#ffffff'
                   }}
                 >
                   {module.name[0]}
@@ -159,22 +164,22 @@ export function ConfiguratorViewer({
           borderRight: '1px solid #e5e5e5'
         }}
       >
-        {/* Header avec titre */}
+        {/* Header avec titre - Style StretchMX */}
         <div 
           style={{ 
-            padding: '24px 28px',
-            borderBottom: '1px solid #e5e5e5',
-            backgroundColor: '#ffffff'
+            padding: '28px 32px',
+            backgroundColor: '#ffffff',
+            borderBottom: 'none'
           }}
         >
           <h2 
             style={{ 
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               color: '#000000',
-              fontSize: '28px',
+              fontSize: '32px',
               fontWeight: 700,
               margin: 0,
-              marginBottom: '6px',
+              marginBottom: '8px',
               letterSpacing: '-0.02em'
             }}
           >
@@ -185,7 +190,7 @@ export function ConfiguratorViewer({
               style={{ 
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                 color: '#000000',
-                fontSize: '14px',
+                fontSize: '15px',
                 margin: 0,
                 fontStyle: 'italic',
                 fontWeight: 400
@@ -204,7 +209,7 @@ export function ConfiguratorViewer({
           style={{ 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
             color: '#000000',
-            padding: '24px 28px'
+            padding: '0 32px 24px 32px'
           }}
         >
           {panelContent || (
@@ -221,13 +226,13 @@ export function ConfiguratorViewer({
           )}
         </div>
 
-        {/* Actions fixes en bas */}
+        {/* Actions fixes en bas - Les DEUX boutons sont BLEUS */}
         <div 
           className="shrink-0"
           style={{ 
             backgroundColor: '#ffffff',
             borderTop: '1px solid #e5e5e5',
-            padding: '20px 28px',
+            padding: '20px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
@@ -242,7 +247,7 @@ export function ConfiguratorViewer({
               padding: '0 24px',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '10px',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -252,30 +257,30 @@ export function ConfiguratorViewer({
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 4px rgba(51, 102, 255, 0.3)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563eb';
-              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+              e.currentTarget.style.backgroundColor = stretchBlueActive;
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(51, 102, 255, 0.4)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = stretchBlue;
-              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(51, 102, 255, 0.3)';
             }}
           >
             <svg
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 20 20"
               fill="none"
               style={{ flexShrink: 0 }}
             >
               <path
                 d="M4 3a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V7.83a2 2 0 0 0-.59-1.41l-2.83-2.83A2 2 0 0 0 13.17 3H4zm3 2h4v3H7V5zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-                fill="currentColor"
+                fill="#ffffff"
               />
             </svg>
-            <span>Sauvegarder</span>
+            <span style={{ color: '#ffffff' }}>Sauvegarder</span>
           </button>
           <button
             type="button"
@@ -285,7 +290,7 @@ export function ConfiguratorViewer({
               padding: '0 24px',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '10px',
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -296,36 +301,36 @@ export function ConfiguratorViewer({
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               whiteSpace: 'nowrap',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 4px rgba(51, 102, 255, 0.3)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563eb';
-              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+              e.currentTarget.style.backgroundColor = stretchBlueActive;
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(51, 102, 255, 0.4)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = stretchBlue;
-              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(51, 102, 255, 0.3)';
             }}
           >
             <svg
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 20 20"
               fill="none"
               style={{ flexShrink: 0 }}
             >
               <path
                 d="M3 3h2l1 9h9l1.5-6H7.5"
-                stroke="currentColor"
+                stroke="#ffffff"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"
               />
-              <circle cx="8.5" cy="16" r="1.25" fill="currentColor" />
-              <circle cx="14.5" cy="16" r="1.25" fill="currentColor" />
+              <circle cx="8.5" cy="16" r="1.25" fill="#ffffff" />
+              <circle cx="14.5" cy="16" r="1.25" fill="#ffffff" />
             </svg>
-            <span>Ajouter au panier</span>
+            <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
           </button>
         </div>
       </section>
