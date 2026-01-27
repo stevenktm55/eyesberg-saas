@@ -11,9 +11,9 @@ import ConfiguratorViewer from "@/components/ConfiguratorViewer";
 // Constante pour la font du configurator-panel (Inter - style Tailwind moderne)
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
-// Constante pour la couleur primaire des boutons (bleu Tailwind)
-const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
-const CONFIGURATOR_PANEL_PRIMARY_HOVER = '#2563eb';
+// Couleur primaire des boutons - design StretchMX (noir, pas de bleu)
+const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#000000';
+const CONFIGURATOR_PANEL_PRIMARY_HOVER = '#1a1a1a';
 
 // Style global pour forcer le texte en noir dans le Tab Header et les cartes de couleurs
 // IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
@@ -1119,8 +1119,7 @@ export default function ProductBuilderPage() {
     }
   }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
 
-  // Forcer les styles du configurator-panel après le rendu (pour surcharger les styles inline React)
-  // Fonction SCOPÉE pour forcer Inter et couleurs bleues UNIQUEMENT dans le configurator-panel
+  // Forcer les styles du configurator-panel après le rendu (design StretchMX : noir/blanc, pas de bleu)
   const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
     // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
     const isInConfiguratorPanel = (el: Element): boolean => {
@@ -1296,21 +1295,16 @@ export default function ProductBuilderPage() {
           }
         }
         
-        // FORCER BLEU sur TOUS les boutons primaires ET FORCER TEXTE BLANC
+        // Design StretchMX : forcer NOIR (pas de bleu) sur les boutons primaires + texte blanc
         if (htmlEl.tagName === 'BUTTON') {
-          // Ne pas traiter les boutons de couleurs ici
           if (htmlEl.classList.contains('color-circle-button')) {
-            return; // Déjà traité ci-dessus
+            return;
           }
           
-          // Ne pas traiter les boutons de viewport (desktop/mobile switch)
           const buttonTitle = htmlEl.getAttribute('title') || '';
           if (buttonTitle === 'Vue ordinateur' || buttonTitle === 'Vue téléphone') {
-            // Forcer le backgroundColor blanc et le SVG noir pour les boutons de viewport
             htmlEl.style.setProperty('background-color', '#ffffff', 'important');
             htmlEl.style.setProperty('backgroundColor', '#ffffff', 'important');
-            
-            // Forcer le SVG et ses paths en noir
             const svgs = htmlEl.querySelectorAll('svg');
             svgs.forEach((svg: Element) => {
               const svgEl = svg as HTMLElement;
@@ -1318,7 +1312,6 @@ export default function ProductBuilderPage() {
               svgEl.style.setProperty('fill', 'none', 'important');
               svgEl.setAttribute('stroke', '#000000');
               svgEl.setAttribute('fill', 'none');
-              
               const paths = svgEl.querySelectorAll('path');
               paths.forEach((path: Element) => {
                 const pathEl = path as HTMLElement;
@@ -1326,74 +1319,55 @@ export default function ProductBuilderPage() {
                 pathEl.setAttribute('stroke', '#000000');
               });
             });
-            
-            return; // Ne pas traiter ce bouton comme un bouton primaire
+            return;
           }
           
           const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
           const inlineStyle = htmlEl.getAttribute('style') || '';
           
-          // Détecter bouton primaire (bleu ou noir qui doit être bleu)
           const isPrimaryButton = reactBgColor === 'rgb(59, 130, 246)' ||
-                                 reactBgColor === '#3b82f6' ||
-                                 reactBgColor === 'rgb(0, 0, 0)' || 
-                                 reactBgColor === '#000000' || 
+                                 reactBgColor === '#000000' ||
+                                 reactBgColor === 'rgb(0, 0, 0)' ||
+                                 reactBgColor === '#000000' ||
                                  reactBgColor === 'black' ||
                                  htmlEl.classList.contains('btn-primary') ||
                                  htmlEl.classList.contains('mobile-action-btn-black') ||
-                                 inlineStyle.includes('backgroundColor: \'#3b82f6\'') ||
-                                 inlineStyle.includes('background-color: #3b82f6') ||
+                                 inlineStyle.includes('backgroundColor: \'#000000\'') ||
+                                 inlineStyle.includes('background-color: #000000') ||
                                  inlineStyle.includes('backgroundColor: \'#000000\'') ||
                                  inlineStyle.includes('background-color: #000000') ||
                                  inlineStyle.includes('backgroundColor:#000000') ||
                                  inlineStyle.includes('rgb(0, 0, 0)') ||
                                  inlineStyle.includes('rgb(0,0,0)');
           
-          // Ne pas changer si c'est un bouton de couleur (qui affiche une couleur réelle)
-          const isColorButton = inlineStyle.includes('color?.hex') || 
+          const isColorButton = inlineStyle.includes('color?.hex') ||
                                htmlEl.getAttribute('data-color-button') === 'true' ||
                                htmlEl.closest('[class*="color"]') !== null;
           
           if (isPrimaryButton && !isColorButton) {
-            // Forcer le fond bleu
-            htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
-            htmlEl.style.setProperty('backgroundColor', '#3b82f6', 'important');
-            
-            // FORCER LE TEXTE EN BLANC sur le bouton
+            // StretchMX : fond noir (pas de bleu)
+            htmlEl.style.setProperty('background-color', '#000000', 'important');
+            htmlEl.style.setProperty('backgroundColor', '#000000', 'important');
             htmlEl.style.setProperty('color', '#ffffff', 'important');
             htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
             
-            // Forcer aussi sur tous les éléments enfants (span, div, p, etc.)
             const children = htmlEl.querySelectorAll('*');
             children.forEach((child: Element) => {
               const childEl = child as HTMLElement;
               childEl.style.setProperty('color', '#ffffff', 'important');
               childEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-              
-              // Forcer aussi sur les SVG
               if (childEl.tagName === 'svg') {
                 childEl.style.setProperty('stroke', '#ffffff', 'important');
                 childEl.style.setProperty('fill', '#ffffff', 'important');
                 childEl.setAttribute('stroke', '#ffffff');
                 childEl.setAttribute('fill', 'none');
               }
-              
-              // Forcer aussi sur les paths dans les SVG
               if (childEl.tagName === 'path') {
                 childEl.style.setProperty('stroke', '#ffffff', 'important');
                 childEl.setAttribute('stroke', '#ffffff');
               }
             });
-            
-            // Mettre à jour aussi l'attribut style si présent
-            if (inlineStyle.includes('backgroundColor: \'#000000\'')) {
-              const newStyle = inlineStyle.replace(/backgroundColor:\s*['"]#000000['"]/g, "backgroundColor: '#3b82f6'");
-              htmlEl.setAttribute('style', newStyle);
-            }
-            if (inlineStyle.includes('background-color: #000000')) {
-              const newStyle = inlineStyle.replace(/background-color:\s*#000000/g, "background-color: #3b82f6");
-              htmlEl.setAttribute('style', newStyle);
-            }
+            // Ne pas remplacer le noir par du bleu : garder #000000
           }
         }
       });
@@ -3383,7 +3357,7 @@ export default function ProductBuilderPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '6px 12px',
-                backgroundColor: '#2563eb',
+                backgroundColor: '#1a1a1a',
                 borderRadius: '4px',
                 border: '1px solid #2a2a2a',
                 cursor: 'pointer',
@@ -3466,7 +3440,7 @@ export default function ProductBuilderPage() {
                     onClick={() => setPreviewViewMode('desktop')}
                     style={{
                       padding: '6px 12px',
-                      backgroundColor: previewViewMode === 'desktop' ? '#2563eb' : 'transparent',
+                      backgroundColor: previewViewMode === 'desktop' ? '#1a1a1a' : 'transparent',
                       border: 'none',
                       borderRadius: '4px',
                       color: previewViewMode === 'desktop' ? '#ffffff' : '#374151',
@@ -3487,7 +3461,7 @@ export default function ProductBuilderPage() {
                     onClick={() => setPreviewViewMode('mobile')}
                     style={{
                       padding: '6px 12px',
-                      backgroundColor: previewViewMode === 'mobile' ? '#2563eb' : 'transparent',
+                      backgroundColor: previewViewMode === 'mobile' ? '#1a1a1a' : 'transparent',
                       border: 'none',
                       borderRadius: '4px',
                       color: previewViewMode === 'mobile' ? '#ffffff' : '#374151',
@@ -5255,7 +5229,7 @@ export default function ProductBuilderPage() {
                               boxSizing: 'border-box'
                             }}
                             onFocus={(e) => {
-                              e.currentTarget.style.borderColor = '#3b82f6';
+                              e.currentTarget.style.borderColor = '#000000';
                             }}
                             onBlur={(e) => {
                               e.currentTarget.style.borderColor = '#d1d5db';
@@ -5697,7 +5671,7 @@ export default function ProductBuilderPage() {
                     justifyContent: 'center', 
                     gap: '8px', 
                     padding: '10px 20px', 
-                    backgroundColor: '#3b82f6', 
+                    backgroundColor: '#000000', 
                     color: '#ffffff', 
                     border: 'none', 
                     borderRadius: '8px', 
@@ -5709,10 +5683,10 @@ export default function ProductBuilderPage() {
                     transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#2563eb';
+                    e.currentTarget.style.backgroundColor = '#1a1a1a';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                    e.currentTarget.style.backgroundColor = '#000000';
                   }}
                 >
                   <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -5731,7 +5705,7 @@ export default function ProductBuilderPage() {
                           style={{
                             padding: '10px 12px',
                             backgroundColor: selectedTextId === text.id ? '#eff6ff' : '#f9fafb',
-                            border: selectedTextId === text.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                            border: selectedTextId === text.id ? '2px solid #000000' : '1px solid #e5e7eb',
                             borderRadius: '8px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -6762,7 +6736,7 @@ export default function ProductBuilderPage() {
                                           style={{
                                             width: '100%',
                                             padding: '10px 20px',
-                                            backgroundColor: '#3b82f6',
+                                            backgroundColor: '#000000',
                                             color: '#ffffff',
                                             border: 'none',
                                             borderRadius: '8px',
@@ -6774,10 +6748,10 @@ export default function ProductBuilderPage() {
                                             transition: 'all 0.2s ease'
                                           }}
                                           onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#2563eb';
+                                            e.currentTarget.style.backgroundColor = '#1a1a1a';
                                           }}
                                           onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                                            e.currentTarget.style.backgroundColor = '#000000';
                                           }}
                                         >
                                           Placer le logo
@@ -7231,7 +7205,7 @@ export default function ProductBuilderPage() {
                                             }}
                                             onMouseEnter={(e) => {
                                               if (!(!textInputValue.trim() || !selectedZoneId)) {
-                                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                                e.currentTarget.style.backgroundColor = '#1a1a1a';
                                               }
                                             }}
                                             onMouseLeave={(e) => {
@@ -7674,7 +7648,7 @@ export default function ProductBuilderPage() {
                                                 justifyContent: 'center', 
                                                 gap: '8px', 
                                                 padding: '10px 20px', 
-                                                backgroundColor: '#3b82f6', 
+                                                backgroundColor: '#000000', 
                                                 color: '#ffffff', 
                                                 border: 'none', 
                                                 borderRadius: '8px', 
@@ -7686,10 +7660,10 @@ export default function ProductBuilderPage() {
                                                 transition: 'all 0.2s ease'
                                               }}
                                               onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                                e.currentTarget.style.backgroundColor = '#1a1a1a';
                                               }}
                                               onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = '#3b82f6';
+                                                e.currentTarget.style.backgroundColor = '#000000';
                                               }}
                                             >
                                               <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
@@ -8191,7 +8165,7 @@ export default function ProductBuilderPage() {
                                             justifyContent: 'center', 
                                             gap: '8px', 
                                             padding: '10px 20px', 
-                                            backgroundColor: '#3b82f6', 
+                                            backgroundColor: '#000000', 
                                             color: '#ffffff', 
                                             border: 'none', 
                                             borderRadius: '8px', 
@@ -8203,10 +8177,10 @@ export default function ProductBuilderPage() {
                                             transition: 'all 0.2s ease'
                                           }}
                                           onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#2563eb';
+                                            e.currentTarget.style.backgroundColor = '#1a1a1a';
                                           }}
                                           onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                                            e.currentTarget.style.backgroundColor = '#000000';
                                           }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -8371,7 +8345,7 @@ export default function ProductBuilderPage() {
                                                   boxSizing: 'border-box'
                                                 }}
                                                 onFocus={(e) => {
-                                                  e.currentTarget.style.borderColor = '#3b82f6';
+                                                  e.currentTarget.style.borderColor = '#000000';
                                                 }}
                                                 onBlur={(e) => {
                                                   e.currentTarget.style.borderColor = '#d1d5db';
@@ -8987,7 +8961,7 @@ export default function ProductBuilderPage() {
                                                           width: 18px;
                                                           height: 18px;
                                                           border-radius: 50%;
-                                                          background: #3b82f6;
+                                                          background: #000000;
                                                           cursor: pointer;
                                                           border: none;
                                                           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -8996,7 +8970,7 @@ export default function ProductBuilderPage() {
                                                           width: 18px;
                                                           height: 18px;
                                                           border-radius: 50%;
-                                                          background: #3b82f6;
+                                                          background: #000000;
                                                           cursor: pointer;
                                                           border: none;
                                                           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -9223,7 +9197,7 @@ export default function ProductBuilderPage() {
                                         justifyContent: 'center', 
                                         gap: '8px', 
                                         padding: '10px 20px', 
-                                        backgroundColor: '#3b82f6', 
+                                        backgroundColor: '#000000', 
                                         color: '#ffffff', 
                                         border: 'none', 
                                         borderRadius: '8px', 
@@ -9235,10 +9209,10 @@ export default function ProductBuilderPage() {
                                         transition: 'all 0.2s ease'
                                       }}
                                       onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#2563eb';
+                                        e.currentTarget.style.backgroundColor = '#1a1a1a';
                                       }}
                                       onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = '#3b82f6';
+                                        e.currentTarget.style.backgroundColor = '#000000';
                                       }}
                                     >
                                       <svg width="16" height="16" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -9257,7 +9231,7 @@ export default function ProductBuilderPage() {
                                               style={{
                                                 padding: '10px 12px',
                                                 backgroundColor: selectedTextId === text.id ? '#eff6ff' : '#f9fafb',
-                                                border: selectedTextId === text.id ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+                                                border: selectedTextId === text.id ? '2px solid #000000' : '1px solid #e5e7eb',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer',
                                                 display: 'flex',
@@ -10037,7 +10011,7 @@ export default function ProductBuilderPage() {
                                     >
                                       {isProcessingBackground ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
                                           <span style={{ fontSize: '11px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>Traitement...</span>
                                         </div>
                                       ) : (
@@ -10229,7 +10203,7 @@ export default function ProductBuilderPage() {
                                     style={{
                                       flex: 1,
                                       padding: '10px 20px',
-                                      backgroundColor: '#3b82f6',
+                                      backgroundColor: '#000000',
                                       border: 'none',
                                       borderRadius: '8px',
                                       fontSize: '14px',
@@ -10241,10 +10215,10 @@ export default function ProductBuilderPage() {
                                       transition: 'all 0.2s ease'
                                     }}
                                     onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#2563eb';
+                                      e.currentTarget.style.backgroundColor = '#1a1a1a';
                                     }}
                                     onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#3b82f6';
+                                      e.currentTarget.style.backgroundColor = '#000000';
                                     }}
                                   >
                                     Non
@@ -10389,7 +10363,7 @@ export default function ProductBuilderPage() {
                                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                                   Sauvegarder
                                 </button>
-                                <button className="btn-primary mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', transition: 'all 0.2s ease' }}>
+                                <button className="btn-primary mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#000000', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', transition: 'all 0.2s ease' }}>
                                   <svg width="14" height="14" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                   <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
                                 </button>
@@ -13332,7 +13306,7 @@ export default function ProductBuilderPage() {
                         onChange={(e) => setTextInputValue(e.target.value)}
                         placeholder="Saisir l'inscription ici..."
                         onFocus={(e) => {
-                          e.currentTarget.style.borderColor = '#3b82f6';
+                          e.currentTarget.style.borderColor = '#000000';
                         }}
                         onBlur={(e) => {
                           e.currentTarget.style.borderColor = '#d1d5db';
@@ -13556,7 +13530,7 @@ export default function ProductBuilderPage() {
                         className="btn-primary"
                         style={{
                           padding: '10px 20px',
-                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#3b82f6',
+                          backgroundColor: (!textInputValue.trim() || !selectedZoneId) ? '#cccccc' : '#000000',
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '14px',
@@ -13569,12 +13543,12 @@ export default function ProductBuilderPage() {
                         }}
                         onMouseEnter={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
-                            e.currentTarget.style.backgroundColor = '#2563eb';
+                            e.currentTarget.style.backgroundColor = '#1a1a1a';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (textInputValue.trim() && selectedZoneId) {
-                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                            e.currentTarget.style.backgroundColor = '#000000';
                           }
                         }}
                       >
@@ -14004,7 +13978,7 @@ export default function ProductBuilderPage() {
                         className="btn-primary"
                         style={{
                           padding: '10px 20px',
-                          backgroundColor: selectedLogoZoneId ? '#3b82f6' : '#cccccc',
+                          backgroundColor: selectedLogoZoneId ? '#000000' : '#cccccc',
                           border: 'none',
                           borderRadius: '8px',
                           fontSize: '14px',
@@ -14017,12 +13991,12 @@ export default function ProductBuilderPage() {
                         }}
                         onMouseEnter={(e) => {
                           if (selectedLogoZoneId) {
-                            e.currentTarget.style.backgroundColor = '#2563eb';
+                            e.currentTarget.style.backgroundColor = '#1a1a1a';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (selectedLogoZoneId) {
-                            e.currentTarget.style.backgroundColor = '#3b82f6';
+                            e.currentTarget.style.backgroundColor = '#000000';
                           }
                         }}
                       >
@@ -14391,7 +14365,7 @@ export default function ProductBuilderPage() {
                 >
                   {isProcessingBackground ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
                       <span style={{ fontSize: '12px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>Traitement...</span>
                     </div>
                   ) : (
@@ -14583,7 +14557,7 @@ export default function ProductBuilderPage() {
                 style={{
                   flex: 1,
                   padding: '10px 20px',
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: '#000000',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '14px',
@@ -14595,10 +14569,10 @@ export default function ProductBuilderPage() {
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2563eb';
+                  e.currentTarget.style.backgroundColor = '#1a1a1a';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#3b82f6';
+                  e.currentTarget.style.backgroundColor = '#000000';
                 }}
               >
                 Non
