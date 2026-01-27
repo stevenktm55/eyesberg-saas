@@ -46,10 +46,6 @@ export function ConfiguratorViewer({
     };
   }, []);
 
-  // Couleurs exactes StretchMX
-  const stretchBlue = '#3366FF'; // Bleu royal principal
-  const stretchBlueActive = '#4D88FF'; // Bleu plus clair pour l'élément actif
-
   return (
     <div 
       className="configurator-viewer-isolated"
@@ -63,17 +59,17 @@ export function ConfiguratorViewer({
         backgroundColor: '#ffffff'
       }}
     >
-      {/* Sidebar gauche - Fond BLEU ROYAL avec boutons bleus */}
+      {/* Sidebar gauche - Fond blanc avec onglets arrondis */}
       <aside 
         style={{ 
-          backgroundColor: stretchBlue,
+          backgroundColor: '#ffffff',
           width: '180px',
           minWidth: '180px',
           padding: '20px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          borderRight: 'none'
+          gap: '12px',
+          borderRight: '1px solid #e5e5e5'
         }}
       >
         {modules.map((module) => {
@@ -93,24 +89,26 @@ export function ConfiguratorViewer({
                 justifyContent: 'flex-start',
                 gap: '12px',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                backgroundColor: isActive ? stretchBlueActive : stretchBlue,
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: isActive ? '8px 0 0 8px' : '8px',
+                backgroundColor: isActive ? '#000000' : '#ffffff',
+                color: isActive ? '#ffffff' : '#4b5563',
+                border: isActive ? 'none' : '1px solid #e5e5e5',
+                borderRadius: isActive ? '12px 0 0 12px' : '12px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 fontWeight: 500,
                 fontSize: '14px',
-                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
+                boxShadow: isActive ? 'none' : '0 1px 3px rgba(0,0,0,0.1)'
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = stretchBlueActive;
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = stretchBlue;
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                 }
               }}
             >
@@ -122,7 +120,7 @@ export function ConfiguratorViewer({
                     alignItems: 'center', 
                     justifyContent: 'center',
                     lineHeight: 1,
-                    color: '#ffffff'
+                    color: isActive ? '#ffffff' : '#4b5563'
                   }}
                 >
                   {module.icon}
@@ -139,13 +137,17 @@ export function ConfiguratorViewer({
                     letterSpacing: '0.5px',
                     width: '24px',
                     height: '24px',
-                    color: '#ffffff'
+                    color: isActive ? '#ffffff' : '#4b5563'
                   }}
                 >
                   {module.name[0]}
                 </span>
               )}
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#ffffff' }}>
+              <span style={{ 
+                fontSize: '14px', 
+                fontWeight: 500,
+                color: isActive ? '#ffffff' : '#4b5563'
+              }}>
                 {module.name}
               </span>
             </button>
@@ -164,7 +166,7 @@ export function ConfiguratorViewer({
           borderRight: '1px solid #e5e5e5'
         }}
       >
-        {/* Header avec titre - Style StretchMX */}
+        {/* Header avec titre */}
         <div 
           style={{ 
             padding: '28px 32px',
@@ -176,31 +178,15 @@ export function ConfiguratorViewer({
             style={{ 
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               color: '#000000',
-              fontSize: '32px',
+              fontSize: '24px',
               fontWeight: 700,
               margin: 0,
               marginBottom: '8px',
               letterSpacing: '-0.02em'
             }}
           >
-            {activeModule ? activeModule.name : "Aucun module"}
+            {activeModule ? `Sélectionner le ${activeModule.name.toLowerCase()}` : "Aucun module"}
           </h2>
-          {activeModule && (
-            <p 
-              style={{ 
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                color: '#000000',
-                fontSize: '15px',
-                margin: 0,
-                fontStyle: 'italic',
-                fontWeight: 400
-              }}
-            >
-              {activeModule.name === "Couleur"
-                ? "Sélectionnez les couleurs de votre équipement"
-                : `Personnalisez ${activeModule.name.toLowerCase()}`}
-            </p>
-          )}
         </div>
 
         {/* Contenu défilant */}
@@ -226,7 +212,7 @@ export function ConfiguratorViewer({
           )}
         </div>
 
-        {/* Actions fixes en bas - Les DEUX boutons sont BLEUS */}
+        {/* Actions fixes en bas */}
         <div 
           className="shrink-0"
           style={{ 
@@ -251,21 +237,21 @@ export function ConfiguratorViewer({
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: stretchBlue,
-              border: 'none',
-              color: '#ffffff',
+              backgroundColor: '#ffffff',
+              border: '1px solid #374151',
+              color: '#374151',
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              boxShadow: '0 2px 4px rgba(51, 102, 255, 0.3)'
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = stretchBlueActive;
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(51, 102, 255, 0.4)';
+              e.currentTarget.style.backgroundColor = '#f9fafb';
+              e.currentTarget.style.borderColor = '#000000';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = stretchBlue;
-              e.currentTarget.style.boxShadow = '0 2px 4px rgba(51, 102, 255, 0.3)';
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.borderColor = '#374151';
             }}
           >
             <svg
@@ -277,10 +263,10 @@ export function ConfiguratorViewer({
             >
               <path
                 d="M4 3a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V7.83a2 2 0 0 0-.59-1.41l-2.83-2.83A2 2 0 0 0 13.17 3H4zm3 2h4v3H7V5zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-                fill="#ffffff"
+                fill="#374151"
               />
             </svg>
-            <span style={{ color: '#ffffff' }}>Sauvegarder</span>
+            <span style={{ color: '#374151' }}>Sauvegarder</span>
           </button>
           <button
             type="button"
@@ -294,22 +280,22 @@ export function ConfiguratorViewer({
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: stretchBlue,
+              backgroundColor: '#000000',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               whiteSpace: 'nowrap',
-              boxShadow: '0 2px 4px rgba(51, 102, 255, 0.3)'
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = stretchBlueActive;
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(51, 102, 255, 0.4)';
+              e.currentTarget.style.backgroundColor = '#1a1a1a';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = stretchBlue;
-              e.currentTarget.style.boxShadow = '0 2px 4px rgba(51, 102, 255, 0.3)';
+              e.currentTarget.style.backgroundColor = '#000000';
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
             }}
           >
             <svg
