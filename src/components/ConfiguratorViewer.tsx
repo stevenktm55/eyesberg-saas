@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { ConfiguratorLayout } from "./ConfiguratorLayout";
 
 export interface ConfiguratorViewerProps {
   modules: { id: string; name: string; icon?: string }[];
@@ -89,27 +90,23 @@ export function ConfiguratorViewer({
                 justifyContent: 'center',
                 gap: '8px',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                backgroundColor: isActive ? '#000000' : '#ffffff',
-                color: isActive ? '#ffffff' : '#000000',
-                border: isActive ? 'none' : '1px solid #e5e5e5',
-                borderRadius: '12px',
+                backgroundColor: '#3b82f6',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 fontWeight: 500,
                 fontSize: '13px',
-                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
               }}
               onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#f5f5f5';
-                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
-                }
+                e.currentTarget.style.backgroundColor = '#2563eb';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
               }}
               onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                }
+                e.currentTarget.style.backgroundColor = '#3b82f6';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
               }}
             >
               {module.icon ? (
@@ -246,18 +243,21 @@ export function ConfiguratorViewer({
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: '#ffffff',
-              border: '1px solid #000000',
-              color: '#000000',
+              backgroundColor: '#3b82f6',
+              border: 'none',
+              color: '#ffffff',
               borderRadius: '8px',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f5f5f5';
+              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
             }}
           >
             <svg
@@ -268,8 +268,12 @@ export function ConfiguratorViewer({
               style={{ flexShrink: 0 }}
             >
               <path
-                d="M4 3a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V7.83a2 2 0 0 0-.59-1.41l-2.83-2.83A2 2 0 0 0 13.17 3H4zm3 2h4v3H7V5zm2 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-                fill="currentColor"
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-4 4m0 0l-4-4m4 4V4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
               />
             </svg>
             <span>Sauvegarder</span>
@@ -286,19 +290,22 @@ export function ConfiguratorViewer({
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              backgroundColor: '#000000',
+              backgroundColor: '#3b82f6',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#333333';
+              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#000000';
+              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
             }}
           >
             <svg
