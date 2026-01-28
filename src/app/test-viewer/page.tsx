@@ -9,6 +9,7 @@ type Module = ConfiguratorViewerProps["modules"][number];
 
 export default function TestViewerPage() {
   const [activeTab, setActiveTab] = useState<string>("design");
+  const [isMobileView, setIsMobileView] = useState(false);
   const [modules, setModules] = useState<Module[]>([
     { id: "design", name: "Design" },
     { id: "colors", name: "Couleur" },
@@ -26,15 +27,12 @@ export default function TestViewerPage() {
     }
   }, [modules, activeTab]);
 
-  const handleAddShape = () => {
-    // N'ajoute le module "Forme" qu'une seule fois
+  const addModule = (id: string, name: string) => {
     setModules((prev) => {
-      if (prev.some((m) => m.id === "shape")) {
-        return prev;
-      }
-      return [...prev, { id: "shape", name: "Forme" }];
+      if (prev.some((m) => m.id === id)) return prev;
+      return [...prev, { id, name }];
     });
-    setActiveTab("shape");
+    setActiveTab(id);
   };
 
   const handleRemoveLast = () => {
@@ -78,6 +76,34 @@ export default function TestViewerPage() {
             </p>
           </div>
         );
+      case "shape":
+        return (
+          <div className="p-6 bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-lg text-center">
+            <h3 className="text-emerald-700 font-bold text-lg mb-2">Module Forme</h3>
+            <p className="text-emerald-600">Options de forme.</p>
+          </div>
+        );
+      case "logo":
+        return (
+          <div className="p-6 bg-amber-50 border-2 border-dashed border-amber-200 rounded-lg text-center">
+            <h3 className="text-amber-700 font-bold text-lg mb-2">Module Logo</h3>
+            <p className="text-amber-600">Choisir ou téléverser un logo.</p>
+          </div>
+        );
+      case "numero":
+        return (
+          <div className="p-6 bg-violet-50 border-2 border-dashed border-violet-200 rounded-lg text-center">
+            <h3 className="text-violet-700 font-bold text-lg mb-2">Module Numéro</h3>
+            <p className="text-violet-600">Saisir un numéro.</p>
+          </div>
+        );
+      case "nom":
+        return (
+          <div className="p-6 bg-cyan-50 border-2 border-dashed border-cyan-200 rounded-lg text-center">
+            <h3 className="text-cyan-700 font-bold text-lg mb-2">Module Nom</h3>
+            <p className="text-cyan-600">Saisir un nom ou texte.</p>
+          </div>
+        );
       default:
         return (
           <div className="p-6 bg-gray-50 border border-gray-200 rounded text-gray-500 text-center">
@@ -99,13 +125,13 @@ export default function TestViewerPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddShape}
-            className="w-full px-3 py-2 text-sm font-medium rounded-md bg-emerald-500 text-white hover:bg-emerald-600"
-          >
-            [+] Ajouter Question Forme
-          </button>
+          <p className="text-xs font-medium text-gray-500 mt-1 mb-0.5">Ajouter un module :</p>
+          <div className="flex flex-wrap gap-1">
+            <button type="button" onClick={() => addModule("shape", "Forme")} className="px-2 py-1.5 text-xs font-medium rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50" disabled={modules.some((m) => m.id === "shape")}>Forme</button>
+            <button type="button" onClick={() => addModule("logo", "Logo")} className="px-2 py-1.5 text-xs font-medium rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50" disabled={modules.some((m) => m.id === "logo")}>Logo</button>
+            <button type="button" onClick={() => addModule("numero", "Numéro")} className="px-2 py-1.5 text-xs font-medium rounded bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50" disabled={modules.some((m) => m.id === "numero")}>Numéro</button>
+            <button type="button" onClick={() => addModule("nom", "Nom")} className="px-2 py-1.5 text-xs font-medium rounded bg-cyan-500 text-white hover:bg-cyan-600 disabled:opacity-50" disabled={modules.some((m) => m.id === "nom")}>Nom</button>
+          </div>
 
           <button
             type="button"
@@ -114,6 +140,24 @@ export default function TestViewerPage() {
           >
             [-] Supprimer dernier
           </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileView((v) => !v)}
+            className={`w-full px-3 py-2 text-sm font-medium rounded-md ${
+              isMobileView
+                ? "bg-slate-600 text-white hover:bg-slate-700"
+                : "bg-sky-500 text-white hover:bg-sky-600"
+            }`}
+            title={isMobileView ? "Revenir en vue desktop" : "Passer en vue mobile"}
+          >
+            {isMobileView ? "🖥️ Vue desktop" : "📱 Vue mobile"}
+          </button>
+          {isMobileView && (
+            <span className="text-xs text-gray-500">
+              Affichage type téléphone (375×667)
+            </span>
+          )}
 
           <div className="mt-4 border-t border-gray-200 pt-3">
             <p className="text-xs text-gray-500 mb-1">Modules actuels :</p>
@@ -136,12 +180,23 @@ export default function TestViewerPage() {
 
         {/* Zone centrale avec le viewer */}
         <main className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-5xl h-[600px] bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div
+            className={`bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden ${
+              isMobileView
+                ? "w-[375px] h-[667px] ring-4 ring-slate-300 rounded-[2rem] border-8 border-slate-800"
+                : "w-full max-w-5xl h-[600px]"
+            }`}
+            style={
+              isMobileView
+                ? { boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }
+                : undefined
+            }
+          >
             <ConfiguratorViewer
               modules={modules}
               activeTab={activeTab}
               onTabChange={setActiveTab}
-              // C'EST ICI QUE LA MAGIE OPÈRE :
+              mobile={isMobileView}
               panelContent={renderPanelContent()}
               canvasContent={
                 <div className="w-full h-full bg-slate-800 flex items-center justify-center text-white text-sm">

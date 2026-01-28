@@ -1300,6 +1300,14 @@ export default function ProductBuilderPage() {
           if (htmlEl.classList.contains('color-circle-button')) {
             return;
           }
+          // Ne pas toucher aux onglets de la sidebar du ConfiguratorViewer (noir/blanc/hover gris géré par le viewer)
+          if (htmlEl.classList.contains('cv-sidebar-tab')) {
+            return;
+          }
+          // Ne pas toucher aux boutons Sauvegarder / Ajouter au panier de la barre d'actions du viewer
+          if (htmlEl.closest('.cv-actions-bar')) {
+            return;
+          }
           
           const buttonTitle = htmlEl.getAttribute('title') || '';
           if (buttonTitle === 'Vue ordinateur' || buttonTitle === 'Vue téléphone') {

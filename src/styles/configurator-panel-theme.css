@@ -110,8 +110,8 @@
    Style Tailwind moderne avec ombres et effets hover
    ============================================ */
 /* Tous les boutons dans le panel - Style de base */
-/* EXCLURE les boutons de couleurs qui ont leur propre backgroundColor */
-.configurator-panel button:not(.color-circle-button) {
+/* EXCLURE les boutons de couleurs + les onglets sidebar + les boutons barre d'actions (cv-*) du ConfiguratorViewer */
+.configurator-panel button:not(.color-circle-button):not(.cv-sidebar-tab):not(.cv-btn-save):not(.cv-btn-add-cart) {
   font-family: var(--config-panel-font-family) !important;
   border-radius: var(--config-panel-radius-md) !important;
   transition: all 0.2s ease !important;
@@ -499,6 +499,18 @@
 .configurator-panel-modal *,
 .zone-selection-modal-content * {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* ============================================
+   Barre d'actions ConfiguratorViewer (Sauvegarder / Ajouter au panier)
+   Police non italique, plus grasse
+   ============================================ */
+.configurator-panel .cv-actions-bar .cv-btn-save,
+.configurator-panel .cv-actions-bar .cv-btn-add-cart,
+.configurator-panel .cv-actions-bar .cv-btn-save *,
+.configurator-panel .cv-actions-bar .cv-btn-add-cart * {
+  font-style: normal !important;
+  font-weight: 600 !important;
 }
 
 /* ============================================

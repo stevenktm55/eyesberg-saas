@@ -2,6 +2,7 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { usePathname } from "next/navigation";
 import "./globals.css";
 // stepn-theme.css et configurator-panel-theme.css sont maintenant importés via @import dans globals.css
 // pour s'assurer qu'ils sont bundlés par Next.js (les imports dans "use client" ne sont pas bundlés correctement)
@@ -26,13 +27,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname() ?? "";
+  // stepn-theme = identité STEPN. Ne jamais le charger quand ConfiguratorViewer est affiché :
+  // /configure (configurateur client) et …/admin/products/new (éditeur produit avec viewer).
+  const hasConfiguratorViewer =
+    pathname.startsWith("/configure") || pathname.includes("products/new");
+  const loadStepnTheme = !hasConfiguratorViewer;
   return (
     <html lang="fr">
       <head>
-        {/* Charger stepn-theme.css et configurator-panel-theme.css directement via link car @import dans globals.css ne fonctionne pas */}
-        {/* IMPORTANT: stepn-theme.css en premier, puis configurator-panel-theme.css pour qu'il puisse surcharger */}
-        <link rel="stylesheet" href="/styles/stepn-theme.css" />
-        <link rel="stylesheet" href="/styles/configurator-panel-theme.css?v=20250115-theme1-ultra" />
+        {loadStepnTheme && (
+          <link rel="stylesheet" href="/styles/stepn-theme.css" />
+        )}
+        <link rel="stylesheet" href="/styles/configurator-panel-theme.css?v=20260127-no-italic" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* Précharger Inter depuis le serveur local */}

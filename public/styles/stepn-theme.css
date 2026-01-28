@@ -354,7 +354,7 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   margin: 0 !important;
 }
 
-/* Textes avec spécificité plus élevée que les sélecteurs généraux stepn */
+/* Textes et boutons avec spécificité plus élevée que les sélecteurs généraux stepn */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
@@ -362,7 +362,8 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
 .configurator-panel div,
 .configurator-panel li,
 .configurator-panel ul,
-.configurator-panel ol {
+.configurator-panel ol,
+.configurator-panel button {
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   color: #111827 !important;
   font-weight: normal !important;
@@ -566,14 +567,15 @@ button[style*="#8eff36"] > span:not(.configurator-panel span) {
   margin: 0 !important;
 }
 
-/* Textes - Surcharge stepn-theme.css */
+/* Textes et boutons - Surcharge stepn-theme.css */
 .configurator-panel p,
 .configurator-panel span,
 .configurator-panel label,
 .configurator-panel div,
 .configurator-panel li,
 .configurator-panel ul,
-.configurator-panel ol {
+.configurator-panel ol,
+.configurator-panel button {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text-primary) !important;
   font-weight: normal !important;
