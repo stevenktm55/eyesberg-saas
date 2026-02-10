@@ -5866,10 +5866,11 @@ export default function ProductBuilderPage() {
                             }
                             
                             // Vue principale de la bibliothèque
-                            // Récupérer toutes les bibliothèques sélectionnées
-                            const selectedLibraries = logoLibraries.filter(l => 
-                              activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
-                            );
+                            // Récupérer les bibliothèques à afficher (si aucune sélection = toutes)
+                            const libIds = activeModule.selectedItems?.logoLibraryIds;
+                            const selectedLibraries = libIds?.length
+                              ? logoLibraries.filter(l => libIds.includes(l.id))
+                              : logoLibraries;
                             
                             // Récupérer tous les logos de toutes les bibliothèques sélectionnées
                             const allLogos: any[] = [];
@@ -7166,10 +7167,11 @@ export default function ProductBuilderPage() {
                                   }
                                 }
                                 
-                                // Récupérer les bibliothèques de logos sélectionnées
-                                const selectedLibraries = logoLibraries.filter(l => 
-                                  activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
-                                );
+                                // Bibliothèques à afficher (si aucune sélection = toutes)
+                                const libIds = activeModule.selectedItems?.logoLibraryIds;
+                                const selectedLibraries = libIds?.length
+                                  ? logoLibraries.filter(l => libIds.includes(l.id))
+                                  : logoLibraries;
                                 
                                 // Récupérer tous les logos de toutes les bibliothèques sélectionnées
                                 const allLogos: any[] = [];
@@ -10440,6 +10442,17 @@ export default function ProductBuilderPage() {
 
               {selectedModule.contentType === 'logos' && (
                 <>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#8eff36',
+                    marginBottom: '16px',
+                    fontFamily: CONFIGURATOR_PANEL_FONT,
+                    paddingBottom: '8px',
+                    borderBottom: '1px solid #2a2a2a'
+                  }}>
+                    Réglages du module Logo
+                  </div>
                   {/* Mode de placement */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{
@@ -10783,7 +10796,7 @@ export default function ProductBuilderPage() {
                       fontFamily: CONFIGURATOR_PANEL_FONT,
                       fontWeight: '600'
                     }}>
-                      📷 Vues de caméra personnalisées
+                      📷 Labels de vues à afficher
                     </label>
                     
                     <p style={{
@@ -10793,7 +10806,7 @@ export default function ProductBuilderPage() {
                       lineHeight: '1.5',
                       fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
-                      Sélectionnez les vues créées dans le modèle 3D et associez-les à des labels pour les afficher dans le builder client.
+                      Choisissez quelles vues du modèle 3D afficher (ex: Torse, Dos). Associez un label à chaque vue pour le configurateur.
                     </p>
 
                     {(() => {
@@ -11038,7 +11051,7 @@ export default function ProductBuilderPage() {
                     })()}
                   </div>
 
-                  {/* Bibliothèques de logos */}
+                  {/* Bibliothèque(s) de logos à afficher */}
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{
                       display: 'block',
@@ -11047,8 +11060,16 @@ export default function ProductBuilderPage() {
                       marginBottom: '8px',
                       fontFamily: CONFIGURATOR_PANEL_FONT
                     }}>
-                      Bibliothèques de logos
+                      Bibliothèque(s) de logos à afficher
                     </label>
+                    <p style={{
+                      fontSize: '11px',
+                      color: '#666',
+                      marginBottom: '8px',
+                      fontFamily: CONFIGURATOR_PANEL_FONT
+                    }}>
+                      Si aucune n'est cochée, toutes les bibliothèques sont affichées.
+                    </p>
                     <div style={{
                       maxHeight: '200px',
                       overflowY: 'auto',
