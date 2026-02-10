@@ -33,12 +33,12 @@
   color: #111827 !important;
 }
 
-/* Surcharge seulement les éléments texte qui ont des problèmes avec stepn-theme */
-.configurator-panel p,
-.configurator-panel span,
-.configurator-panel div,
-.configurator-panel label,
-.configurator-panel * {
+/* Surcharge seulement les éléments texte qui ont des problèmes avec stepn-theme (sauf .cv-font-preview pour les aperçus de police) */
+.configurator-panel p:not(.cv-font-preview),
+.configurator-panel span:not(.cv-font-preview),
+.configurator-panel div:not(.cv-font-preview),
+.configurator-panel label:not(.cv-font-preview),
+.configurator-panel *:not(.cv-font-preview) {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
@@ -46,11 +46,16 @@
   -webkit-text-stroke-color: transparent !important;
 }
 
-/* Règle très agressive pour forcer Inter sur TOUS les éléments, même avec styles inline */
-.configurator-panel *[style*="fontFamily"],
-.configurator-panel *[style*="font-family"],
-.configurator-panel *[style*="FontFamily"] {
+/* Forcer Inter sauf pour les aperçus de police personnalisés (module texte) */
+.configurator-panel *[style*="fontFamily"]:not(.cv-font-preview),
+.configurator-panel *[style*="font-family"]:not(.cv-font-preview),
+.configurator-panel *[style*="FontFamily"]:not(.cv-font-preview) {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Ne jamais forcer la police sur les aperçus (la font vient du style inline + @font-face chargé par la page) */
+.configurator-panel .cv-font-preview {
+  /* pas de font-family ici : le style inline du composant doit gagner */
 }
 
 /* ============================================
@@ -71,7 +76,7 @@
   /* Inputs - Style Tailwind moderne */
   --config-panel-input-bg: #ffffff;
   --config-panel-input-border: #d1d5db;
-  --config-panel-input-border-focus: #3b82f6;
+  --config-panel-input-border-focus: #000000;
   
   /* Boutons - Style Tailwind moderne avec ombres douces */
   --config-panel-button-primary-bg: #3b82f6;
@@ -151,15 +156,16 @@
 
 /* ============================================
    TEXTES - Surcharge stepn-theme.css ligne 127
+   SAUF .cv-font-preview (aperçus de polices dans les cartes du module Texte)
    ============================================ */
-.configurator-panel p,
-.configurator-panel span,
-.configurator-panel label,
-.configurator-panel a,
-.configurator-panel div,
-.configurator-panel li,
-.configurator-panel ul,
-.configurator-panel ol {
+.configurator-panel p:not(.cv-font-preview),
+.configurator-panel span:not(.cv-font-preview),
+.configurator-panel label:not(.cv-font-preview),
+.configurator-panel a:not(.cv-font-preview),
+.configurator-panel div:not(.cv-font-preview),
+.configurator-panel li:not(.cv-font-preview),
+.configurator-panel ul:not(.cv-font-preview),
+.configurator-panel ol:not(.cv-font-preview) {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text-primary) !important;
   font-weight: normal !important;
@@ -459,9 +465,10 @@
 
 /* ============================================
    Surcharge globale pour tous les éléments avec fontFamily stepn dans configurator-panel
+   SAUF .cv-font-preview (aperçus de polices dans les cartes du module Texte)
    ============================================ */
-.configurator-panel [style*="fontFamily"],
-.configurator-panel [style*="font-family"] {
+.configurator-panel [style*="fontFamily"]:not(.cv-font-preview),
+.configurator-panel [style*="font-family"]:not(.cv-font-preview) {
   /* Surcharge les styles inline qui utilisent var(--stepn-font-body) */
   font-family: var(--config-panel-font-family) !important;
   -webkit-text-fill-color: inherit !important;
@@ -562,8 +569,9 @@
 }
 
 /* ConfiguratorViewer : aucune italic, police système. ID = spécificité max pour battre tout le reste */
+/* SAUF .cv-font-preview (aperçus de polices dans les cartes du module Texte) */
 #configurator-viewer-isolated-root,
-#configurator-viewer-isolated-root * {
+#configurator-viewer-isolated-root *:not(.cv-font-preview) {
   font-style: normal !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }

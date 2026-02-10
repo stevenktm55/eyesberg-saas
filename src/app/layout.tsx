@@ -1,26 +1,8 @@
 "use client";
 
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { usePathname } from "next/navigation";
 import "./globals.css";
-// stepn-theme.css et configurator-panel-theme.css sont maintenant importés via @import dans globals.css
-// pour s'assurer qu'ils sont bundlés par Next.js (les imports dans "use client" ne sont pas bundlés correctement)
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Les métadonnées ne peuvent pas être exportées dans un composant client
-// Elles seront définies dans chaque page individuellement
-
-// Navigation header supprimé - toutes les pages sont sans header
 
 export default function RootLayout({
   children,
@@ -82,9 +64,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="StretchMX configurator - customize your designs" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         {children}
       </body>
     </html>

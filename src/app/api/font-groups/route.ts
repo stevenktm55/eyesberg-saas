@@ -42,10 +42,16 @@ export async function GET(request: NextRequest) {
           console.error('Error fetching fonts for group:', fontsError);
         }
 
+        // S'assurer que chaque font a font_url pour le client (prévisualisation dans le panel)
+        const fontsWithUrl = (fonts || []).map((font: any) => ({
+          ...font,
+          font_url: font.font_url || font.file_url || font.url,
+        }));
+
         return {
           id: group.id,
           name: group.name,
-          fonts: fonts || [],
+          fonts: fontsWithUrl,
           created_at: group.created_at,
           updated_at: group.updated_at,
         };

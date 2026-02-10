@@ -36,7 +36,7 @@
   /* Inputs */
   --config-panel-input-bg: #ffffff;
   --config-panel-input-border: #d1d5db;
-  --config-panel-input-border-focus: #374151;
+  --config-panel-input-border-focus: #000000;
   --config-panel-input-text: #111827;
   
   /* Border radius - Style Tailwind moderne (plus arrondi) */
@@ -59,9 +59,9 @@
 /* ============================================
    TYPOGRAPHIE - UNIQUEMENT dans .configurator-panel
    ============================================ */
-/* Règle universelle pour TOUS les éléments dans le panel */
+/* Règle universelle pour TOUS les éléments dans le panel (sauf aperçus de police .cv-font-preview) */
 .configurator-panel,
-.configurator-panel *,
+.configurator-panel *:not(.cv-font-preview),
 .configurator-panel *::before,
 .configurator-panel *::after {
   font-family: var(--config-panel-font-family) !important;
@@ -71,33 +71,33 @@
   -webkit-text-stroke-color: transparent !important;
 }
 
-/* Forcer Inter même avec styles inline Space Grotesk */
-.configurator-panel *[style*="fontFamily"],
-.configurator-panel *[style*="font-family"],
-.configurator-panel *[style*="FontFamily"],
-.configurator-panel *[style*="Font-Family"],
-.configurator-panel *[style*="Space Grotesk"],
-.configurator-panel *[style*="space grotesk"],
-.configurator-panel *[style*="SPACE GROTESK"] {
+/* Forcer la font du panel sauf pour les aperçus de police personnalisés (module texte) */
+.configurator-panel *[style*="fontFamily"]:not(.cv-font-preview),
+.configurator-panel *[style*="font-family"]:not(.cv-font-preview),
+.configurator-panel *[style*="FontFamily"]:not(.cv-font-preview),
+.configurator-panel *[style*="Font-Family"]:not(.cv-font-preview),
+.configurator-panel *[style*="Space Grotesk"]:not(.cv-font-preview),
+.configurator-panel *[style*="space grotesk"]:not(.cv-font-preview),
+.configurator-panel *[style*="SPACE GROTESK"]:not(.cv-font-preview) {
   font-family: var(--config-panel-font-family) !important;
 }
 
-/* Éléments texte spécifiques */
-.configurator-panel h1,
-.configurator-panel h2,
-.configurator-panel h3,
-.configurator-panel h4,
-.configurator-panel h5,
-.configurator-panel h6,
-.configurator-panel p,
-.configurator-panel span,
-.configurator-panel div,
-.configurator-panel label,
-.configurator-panel li,
-.configurator-panel td,
-.configurator-panel th,
-.configurator-panel a,
-.configurator-panel button {
+/* Éléments texte spécifiques (sauf aperçus de police .cv-font-preview) */
+.configurator-panel h1:not(.cv-font-preview),
+.configurator-panel h2:not(.cv-font-preview),
+.configurator-panel h3:not(.cv-font-preview),
+.configurator-panel h4:not(.cv-font-preview),
+.configurator-panel h5:not(.cv-font-preview),
+.configurator-panel h6:not(.cv-font-preview),
+.configurator-panel p:not(.cv-font-preview),
+.configurator-panel span:not(.cv-font-preview),
+.configurator-panel div:not(.cv-font-preview),
+.configurator-panel label:not(.cv-font-preview),
+.configurator-panel li:not(.cv-font-preview),
+.configurator-panel td:not(.cv-font-preview),
+.configurator-panel th:not(.cv-font-preview),
+.configurator-panel a:not(.cv-font-preview),
+.configurator-panel button:not(.cv-font-preview) {
   font-family: var(--config-panel-font-family) !important;
   color: var(--config-panel-text) !important;
   -webkit-text-fill-color: var(--config-panel-text) !important;

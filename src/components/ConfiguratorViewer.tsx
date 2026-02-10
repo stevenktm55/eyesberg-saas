@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 
 export interface ConfiguratorViewerProps {
-  modules: { id: string; name: string; icon?: string }[];
+  modules: { id: string; name: string; icon?: string; iconUrl?: string }[];
   activeTab: string;
   onTabChange: (id: string) => void;
   panelContent?: React.ReactNode;
@@ -12,6 +12,8 @@ export interface ConfiguratorViewerProps {
   onAddToCart?: () => void;
   /** true = layout mobile avec barre du bas (onglets + actions) */
   mobile?: boolean;
+  /** Styles optionnels pour cv-mobile-sheet-content (ex: étape typographie texte) */
+  mobileSheetContentStyle?: React.CSSProperties;
 }
 
 export function ConfiguratorViewer({
@@ -23,6 +25,7 @@ export function ConfiguratorViewer({
   onSave,
   onAddToCart,
   mobile = false,
+  mobileSheetContentStyle,
 }: ConfiguratorViewerProps) {
   const activeModule = modules.find((m) => m.id === activeTab) ?? modules[0];
   const [mobileSheetOpen, setMobileSheetOpen] = React.useState(false);
@@ -158,9 +161,238 @@ export function ConfiguratorViewer({
         color: #ffffff !important;
         border: none !important;
       }
+      .configurator-viewer-isolated .cv-mobile-bottom-bar .cv-sidebar-tab.cv-sidebar-tab-active *,
+      .configurator-viewer-isolated .cv-mobile-bottom-bar .cv-sidebar-tab.cv-sidebar-tab-active span {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
+      .configurator-viewer-isolated .cv-mobile-bottom-bar .cv-sidebar-tab.cv-sidebar-tab-active path,
+      .configurator-viewer-isolated .cv-mobile-bottom-bar .cv-sidebar-tab.cv-sidebar-tab-active svg {
+        stroke: #ffffff !important;
+        fill: #ffffff !important;
+      }
       /* Masquer la scrollbar horizontale des onglets mobile */
       .configurator-viewer-isolated .cv-mobile-tabs-scroll::-webkit-scrollbar {
         display: none !important;
+      }
+      /* Jauge épaisseur contour : piste et curseur jusqu'aux extrémités, sans contour focus (override configurator-panel-theme) */
+      .configurator-viewer-isolated .cv-outline-thickness-slider,
+      .configurator-viewer-isolated .cv-outline-thickness-slider:focus,
+      .configurator-viewer-isolated .cv-outline-thickness-slider:focus-visible,
+      .configurator-viewer-isolated .cv-outline-thickness-slider:active {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 18px;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-color: transparent !important;
+      }
+      .configurator-viewer-isolated .cv-outline-thickness-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(to right, #000000 calc(var(--slider-progress, 0) * 1%), #e5e7eb calc(var(--slider-progress, 0) * 1%));
+        border-radius: 3px;
+      }
+      .configurator-viewer-isolated .cv-outline-thickness-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #000000;
+        cursor: pointer;
+        margin-top: -5px;
+      }
+      .configurator-viewer-isolated .cv-outline-thickness-slider::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .configurator-viewer-isolated .cv-outline-thickness-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #000000;
+        cursor: pointer;
+        border: none;
+      }
+      /* Jauge intensité déformation : -100 à +100, piste et curseur jusqu'aux extrémités, noir, sans contour focus */
+      .configurator-viewer-isolated .cv-deformation-intensity-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 18px;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-color: transparent !important;
+      }
+      .configurator-viewer-isolated .cv-deformation-intensity-slider:focus,
+      .configurator-viewer-isolated .cv-deformation-intensity-slider:focus-visible,
+      .configurator-viewer-isolated .cv-deformation-intensity-slider:active {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-color: transparent !important;
+      }
+      .configurator-viewer-isolated .cv-deformation-intensity-slider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(to right, #000000 calc(var(--deformation-progress, 50) * 1%), #e5e7eb calc(var(--deformation-progress, 50) * 1%));
+        border-radius: 3px;
+      }
+      .configurator-viewer-isolated .cv-deformation-intensity-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #000000;
+        cursor: pointer;
+        margin-top: -5px;
+      }
+      .configurator-viewer-isolated .cv-deformation-intensity-slider::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+      }
+      .configurator-viewer-isolated .cv-deformation-intensity-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #000000;
+        cursor: pointer;
+        border: none;
+      }
+      /* Onglets module texte mobile : une seule ligne, scroll horizontal sans scrollbar */
+      .configurator-viewer-isolated .cv-text-tabs-mobile::-webkit-scrollbar {
+        display: none !important;
+      }
+      /* Bouton type de déformation : bordure visible, angles arrondis */
+      .configurator-viewer-isolated .cv-deformation-type-btn {
+        border: 1px solid #d1d5db !important;
+        border-radius: 12px !important;
+      }
+      /* Boutons mode couleur (Couleur unie, Dégradé, Couleur 1/2, direction) : angles arrondis, contour visible inactif, noir actif */
+      .configurator-viewer-isolated .cv-couleur-mode-btn {
+        border-radius: 12px !important;
+        border: 1px solid #d1d5db !important;
+        background-color: #f9fafb !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+      }
+      .configurator-viewer-isolated .cv-couleur-mode-btn.cv-couleur-mode-btn-active {
+        border: 2px solid #111827 !important;
+        background-color: #e5e7eb !important;
+      }
+      /* Bouton de fermeture du sheet mobile */
+      .configurator-viewer-isolated .cv-mobile-sheet .cv-mobile-close {
+        background-color: transparent !important;
+        border-radius: 8px !important;
+        border: 1px solid #d1d5db !important;
+      }
+      .configurator-viewer-isolated .cv-mobile-sheet .cv-mobile-close svg {
+        stroke: #000000 !important;
+      }
+      /* Bouton "Ajouter un logo" / "Importer un logo" dans le panneau Logo : texte toujours blanc */
+      .configurator-viewer-isolated .cv-panel-add-logo-btn,
+      .configurator-viewer-isolated .cv-panel-add-logo-btn * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-weight: 600 !important;
+      }
+      /* Bibliothèque de logos : forcer le scroll dans la grille */
+      .configurator-viewer-isolated .logo-library-container {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .configurator-viewer-isolated .logo-library-content {
+        overflow: hidden !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .configurator-viewer-isolated .logo-library-grid {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+      }
+      /* Forcer la hauteur maximale quand la bibliothèque est active */
+      .configurator-viewer-isolated .logo-library-active .logo-library-grid {
+        max-height: 100% !important;
+        overflow-y: auto !important;
+      }
+      /* S'assurer que le conteneur de scroll ne s'agrandit pas */
+      .configurator-viewer-isolated .cv-panel-scroll-container {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+      }
+      /* Quand la bibliothèque est ouverte, forcer la hauteur */
+      .configurator-viewer-isolated .cv-panel-scroll-container.logo-library-active {
+        overflow: hidden !important;
+        overflow-y: hidden !important;
+        flex: none !important;
+      }
+      /* Forcer la hauteur du bloc gauche quand la bibliothèque est active */
+      .configurator-viewer-isolated.has-logo-library .cv-left-block {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+      }
+      .configurator-viewer-isolated.has-logo-library .cv-left-block > div:first-of-type {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+      }
+      .configurator-viewer-isolated.has-logo-library .cv-left-block > section {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+      }
+      /* S'assurer que le footer reste en bas */
+      .configurator-viewer-isolated .cv-left-block {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        overflow: hidden !important;
+      }
+      .configurator-viewer-isolated .cv-left-block > div:first-of-type {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+      .configurator-viewer-isolated .cv-actions-bar {
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+      }
+      /* Mobile sheet : 8px de padding quand la bibliothèque de logos est affichée */
+      .configurator-viewer-isolated .cv-mobile-sheet-content:has(.logo-library-container) {
+        padding: 8px !important;
+      }
+      /* Inputs : bordure noire au focus (remplace le bleu par défaut) */
+      .configurator-viewer-isolated input[type="text"]:focus,
+      .configurator-viewer-isolated input[type="search"]:focus,
+      .configurator-viewer-isolated input[type="email"]:focus,
+      .configurator-viewer-isolated textarea:focus {
+        outline: none !important;
+        border-color: #000000 !important;
+        box-shadow: 0 0 0 1px #000000 !important;
       }
     `;
     document.head.appendChild(style);
@@ -170,6 +402,219 @@ export function ConfiguratorViewer({
       if (existing) existing.remove();
     };
   }, []);
+
+  // Détecter la bibliothèque de logos et ajuster le comportement du scroll
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (mobile) return; // Pas besoin sur mobile
+    
+    const updateScrollContainer = () => {
+      if (!scrollContainerRef.current) return;
+      
+      const scrollContainer = scrollContainerRef.current;
+      const root = document.getElementById('configurator-viewer-isolated-root');
+      if (!root) return;
+      
+      const logoLibraryContainer = root.querySelector('.logo-library-container');
+      const panelSection = scrollContainer.closest('section');
+      const leftBlock = root.querySelector('.cv-left-block');
+      const actionsBar = root.querySelector('.cv-actions-bar');
+      const header = root.querySelector('.cv-panel-header') as HTMLElement;
+      
+      if (!panelSection || !leftBlock || !actionsBar) return;
+      
+      // Calculer la hauteur disponible (header ciblé via .cv-panel-header)
+      const leftBlockRect = leftBlock.getBoundingClientRect();
+      
+      if (!header) return;
+      
+      const headerRect = header.getBoundingClientRect();
+      const actionsRect = actionsBar.getBoundingClientRect();
+      
+      // Hauteur totale du bloc gauche
+      const leftBlockHeight = leftBlockRect.height;
+      // Hauteur du header
+      const headerHeight = headerRect.height;
+      // Hauteur du footer
+      const actionsHeight = actionsRect.height;
+      
+      // Hauteur disponible pour le contenu scrollable
+      const availableHeight = leftBlockHeight - headerHeight - actionsHeight;
+      
+      if (logoLibraryContainer) {
+        // Ajouter une classe au root pour le ciblage CSS
+        root.classList.add('has-logo-library');
+        
+        // Bibliothèque ouverte : forcer la hauteur sur le bloc gauche et le section parent
+        const rootRect = root.getBoundingClientRect();
+        const rootHeight = rootRect.height;
+        
+        leftBlock.style.height = `${rootHeight}px`;
+        leftBlock.style.maxHeight = `${rootHeight}px`;
+        leftBlock.style.overflow = 'hidden';
+        
+        panelSection.style.height = `${rootHeight}px`;
+        panelSection.style.maxHeight = `${rootHeight}px`;
+        panelSection.style.overflow = 'hidden';
+        
+        // Bibliothèque ouverte : désactiver le scroll du conteneur parent
+        scrollContainer.classList.add('logo-library-active');
+        scrollContainer.style.overflow = 'hidden';
+        scrollContainer.style.overflowY = 'hidden';
+        scrollContainer.style.padding = '0';
+        scrollContainer.style.height = `${availableHeight}px`;
+        scrollContainer.style.maxHeight = `${availableHeight}px`;
+        scrollContainer.style.minHeight = `${availableHeight}px`;
+        scrollContainer.style.flex = 'none';
+        scrollContainer.style.boxSizing = 'border-box';
+        scrollContainer.style.position = 'relative';
+        
+        // Forcer aussi la hauteur sur le conteneur de la bibliothèque
+        const libraryContent = logoLibraryContainer.querySelector('.logo-library-content') as HTMLElement;
+        const libraryGrid = logoLibraryContainer.querySelector('.logo-library-grid') as HTMLElement;
+        
+        if (libraryContent && libraryGrid) {
+          // Utiliser getBoundingClientRect pour des mesures précises
+          const headerEl = logoLibraryContainer.querySelector('div[style*="padding"]:first-of-type') as HTMLElement;
+          const importButton = logoLibraryContainer.querySelector('.cv-panel-add-logo-btn') as HTMLElement;
+          const searchInput = libraryContent.querySelector('input') as HTMLElement;
+          
+          if (headerEl && importButton && searchInput) {
+            const headerRect = headerEl.getBoundingClientRect();
+            const buttonRect = importButton.getBoundingClientRect();
+            const searchRect = searchInput.getBoundingClientRect();
+            
+            // Calculer la hauteur disponible pour la grille
+            const usedHeight = headerRect.height + buttonRect.height + searchRect.height;
+            const contentPadding = parseFloat(getComputedStyle(libraryContent).paddingTop) + parseFloat(getComputedStyle(libraryContent).paddingBottom);
+            const gaps = 8 + 8; // gap du container + gap du content
+            
+            const gridAvailableHeight = availableHeight - usedHeight - contentPadding - gaps;
+            
+            if (gridAvailableHeight > 0) {
+              libraryGrid.style.height = `${gridAvailableHeight}px`;
+              libraryGrid.style.maxHeight = `${gridAvailableHeight}px`;
+              libraryGrid.style.minHeight = '0';
+              libraryGrid.style.overflowY = 'auto';
+              libraryGrid.style.overflowX = 'hidden';
+            }
+          }
+        }
+      } else {
+        // Retirer la classe du root
+        root.classList.remove('has-logo-library');
+        
+        // Bibliothèque fermée : remettre les styles normaux
+        leftBlock.style.height = '';
+        leftBlock.style.maxHeight = '';
+        leftBlock.style.overflow = '';
+        
+        panelSection.style.height = '';
+        panelSection.style.maxHeight = '';
+        panelSection.style.overflow = '';
+        
+        // Bibliothèque fermée : scroll normal
+        scrollContainer.classList.remove('logo-library-active');
+        scrollContainer.style.overflow = 'auto';
+        scrollContainer.style.overflowY = 'auto';
+        scrollContainer.style.padding = '0 4px 24px';
+        scrollContainer.style.height = '';
+        scrollContainer.style.maxHeight = '';
+        scrollContainer.style.minHeight = '';
+        scrollContainer.style.flex = '1 1 0%';
+        scrollContainer.style.boxSizing = '';
+        scrollContainer.style.position = '';
+      }
+    };
+    
+    // Vérifier immédiatement et après plusieurs délais pour s'assurer que le DOM est prêt
+    updateScrollContainer();
+    const timeoutId = setTimeout(updateScrollContainer, 50);
+    const timeoutId2 = setTimeout(updateScrollContainer, 150);
+    const timeoutId3 = setTimeout(updateScrollContainer, 300);
+    const timeoutId4 = setTimeout(updateScrollContainer, 500);
+    const timeoutId5 = setTimeout(updateScrollContainer, 800);
+    const timeoutId6 = setTimeout(updateScrollContainer, 1200);
+    
+    // Observer les changements de taille et de contenu
+    const resizeObserver = new ResizeObserver(() => {
+      updateScrollContainer();
+    });
+    
+    const mutationObserver = new MutationObserver(() => {
+      updateScrollContainer();
+    });
+    
+    if (scrollContainerRef.current) {
+      const root = document.getElementById('configurator-viewer-isolated-root');
+      const leftBlock = root?.querySelector('.cv-left-block');
+      const actionsBar = root?.querySelector('.cv-actions-bar');
+      
+      if (leftBlock) resizeObserver.observe(leftBlock);
+      if (actionsBar) resizeObserver.observe(actionsBar);
+      
+      mutationObserver.observe(scrollContainerRef.current, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+      clearTimeout(timeoutId4);
+      clearTimeout(timeoutId5);
+      clearTimeout(timeoutId6);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      if (scrollContainerRef.current) {
+        const root = document.getElementById('configurator-viewer-isolated-root');
+        const leftBlock = root?.querySelector('.cv-left-block') as HTMLElement;
+        const panelSection = scrollContainerRef.current.closest('section');
+        
+        if (root) {
+          root.classList.remove('has-logo-library');
+        }
+        
+        if (leftBlock) {
+          leftBlock.style.height = '';
+          leftBlock.style.maxHeight = '';
+          leftBlock.style.overflow = '';
+        }
+        
+        if (panelSection) {
+          panelSection.style.height = '';
+          panelSection.style.maxHeight = '';
+          panelSection.style.overflow = '';
+        }
+        
+        scrollContainerRef.current.classList.remove('logo-library-active');
+        scrollContainerRef.current.style.overflow = 'auto';
+        scrollContainerRef.current.style.overflowY = 'auto';
+        scrollContainerRef.current.style.padding = '0 4px 24px';
+        scrollContainerRef.current.style.height = '';
+        scrollContainerRef.current.style.maxHeight = '';
+        scrollContainerRef.current.style.minHeight = '';
+        scrollContainerRef.current.style.flex = '1 1 0%';
+        scrollContainerRef.current.style.boxSizing = '';
+        scrollContainerRef.current.style.position = '';
+        
+        // Restaurer les styles de la grille si elle existe
+        if (root) {
+          const libraryGrid = root.querySelector('.logo-library-grid') as HTMLElement;
+          if (libraryGrid) {
+            libraryGrid.style.height = '';
+            libraryGrid.style.maxHeight = '';
+            libraryGrid.style.minHeight = '';
+            libraryGrid.style.overflowY = '';
+            libraryGrid.style.overflowX = '';
+          }
+        }
+      }
+    };
+  }, [panelContent, mobile]);
 
   // Layout mobile : barre du bas (onglets + Sauvegarder / Ajouter au panier)
   if (mobile) {
@@ -190,7 +635,7 @@ export function ConfiguratorViewer({
           position: 'relative',
         }}
       >
-        {/* Zone 3D en haut, prend tout l’espace au-dessus de la barre */}
+        {/* Zone 3D en haut, prend tout l'espace au-dessus de la barre */}
         <section
           style={{
             flex: 1,
@@ -338,53 +783,55 @@ export function ConfiguratorViewer({
                       style={{
                         flex: `0 0 ${tabWidthValue}`,
                         minWidth: tabWidthValue,
-                      height: '48px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '2px',
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      backgroundColor: isActive ? '#000000' : '#ffffff',
-                      color: isActive ? '#ffffff' : '#000000',
-                      border: isActive ? 'none' : '1px solid #d1d5db',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      fontWeight: 500,
-                      fontSize: '11px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    {module.icon ? (
-                      <span style={{ fontSize: '18px', lineHeight: 1 }}>{module.icon}</span>
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: '16px',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          color: isActive ? '#ffffff' : '#000000',
-                        }}
-                      >
-                        {module.name[0]}
-                      </span>
-                    )}
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 500,
+                        height: '48px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '2px',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        backgroundColor: isActive ? '#000000' : '#ffffff',
                         color: isActive ? '#ffffff' : '#000000',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '100%',
+                        border: isActive ? 'none' : '1px solid #d1d5db',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '11px',
+                        boxSizing: 'border-box',
                       }}
                     >
-                      {module.name}
-                    </span>
-                  </button>
-                );
-              })}
+                      {module.iconUrl ? (
+                        <img src={module.iconUrl} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: isActive ? 'brightness(0) invert(1)' : 'none' }} />
+                      ) : module.icon ? (
+                        <span style={{ fontSize: '18px', lineHeight: 1 }}>{module.icon}</span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            color: isActive ? '#ffffff' : '#000000',
+                          }}
+                        >
+                          {module.name[0]}
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 500,
+                          color: isActive ? '#ffffff' : '#000000',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {module.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -512,27 +959,45 @@ export function ConfiguratorViewer({
                 </h3>
                 <button
                   type="button"
+                  className="cv-mobile-close"
                   onClick={() => setMobileSheetOpen(false)}
                   style={{
-                    padding: '8px 12px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: '#374151',
-                    background: 'none',
-                    border: 'none',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: '#e5e7eb',
+                    border: '1px solid #d1d5db',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     cursor: 'pointer',
                   }}
                 >
-                  Fermer
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
               <div
-                style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflow: 'auto',
-                  padding: '16px',
-                }}
+                className="cv-mobile-sheet-content"
+                style={
+                  mobileSheetContentStyle ?? {
+                    flex: 1,
+                    minHeight: 0,
+                    overflow: "auto",
+                    padding: "16px",
+                  }
+                }
               >
                 {panelContent || (
                   <div style={{ color: '#999999', fontSize: '14px' }}>
@@ -571,7 +1036,8 @@ export function ConfiguratorViewer({
           display: 'flex',
           flexDirection: 'column',
           width: '500px',
-          minWidth: '500px',
+          minWidth: '400px',
+          maxWidth: '600px',
           flexShrink: 0,
           height: '100%',
           overflow: 'hidden'
@@ -632,7 +1098,9 @@ export function ConfiguratorViewer({
                 textAlign: 'center'
               }}
             >
-              {module.icon ? (
+              {module.iconUrl ? (
+                <img src={module.iconUrl} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', display: 'flex', filter: isActive ? 'brightness(0) invert(1)' : 'none' }} />
+              ) : module.icon ? (
                 <span
                   style={{ 
                     fontSize: '22px',
@@ -682,19 +1150,25 @@ export function ConfiguratorViewer({
       <section 
         style={{ 
           backgroundColor: '#ffffff',
-          width: '420px',
-          minWidth: '420px',
+          width: '100%',
+          minWidth: '320px',
           display: 'flex',
           flexDirection: 'column',
-          borderRight: '1px solid #e5e5e5'
+          borderRight: '1px solid #e5e5e5',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden'
         }}
       >
-        {/* Header avec titre */}
+        {/* Header avec titre — cv-panel-header pour le ciblage du layout logo */}
         <div 
+          className="cv-panel-header"
+          data-cv="panel-header"
           style={{ 
-            padding: '28px 32px',
+            padding: '28px 24px',
             backgroundColor: '#ffffff',
-            borderBottom: 'none'
+            borderBottom: '1px solid #e5e5e5',
+            flexShrink: 0
           }}
         >
           <h2 
@@ -714,11 +1188,17 @@ export function ConfiguratorViewer({
 
         {/* Contenu défilant */}
         <div 
-          className="flex-1 overflow-auto"
+          ref={scrollContainerRef}
+          className="flex-1 overflow-auto cv-panel-scroll-container"
           style={{ 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            color: '#000000',
-            padding: '0 32px 24px 32px'
+            color: 'rgb(0, 0, 0)',
+            padding: '0 4px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: '1 1 0%',
+            overflow: 'auto',
+            minHeight: 0
           }}
         >
           {panelContent || (

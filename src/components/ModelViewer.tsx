@@ -369,10 +369,14 @@ function SimpleViewer({
         // Mark font as loading
         loadingFontsRef.current.add(font.id);
         
-        // console.log('📝 Loading font:', font.display_name, 'URL:', font.font_url);
+        // Resolve relative URLs to absolute so fetch works (e.g. from admin with /uploads/...)
+        let fontUrl = font.font_url;
+        if (fontUrl && typeof window !== 'undefined' && !fontUrl.startsWith('http://') && !fontUrl.startsWith('https://')) {
+          fontUrl = window.location.origin + (fontUrl.startsWith('/') ? fontUrl : '/' + fontUrl);
+        }
         
         // Load font file as blob
-        const response = await fetch(font.font_url);
+        const response = await fetch(fontUrl || font.font_url);
         if (!response.ok) {
           console.error('❌ Failed to load font:', font.display_name, 'Status:', response.status);
           loadingFontsRef.current.delete(font.id);
@@ -1901,6 +1905,14 @@ function SimpleViewer({
       }
     }
     
+    // Resolve font by id, display_name, or name (text.fontFamily may be set from TextModulePanel as display_name)
+    const findFontForFamily = (fontFamilyValue: string | undefined) => {
+      if (!fontFamilyValue || !fonts?.length) return undefined;
+      return fonts.find((f: { id: string; display_name?: string; name?: string }) =>
+        f.id === fontFamilyValue || f.display_name === fontFamilyValue || (f.name && f.name === fontFamilyValue)
+      );
+    };
+
     function redrawAllTexts() {
       const ctx = ctxRef.current;
       const overlayTex = overlayTexRef.current;
@@ -1942,8 +1954,8 @@ function SimpleViewer({
       let pendingFonts = false;
       
       textsRef.current.forEach(text => {
-        // Get font info
-        const font = fonts.find(f => f.id === text.fontFamily);
+        // Get font info (by id or display_name, since TextModulePanel stores display_name as fontFamily)
+        const font = findFontForFamily(text.fontFamily);
         const baseFontSize = text.fontSize || 700;
         
         // Apply scale factor like logos (0.5 to match zone sizes)
@@ -1955,7 +1967,7 @@ function SimpleViewer({
         let fontIsReady = false;
         if (fonts.length > 0) {
           if (text.fontFamily) {
-            const fm = fonts.find(f => f.id === text.fontFamily);
+            const fm = findFontForFamily(text.fontFamily);
             if (fm) {
             fontIsReady = document.fonts.check(`12px "${fm.display_name}"`);
               if (fontIsReady) measureFontFamily = fm.display_name;
@@ -1974,7 +1986,7 @@ function SimpleViewer({
         }
         if (!fontIsReady) {
           // Proactively request load for this specific font, then redraw
-          const target = text.fontFamily ? fonts.find(f => f.id === text.fontFamily) : (fonts && fonts[0]);
+          const target = text.fontFamily ? findFontForFamily(text.fontFamily) : (fonts && fonts[0]);
           if (target) {
             try { document.fonts.load(`12px "${target.display_name}"`); } catch {}
           }
@@ -2301,8 +2313,8 @@ function SimpleViewer({
       if (selectedTextIdRef.current) {
         const selectedText = textsRef.current.find(t => t.id === selectedTextIdRef.current);
         if (selectedText) {
-          // Get font info
-          const font = fonts.find(f => f.id === selectedText.fontFamily);
+          // Get font info (by id or display_name)
+          const font = findFontForFamily(selectedText.fontFamily);
           const baseFontSize = selectedText.fontSize || 700;
           
           // Apply scale factor like text rendering
@@ -2311,7 +2323,7 @@ function SimpleViewer({
           
           // Set font and measure BEFORE drawing
           let bboxFontFamily = 'Arial';
-          const bboxFont = selectedText.fontFamily ? fonts.find(f => f.id === selectedText.fontFamily) : null;
+          const bboxFont = selectedText.fontFamily ? findFontForFamily(selectedText.fontFamily) : null;
           if (bboxFont) {
             const fontReady = document.fonts.check(`12px "${bboxFont.display_name}"`);
             if (fontReady) {
@@ -2733,9 +2745,9 @@ function SimpleViewer({
       let textWidth, textHeight;
       const ctx = ctxRef.current;
       if (ctx) {
-        // Use the same font detection logic as bounding box drawing
+        // Use the same font detection logic as bounding box drawing (by id or display_name)
         let measureFontFamily = 'Arial';
-        const measureFont = selectedText.fontFamily ? fonts.find(f => f.id === selectedText.fontFamily) : null;
+        const measureFont = selectedText.fontFamily ? findFontForFamily(selectedText.fontFamily) : null;
         if (measureFont) {
           const fontReady = document.fonts.check(`12px "${measureFont.display_name}"`);
           if (fontReady) {
