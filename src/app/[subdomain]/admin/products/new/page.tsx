@@ -3240,13 +3240,29 @@ export default function ProductBuilderPage() {
   );
 
   return (
-    <div style={{ 
+    <div
+      id="admin-product-new-page"
+      style={{ 
       minHeight: '100vh', 
       backgroundColor: '#000000', // Background principal reste noir
       display: 'flex',
       fontFamily: CONFIGURATOR_PANEL_FONT,
       flexDirection: 'column'
     }}>
+      {/* Inputs / selects / labels en blanc partout sauf dans le configurator-panel */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        #admin-product-new-page input,
+        #admin-product-new-page select,
+        #admin-product-new-page textarea,
+        #admin-product-new-page label { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+        #admin-product-new-page input::placeholder { color: rgba(255,255,255,0.6) !important; }
+        #admin-product-new-page select option { background: #1a1a1a; color: #ffffff !important; }
+        #admin-product-new-page .configurator-panel input,
+        #admin-product-new-page .configurator-panel select,
+        #admin-product-new-page .configurator-panel textarea,
+        #admin-product-new-page .configurator-panel label { color: #111827 !important; -webkit-text-fill-color: #111827 !important; }
+        #admin-product-new-page .configurator-panel input::placeholder { color: #6b7280 !important; }
+      ` }} />
       {/* Animations CSS pour le mobile */}
       <style jsx global>{`
         @keyframes slideUp {
@@ -5245,6 +5261,18 @@ export default function ProductBuilderPage() {
           enabledDeformationIds: textModule.textEnabledDeformations?.length ? textModule.textEnabledDeformations : undefined,
           addTextLabel: textModule.addTextButtonLabel || "Ajouter un texte",
           placedTextsLabel: textModule.placedTextsLabel || "Textes ajoutés",
+          strokeMinWidthPx: (() => {
+            let minPx = Number(textModule.textStrokeMinWidth ?? 0);
+            if (!Number.isFinite(minPx) || minPx < 0) minPx = 0;
+            return minPx;
+          })(),
+          strokeMaxWidthPx: (() => {
+            let minPx = Number(textModule.textStrokeMinWidth ?? 0);
+            if (!Number.isFinite(minPx) || minPx < 0) minPx = 0;
+            let maxPx = Number(textModule.textStrokeMaxWidth ?? 50);
+            if (!Number.isFinite(maxPx) || maxPx <= minPx) maxPx = Math.max(minPx + 1, 50);
+            return maxPx;
+          })(),
         } satisfies TextModuleFromBuilder;
       })()}
     />
