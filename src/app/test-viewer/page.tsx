@@ -3494,7 +3494,9 @@ export function ProductConfiguratorPanel({
 }
 
 export default function TestViewerPage() {
+  // En production : masquer la sidebar "Test / mock" (simulation Admin)
+  const isProduction = process.env.NODE_ENV === "production";
   return (
-    <ProductConfiguratorPanel showTestSidebar={true} />
+    <ProductConfiguratorPanel showTestSidebar={!isProduction} />
   );
 }
