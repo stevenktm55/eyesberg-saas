@@ -2633,9 +2633,11 @@ function SimpleViewer({
       const centerX = logoU * UV_CANVAS_SIZE + visualOffsetX;
       const centerY = logoV * UV_CANVAS_SIZE + visualOffsetY;
       
-      // Calculate logo bounds in pixels (before rotation transform)
-      const halfW = logoWidth / 2;
-      const halfH = logoHeight / 2;
+      // Use same bbox dimensions as drawing (bboxW = logoWidth + 8, bboxH = logoHeight + 8) so icon hit areas match
+      const bboxW = logoWidth + 8;
+      const bboxH = logoHeight + 8;
+      const halfW = bboxW / 2;
+      const halfH = bboxH / 2;
       
       // Transform click to logo-local space accounting for rotation
       const dx = x - centerX;
@@ -2645,7 +2647,7 @@ function SimpleViewer({
       const localX = dx * cosR + dy * sinR;
       const localY = -dx * sinR + dy * cosR;
       
-      const touchRadius = 20; // Touch area (reduced for better accuracy)
+      const touchRadius = 24; // Touch area (slightly larger than handle for easier click)
       
       // Top-left corner (lock icon)
       const lockIconCenterX = -halfW;
@@ -3901,6 +3903,7 @@ type Props = ThreeElements['group'] & {
   updateTextSize?: (id: string, fontSize: number) => void;
   toggleTextLock?: (id: string) => void;
   removeText?: (id: string) => void;
+  onRequestTextDelete?: (id: string) => void;
   selectedTextId?: string | null;
   selectText?: (id: string | null, autoOpenTypography?: boolean) => void;
   isDraggingText?: boolean;

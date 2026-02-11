@@ -57,6 +57,16 @@ if (typeof document !== 'undefined') {
       -webkit-text-fill-color: #ffffff !important;
       fill: #ffffff !important;
     }
+    /* Signe validé (cercle + coche) dans les modaux de zone : toujours cercle noir, coche blanche */
+    .configurator-panel [data-zone-checkmark],
+    .configurator-viewer-isolated [data-zone-checkmark] {
+      background-color: #000000 !important;
+    }
+    .configurator-panel [data-zone-checkmark] span,
+    .configurator-viewer-isolated [data-zone-checkmark] span {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
     .configurator-panel button.configurator-panel-sidebar-tab-active {
       border-radius: 12px !important;
       -webkit-border-radius: 12px !important;
@@ -3269,11 +3279,16 @@ export default function ProductBuilderPage() {
                 selectedTextId={selectedTextId}
                 updateTextRotation={updateTextRotation}
                 updateTextSize={updateTextSize}
+                removeText={removeText}
+                onRequestTextDelete={confirmDeleteText}
+                toggleTextLock={toggleTextLock}
                 placedLogos={placedLogos}
                 updateLogoPosition={updateLogoPosition}
                 updateLogoRotation={updateLogoRotation}
                 updateLogoScale={updateLogoScale}
                 selectedLogoId={selectedLogoId}
+                onRequestLogoDelete={confirmDeleteLogo}
+                toggleLogoLock={toggleLogoLock}
                 setIsDraggingText={setIsDraggingText}
                 isDraggingText={isDraggingText}
                 setIsRotatingText={setIsRotatingText}
@@ -7253,7 +7268,7 @@ export default function ProductBuilderPage() {
                                               }}
                                             >
                                               {isSelected && (
-                                                <div style={{
+                                                <div data-zone-checkmark style={{
                                                   position: 'absolute',
                                                   top: '8px',
                                                   right: '8px',
@@ -7635,7 +7650,7 @@ export default function ProductBuilderPage() {
                               }}
                             >
                                               {isSelected && (
-                                                <div style={{
+                                                <div data-zone-checkmark style={{
                                                   position: 'absolute',
                                                   top: '8px',
                                                   right: '8px',
@@ -13850,7 +13865,7 @@ export default function ProductBuilderPage() {
                             >
                               {/* Checkmark icon */}
                               {isSelected && (
-                                <div style={{
+                                <div data-zone-checkmark style={{
                                   position: 'absolute',
                                   top: '8px',
                                   right: '8px',
@@ -13865,6 +13880,7 @@ export default function ProductBuilderPage() {
                                 }}>
                                   <span style={{
                                     color: '#ffffff',
+                                    WebkitTextFillColor: '#ffffff',
                                     fontSize: '14px',
                                     fontWeight: 'bold'
                                   }}>
@@ -14398,7 +14414,7 @@ export default function ProductBuilderPage() {
                             >
                               {/* Checkmark icon */}
                               {isSelected && (
-                                <div style={{
+                                <div data-zone-checkmark style={{
                                   position: 'absolute',
                                   top: '8px',
                                   right: '8px',
@@ -14413,6 +14429,7 @@ export default function ProductBuilderPage() {
                                 }}>
                                   <span style={{
                                     color: '#ffffff',
+                                    WebkitTextFillColor: '#ffffff',
                                     fontSize: '14px',
                                     fontWeight: 'bold'
                                   }}>
