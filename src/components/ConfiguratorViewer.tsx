@@ -49,6 +49,15 @@ export function ConfiguratorViewer({
       .configurator-viewer-isolated {
         color: #000000 !important;
       }
+      /* Signe validé zone (cercle noir, coche blanche) - ne pas hériter le noir */
+      .configurator-viewer-isolated [data-zone-checkmark] {
+        background-color: #000000 !important;
+      }
+      .configurator-viewer-isolated [data-zone-checkmark] span,
+      .configurator-viewer-isolated [data-zone-checkmark] * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
       /* Sidebar tabs - noir/blanc, bords arrondis toujours visibles, hover gris clair sur inactifs */
       .configurator-viewer-isolated .cv-sidebar .cv-sidebar-tab {
         background-color: #ffffff !important;

@@ -3277,6 +3277,7 @@ export default function ProductBuilderPage() {
                 fonts={fontsForViewer}
                 updateTextPosition={updateTextPosition}
                 selectedTextId={selectedTextId}
+                selectText={selectText}
                 updateTextRotation={updateTextRotation}
                 updateTextSize={updateTextSize}
                 removeText={removeText}
@@ -3287,6 +3288,7 @@ export default function ProductBuilderPage() {
                 updateLogoRotation={updateLogoRotation}
                 updateLogoScale={updateLogoScale}
                 selectedLogoId={selectedLogoId}
+                selectLogo={setSelectedLogoId}
                 onRequestLogoDelete={confirmDeleteLogo}
                 toggleLogoLock={toggleLogoLock}
                 setIsDraggingText={setIsDraggingText}

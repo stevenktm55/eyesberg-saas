@@ -265,6 +265,19 @@
   -webkit-text-stroke-color: transparent !important;
 }
 
+/* Signe validé (cercle + coche) dans les modaux de zone : coche toujours blanche, priorité sur la règle * ci-dessus */
+.zone-selection-modal-content [data-zone-checkmark],
+.configurator-panel-modal [data-zone-checkmark] {
+  background-color: #000000 !important;
+}
+.zone-selection-modal-content [data-zone-checkmark] span,
+.zone-selection-modal-content [data-zone-checkmark] *,
+.configurator-panel-modal [data-zone-checkmark] span,
+.configurator-panel-modal [data-zone-checkmark] * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
 /* Titres dans les modaux */
 .configurator-panel-modal h1,
 .configurator-panel-modal h2,
