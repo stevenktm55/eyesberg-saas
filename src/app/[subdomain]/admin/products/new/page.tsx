@@ -917,8 +917,8 @@ export default function ProductBuilderPage() {
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
-  /** Onglet actif du panel en onglet Build (ProductConfiguratorPanel). Sync au clic 3D via controlledActiveTab. */
-  const [buildPanelActiveTab, setBuildPanelActiveTab] = useState<string>('design');
+  /** Onglet actif du panel en onglet Build (ProductConfiguratorPanel). Sync avec la sidebar : id du module (ex. module-123 ou design). */
+  const [buildPanelActiveTab, setBuildPanelActiveTab] = useState<string>('');
   const [mobileActivePanel, setMobileActivePanel] = useState<string | null>(null); // Panneau actif dans la simulation mobile
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
@@ -2460,11 +2460,28 @@ export default function ProductBuilderPage() {
     }
   }, [selectedTextId, selectedLogoId, activeCustomizerTab, customizationModules, viewportMode]);
 
-  // Garder buildPanelActiveTab aligné avec la sélection 3D pour que l'onglet reste correct après désélection
+  // Garder buildPanelActiveTab aligné avec la sélection 3D (id du module Texte ou Logo)
   useEffect(() => {
-    if (selectedTextId) setBuildPanelActiveTab('text');
-    else if (selectedLogoId) setBuildPanelActiveTab('logo');
-  }, [selectedTextId, selectedLogoId]);
+    if (selectedTextId) {
+      const textModule = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'text');
+      setBuildPanelActiveTab(textModule?.id ?? 'text');
+    } else if (selectedLogoId) {
+      const logoModule = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'logos');
+      setBuildPanelActiveTab(logoModule?.id ?? 'logo');
+    }
+  }, [selectedTextId, selectedLogoId, customizationModules]);
+
+  // Sidebar liée au configurator : si l'onglet actif n'est plus dans la liste (réordre/suppression) ou vide, sélectionner le premier
+  useEffect(() => {
+    if (customizationModules.length === 0) {
+      setBuildPanelActiveTab('design');
+      return;
+    }
+    const currentValid = customizationModules.some(m => m.id === buildPanelActiveTab);
+    if (!buildPanelActiveTab || !currentValid) {
+      setBuildPanelActiveTab(customizationModules[0].id);
+    }
+  }, [customizationModules]);
 
   // Ouvrir automatiquement le premier onglet sur desktop au chargement
   useEffect(() => {
@@ -6340,11 +6357,26 @@ export default function ProductBuilderPage() {
         } satisfies TextModuleFromBuilder;
       })()}
       logoPanelContent={renderLogoPanelContent()}
-      controlledActiveTab={selectedTextId ? 'text' : selectedLogoId ? 'logo' : buildPanelActiveTab}
+      orderedModulesFromBuilder={customizationModules.map((m) => ({
+        id: m.id,
+        name: m.tabName || m.id,
+        icon: m.icon,
+        iconUrl: m.iconUrl,
+        contentType: m.contentType ?? null,
+      }))}
+      controlledActiveTab={
+        selectedTextId
+          ? (customizationModules.find((m) => (m.contentType ?? (m as any).content_type) === 'text')?.id ?? 'text')
+          : selectedLogoId
+            ? (customizationModules.find((m) => (m.contentType ?? (m as any).content_type) === 'logos')?.id ?? 'logo')
+            : buildPanelActiveTab
+      }
       onControlledTabChange={(id) => {
         setBuildPanelActiveTab(id);
-        if (id !== 'text') setSelectedTextId(null);
-        if (id !== 'logo') setSelectedLogoId(null);
+        const textMod = customizationModules.find((m) => (m.contentType ?? (m as any).content_type) === 'text');
+        const logoMod = customizationModules.find((m) => (m.contentType ?? (m as any).content_type) === 'logos');
+        if (textMod && id !== textMod.id) setSelectedTextId(null);
+        if (logoMod && id !== logoMod.id) setSelectedLogoId(null);
       }}
     />
   ) : (

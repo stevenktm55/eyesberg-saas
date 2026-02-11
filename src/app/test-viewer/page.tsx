@@ -232,7 +232,9 @@ export type ProductConfiguratorPanelProps = {
   textModuleFromBuilder?: TextModuleFromBuilder;
   /** Contenu du panel pour l'onglet Logo (embedMode). Si fourni, remplace le mock. */
   logoPanelContent?: React.ReactNode;
-  /** Onglet actif contrôlé de l'extérieur (ex: sync au clic 3D). Doit être un id du panel: "design" | "colors" | "logo" | "text". */
+  /** Liste ordonnée des modules depuis le builder (sidebar). Si fourni, les onglets du panel suivent cet ordre et cette liste. */
+  orderedModulesFromBuilder?: { id: string; name: string; icon?: string; iconUrl?: string; contentType: string | null }[];
+  /** Onglet actif contrôlé de l'extérieur (ex: sync au clic 3D). Id du module (ex: "design" ou "module-123"). */
   controlledActiveTab?: string;
   /** Callback quand l'utilisateur change d'onglet (utilisé avec controlledActiveTab). */
   onControlledTabChange?: (id: string) => void;
@@ -246,6 +248,7 @@ export function ProductConfiguratorPanel({
   colorsModuleFromBuilder,
   textModuleFromBuilder,
   logoPanelContent,
+  orderedModulesFromBuilder,
   controlledActiveTab,
   onControlledTabChange,
 }: ProductConfiguratorPanelProps) {
@@ -259,18 +262,22 @@ export function ProductConfiguratorPanel({
     { id: "logo", name: "Logo" },
     { id: "text", name: "Texte" },
   ]);
-  const modules: Module[] = (designModuleFromBuilder || colorsModuleFromBuilder || textModuleFromBuilder)
-    ? modulesState.map((m) => {
-        if (m.id === "design" && designModuleFromBuilder)
-          return { ...m, name: designModuleFromBuilder.tabName, icon: designModuleFromBuilder.icon, iconUrl: designModuleFromBuilder.iconUrl };
-        if (m.id === "colors" && colorsModuleFromBuilder)
-          return { ...m, name: colorsModuleFromBuilder.tabName, icon: colorsModuleFromBuilder.icon, iconUrl: colorsModuleFromBuilder.iconUrl };
-        if (m.id === "text" && textModuleFromBuilder)
-          return { ...m, name: textModuleFromBuilder.tabName, icon: textModuleFromBuilder.icon, iconUrl: textModuleFromBuilder.iconUrl };
-        return m;
-      })
-    : modulesState;
+  const modules: Module[] =
+    orderedModulesFromBuilder && orderedModulesFromBuilder.length > 0
+      ? orderedModulesFromBuilder.map((m) => ({ id: m.id, name: m.name, icon: m.icon, iconUrl: m.iconUrl }))
+      : (designModuleFromBuilder || colorsModuleFromBuilder || textModuleFromBuilder)
+        ? modulesState.map((m) => {
+            if (m.id === "design" && designModuleFromBuilder)
+              return { ...m, name: designModuleFromBuilder.tabName, icon: designModuleFromBuilder.icon, iconUrl: designModuleFromBuilder.iconUrl };
+            if (m.id === "colors" && colorsModuleFromBuilder)
+              return { ...m, name: colorsModuleFromBuilder.tabName, icon: colorsModuleFromBuilder.icon, iconUrl: colorsModuleFromBuilder.iconUrl };
+            if (m.id === "text" && textModuleFromBuilder)
+              return { ...m, name: textModuleFromBuilder.tabName, icon: textModuleFromBuilder.icon, iconUrl: textModuleFromBuilder.iconUrl };
+            return m;
+          })
+        : modulesState;
   const setModules = setModulesState;
+  const activeModuleContentType = orderedModulesFromBuilder?.find((m) => m.id === effectiveActiveTab)?.contentType ?? null;
 
   // État fictif pour reproduire les comportements des modules réels
   const [selectedDesignId, setSelectedDesignId] = useState<string>(MOCK_DESIGNS[0].id);
@@ -483,13 +490,13 @@ export function ProductConfiguratorPanel({
   // FONCTION QUI GÉNÈRE LE CONTENU (Simulation de l'Admin ou branché au builder)
   const renderPanelContent = () => {
     // Vue TEXT (module texte) — branchée au builder si textModuleFromBuilder fourni
-    if (effectiveActiveTab === "text" && textModuleFromBuilder) {
+    if ((effectiveActiveTab === "text" || activeModuleContentType === "text") && textModuleFromBuilder) {
       const { tabName, icon, iconUrl, ...panelProps } = textModuleFromBuilder;
       return <TextModulePanel {...panelProps} isMobileView={isMobileView} />;
     }
 
     // Vue DESIGN (module designs-2d) — branché au builder si designModuleFromBuilder fourni
-    if (effectiveActiveTab === "design") {
+    if (effectiveActiveTab === "design" || activeModuleContentType === "designs-2d") {
       const fromBuilder = designModuleFromBuilder;
       const designList = fromBuilder?.designs ?? MOCK_DESIGNS;
       const selectedId = fromBuilder ? fromBuilder.selectedDesignId : selectedDesignId;
@@ -628,7 +635,7 @@ export function ProductConfiguratorPanel({
     }
 
     // Vue COLORS (module couleurs) — branché au builder si colorsModuleFromBuilder fourni
-    if (effectiveActiveTab === "colors") {
+    if (effectiveActiveTab === "colors" || activeModuleContentType === "colors") {
       const fromBuilder = colorsModuleFromBuilder;
       const allColors = fromBuilder?.paletteColors ?? paletteColors;
       const designColorsMap = fromBuilder ? fromBuilder.designColors : designColors;
@@ -1000,7 +1007,7 @@ export function ProductConfiguratorPanel({
     }
 
     // Vue LOGO (module logos) — en embedMode toujours utiliser le contenu du builder (ou placeholder), jamais le mock
-    if (effectiveActiveTab === "logo") {
+    if (effectiveActiveTab === "logo" || activeModuleContentType === "logos") {
       if (embedMode) {
         if (logoPanelContent) return logoPanelContent;
         return (
@@ -1755,7 +1762,7 @@ export function ProductConfiguratorPanel({
     }
 
     // Vue TEXT (module texte) — étape liste (bouton + textes placés) ou typographie (onglets + Retour)
-    if (effectiveActiveTab === "text") {
+    if (effectiveActiveTab === "text" || activeModuleContentType === "text") {
       const selectedText =
         texts.find((t) => t.id === selectedTextId) ?? null;
       const tabs: { id: TextTabId; label: string }[] = [
@@ -3292,7 +3299,7 @@ export function ProductConfiguratorPanel({
           panelContent={renderPanelContent()}
           mobileSheetContentStyle={
             isMobileView &&
-            effectiveActiveTab === "text" &&
+            (effectiveActiveTab === "text" || activeModuleContentType === "text") &&
             textStep === "typography" &&
             selectedTextId
               ? { flex: "1 1 0%", minHeight: 0, overflow: "auto", padding: 0 }
@@ -3497,7 +3504,7 @@ export function ProductConfiguratorPanel({
               panelContent={renderPanelContent()}
               mobileSheetContentStyle={
                 isMobileView &&
-                effectiveActiveTab === "text" &&
+                (effectiveActiveTab === "text" || activeModuleContentType === "text") &&
                 textStep === "typography" &&
                 selectedTextId
                   ? { flex: "1 1 0%", minHeight: 0, overflow: "auto", padding: 0 }
