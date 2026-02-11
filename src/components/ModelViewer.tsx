@@ -3050,23 +3050,24 @@ function SimpleViewer({
       let clickedText = null;
       if (!clickedOnTextIcon) {
         clickedText = findTextAtPosition(uv.u, uv.v);
-        if (clickedText && !clickedText.locked) {
+        if (clickedText) {
           e.preventDefault();
           e.stopPropagation();
-          
           // Cancel any pending deselection timeout
           if (deselectTextTimeoutRef.current) {
             clearTimeout(deselectTextTimeoutRef.current);
             deselectTextTimeoutRef.current = null;
           }
-          
-          draggingTextIdRef.current = clickedText.id;
-          isDraggingRef.current = true;
-          if (setIsDraggingText) setIsDraggingText(true);
-          dragOffsetRef.u = uv.u - clickedText.position[0];
-          dragOffsetRef.v = uv.v - clickedText.position[1];
+          // Toujours permettre la sélection au clic (même si verrouillé) ; le drag uniquement si non verrouillé
           if (clickedText.id !== selectedTextIdRef.current && selectText) {
-            selectText(clickedText.id, true); // Pass true to auto-open typography panel
+            selectText(clickedText.id, true);
+          }
+          if (!clickedText.locked) {
+            draggingTextIdRef.current = clickedText.id;
+            isDraggingRef.current = true;
+            if (setIsDraggingText) setIsDraggingText(true);
+            dragOffsetRef.u = uv.u - clickedText.position[0];
+            dragOffsetRef.v = uv.v - clickedText.position[1];
           }
           return;
         }
@@ -3278,7 +3279,12 @@ function SimpleViewer({
       
       console.log('✅ Logo clicked:', clickedLogo.id, 'Current selected:', selectedLogoIdRef.current);
       
-      // Check if logo is locked - if so, don't start drag
+      // Toujours permettre la sélection au clic (même si verrouillé)
+      if (clickedLogo.id !== selectedLogoIdRef.current && safeSelectLogoRef.current) {
+        safeSelectLogoRef.current(clickedLogo.id);
+      }
+      
+      // Si verrouillé, ne pas démarrer le drag
       if (clickedLogo.locked) {
         console.log('🔒 Logo is locked, cannot drag');
         return;
@@ -3302,15 +3308,6 @@ function SimpleViewer({
       dragOffsetRef.v = uv.v - clickedLogo.position[1];
       
       console.log('🔧 Ref values after setting:', 'draggingLogoIdRef:', draggingLogoIdRef.current, 'isDraggingRef:', isDraggingRef.current);
-      
-      // AFTER setting all drag state, handle selection - BUT only if clicking a different logo
-      // Don't call selectLogo if it's the same logo, to avoid unnecessary re-renders
-      if (clickedLogo.id !== selectedLogoIdRef.current) {
-        console.log('🔄 Selecting different logo:', clickedLogo.id, 'current selected:', selectedLogoIdRef.current);
-        if (safeSelectLogoRef.current) safeSelectLogoRef.current(clickedLogo.id);
-      } else {
-        console.log('✅ Same logo clicked, not calling selectLogo to avoid re-render');
-      }
       return; // Exit after logo handling
     }
 

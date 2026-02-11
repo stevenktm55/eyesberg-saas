@@ -6341,7 +6341,11 @@ export default function ProductBuilderPage() {
       })()}
       logoPanelContent={renderLogoPanelContent()}
       controlledActiveTab={selectedTextId ? 'text' : selectedLogoId ? 'logo' : buildPanelActiveTab}
-      onControlledTabChange={setBuildPanelActiveTab}
+      onControlledTabChange={(id) => {
+        setBuildPanelActiveTab(id);
+        if (id !== 'text') setSelectedTextId(null);
+        if (id !== 'logo') setSelectedLogoId(null);
+      }}
     />
   ) : (
   <>
@@ -6381,6 +6385,11 @@ export default function ProductBuilderPage() {
       if (newTab !== activeCustomizerTab) {
         setSelectedColorClass(null);
       }
+      // Désélectionner texte/logo quand on change vers un autre module (Design, Couleur, etc.)
+      const textModule = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'text');
+      const logoModuleForTab = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'logos');
+      if (newTab !== textModule?.id) setSelectedTextId(null);
+      if (newTab !== logoModuleForTab?.id) setSelectedLogoId(null);
       // À l'ouverture de l'onglet Logo, sélectionner le premier label de vue disponible
       const logoModule = customizationModules.find(m => m.id === newTab && (m.contentType ?? (m as any).content_type) === 'logos');
       if (logoModule && logoModule.viewLabels && logoModule.viewLabels.length > 0) {
