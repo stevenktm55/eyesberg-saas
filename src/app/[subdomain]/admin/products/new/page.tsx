@@ -1781,7 +1781,25 @@ export default function ProductBuilderPage() {
             
             // Charger questions et customizationModules
             let loadedQuestions = product.builder_data?.questions || [];
-            let loadedCustomizationModules = product.builder_data?.customizationModules || [];
+            let loadedCustomizationModules = (product.builder_data?.customizationModules || []).map((m: any) => {
+              const si = m.selectedItems ?? m.selected_items ?? {};
+              return {
+                ...m,
+                contentType: m.contentType ?? m.content_type ?? null,
+                selectedItems: {
+                  ...si,
+                  logoLibraryIds: si.logoLibraryIds ?? si.logo_library_ids,
+                  logoLibraryId: si.logoLibraryId ?? si.logo_library_id,
+                  colorPaletteId: si.colorPaletteId ?? si.color_palette_id,
+                  fontGroupIds: si.fontGroupIds ?? si.font_group_ids,
+                  design2DIds: si.design2DIds ?? si.design2_d_ids,
+                  design2DId: si.design2DId ?? si.design2_d_id,
+                },
+                viewLabels: m.viewLabels ?? m.view_labels ?? m.viewLabels,
+                logoPlacementMode: m.logoPlacementMode ?? m.logo_placement_mode,
+                logoZoneGroupIds: m.logoZoneGroupIds ?? m.logo_zone_group_ids,
+              };
+            });
             
             // Si customizationModules est vide mais qu'on a un model3DId, 
             // cela signifie que le produit a été configuré mais les modules n'ont pas été sauvegardés
@@ -3278,10 +3296,16 @@ export default function ProductBuilderPage() {
     </div>
   );
   const renderLogoPanelContent = () => {
-    const activeModule = customizationModules.find(m => m.contentType === 'logos');
-    if (!activeModule) return null;
-    // Utiliser les vues personnalisées si configurées, sinon fallback sur les legacy
-    // Utiliser uniquement les vues personnalisées configurées dans le module
+    // Module logo = celui configuré dans Settings (customizationModules), pas de mockup test-viewer
+    const activeModule = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'logos');
+    if (!activeModule) {
+      return (
+        <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: '13px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+          Configurez le module Logo dans l&apos;onglet <strong>Paramètres</strong> du produit (réglages du module Logo, bibliothèques, zones, etc.).
+        </div>
+      );
+    }
+    // Vues personnalisées et bibliothèques = depuis les réglages du module (Settings)
     const customViews = activeModule.viewLabels || [];
                                     
     // Charger les vues de caméra du modèle 3D
@@ -3334,7 +3358,7 @@ export default function ProductBuilderPage() {
       }
     }
                                 
-    // Bibliothèques à afficher (si aucune sélection = toutes)
+    // Bibliothèques à afficher = Settings > Réglages du module Logo > "Bibliothèque(s) de logos à afficher"
     const libIds = activeModule.selectedItems?.logoLibraryIds;
     const selectedLibraries = libIds?.length
       ? logoLibraries.filter(l => libIds.includes(l.id))
@@ -3367,7 +3391,7 @@ export default function ProductBuilderPage() {
             : { height: '100%', maxHeight: '100%', minHeight: 0, overflow: 'hidden' }),
         }}
       >
-        {/* Tabs de vue - style test-viewer (grid 4, même look) */}
+        {/* Tabs de vue (customViews = viewLabels configurés dans Settings) */}
         {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && !showLogoLibrary && customViews.length > 0 && (
           <div
             style={{
@@ -3428,7 +3452,7 @@ export default function ProductBuilderPage() {
           </div>
         )}
                                     
-        {/* Si la bibliothèque est ouverte - style test-viewer (container, header Retour + titre, Importer, search) */}
+        {/* Si la bibliothèque est ouverte (logos = selectedItems.logoLibraryIds depuis Settings) */}
         {showLogoLibrary ? (
           <div
             className="logo-library-container"
@@ -3521,7 +3545,7 @@ export default function ProductBuilderPage() {
                   <span style={{ fontSize: '18px', lineHeight: 1, marginTop: '-1px', color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>＋</span>
                   <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
                 </div>
-                {/* Barre de recherche - style test-viewer (rounded) */}
+                {/* Barre de recherche */}
                 <input
                   type="text"
                   placeholder="Rechercher un logo..."
@@ -4000,7 +4024,7 @@ export default function ProductBuilderPage() {
             </div>
             </div>
         ) : (
-          /* Vue normale style test-viewer : séparateur, bouton Ajouter un logo, Logos placés (liste verticale desktop) */
+          /* Vue normale : séparateur, bouton Ajouter un logo, Logos placés (labels depuis Settings) */
           <>
             <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '12px 0 8px' }} />
             <div style={{ width: '100%', marginBottom: '8px' }}>
@@ -6445,7 +6469,7 @@ export default function ProductBuilderPage() {
             );
           }
           
-          // MODULE TEXT - UI conforme test-viewer (TextModulePanel)
+          // MODULE TEXT - UI (TextModulePanel, config depuis Settings)
           if (activeModule.contentType === 'text') {
             const isZoneMode = activeModule.textPlacementMode === 'zones';
             const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);

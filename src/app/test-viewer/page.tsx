@@ -230,6 +230,8 @@ export type ProductConfiguratorPanelProps = {
   colorsModuleFromBuilder?: ColorsModuleFromBuilder;
   /** Module Texte branché au builder : titre, icône, textes, couleurs, polices, onglets, etc. */
   textModuleFromBuilder?: TextModuleFromBuilder;
+  /** Contenu du panel pour l'onglet Logo (embedMode). Si fourni, remplace le mock. */
+  logoPanelContent?: React.ReactNode;
 };
 
 export function ProductConfiguratorPanel({
@@ -239,6 +241,7 @@ export function ProductConfiguratorPanel({
   designModuleFromBuilder,
   colorsModuleFromBuilder,
   textModuleFromBuilder,
+  logoPanelContent,
 }: ProductConfiguratorPanelProps) {
   const [activeTab, setActiveTab] = useState<string>("design");
   const [isMobileView, setIsMobileView] = useState(false);
@@ -988,8 +991,16 @@ export function ProductConfiguratorPanel({
       );
     }
 
-    // Vue LOGO (module logos) — vues + logos placés + bibliothèque sur demande
+    // Vue LOGO (module logos) — en embedMode toujours utiliser le contenu du builder (ou placeholder), jamais le mock
     if (activeTab === "logo") {
+      if (embedMode) {
+        if (logoPanelContent) return logoPanelContent;
+        return (
+          <div style={{ padding: "24px", textAlign: "center", color: "#6b7280", fontSize: "13px" }}>
+            Configurez le module Logo dans l&apos;onglet <strong>Paramètres</strong> du produit.
+          </div>
+        );
+      }
       const placedForView = placedLogos.filter((l) => l.view === activeLogoView);
 
       // Quand la bibliothèque est ouverte, on masque les vues + logos placés
@@ -3264,7 +3275,7 @@ export function ProductConfiguratorPanel({
   // Mode intégré : uniquement le panel + viewer (pour admin/products/new)
   if (embedMode) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', width: '100%' }}>
+      <div style={{ flex: 1, minHeight: 0, height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%' }}>
         <ConfiguratorViewer
           modules={modules}
           activeTab={activeTab}
