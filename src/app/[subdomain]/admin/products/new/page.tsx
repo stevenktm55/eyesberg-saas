@@ -917,6 +917,8 @@ export default function ProductBuilderPage() {
   const [selectedModel3DId, setSelectedModel3DId] = useState<string | null>(null);
   const [selectedDesign2DId, setSelectedDesign2DId] = useState<string | null>(null);
   const [activeCustomizerTab, setActiveCustomizerTab] = useState<string | null>(null);
+  /** Onglet actif du panel en onglet Build (ProductConfiguratorPanel). Sync au clic 3D via controlledActiveTab. */
+  const [buildPanelActiveTab, setBuildPanelActiveTab] = useState<string>('design');
   const [mobileActivePanel, setMobileActivePanel] = useState<string | null>(null); // Panneau actif dans la simulation mobile
   const [colorPalettes, setColorPalettes] = useState<any[]>([]);
   const [selectedColorClass, setSelectedColorClass] = useState<string | null>(null); // Pour gérer l'étape de sélection de couleur
@@ -1224,6 +1226,20 @@ export default function ProductBuilderPage() {
           }
           return;
         }
+        // Bouton Retour (module texte, module logo / bibliothèque) : fond transparent, texte noir uniquement
+        if (htmlEl.classList.contains('typography-back-button') || htmlEl.closest('.typography-back-button')) {
+          htmlEl.style.setProperty('background-color', 'transparent', 'important');
+          htmlEl.style.setProperty('backgroundColor', 'transparent', 'important');
+          htmlEl.style.setProperty('background', 'transparent', 'important');
+          htmlEl.style.setProperty('box-shadow', 'none', 'important');
+          htmlEl.style.setProperty('color', '#000000', 'important');
+          htmlEl.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+          if (htmlEl.tagName === 'svg' || htmlEl.tagName === 'path') {
+            htmlEl.style.setProperty('stroke', '#000000', 'important');
+            htmlEl.setAttribute('stroke', '#000000');
+          }
+          return;
+        }
         
         // NE PAS forcer Inter via JavaScript - laisser le CSS faire le travail
         // Le CSS est déjà bien scoped et devrait suffire
@@ -1357,6 +1373,10 @@ export default function ProductBuilderPage() {
           }
           // Ne pas toucher aux onglets de la sidebar du ConfiguratorViewer (noir/blanc/hover gris géré par le viewer)
           if (htmlEl.classList.contains('cv-sidebar-tab')) {
+            return;
+          }
+          // Ne pas appliquer le style "bouton primaire" au bouton Retour (texte noir, pas de fond)
+          if (htmlEl.classList.contains('typography-back-button')) {
             return;
           }
           // Ne pas toucher aux boutons Sauvegarder / Ajouter au panier de la barre d'actions du viewer
@@ -2439,6 +2459,12 @@ export default function ProductBuilderPage() {
       }
     }
   }, [selectedTextId, selectedLogoId, activeCustomizerTab, customizationModules, viewportMode]);
+
+  // Garder buildPanelActiveTab aligné avec la sélection 3D pour que l'onglet reste correct après désélection
+  useEffect(() => {
+    if (selectedTextId) setBuildPanelActiveTab('text');
+    else if (selectedLogoId) setBuildPanelActiveTab('logo');
+  }, [selectedTextId, selectedLogoId]);
 
   // Ouvrir automatiquement le premier onglet sur desktop au chargement
   useEffect(() => {
@@ -6314,6 +6340,8 @@ export default function ProductBuilderPage() {
         } satisfies TextModuleFromBuilder;
       })()}
       logoPanelContent={renderLogoPanelContent()}
+      controlledActiveTab={selectedTextId ? 'text' : selectedLogoId ? 'logo' : buildPanelActiveTab}
+      onControlledTabChange={setBuildPanelActiveTab}
     />
   ) : (
   <>
