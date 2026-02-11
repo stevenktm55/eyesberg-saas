@@ -3072,8 +3072,11 @@ function SimpleViewer({
         }
       }
       
-      // No text clicked - deselect text if one was selected
-      if (selectedTextIdRef.current && !clickedText && !clickedOnTextIcon) {
+      // Compute logo under pointer for multi-selection: only deselect when clicking empty (not on logo/text)
+      const clickedLogoForDeselect = findLogoAtPosition(uv.u, uv.v);
+      
+      // No text clicked - deselect text only when clicking empty (not on a logo), so we keep text+logo both selectable
+      if (selectedTextIdRef.current && !clickedText && !clickedOnTextIcon && !clickedLogoForDeselect) {
         // Cancel any pending deselection timeout
         if (deselectTextTimeoutRef.current) {
           clearTimeout(deselectTextTimeoutRef.current);
@@ -3083,7 +3086,7 @@ function SimpleViewer({
         deselectTextTimeoutRef.current = setTimeout(() => {
           // Only deselect if no drag started in the meantime
           if (!isDraggingRef.current && !draggingTextIdRef.current) {
-            console.log('⏳ Deselecting text after delay');
+            console.log('⏳ Deselecting text after delay (clicked empty)');
             if (selectText) selectText(null);
             
             // Redraw to hide bounding box
@@ -3242,23 +3245,23 @@ function SimpleViewer({
       // SECOND: Check if clicking on any logo
       const clickedLogo = findLogoAtPosition(uv.u, uv.v);
       if (!clickedLogo) {
-        // Click outside logo bounding box - deselect with a small delay to allow for double-click or rapid clicks
-        console.log('❌ No logo clicked, will deselect after delay - uv:', { u: uv.u, v: uv.v }, 'placedLogos:', placedLogosRef.current.length);
-        
-        // Cancel any pending deselection timeout
-        if (deselectTimeoutRef.current) {
-          clearTimeout(deselectTimeoutRef.current);
-        }
-        
-        // Delay deselection to prevent interference with rapid clicks
-        deselectTimeoutRef.current = setTimeout(() => {
-          // Only deselect if no drag started in the meantime
-          if (!isDraggingRef.current && !draggingLogoIdRef.current) {
-            console.log('⏳ Deselecting after delay');
-            if (safeSelectLogoRef.current) safeSelectLogoRef.current(null);
+        // Click outside logo - deselect logo only when clicking empty (not on a text), so we keep text+logo both selectable
+        if (!clickedText) {
+          console.log('❌ No logo clicked, will deselect logo after delay - uv:', { u: uv.u, v: uv.v }, 'placedLogos:', placedLogosRef.current.length);
+          
+          // Cancel any pending deselection timeout
+          if (deselectTimeoutRef.current) {
+            clearTimeout(deselectTimeoutRef.current);
           }
-          deselectTimeoutRef.current = null;
-        }, 150); // 150ms delay
+          
+          deselectTimeoutRef.current = setTimeout(() => {
+            if (!isDraggingRef.current && !draggingLogoIdRef.current) {
+              console.log('⏳ Deselecting logo after delay (clicked empty)');
+              if (safeSelectLogoRef.current) safeSelectLogoRef.current(null);
+            }
+            deselectTimeoutRef.current = null;
+          }, 150);
+        }
         
         return;
       }

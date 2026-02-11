@@ -36,9 +36,9 @@ if (typeof document !== 'undefined') {
     }
     .configurator-panel .typography-back-button,
     .configurator-panel .typography-back-button * {
-      color: #111827 !important;
-      -webkit-text-fill-color: #111827 !important;
-      -webkit-text-stroke-color: #111827 !important;
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+      -webkit-text-stroke-color: #000000 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
     .configurator-panel .mobile-action-btn-black,
@@ -2720,6 +2720,9 @@ export default function ProductBuilderPage() {
     setSelectedTextId(id);
     if (id) {
       setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
+      // Ouvrir automatiquement le module texte (typographie) dans la sidebar
+      const textModule = customizationModules.find(m => m.contentType === 'text');
+      if (textModule) setActiveCustomizerTab(textModule.id);
       
       // Pivoter la caméra vers la vue correspondant à la zone du texte sélectionné
       const text = texts.find(t => t.id === id);
@@ -3288,7 +3291,16 @@ export default function ProductBuilderPage() {
                 updateLogoRotation={updateLogoRotation}
                 updateLogoScale={updateLogoScale}
                 selectedLogoId={selectedLogoId}
-                selectLogo={setSelectedLogoId}
+                selectLogo={(id) => {
+                  setSelectedLogoId(id);
+                  if (id) {
+                    const logoModule = customizationModules.find(m => m.contentType === 'logos');
+                    if (logoModule) {
+                      setActiveCustomizerTab(logoModule.id);
+                      setShowLogoLibrary(true);
+                    }
+                  }
+                }}
                 onRequestLogoDelete={confirmDeleteLogo}
                 toggleLogoLock={toggleLogoLock}
                 setIsDraggingText={setIsDraggingText}
@@ -7283,7 +7295,7 @@ export default function ProductBuilderPage() {
                                                   justifyContent: 'center',
                                                   zIndex: 10
                                                 }}>
-                                                  <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                                  <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
                                                 </div>
                                               )}
                                               {zone.thumbnailUrl ? (
@@ -7665,7 +7677,7 @@ export default function ProductBuilderPage() {
                                                   justifyContent: 'center',
                                                   zIndex: 10
                                                 }}>
-                                                  <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                                  <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
                                                 </div>
                                               )}
                                               
@@ -10178,6 +10190,7 @@ export default function ProductBuilderPage() {
                                     {/* Si bibliothèque de logos ouverte, afficher bouton Retour */}
                                     {activeModule.contentType === 'logos' && showLogoLibrary ? (
                                       <button
+                                        className="typography-back-button"
                                         onClick={() => {
                                           setShowLogoLibrary(false);
                                           setSelectedLogoForVariants(null);
@@ -10191,13 +10204,13 @@ export default function ProductBuilderPage() {
                                           border: 'none',
                                           cursor: 'pointer',
                                           padding: '0',
-                                          color: '#111827'
+                                          color: '#000000'
                                         }}
                                       >
                                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                         </svg>
-                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>
+                                        <span style={{ fontWeight: '600', fontSize: '15px', color: '#000000', fontFamily: CONFIGURATOR_PANEL_FONT }}>
                                           Retour
                                         </span>
                                       </button>
@@ -13880,14 +13893,7 @@ export default function ProductBuilderPage() {
                                   justifyContent: 'center',
                                   zIndex: 10
                                 }}>
-                                  <span style={{
-                                    color: '#ffffff',
-                                    WebkitTextFillColor: '#ffffff',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold'
-                                  }}>
-                                    ✓
-                                  </span>
+                                  <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
                                 </div>
                               )}
                               
@@ -14429,14 +14435,7 @@ export default function ProductBuilderPage() {
                                   justifyContent: 'center',
                                   zIndex: 10
                                 }}>
-                                  <span style={{
-                                    color: '#ffffff',
-                                    WebkitTextFillColor: '#ffffff',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold'
-                                  }}>
-                                    ✓
-                                  </span>
+                                  <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
                                 </div>
                               )}
                               
