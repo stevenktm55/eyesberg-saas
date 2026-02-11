@@ -2719,10 +2719,14 @@ export default function ProductBuilderPage() {
     console.log('📝 selectText called:', id, 'autoOpenTypography:', autoOpenTypography);
     setSelectedTextId(id);
     if (id) {
+      setSelectedLogoId(null); // Une seule sélection : désélectionner le logo
       setActiveTextTab('contenu'); // Réinitialiser à l'onglet Contenu quand on sélectionne un texte
-      // Ouvrir automatiquement le module texte (typographie) dans la sidebar
+      // Ouvrir automatiquement le module texte (typographie) dans la sidebar / panneau mobile
       const textModule = customizationModules.find(m => m.contentType === 'text');
-      if (textModule) setActiveCustomizerTab(textModule.id);
+      if (textModule) {
+        setActiveCustomizerTab(textModule.id);
+        if (viewportMode === 'mobile') setMobileActivePanel(textModule.id);
+      }
       
       // Pivoter la caméra vers la vue correspondant à la zone du texte sélectionné
       const text = texts.find(t => t.id === id);
@@ -3294,9 +3298,11 @@ export default function ProductBuilderPage() {
                 selectLogo={(id) => {
                   setSelectedLogoId(id);
                   if (id) {
+                    setSelectedTextId(null); // Une seule sélection : désélectionner le texte
                     const logoModule = customizationModules.find(m => m.contentType === 'logos');
                     if (logoModule) {
                       setActiveCustomizerTab(logoModule.id);
+                      if (viewportMode === 'mobile') setMobileActivePanel(logoModule.id);
                       setShowLogoLibrary(true);
                     }
                   }
@@ -3508,6 +3514,7 @@ export default function ProductBuilderPage() {
             >
               <button
                 type="button"
+                className="typography-back-button"
                 onClick={() => {
                   setShowLogoLibrary(false);
                   setSelectedLogoForVariants(null);
@@ -3521,12 +3528,13 @@ export default function ProductBuilderPage() {
                   border: 'none',
                   cursor: 'pointer',
                   padding: '4px',
+                  color: '#000000',
                 }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>Retour</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#000000' }}>Retour</span>
               </button>
               <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', marginLeft: 'auto' }}>
                 Bibliothèque de logos

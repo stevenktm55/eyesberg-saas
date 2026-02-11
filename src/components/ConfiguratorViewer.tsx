@@ -58,6 +58,12 @@ export function ConfiguratorViewer({
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
       }
+      /* Bouton Retour (module texte, bibliothèque logos, etc.) : texte noir */
+      .configurator-viewer-isolated .typography-back-button,
+      .configurator-viewer-isolated .typography-back-button * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+      }
       /* Sidebar tabs - noir/blanc, bords arrondis toujours visibles, hover gris clair sur inactifs */
       .configurator-viewer-isolated .cv-sidebar .cv-sidebar-tab {
         background-color: #ffffff !important;

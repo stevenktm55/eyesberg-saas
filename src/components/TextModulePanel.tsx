@@ -410,7 +410,7 @@ export function TextModulePanel({
     return (
       <div ref={panelRootRef} style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, gap: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", paddingTop: "12px", paddingLeft: isMobileView ? "4px" : "16px", paddingRight: isMobileView ? "4px" : "16px", borderBottom: "1px solid #e5e7eb", flexShrink: 0 }}>
-          <button type="button" onClick={() => setTextStep("list")} style={{ display: "flex", alignItems: "center", gap: "4px", background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#374151", fontWeight: 500 }}>
+          <button type="button" className="typography-back-button" onClick={() => setTextStep("list")} style={{ display: "flex", alignItems: "center", gap: "4px", background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#000000", fontWeight: 500 }}>
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Retour
           </button>
