@@ -131,19 +131,31 @@ function SceneLights({ settings }: { settings: ViewerEnvSettings }) {
   );
 }
 
-/** Une entrée modèle 3D avec son design 2D lié */
+/** Une entrée modèle 3D avec design 2D et maps PBR optionnelles */
 export interface ViewerModelItem {
   modelUrl: string;
   design2DUrl: string | null;
+  normalMapUrl?: string | null;
+  roughnessMapUrl?: string | null;
+  metallicMapUrl?: string | null;
+  aoMapUrl?: string | null;
 }
 
 function SceneModel({
   url,
   design2DUrl,
+  normalMapUrl,
+  roughnessMapUrl,
+  metallicMapUrl,
+  aoMapUrl,
   position = [0, 0, 0],
 }: {
   url: string;
   design2DUrl?: string | null;
+  normalMapUrl?: string | null;
+  roughnessMapUrl?: string | null;
+  metallicMapUrl?: string | null;
+  aoMapUrl?: string | null;
   position?: [number, number, number];
 }) {
   const { scene } = useGLTF(url);
@@ -151,11 +163,9 @@ function SceneModel({
 
   const clonedScene = React.useMemo(() => {
     const cloned = scene.clone();
-    // Ne pas modifier scale ni position : on respecte l'origine et la taille d'origine du .glb
     return cloned;
   }, [scene]);
 
-  // Sans design 2D : activer ombres sur les meshes
   useEffect(() => {
     if (!clonedScene) return;
     clonedScene.traverse((object) => {
@@ -167,40 +177,121 @@ function SceneModel({
   }, [clonedScene]);
 
   useEffect(() => {
-    if (!clonedScene || !design2DUrl) return;
+    if (!clonedScene) return;
     const loader = new THREE.TextureLoader();
-    loader.load(
-      design2DUrl,
-      (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-        clonedScene.traverse((object) => {
-          if (object instanceof THREE.Mesh && object.material) {
-            const mesh = object as THREE.Mesh;
-            const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-            const name = ((mat as any)?.name || mesh.name || "").toLowerCase();
-            if (/back/i.test(name)) return;
-            let standard = mat as THREE.MeshStandardMaterial;
-            if (!(standard instanceof THREE.MeshStandardMaterial)) {
-              standard = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                map: texture.clone(),
-              });
-              mesh.material = standard;
-            } else {
-              standard.map = texture.clone();
+    const urls = {
+      design: design2DUrl || null,
+      normal: normalMapUrl || null,
+      roughness: roughnessMapUrl || null,
+      metallic: metallicMapUrl || null,
+      ao: aoMapUrl || null,
+    };
+    const toLoad = Object.values(urls).filter(Boolean) as string[];
+    if (toLoad.length === 0) return;
+
+    let cancelled = false;
+    const loaded: Record<string, THREE.Texture> = {};
+    let loadedCount = 0;
+
+    const tryApply = () => {
+      if (loadedCount < toLoad.length || cancelled) return;
+      clonedScene.traverse((object) => {
+        if (object instanceof THREE.Mesh && object.material) {
+          const mesh = object as THREE.Mesh;
+          const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+          const name = ((mat as any)?.name || mesh.name || "").toLowerCase();
+          if (/back/i.test(name)) return;
+          const geom = mesh.geometry as THREE.BufferGeometry;
+          if (geom) {
+            let uv2Attr = geom.getAttribute("uv2");
+            const uvAttr = geom.getAttribute("uv");
+            if (!uv2Attr && uvAttr) {
+              uv2Attr = new THREE.BufferAttribute(
+                new Float32Array((uvAttr as THREE.BufferAttribute).array),
+                2
+              );
+              geom.setAttribute("uv2", uv2Attr);
             }
-            standard.needsUpdate = true;
-            (mesh as any).castShadow = true;
-            (mesh as any).receiveShadow = true;
+            if (uv2Attr && (urls.design || urls.normal || urls.roughness || urls.metallic || urls.ao)) {
+              geom.setAttribute("uv", uv2Attr.clone());
+            }
           }
-        });
-      },
-      undefined,
-      (err) => console.error("Design 2D load error:", err)
-    );
-  }, [clonedScene, design2DUrl]);
+          let standard = mat as THREE.MeshStandardMaterial;
+          if (!(standard instanceof THREE.MeshStandardMaterial)) {
+            standard = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, metalness: 0 });
+            mesh.material = standard;
+          }
+          if (loaded.design) {
+            const t = loaded.design.clone();
+            t.colorSpace = THREE.SRGBColorSpace;
+            t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+            t.repeat.set(1, 1);
+            t.offset.set(0, 0);
+            t.flipY = false;
+            standard.map = t;
+          }
+          if (loaded.normal) {
+            const t = loaded.normal.clone();
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.flipY = false;
+            standard.normalMap = t;
+            standard.normalScale = new THREE.Vector2(1, 1);
+          }
+          if (loaded.roughness) {
+            const t = loaded.roughness.clone();
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.flipY = false;
+            standard.roughnessMap = t;
+            standard.roughness = 1;
+          }
+          if (loaded.metallic) {
+            const t = loaded.metallic.clone();
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.flipY = false;
+            standard.metalnessMap = t;
+            standard.metalness = 1;
+          }
+          if (loaded.ao) {
+            const t = loaded.ao.clone();
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.flipY = false;
+            standard.aoMap = t;
+            standard.aoMapIntensity = 1;
+          }
+          standard.needsUpdate = true;
+          (mesh as any).castShadow = true;
+          (mesh as any).receiveShadow = true;
+        }
+      });
+    };
+
+    const onLoad = (key: string) => (tex: THREE.Texture) => {
+      if (cancelled) {
+        tex.dispose();
+        return;
+      }
+      loaded[key] = tex;
+      loadedCount += 1;
+      tryApply();
+    };
+    const onError = (key: string) => () => {
+      if (!cancelled) {
+        loadedCount += 1;
+        tryApply();
+      }
+    };
+
+    if (urls.design) loader.load(urls.design, onLoad("design"), undefined, onError("design"));
+    if (urls.normal) loader.load(urls.normal, onLoad("normal"), undefined, onError("normal"));
+    if (urls.roughness) loader.load(urls.roughness, onLoad("roughness"), undefined, onError("roughness"));
+    if (urls.metallic) loader.load(urls.metallic, onLoad("metallic"), undefined, onError("metallic"));
+    if (urls.ao) loader.load(urls.ao, onLoad("ao"), undefined, onError("ao"));
+
+    return () => {
+      cancelled = true;
+      Object.values(loaded).forEach((t) => t.dispose());
+    };
+  }, [clonedScene, design2DUrl, normalMapUrl, roughnessMapUrl, metallicMapUrl, aoMapUrl]);
 
   return (
     <group position={position}>
@@ -279,6 +370,10 @@ function SceneContent({
           <SceneModel
             url={item.modelUrl}
             design2DUrl={item.design2DUrl ?? undefined}
+            normalMapUrl={item.normalMapUrl ?? undefined}
+            roughnessMapUrl={item.roughnessMapUrl ?? undefined}
+            metallicMapUrl={item.metallicMapUrl ?? undefined}
+            aoMapUrl={item.aoMapUrl ?? undefined}
             position={viewerCenter}
           />
         </Suspense>

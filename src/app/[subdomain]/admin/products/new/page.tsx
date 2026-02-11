@@ -3857,19 +3857,22 @@ export default function ProductBuilderPage() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              // Pas en mode remplacement : ouvrir modal zones ou variantes immédiatement (synchrone)
+                              // Pas en mode remplacement : si logo a des variantes, les proposer d'abord ; sinon ouvrir modal zones
                               if (!logoToReplace) {
                                 if (activeModule?.logoPlacementMode === 'zones') {
-                                  setSelectedLogoForZone({
-                                    logoId: logo.id,
-                                    variantId: undefined,
-                                    variantFile: logo.file_url
-                                  });
-                                  setShowLogoZoneModal(true);
-                                  // Doublon via événement personnalisé pour garantir l'ouverture (même si closure/iframe)
-                                  window.dispatchEvent(new CustomEvent('open-logo-zone-modal', {
-                                    detail: { logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
-                                  }));
+                                  if (hasVariants) {
+                                    setSelectedLogoForVariants(logo);
+                                  } else {
+                                    setSelectedLogoForZone({
+                                      logoId: logo.id,
+                                      variantId: undefined,
+                                      variantFile: logo.file_url
+                                    });
+                                    setShowLogoZoneModal(true);
+                                    window.dispatchEvent(new CustomEvent('open-logo-zone-modal', {
+                                      detail: { logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
+                                    }));
+                                  }
                                 } else {
                                   setSelectedLogoForVariants(logo);
                                 }
@@ -7249,6 +7252,23 @@ export default function ProductBuilderPage() {
                                                 transition: 'all 0.2s'
                                               }}
                                             >
+                                              {isSelected && (
+                                                <div style={{
+                                                  position: 'absolute',
+                                                  top: '8px',
+                                                  right: '8px',
+                                                  width: '24px',
+                                                  height: '24px',
+                                                  backgroundColor: '#000000',
+                                                  borderRadius: '50%',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  zIndex: 10
+                                                }}>
+                                                  <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
+                                                </div>
+                                              )}
                                               {zone.thumbnailUrl ? (
                                                 <img
                                                   src={zone.thumbnailUrl}
@@ -7621,20 +7641,14 @@ export default function ProductBuilderPage() {
                                                   right: '8px',
                                                   width: '24px',
                                                   height: '24px',
-                                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                                                  backgroundColor: '#000000',
                                                   borderRadius: '50%',
                                                   display: 'flex',
                                                   alignItems: 'center',
                                                   justifyContent: 'center',
                                                   zIndex: 10
                                                 }}>
-                                                  <span style={{
-                                                    color: '#ffffff',
-                                                    fontSize: '14px',
-                                                    fontWeight: 'bold'
-                                                  }}>
-                                                    ✓
-                                                  </span>
+                                                  <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff', fontSize: '14px', fontWeight: 'bold' }}>✓</span>
                                                 </div>
                                               )}
                                               
@@ -8627,18 +8641,22 @@ export default function ProductBuilderPage() {
                                                         onClick={(e) => {
                                                           e.preventDefault();
                                                           e.stopPropagation();
-                                                          // Pas en mode remplacement : ouvrir modal zones ou variantes immédiatement (synchrone)
+                                                          // Pas en mode remplacement : si logo a des variantes, les proposer d'abord ; sinon ouvrir modal zones
                                                           if (!logoToReplace) {
                                                             if (activeModule?.logoPlacementMode === 'zones') {
-                                                              setSelectedLogoForZone({
-                                                                logoId: logo.id,
-                                                                variantId: undefined,
-                                                                variantFile: logo.file_url
-                                                              });
-                                                              setShowLogoZoneModal(true);
-                                                              window.dispatchEvent(new CustomEvent('open-logo-zone-modal', {
-                                                                detail: { logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
-                                                              }));
+                                                              if (hasVariants) {
+                                                                setSelectedLogoForVariants(logo);
+                                                              } else {
+                                                                setSelectedLogoForZone({
+                                                                  logoId: logo.id,
+                                                                  variantId: undefined,
+                                                                  variantFile: logo.file_url
+                                                                });
+                                                                setShowLogoZoneModal(true);
+                                                                window.dispatchEvent(new CustomEvent('open-logo-zone-modal', {
+                                                                  detail: { logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
+                                                                }));
+                                                              }
                                                             } else {
                                                               setSelectedLogoForVariants(logo);
                                                             }
@@ -13838,7 +13856,7 @@ export default function ProductBuilderPage() {
                                   right: '8px',
                                   width: '24px',
                                   height: '24px',
-                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                                  backgroundColor: '#000000',
                                   borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -14386,7 +14404,7 @@ export default function ProductBuilderPage() {
                                   right: '8px',
                                   width: '24px',
                                   height: '24px',
-                                  backgroundColor: CONFIGURATOR_PANEL_PRIMARY_COLOR,
+                                  backgroundColor: '#000000',
                                   borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',

@@ -311,16 +311,18 @@ export function ConfiguratorViewer({
         -webkit-text-fill-color: #ffffff !important;
         font-weight: 600 !important;
       }
-      /* Bibliothèque de logos : forcer le scroll dans la grille */
+      /* Bibliothèque de logos : conteneur en flex, contenu scrollable */
       .configurator-viewer-isolated .logo-library-container {
         height: 100% !important;
         max-height: 100% !important;
+        min-height: 0 !important;
         overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
       }
       .configurator-viewer-isolated .logo-library-content {
-        overflow: hidden !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
         max-height: 100% !important;
@@ -348,6 +350,18 @@ export function ConfiguratorViewer({
         overflow: hidden !important;
         overflow-y: hidden !important;
         flex: none !important;
+      }
+      /* En contexte admin (product/new), hauteur fixe pour le scroll interne dans la bibliothèque (éviter que la page défile) */
+      .configurator-viewer-isolated .cv-panel-scroll-container:has(.logo-library-container) {
+        height: 70vh !important;
+        min-height: 70vh !important;
+        max-height: 70vh !important;
+        overflow: hidden !important;
+      }
+      /* Empêcher le viewer de grandir au-delà du parent quand la bibliothèque est ouverte */
+      .configurator-viewer-isolated.has-logo-library {
+        max-height: 100% !important;
+        overflow: hidden !important;
       }
       /* Forcer la hauteur du bloc gauche quand la bibliothèque est active */
       .configurator-viewer-isolated.has-logo-library .cv-left-block {
@@ -440,7 +454,12 @@ export function ConfiguratorViewer({
       const actionsHeight = actionsRect.height;
       
       // Hauteur disponible pour le contenu scrollable
-      const availableHeight = leftBlockHeight - headerHeight - actionsHeight;
+      let availableHeight = leftBlockHeight - headerHeight - actionsHeight;
+      // En contexte admin (product/new), le bloc gauche peut ne pas être encore contraint : plafonner à 70vh pour éviter que la page pousse
+      const maxLibraryHeight = typeof window !== 'undefined' ? Math.floor(window.innerHeight * 0.7) : availableHeight;
+      if (logoLibraryContainer && availableHeight > maxLibraryHeight) {
+        availableHeight = maxLibraryHeight;
+      }
       
       if (logoLibraryContainer) {
         // Ajouter une classe au root pour le ciblage CSS
@@ -1192,7 +1211,6 @@ export function ConfiguratorViewer({
           className="flex-1 overflow-auto cv-panel-scroll-container"
           style={{ 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            color: 'rgb(0, 0, 0)',
             padding: '0 4px 24px',
             display: 'flex',
             flexDirection: 'column',

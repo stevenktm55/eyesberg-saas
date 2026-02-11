@@ -15,6 +15,10 @@ export interface ModelDesignPair {
   id: string;
   modelUrl: string | null;
   design2DUrl: string | null;
+  normalMapUrl: string | null;
+  roughnessMapUrl: string | null;
+  metallicMapUrl: string | null;
+  aoMapUrl: string | null;
 }
 
 function generateId() {
@@ -156,7 +160,7 @@ function Vec3Input({
 
 export default function Viewer3DPage() {
   const [pairs, setPairs] = useState<ModelDesignPair[]>([
-    { id: generateId(), modelUrl: null, design2DUrl: null },
+    { id: generateId(), modelUrl: null, design2DUrl: null, normalMapUrl: null, roughnessMapUrl: null, metallicMapUrl: null, aoMapUrl: null },
   ]);
   const [envSettings, setEnvSettings] = useState<ViewerEnvSettings>(
     DEFAULT_VIEWER_ENV_SETTINGS
@@ -194,26 +198,48 @@ export default function Viewer3DPage() {
     );
   }, []);
 
+  const setPairMapUrl = useCallback(
+    (id: string, key: "normalMapUrl" | "roughnessMapUrl" | "metallicMapUrl" | "aoMapUrl", url: string | null) => {
+      setPairs((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p;
+          const prevUrl = p[key];
+          if (prevUrl?.startsWith("blob:")) URL.revokeObjectURL(prevUrl);
+          return { ...p, [key]: url };
+        })
+      );
+    },
+    []
+  );
+
   const addPair = useCallback(() => {
     setPairs((prev) => [
       ...prev,
-      { id: generateId(), modelUrl: null, design2DUrl: null },
+      { id: generateId(), modelUrl: null, design2DUrl: null, normalMapUrl: null, roughnessMapUrl: null, metallicMapUrl: null, aoMapUrl: null },
     ]);
   }, []);
 
   const removePair = useCallback((id: string) => {
     setPairs((prev) => {
       const p = prev.find((x) => x.id === id);
-      if (p?.modelUrl?.startsWith("blob:")) URL.revokeObjectURL(p.modelUrl);
-      if (p?.design2DUrl?.startsWith("blob:")) URL.revokeObjectURL(p.design2DUrl);
+      [p?.modelUrl, p?.design2DUrl, p?.normalMapUrl, p?.roughnessMapUrl, p?.metallicMapUrl, p?.aoMapUrl].forEach(
+        (u) => u?.startsWith("blob:") && URL.revokeObjectURL(u)
+      );
       const next = prev.filter((x) => x.id !== id);
-      return next.length > 0 ? next : [{ id: generateId(), modelUrl: null, design2DUrl: null }];
+      return next.length > 0 ? next : [{ id: generateId(), modelUrl: null, design2DUrl: null, normalMapUrl: null, roughnessMapUrl: null, metallicMapUrl: null, aoMapUrl: null }];
     });
   }, []);
 
   const viewerModels: ViewerModelItem[] = pairs
     .filter((p): p is ModelDesignPair & { modelUrl: string } => p.modelUrl != null)
-    .map((p) => ({ modelUrl: p.modelUrl, design2DUrl: p.design2DUrl }));
+    .map((p) => ({
+      modelUrl: p.modelUrl,
+      design2DUrl: p.design2DUrl,
+      normalMapUrl: p.normalMapUrl ?? undefined,
+      roughnessMapUrl: p.roughnessMapUrl ?? undefined,
+      metallicMapUrl: p.metallicMapUrl ?? undefined,
+      aoMapUrl: p.aoMapUrl ?? undefined,
+    }));
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-100">
@@ -329,6 +355,36 @@ export default function Viewer3DPage() {
                       onChange={(e) => setPairDesign2DUrl(pair.id, e.target.value.trim() || null)}
                       className="w-full px-2 py-1 text-xs text-black border border-gray-300 rounded placeholder:text-gray-600"
                     />
+                    <div className="pt-2 border-t border-gray-200 space-y-2">
+                      <span className="text-xs font-medium text-black block">Maps PBR (optionnel)</span>
+                      {(["normal", "roughness", "metallic", "ao"] as const).map((key) => {
+                        const label = key === "normal" ? "Normal" : key === "roughness" ? "Roughness" : key === "metallic" ? "Metallic" : "AO";
+                        const urlKey = `${key}MapUrl` as const;
+                        const value = pair[urlKey] ?? "";
+                        return (
+                          <div key={key} className="space-y-0.5">
+                            <span className="text-xs text-black">{label}</span>
+                            <input
+                              type="file"
+                              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (!f) return;
+                                setPairMapUrl(pair.id, urlKey, URL.createObjectURL(f));
+                              }}
+                              className="block w-full text-xs text-black file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-100 file:text-black"
+                            />
+                            <input
+                              type="url"
+                              placeholder={`Ou URL ${label}`}
+                              value={value}
+                              onChange={(e) => setPairMapUrl(pair.id, urlKey, e.target.value.trim() || null)}
+                              className="w-full px-2 py-1 text-xs text-black border border-gray-300 rounded placeholder:text-gray-600"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 ))}
               </div>
