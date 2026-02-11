@@ -278,6 +278,15 @@
   -webkit-text-fill-color: #ffffff !important;
 }
 
+/* Bouton Retour : texte noir, pas de fond */
+.configurator-panel .typography-back-button,
+.configurator-panel .typography-back-button *,
+.zone-selection-modal-content .typography-back-button,
+.zone-selection-modal-content .typography-back-button * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
 /* Titres dans les modaux */
 .configurator-panel-modal h1,
 .configurator-panel-modal h2,

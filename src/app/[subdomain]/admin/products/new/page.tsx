@@ -40,6 +40,8 @@ if (typeof document !== 'undefined') {
       -webkit-text-fill-color: #000000 !important;
       -webkit-text-stroke-color: #000000 !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+      background-color: transparent !important;
+      background: transparent !important;
     }
     .configurator-panel .mobile-action-btn-black,
     .configurator-panel .mobile-action-btn-black * {
@@ -2400,6 +2402,43 @@ export default function ProductBuilderPage() {
       }
     }
   }, [selectedLogoId, viewportMode, customizationModules, mobileActivePanel]);
+
+  // À l'ouverture du module Logo (clic onglet), sélectionner le premier label de vue disponible
+  const prevEffectiveTabRef = useRef<string | null>(null);
+  useEffect(() => {
+    const effectiveTab = viewportMode === 'mobile' ? mobileActivePanel : activeCustomizerTab;
+    const logoModule = customizationModules.find(m => m.id === effectiveTab && (m.contentType ?? (m as any).content_type) === 'logos');
+    const justOpenedLogo = logoModule && effectiveTab !== prevEffectiveTabRef.current;
+    prevEffectiveTabRef.current = effectiveTab;
+    if (justOpenedLogo && logoModule.viewLabels && logoModule.viewLabels.length > 0) {
+      const firstView = logoModule.viewLabels[0];
+      setActiveLogoView((firstView.id as any) || 'front');
+    }
+  }, [activeCustomizerTab, mobileActivePanel, viewportMode, customizationModules]);
+
+  // Synchroniser l'onglet actif avec la sélection 3D : clic sur un texte/logo ouvre le bon module
+  useEffect(() => {
+    if (selectedTextId) {
+      const textModule = customizationModules.find(m => m.contentType === 'text');
+      if (textModule && activeCustomizerTab !== textModule.id) {
+        setActiveCustomizerTab(textModule.id);
+      }
+      if (viewportMode === 'mobile') {
+        const textModule = customizationModules.find(m => m.contentType === 'text');
+        if (textModule) setMobileActivePanel(textModule.id);
+      }
+    }
+    if (selectedLogoId) {
+      const logoModule = customizationModules.find(m => m.contentType === 'logos');
+      if (logoModule && activeCustomizerTab !== logoModule.id) {
+        setActiveCustomizerTab(logoModule.id);
+      }
+      if (viewportMode === 'mobile') {
+        const logoModule = customizationModules.find(m => m.contentType === 'logos');
+        if (logoModule) setMobileActivePanel(logoModule.id);
+      }
+    }
+  }, [selectedTextId, selectedLogoId, activeCustomizerTab, customizationModules, viewportMode]);
 
   // Ouvrir automatiquement le premier onglet sur desktop au chargement
   useEffect(() => {
@@ -6313,6 +6352,12 @@ export default function ProductBuilderPage() {
       setActiveCustomizerTab(newTab);
       if (newTab !== activeCustomizerTab) {
         setSelectedColorClass(null);
+      }
+      // À l'ouverture de l'onglet Logo, sélectionner le premier label de vue disponible
+      const logoModule = customizationModules.find(m => m.id === newTab && (m.contentType ?? (m as any).content_type) === 'logos');
+      if (logoModule && logoModule.viewLabels && logoModule.viewLabels.length > 0) {
+        const firstView = logoModule.viewLabels[0];
+        setActiveLogoView((firstView.id as any) || 'front');
       }
     }}
     onSave={handleSaveProduct}
