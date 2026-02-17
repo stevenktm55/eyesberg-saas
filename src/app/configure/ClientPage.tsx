@@ -1404,18 +1404,31 @@ export default function ConfigurePage() {
             if (!s.startsWith('#')) s = '#' + s;
             return /^#[0-9a-f]{3}$/i.test(s) ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] : s;
           };
-          let paletteColorsList = palette
-            ? (palette.colors || []).map((c: any, i: number) => ({ id: c.id || `${palette.id}-${i}`, name: c.name || '', hex: normHex(c.hex) }))
-            : allowedColors.map((c: any, i: number) => ({ id: c.id || c.hex || `c-${i}`, name: c.label || c.name || '', hex: normHex(c.hex) }));
+          // En configure/preview : utiliser uniquement allowedColors (snapshot) pour la liste affichée,
+          // pour que les id cliqués correspondent au colorLookup du rendu (évite jaune → vert).
+          let paletteColorsList: { id: string; name: string; hex: string }[];
+          if (allowedColors.length > 0) {
+            paletteColorsList = allowedColors.map((c: any, i: number) => ({
+              id: c.id || c.hex || `c-${i}`,
+              name: c.label || c.name || '',
+              hex: normHex(c.hex),
+            }));
+          } else if (palette) {
+            paletteColorsList = (palette.colors || []).map((c: any, i: number) => ({ id: c.id || `${palette.id}-${i}`, name: c.name || '', hex: normHex(c.hex) }));
+          } else {
+            paletteColorsList = [];
+          }
           const seen = new Set(paletteColorsList.map((p: any) => p.hex?.toLowerCase()));
-          allowedColors.forEach((c: any) => {
-            const hex = normHex(c.hex);
-            const id = c.id || c.hex || hex;
-            if (hex && !seen.has(hex.toLowerCase()) && !paletteColorsList.some((p: any) => p.id === id)) {
-              paletteColorsList = [...paletteColorsList, { id, name: c.label || c.name || '', hex }];
-              seen.add(hex.toLowerCase());
-            }
-          });
+          if (allowedColors.length === 0 && palette) {
+            allowedColors.forEach((c: any) => {
+              const hex = normHex(c.hex);
+              const id = c.id || c.hex || hex;
+              if (hex && !seen.has(hex.toLowerCase()) && !paletteColorsList.some((p: any) => p.id === id)) {
+                paletteColorsList = [...paletteColorsList, { id, name: c.label || c.name || '', hex }];
+                seen.add(hex.toLowerCase());
+              }
+            });
+          }
           if (!paletteColorsList.length) return undefined;
           const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary'];
           const designIdToUse = customizationModules.find((m) => m.contentType === 'designs-2d')?.selectedItems?.design2DId || selectedDesign2DId;
