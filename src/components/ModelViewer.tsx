@@ -798,16 +798,9 @@ function SimpleViewer({
       const keyLower = key.toLowerCase();
       const escKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const fromHex = classHexRef.current[keyLower] || classHexRef.current[key] || previousColorsRef.current[keyLower] || previousColorsRef.current[key];
-      if (fromHex && fromHex.toLowerCase() !== newHex.toLowerCase()) {
-        const safe = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const re = new RegExp(safe, 'gi');
-        const before = finalSvg;
-        finalSvg = finalSvg.replace(re, () => newHex);
-        if (finalSvg !== before) {
-          console.log(`🟢 HEX replace for key: ${key} ${fromHex} → ${newHex}`);
-          anyChange = true;
-        }
-      }
+      // Ne pas faire de remplacement global par hex : quand plusieurs classes (primary, secondary) partagent
+      // le même hex par défaut, ça remplaçait partout et créait un mélange vert/cyan. On s'appuie sur
+      // le remplacement ciblé (blocs CSS et attributs inline par classe) ci-dessous.
       const beforeCss = finalSvg;
       const cssBlockRe = new RegExp(`(\\.${escKey}\\s*\\{)([^}]*)(\\})`, 'gi');
       finalSvg = finalSvg.replace(cssBlockRe, (_, open: string, block: string, close: string) => {

@@ -1215,19 +1215,32 @@ export default function ConfigurePage() {
       const allColors = colorPalettes.flatMap((p) => p.colors || []);
       const colorModule = customizationModules.find((m: any) => m.contentType === 'colors');
       const allowedColorsFromModule = (colorModule as any)?.allowedColors || (snapshot?.customizationModules?.find((m: any) => m.contentType === 'colors') as any)?.allowedColors || [];
-      const colorLookup = [...allColors];
+      // Priorité aux couleurs du snapshot (palette du produit) pour éviter mélange vert/cyan entre palettes
+      const colorLookup: { id?: string; hex?: string }[] = [];
       allowedColorsFromModule.forEach((c: any) => {
+        if (c?.hex) {
+          const entry = { id: c.id || c.hex, hex: (c.hex || '').startsWith('#') ? c.hex : `#${c.hex}` };
+          if (!colorLookup.some((x: any) => (x.id || x.hex) === (c.id || c.hex))) colorLookup.push(entry);
+        }
+      });
+      allColors.forEach((c: any) => {
         if (c?.hex && !colorLookup.some((x: any) => (x.id || x.hex) === (c.id || c.hex))) {
           colorLookup.push({ id: c.id || c.hex, hex: (c.hex || '').startsWith('#') ? c.hex : `#${c.hex}` });
         }
       });
-      const designColorMappings = selectedDesign?.color_mappings || null;
+      // Fallback sur snapshot.design2D pour le preview (selectedDesign peut être null)
+      const designColorMappings = selectedDesign?.color_mappings || snapshot?.design2D?.color_mappings || null;
       let colorsForViewer: Record<string, string> = {};
       const getHexFromColorId = (colorId: string): string | null => {
         if (!colorId) return null;
-        const hexMatch = String(colorId).match(/#([0-9a-f]{3,6})$/i);
-        if (hexMatch) return `#${hexMatch[1]}`;
+        // Extraire l'hex si format "uuid-index-#hex" ou "#hex"
+        const hexInId = String(colorId).match(/#([0-9a-f]{3,6})/gi);
+        if (hexInId && hexInId.length > 0) {
+          const h = hexInId[hexInId.length - 1];
+          return h.startsWith('#') ? h : `#${h}`;
+        }
         const norm = (s: string) => (s || '').toLowerCase().replace(/^#?/, '#');
+        // Priorité à allowedColorsFromModule (palette du produit) pour éviter mélange avec autres palettes
         const c = colorLookup.find((x: any) => (x.id || '') === colorId || (x.hex || '').toLowerCase() === norm(colorId));
         return c?.hex ? ((c.hex || '').startsWith('#') ? c.hex : `#${c.hex}`) : null;
       };
