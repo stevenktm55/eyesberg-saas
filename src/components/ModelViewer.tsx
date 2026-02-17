@@ -193,6 +193,8 @@ function SimpleViewer({
   
   // Ref for onRequestTextDelete to ensure closure has latest value
   const onRequestTextDeleteRef = useRef<((id: string) => void) | undefined>(onRequestTextDelete);
+  // Ref for onRequestLogoDelete to ensure closure has latest value
+  const onRequestLogoDeleteRef = useRef<((id: string) => void) | undefined>(onRequestLogoDelete);
   
   // Update ref when isPlacingText changes
   useEffect(() => {
@@ -205,6 +207,11 @@ function SimpleViewer({
     onRequestTextDeleteRef.current = onRequestTextDelete;
     console.log('🔄 onRequestTextDeleteRef updated to:', onRequestTextDelete);
   }, [onRequestTextDelete]);
+  
+  // Update ref when onRequestLogoDelete changes
+  useEffect(() => {
+    onRequestLogoDeleteRef.current = onRequestLogoDelete;
+  }, [onRequestLogoDelete]);
   
   // Signal that a fresh original SVG is available
   const [svgBaseVersion, setSvgBaseVersion] = useState(0);
@@ -529,48 +536,55 @@ function SimpleViewer({
           svgText = await response.text();
           originalSvgRef.current = svgText;
           setSvgBaseVersion(v => v + 1);
-          // Extract original HEX per known classes from <style> blocks
+          // Extract original HEX per known classes from <style> blocks and inline fill attributes
           try {
-              const styleBlocks = Array.from(svgText.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
+            const toHex = (v: string): string | null => {
+              if (!v || typeof v !== 'string') return null;
+              const t = v.trim();
+              if (/^#[0-9a-fA-F]{3,8}$/.test(t)) return t.length <= 4 ? t.replace(/^#(.)(.)(.)$/, '#$1$1$2$2$3$3') : t;
+              const rgb = t.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+              if (rgb) return '#' + [1,2,3].map(i => parseInt(rgb[i],10).toString(16).padStart(2,'0')).join('');
+              return null;
+            };
+            const styleBlocks = Array.from(svgText.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi));
             const classHex: Record<string, string> = {};
             const normalizedKeys = new Set<string>();
             Object.keys(colors || {}).forEach((key) => {
               normalizedKeys.add(key.replace(/^--/, '').toLowerCase());
             });
-            [
-              'primary',
-              'secondary',
-              'tertiary',
-              'quaternary',
-              'quinary',
-              'accent',
-              'background',
-              'foreground',
-              'text',
-              'border',
-              'clip',
-              'stripe',
-              'logo',
-            ].forEach((key) => normalizedKeys.add(key));
+            ['primary','secondary','tertiary','quaternary','quinary','accent','background','foreground','text','border','clip','stripe','logo'].forEach((key) => normalizedKeys.add(key));
 
             if (styleBlocks.length > 0 && normalizedKeys.size > 0) {
               for (const [, css] of styleBlocks) {
                 const lowerCss = css.toLowerCase();
                 normalizedKeys.forEach((key) => {
                   if (classHex[key]) return;
-                  const re = new RegExp(`\\.${key}[^}]*?#([0-9a-f]{3,6})`, 'i');
-                  const m = lowerCss.match(re);
-                  if (m && m[1]) {
-                    classHex[key] = `#${m[1]}`;
+                  const patterns = [
+                    new RegExp(`\\.${key}[^}]*?fill:\\s*#([0-9a-fA-F]{3,8})`, 'i'),
+                    new RegExp(`\\.${key}[^}]*?fill:\\s*([^;}\\s!]+)`, 'i'),
+                    new RegExp(`\\.${key}[^}]*?stroke:\\s*#([0-9a-fA-F]{3,8})`, 'i'),
+                    new RegExp(`\\.${key}[^}]*?#([0-9a-fA-F]{3,8})`, 'i'),
+                  ];
+                  for (const re of patterns) {
+                    const m = lowerCss.match(re);
+                    const raw = m?.[1]?.trim();
+                    if (raw) {
+                      let hex = toHex(raw);
+                      if (!hex && !raw.startsWith('#')) hex = toHex('#' + raw);
+                      if (hex) { classHex[key] = hex; break; }
+                    }
                   }
                 });
               }
             }
             classHexRef.current = classHex;
             previousColorsRef.current = { ...classHex };
+            if (Object.keys(classHex).length === 0 && colors && Object.keys(colors).length > 0) {
+              previousColorsRef.current = { ...colors };
+            }
             Object.entries(classHex).forEach(([k, v]) => console.log('🔎 Detected original class HEX:', k, v));
-                } catch {}
-              }
+          } catch {}
+        }
         if (!svgText || svgText.trim().length === 0) {
           console.error('❌ SVG is empty');
           throw new Error('SVG content is empty');
@@ -767,25 +781,63 @@ function SimpleViewer({
   useEffect(() => {
     if (!gltf?.scene) return;
     if (!originalSvgRef.current) return;
-    // Normalize color keys (strip leading --)
+    if (!colors || Object.keys(colors).length === 0) return;
+    const normalizeKey = (k: string) => k.replace(/^--/, '').toLowerCase();
     const normalizedColors: Record<string, string> = {};
-    Object.entries(colors || {}).forEach(([k, v]) => {
-      const key = k.replace(/^--/, '');
-      if (typeof v === 'string') normalizedColors[key] = v as string;
+    Object.entries(colors).forEach(([k, v]) => {
+      const key = normalizeKey(k);
+      if (typeof v === 'string' && v) {
+        const hex = v.startsWith('#') ? v : `#${v}`;
+        normalizedColors[key] = hex;
+      }
     });
-    // Build final SVG by global HEX replacement
+    if (Object.keys(normalizedColors).length === 0) return;
     let finalSvg = originalSvgRef.current;
     let anyChange = false;
     for (const [key, newHex] of Object.entries(normalizedColors)) {
-      const fromHex = classHexRef.current[key] || previousColorsRef.current[key];
-      if (!fromHex || !newHex || fromHex.toLowerCase() === newHex.toLowerCase()) continue;
-      const safe = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const re = new RegExp(safe, 'gi');
-      const before = finalSvg;
-      finalSvg = finalSvg.replace(re, (m) => newHex);
-      const count = (before.match(re) || []).length;
-      console.log(`🟢 HEX replace for key: ${key} ${fromHex} → ${newHex}, count=${count}`);
-      if (count > 0) anyChange = true;
+      const keyLower = key.toLowerCase();
+      const escKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const fromHex = classHexRef.current[keyLower] || classHexRef.current[key] || previousColorsRef.current[keyLower] || previousColorsRef.current[key];
+      if (fromHex && fromHex.toLowerCase() !== newHex.toLowerCase()) {
+        const safe = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(safe, 'gi');
+        const before = finalSvg;
+        finalSvg = finalSvg.replace(re, () => newHex);
+        if (finalSvg !== before) {
+          console.log(`🟢 HEX replace for key: ${key} ${fromHex} → ${newHex}`);
+          anyChange = true;
+        }
+      }
+      const beforeCss = finalSvg;
+      const cssBlockRe = new RegExp(`(\\.${escKey}\\s*\\{)([^}]*)(\\})`, 'gi');
+      finalSvg = finalSvg.replace(cssBlockRe, (_, open: string, block: string, close: string) => {
+        anyChange = true;
+        let out = block.replace(/(fill:\\s*)([^;}\\s!]+)/gi, `$1${newHex} !important`);
+        out = out.replace(/(stroke:\\s*)([^;}\\s!]+)/gi, `$1${newHex} !important`);
+        if (!/fill\\s*:/i.test(out)) out = `fill: ${newHex} !important; ${out}`;
+        if (!/stroke\\s*:/i.test(out)) out = `stroke: ${newHex} !important; ${out}`;
+        return open + out + close;
+      });
+      if (finalSvg !== beforeCss) {
+        console.log(`🟢 CSS fill+stroke replace for key: ${key} → ${newHex}`);
+      }
+      if (fromHex) {
+        const escHex = fromHex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const inlineFillRe = new RegExp(`(class=["'][^"']*\\b${escKey}\\b[^"']*["'][^>]*fill=["'])${escHex}(["'])`, 'gi');
+        const beforeInline = finalSvg;
+        finalSvg = finalSvg.replace(inlineFillRe, `$1${newHex}$2`);
+        const inlineStrokeRe = new RegExp(`(class=["'][^"']*\\b${escKey}\\b[^"']*["'][^>]*stroke=["'])${escHex}(["'])`, 'gi');
+        finalSvg = finalSvg.replace(inlineStrokeRe, `$1${newHex}$2`);
+        const strokeThenClassRe = new RegExp(`(stroke=["'])${escHex}(["'][^>]*class=["'][^"']*\\b${escKey}\\b)`, 'gi');
+        finalSvg = finalSvg.replace(strokeThenClassRe, `$1${newHex}$2`);
+        const fillThenClassRe = new RegExp(`(fill=["'])${escHex}(["'][^>]*class=["'][^"']*\\b${escKey}\\b)`, 'gi');
+        finalSvg = finalSvg.replace(fillThenClassRe, `$1${newHex}$2`);
+        if (finalSvg !== beforeInline) {
+          console.log(`🟢 Inline fill/stroke replace for key: ${key} → ${newHex}`);
+          anyChange = true;
+        }
+      }
+      previousColorsRef.current[keyLower] = newHex;
       previousColorsRef.current[key] = newHex;
     }
     const alreadyApplied = appliedSvgRef.current === finalSvg;
@@ -796,12 +848,11 @@ function SimpleViewer({
     if (!anyChange) {
       console.log('ℹ️ Recolor: No color change detected; applying base SVG texture.');
     }
-    // Apply to front meshes only using a data URL Image
-              const img = new Image();
+    const img = new Image();
     img.crossOrigin = 'anonymous';
-              img.onload = () => {
-              const size = 4096;
-              const c = document.createElement('canvas');
+    img.onload = () => {
+      const size = 4096;
+      const c = document.createElement('canvas');
               c.width = c.height = size;
               const ctx = c.getContext('2d');
       if (!ctx) return;
@@ -1048,7 +1099,7 @@ function SimpleViewer({
       console.error('❌ Failed to load recolored SVG image', error);
     };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(finalSvg);
-  }, [gltf?.scene, svgBaseVersion, colorsHash]);
+  }, [gltf?.scene, svgBaseVersion, colorsHash, colors]);
 
   // Studio lighting setup (shadows)
   useEffect(() => {
@@ -3126,8 +3177,8 @@ function SimpleViewer({
             }
             
             console.log('🗑️ DELETE icon clicked');
-            if (onRequestLogoDelete) {
-              onRequestLogoDelete(selectedLogoIdRef.current);
+            if (onRequestLogoDeleteRef.current && selectedLogoIdRef.current) {
+              onRequestLogoDeleteRef.current(selectedLogoIdRef.current);
             }
             return;
           }

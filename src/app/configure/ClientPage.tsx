@@ -1,18 +1,19 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { ModelViewer } from "@/components/ModelViewer";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import * as THREE from "three";
+import { ProductConfiguratorPanel, type TextModuleFromBuilder } from "@/app/test-viewer/page";
+import { ConfiguratorLogoPanel } from "@/components/ConfiguratorLogoPanel";
 
 // Constante pour la font du configurator-panel
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-const CONFIGURATOR_PANEL_PRIMARY_COLOR = '#3b82f6';
-
-// Style global pour forcer les couleurs de texte dans le configurator-panel
+// Style global (identique au builder : noir/blanc)
 // IMPORTANT: Scoper UNIQUEMENT au .configurator-panel pour ne pas affecter le reste de la page
 // Copié exactement du builder pour correspondre
 if (typeof document !== 'undefined') {
@@ -44,6 +45,25 @@ if (typeof document !== 'undefined') {
       -webkit-text-stroke-color: #ffffff !important;
       font-family: ${CONFIGURATOR_PANEL_FONT} !important;
     }
+    .configurator-panel .cv-panel-add-logo-btn,
+    .configurator-panel .cv-panel-add-logo-btn *,
+    .configurator-panel .cv-panel-add-logo-btn span,
+    .configurator-viewer-isolated .cv-panel-add-logo-btn,
+    .configurator-viewer-isolated .cv-panel-add-logo-btn *,
+    .configurator-viewer-isolated .cv-panel-add-logo-btn span {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-text-stroke-color: #ffffff !important;
+      fill: #ffffff !important;
+      stroke: #ffffff !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
+    .configurator-panel [data-zone-checkmark],
+    .configurator-panel [data-zone-checkmark] span {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+      font-family: ${CONFIGURATOR_PANEL_FONT} !important;
+    }
     .configurator-panel button.configurator-panel-sidebar-tab-active {
       border-radius: 12px !important;
       -webkit-border-radius: 12px !important;
@@ -73,7 +93,9 @@ interface CustomizationModule {
     colorPaletteId?: string;
     logoLibraryId?: string;
     logoLibraryIds?: string[];
+    logoZoneGroupIds?: string[];
     fontGroupIds?: string[];
+    textZoneGroupIds?: string[];
   };
   colorClassLabels?: Record<string, string>;
   // Options pour les textes
@@ -101,6 +123,10 @@ interface CustomizationModule {
   importLogoButtonLabel?: string;
   placedLogosLabel?: string;
   logoPlacementMode?: 'zones' | 'free';
+  viewLabels?: Array<{ id: string; label: string; cameraViewId?: string }>;
+  zoneGroupIds?: string[];
+  /** Couleurs autorisées (depuis snapshot) pour la résolution designColors → hex */
+  allowedColors?: Array<{ id?: string; hex?: string; label?: string; name?: string }>;
 }
 
 interface ProductData {
@@ -166,6 +192,8 @@ export default function ConfigurePage() {
   const productId = searchParams.get('productId');
   const shop = searchParams.get('shop');
   const variantId = searchParams.get('variantId') || '1';
+  const isPreview = searchParams.get('preview') === 'true';
+  const isPreviewLive = searchParams.get('preview') === 'live';
 
   const [product, setProduct] = useState<ProductData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -199,6 +227,7 @@ export default function ConfigurePage() {
   const [selectedLogoForVariants, setSelectedLogoForVariants] = useState<any | null>(null);
   const [logoToReplace, setLogoToReplace] = useState<string | null>(null);
   const [activeLogoView, setActiveLogoView] = useState<'front' | 'back' | 'left' | 'right' | string>('front');
+  const [hoveredLogoViewId, setHoveredLogoViewId] = useState<string | null>(null);
   
   // Version mobile
   const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -209,24 +238,47 @@ export default function ConfigurePage() {
   const [newTextContent, setNewTextContent] = useState('');
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [logoSearchQuery, setLogoSearchQuery] = useState('');
+  const [isAddLogoHovered, setIsAddLogoHovered] = useState(false);
   const [showVariantSelector, setShowVariantSelector] = useState<string | null>(null);
   const [showZoneSelector, setShowZoneSelector] = useState<{logoId: string, variantId: string, variantFile: string} | null>(null);
-  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string>('');
+  const [showTextZoneModal, setShowTextZoneModal] = useState(false);
+  const [textInputValue, setTextInputValue] = useState<string>('');
+  const [selectedLogoZoneId, setSelectedLogoZoneId] = useState<string | null>(null);
+  const [selectedTextZoneId, setSelectedTextZoneId] = useState<string | null>(null);
   const [activeLogoCategory, setActiveLogoCategory] = useState<'torse' | 'dos' | 'bras-gauche' | 'bras-droit'>('torse');
 
   // Charger le produit et sa configuration
+  const designColorsLoadedFromProductRef = useRef(false);
   useEffect(() => {
     async function loadProduct() {
       if (!productId || !shop) {
         setIsLoading(false);
         return;
       }
+      designColorsLoadedFromProductRef.current = false;
 
       try {
-        // Charger le produit depuis l'API
-        const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productId)}&shop=${encodeURIComponent(shop)}&for=admin`);
-        if (res.ok) {
-          const productData = await res.json();
+        let productData: any = null;
+
+        // Mode preview live : charger depuis localStorage (snapshot généré par le builder)
+        if (isPreviewLive && typeof window !== 'undefined') {
+          const stored = localStorage.getItem('preview_snapshot_live');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            productData = { id: productId, name: 'Preview', snapshot: parsed, builder_data: null };
+          }
+        }
+
+        // Sinon charger depuis l'API
+        if (!productData) {
+          const previewParam = isPreview ? '&preview=true' : '';
+          const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productId)}&shop=${encodeURIComponent(shop)}&for=client${previewParam}`);
+          if (res.ok) {
+            productData = await res.json();
+          }
+        }
+
+        if (productData) {
           
           // DEBUG: Vérifier que le snapshot est présent
           console.log('📦 ProductData reçu:', {
@@ -291,7 +343,11 @@ export default function ConfigurePage() {
             addLogoButtonLabel: module.addLogoButtonLabel || module.config?.addLogoButtonLabel,
             importLogoButtonLabel: module.importLogoButtonLabel || module.config?.importLogoButtonLabel,
             placedLogosLabel: module.placedLogosLabel || module.config?.placedLogosLabel,
-            logoPlacementMode: module.logoPlacementMode || module.config?.logoPlacementMode
+            logoPlacementMode: module.logoPlacementMode || module.config?.logoPlacementMode,
+            viewLabels: module.viewLabels || module.config?.viewLabels,
+            zoneGroupIds: module.zoneGroupIds || module.config?.zoneGroupIds || module.selectedItems?.zoneGroupIds || module.selectedItems?.textZoneGroupIds,
+            ...(module.allowedColors && { allowedColors: module.allowedColors }),
+            ...(module.config?.allowedColors && !module.allowedColors && { allowedColors: module.config.allowedColors })
           }));
           
           console.log('📦 Modules mappés:', {
@@ -376,6 +432,15 @@ export default function ConfigurePage() {
             }
           }
           setSelectedDesign2DId(design2DId);
+          
+          // Charger designColors depuis builder_data ou snapshot (couleurs sauvegardées du builder)
+          if (builderData?.designColors && typeof builderData.designColors === 'object' && Object.keys(builderData.designColors).length > 0) {
+            setDesignColors(builderData.designColors);
+            designColorsLoadedFromProductRef.current = true;
+          } else if (snapshot?.designColors && typeof snapshot.designColors === 'object' && Object.keys(snapshot.designColors).length > 0) {
+            setDesignColors(snapshot.designColors);
+            designColorsLoadedFromProductRef.current = true;
+          }
         }
       } catch (error) {
         console.error('Error loading product:', error);
@@ -385,7 +450,7 @@ export default function ConfigurePage() {
     }
 
     loadProduct();
-  }, [productId, shop]);
+  }, [productId, shop, isPreview, isPreviewLive]);
 
   // Charger les modèles 3D, designs, palettes de couleurs
   useEffect(() => {
@@ -447,6 +512,20 @@ export default function ConfigurePage() {
 
     loadResources();
   }, []);
+
+  // Initialiser designColors depuis le design UNIQUEMENT si pas déjà chargé depuis product (builder_data/snapshot)
+  const lastDesignIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (designColorsLoadedFromProductRef.current) return; // Déjà chargé depuis product
+    if (designs2D.length === 0) return;
+    const designId = customizationModules.find((m: any) => m.contentType === 'designs-2d')?.selectedItems?.design2DId || selectedDesign2DId;
+    if (!designId || designId === lastDesignIdRef.current) return;
+    lastDesignIdRef.current = designId;
+    const design = designs2D.find((d: any) => d.id === designId);
+    if (design?.color_mappings && Object.keys(design.color_mappings).length > 0) {
+      setDesignColors(prev => (Object.keys(prev).length > 0 ? prev : { ...design.color_mappings }));
+    }
+  }, [selectedDesign2DId, designs2D, customizationModules]);
 
   // Charger les zones de texte à partir du snapshot ou des groupes de zones sélectionnés dans les modules
   useEffect(() => {
@@ -513,387 +592,100 @@ export default function ConfigurePage() {
     loadTextZones();
   }, [zoneGroups, customizationModules, product]);
   
-  // Écouter les événements de caméra pour les vues de logos
+  // Refs pour que les listeners caméra accèdent aux données à jour
+  const productRef = useRef(product);
+  const models3DRef = useRef(models3D);
+  const customizationModulesRef = useRef(customizationModules);
+  const selectedModel3DIdRef = useRef(selectedModel3DId);
+  productRef.current = product;
+  models3DRef.current = models3D;
+  customizationModulesRef.current = customizationModules;
+  selectedModel3DIdRef.current = selectedModel3DId;
+
+  // Écouter les événements de caméra (goToCameraView avec position/target, setCameraView avec view id)
   useEffect(() => {
-    const handleGoToCameraView = (event: any) => {
-      const { position, target } = event.detail || {};
-      if (!position || !target) return;
-      
+    const defaultPositions: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
+      front: { position: [0, 0, 15], target: [0, 0, 0] },
+      back: { position: [0, 0, -15], target: [0, 0, 0] },
+      left: { position: [-15, 0, 0], target: [0, 0, 0] },
+      right: { position: [15, 0, 0], target: [0, 0, 0] }
+    };
+
+    const applyPositionTarget = (position: number[] | { x: number; y: number; z: number }, target: number[] | { x: number; y: number; z: number }) => {
       const controlsRef = (window as any).__orbitControlsRef;
       if (!controlsRef) return;
-      
       const controls = controlsRef as any;
       const camera = controls.object;
-      
-      if (camera && controls) {
-        // Sauvegarder les limites actuelles
-        const minDistance = controls.minDistance;
-        const maxDistance = controls.maxDistance;
-        
-        // Supprimer temporairement les limites pour permettre le mouvement libre
-        controls.minDistance = 0;
-        controls.maxDistance = Infinity;
-        
-        // Animer la caméra vers la nouvelle position
-        const startPosition = camera.position.clone();
-        const startTarget = controls.target.clone();
-        const endPosition = new THREE.Vector3(position[0], position[1], position[2]);
-        const endTarget = new THREE.Vector3(target[0], target[1], target[2]);
-        
-        let progress = 0;
-        const duration = 1000; // 1 seconde
-        const startTime = Date.now();
-        
-        const animate = () => {
-          const elapsed = Date.now() - startTime;
-          progress = Math.min(elapsed / duration, 1);
-          
-          // Easing function (ease-in-out)
-          const eased = progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-          
-          camera.position.lerpVectors(startPosition, endPosition, eased);
-          controls.target.lerpVectors(startTarget, endTarget, eased);
-          controls.update();
-          
-          if (progress < 1) {
-            requestAnimationFrame(animate);
-          } else {
-            // Restaurer les limites après l'animation
-            setTimeout(() => {
-              controls.minDistance = minDistance;
-              controls.maxDistance = maxDistance;
-            }, 500);
+      if (!camera || !controls) return;
+      const p = Array.isArray(position) ? position : [position.x, position.y, position.z];
+      const t = Array.isArray(target) ? target : [target.x, target.y, target.z];
+      const scaleFactor = 4.67;
+      const endPosition = new THREE.Vector3((p[0] || 0) * scaleFactor, (p[1] || 0) * scaleFactor, (p[2] || 0) * scaleFactor);
+      const endTarget = new THREE.Vector3(t[0] || 0, t[1] || 0, t[2] || 0);
+      const startPosition = camera.position.clone();
+      const startTarget = controls.target.clone();
+      let progress = 0;
+      const duration = 600;
+      const startTime = Date.now();
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        progress = Math.min(elapsed / duration, 1);
+        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        camera.position.lerpVectors(startPosition, endPosition, eased);
+        controls.target.lerpVectors(startTarget, endTarget, eased);
+        controls.update();
+        if (progress < 1) requestAnimationFrame(animate);
+      };
+      animate();
+    };
+
+    const handleGoToCameraView = (event: any) => {
+      const detail = event.detail;
+      if (typeof detail === 'string') {
+        const viewId = detail;
+        if (defaultPositions[viewId]) {
+          const { position, target } = defaultPositions[viewId];
+          applyPositionTarget(position, target);
+          return;
+        }
+        const modules = customizationModulesRef.current;
+        const models = models3DRef.current;
+        const modelId = selectedModel3DIdRef.current;
+        const logoModule = modules.find((m: any) => m.contentType === 'logos');
+        const viewLabels = logoModule?.viewLabels || logoModule?.config?.viewLabels || [];
+        const viewConfig = viewLabels.find((v: any) => v.id === viewId);
+        const cameraViewId = viewConfig?.cameraViewId;
+        if (cameraViewId && modelId) {
+          const selectedModel = models.find((m: any) => m.id === modelId);
+          const cameraViews = selectedModel?.cameraViews || selectedModel?.camera_views || [];
+          const cameraView = cameraViews.find((cv: any) => cv.id === cameraViewId);
+          if (cameraView?.position && cameraView?.target) {
+            applyPositionTarget(cameraView.position, cameraView.target);
+            return;
           }
-        };
-        
-        animate();
+        }
+        if (defaultPositions[viewId as keyof typeof defaultPositions]) {
+          const { position, target } = defaultPositions[viewId as keyof typeof defaultPositions];
+          applyPositionTarget(position, target);
+        }
+        return;
       }
+      const { position, target } = detail || {};
+      if (position && target) applyPositionTarget(position, target);
     };
-    
-    const handleSetCameraView = (event: any) => {
-      // Rediriger vers handleGoToCameraView pour traitement unifié
-      handleGoToCameraView(event);
-    };
-    
+
     window.addEventListener('goToCameraView', handleGoToCameraView as any);
-    window.addEventListener('setCameraView', handleSetCameraView as any);
-    
+    window.addEventListener('setCameraView', handleGoToCameraView as any);
     return () => {
       window.removeEventListener('goToCameraView', handleGoToCameraView as any);
-      window.removeEventListener('setCameraView', handleSetCameraView as any);
+      window.removeEventListener('setCameraView', handleGoToCameraView as any);
     };
   }, []);
 
   // Fonctions de gestion des textes
-  // Fonction SCOPÉE pour forcer les styles UNIQUEMENT dans le configurator-panel
-  const forceConfiguratorPanelStyles = useCallback((element?: Element) => {
-    // Fonction pour vérifier si un élément appartient au configurator-panel ou à ses modaux
-    const isInConfiguratorPanel = (el: Element): boolean => {
-      const panel = document.querySelector('.configurator-panel');
-      if (!panel) return false;
-      
-      // Vérifier si l'élément est dans le panel
-      if (panel.contains(el)) return true;
-      
-      // Vérifier si l'élément est dans un modal du configurator
-      const isInModal = el.closest('.configurator-panel-modal') !== null ||
-                       el.closest('.zone-selection-modal-content') !== null ||
-                       el.classList.contains('configurator-panel-modal') ||
-                       el.classList.contains('zone-selection-modal-content');
-      
-      return isInModal;
-    };
-    
-    // Vérifier d'abord que le panel existe
-    const panel = document.querySelector('.configurator-panel');
-    if (!panel) return;
-    
-    // Traiter le panel ET tous les modaux même en dehors
-    const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
-    
-    const targets: Element[] = [];
-    if (element && isInConfiguratorPanel(element)) {
-      targets.push(element);
-    } else {
-      targets.push(panel);
-      modals.forEach(modal => targets.push(modal));
-    }
-    
-    if (targets.length === 0) return;
 
-    // Traiter chaque cible et tous ses enfants
-    targets.forEach(target => {
-      if (!isInConfiguratorPanel(target)) return;
-      
-      const allElements = target.querySelectorAll('*');
-      const elementsToProcess = [target, ...Array.from(allElements)];
-      
-      elementsToProcess.forEach((el: Element) => {
-        const htmlEl = el as HTMLElement;
-        if (!htmlEl) return;
-        
-        if (!isInConfiguratorPanel(el)) return;
-        
-        // FORCER les styles pour les inputs dans les modaux
-        if (htmlEl.tagName === 'INPUT' && (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
-          htmlEl.style.setProperty('background-color', '#ffffff', 'important');
-          htmlEl.style.setProperty('color', '#111827', 'important');
-          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-        }
-        
-        // FORCER les labels du background remover en noir
-        if (htmlEl.classList.contains('background-remover-label')) {
-          htmlEl.style.setProperty('color', '#111827', 'important');
-          htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-          htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-        }
-        
-        // FORCER les noms des zones en noir dans les modaux desktop
-        // Chercher tous les paragraphes et spans dans les modaux qui contiennent des noms de zones
-        if ((htmlEl.tagName === 'P' || htmlEl.tagName === 'SPAN' || htmlEl.tagName === 'DIV') && 
-            (htmlEl.closest('.zone-selection-modal-content') || htmlEl.closest('.configurator-panel-modal'))) {
-          // Vérifier si c'est un label de zone (contenant le nom de la zone)
-          const parentDiv = htmlEl.closest('div');
-          const textContent = (htmlEl.textContent || '').toLowerCase();
-          const parentStyle = parentDiv?.getAttribute('style') || '';
-          // Si le texte contient des noms de zones typiques ou si le parent a un padding spécifique
-          if (parentDiv && (
-              parentDiv.style.padding === '12px' || 
-              parentDiv.style.padding === '10px' || 
-              parentStyle.includes('padding: 12px') || 
-              parentStyle.includes('padding: 10px') ||
-              parentStyle.includes("padding: '12px'") ||
-              parentStyle.includes("padding: '10px'") ||
-              textContent.includes('dos') ||
-              textContent.includes('face') ||
-              textContent.includes('nom') ||
-              textContent.includes('zone') ||
-              textContent.includes('logo') ||
-              textContent.includes('bras') ||
-              textContent.includes('torse')
-            )) {
-            // C'est probablement un label de zone - forcer la couleur noire
-            htmlEl.style.setProperty('color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-            // Forcer aussi sur tous les enfants
-            const children = htmlEl.querySelectorAll('*');
-            children.forEach((child: Element) => {
-              const childEl = child as HTMLElement;
-              childEl.style.setProperty('color', '#111827', 'important');
-              childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-              childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-            });
-          }
-        }
-        
-        // FORCER TOUS les textes en noir dans le configurator-panel (sauf boutons avec texte blanc)
-        // APPROCHE TRÈS AGRESSIVE : forcer sur TOUS les éléments texte dans le panel
-        if (isInConfiguratorPanel(el)) {
-          // Vérifier si c'est un bouton avec texte blanc
-          const parentButton = htmlEl.closest('button');
-          const isWhiteTextButton = parentButton && (
-            parentButton.classList.contains('btn-primary') ||
-            parentButton.classList.contains('mobile-action-btn-black') ||
-            (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#3b82f6\'') ||
-            (parentButton.getAttribute('style') || '').includes('backgroundColor: \'#000000\'') ||
-            (parentButton.getAttribute('style') || '').includes('background-color: #3b82f6') ||
-            (parentButton.getAttribute('style') || '').includes('background-color: #000000')
-          );
-          
-          // Si ce n'est pas un bouton avec texte blanc, forcer le texte en noir
-          if (!isWhiteTextButton) {
-            // Vérifier si c'est un élément texte (pas un bouton, pas un input avec type spécial)
-            const isTextElement = (htmlEl.tagName === 'P' || 
-                                  htmlEl.tagName === 'SPAN' || 
-                                  htmlEl.tagName === 'DIV' || 
-                                  htmlEl.tagName === 'LABEL' || 
-                                  htmlEl.tagName === 'H1' || 
-                                  htmlEl.tagName === 'H2' || 
-                                  htmlEl.tagName === 'H3' || 
-                                  htmlEl.tagName === 'H4' || 
-                                  htmlEl.tagName === 'H5' || 
-                                  htmlEl.tagName === 'H6' || 
-                                  htmlEl.tagName === 'LI' || 
-                                  htmlEl.tagName === 'TD' || 
-                                  htmlEl.tagName === 'TH' ||
-                                  htmlEl.tagName === 'INPUT' ||
-                                  htmlEl.tagName === 'TEXTAREA' ||
-                                  htmlEl.tagName === 'SELECT');
-            
-            if (isTextElement) {
-              // Vérifier la couleur actuelle - si elle est blanche ou claire, forcer en noir
-              const currentColor = htmlEl.style.color || window.getComputedStyle(htmlEl).color;
-              const isWhiteOrLight = currentColor.includes('255') || 
-                                    currentColor.includes('rgb(255') ||
-                                    currentColor.includes('#fff') ||
-                                    currentColor.includes('#ffffff') ||
-                                    currentColor === 'white';
-              
-              // FORCER le texte en noir avec !important sur TOUTES les propriétés
-              htmlEl.style.setProperty('color', '#111827', 'important');
-              htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-              htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-              htmlEl.style.color = '#111827';
-              
-              // Forcer aussi sur tous les enfants directs (mais pas récursif pour éviter les boucles)
-              Array.from(htmlEl.children).forEach((child: Element) => {
-                const childEl = child as HTMLElement;
-                if (childEl && !childEl.closest('button.btn-primary') && !childEl.closest('button.mobile-action-btn-black')) {
-                  childEl.style.setProperty('color', '#111827', 'important');
-                  childEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-                  childEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-                }
-              });
-            }
-          }
-        }
-        
-        // FORCER BLEU sur les boutons primaires ET FORCER TEXTE BLANC
-        if (htmlEl.tagName === 'BUTTON') {
-          if (htmlEl.classList.contains('color-circle-button')) {
-            return;
-          }
-          
-          const buttonTitle = htmlEl.getAttribute('title') || '';
-          if (buttonTitle === 'Vue ordinateur' || buttonTitle === 'Vue téléphone') {
-            htmlEl.style.setProperty('background-color', '#ffffff', 'important');
-            return;
-          }
-          
-          const reactBgColor = htmlEl.style.backgroundColor || htmlEl.style.getPropertyValue('background-color');
-          const inlineStyle = htmlEl.getAttribute('style') || '';
-          
-          const isPrimaryButton = reactBgColor === 'rgb(59, 130, 246)' ||
-                                 reactBgColor === '#3b82f6' ||
-                                 reactBgColor === 'rgb(0, 0, 0)' || 
-                                 reactBgColor === '#000000' || 
-                                 reactBgColor === 'black' ||
-                                 htmlEl.classList.contains('btn-primary') ||
-                                 htmlEl.classList.contains('mobile-action-btn-black') ||
-                                 inlineStyle.includes('backgroundColor: \'#3b82f6\'') ||
-                                 inlineStyle.includes('background-color: #3b82f6') ||
-                                 inlineStyle.includes('backgroundColor: \'#000000\'') ||
-                                 inlineStyle.includes('background-color: #000000');
-          
-          const isColorButton = inlineStyle.includes('color?.hex') || 
-                               htmlEl.getAttribute('data-color-button') === 'true' ||
-                               htmlEl.closest('[class*="color"]') !== null;
-          
-          if (isPrimaryButton && !isColorButton) {
-            htmlEl.style.setProperty('background-color', '#3b82f6', 'important');
-            htmlEl.style.setProperty('color', '#ffffff', 'important');
-            htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-            
-            const children = htmlEl.querySelectorAll('*');
-            children.forEach((child: Element) => {
-              const childEl = child as HTMLElement;
-              childEl.style.setProperty('color', '#ffffff', 'important');
-              childEl.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-            });
-          }
-        }
-      });
-    });
-  }, []);
 
-  // Utiliser useEffect avec MutationObserver pour détecter les changements DOM
-  useEffect(() => {
-    const panel = document.querySelector('.configurator-panel');
-    if (!panel) return;
-
-    const checkAndForce = () => {
-      const currentPanel = document.querySelector('.configurator-panel');
-      if (!currentPanel) return;
-      forceConfiguratorPanelStyles();
-    };
-
-    checkAndForce();
-
-    const isConfiguratorElement = (element: Element): boolean => {
-      return panel.contains(element) || 
-             element.classList.contains('configurator-panel') ||
-             element.classList.contains('configurator-panel-modal') ||
-             element.classList.contains('zone-selection-modal-content') ||
-             (element.closest('.configurator-panel-modal') !== null) ||
-             (element.closest('.zone-selection-modal-content') !== null);
-    };
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              if (isConfiguratorElement(element)) {
-                forceConfiguratorPanelStyles(element);
-              }
-            }
-          });
-        }
-        
-        if (mutation.type === 'attributes') {
-          const target = mutation.target as HTMLElement;
-          const isConfiguratorModal = target.classList.contains('configurator-panel-modal') ||
-              target.classList.contains('zone-selection-modal-content') ||
-              target.closest('.configurator-panel-modal') !== null ||
-              target.closest('.zone-selection-modal-content') !== null;
-          
-          if (isConfiguratorModal) {
-            forceConfiguratorPanelStyles(target);
-          }
-        }
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class']
-    });
-
-    const interval = setInterval(() => {
-      const currentPanel = document.querySelector('.configurator-panel');
-      if (!currentPanel) return;
-      forceConfiguratorPanelStyles();
-      
-      const modals = document.querySelectorAll('.configurator-panel-modal, .zone-selection-modal-content');
-      modals.forEach(modal => {
-        forceConfiguratorPanelStyles(modal);
-      });
-      
-      // Forcer aussi sur tous les éléments texte directement dans le panel
-      const allTextElements = currentPanel.querySelectorAll('p, span, div, label, h1, h2, h3, h4, h5, h6, li, td, th, input, textarea, select');
-      allTextElements.forEach((el: Element) => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl && !htmlEl.closest('button.btn-primary') && !htmlEl.closest('button.mobile-action-btn-black')) {
-          const currentColor = window.getComputedStyle(htmlEl).color;
-          const isWhiteOrLight = currentColor.includes('255') || 
-                                currentColor.includes('rgb(255') ||
-                                currentColor.includes('#fff') ||
-                                currentColor.includes('#ffffff') ||
-                                currentColor === 'white';
-          
-          if (isWhiteOrLight || !currentColor || currentColor === 'rgba(0, 0, 0, 0)') {
-            htmlEl.style.setProperty('color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-fill-color', '#111827', 'important');
-            htmlEl.style.setProperty('-webkit-text-stroke-color', '#111827', 'important');
-          }
-        }
-      });
-    }, 200);
-
-    return () => {
-      observer.disconnect();
-      clearInterval(interval);
-    };
-  }, [forceConfiguratorPanelStyles, customizationModules, activeCustomizerTab, selectedLogoId, texts, placedLogos]);
-
-  const addText = useCallback((content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number) => {
+  const addText = useCallback((content: string, position?: [number, number, number], defaultFontFamily?: string, category: 'text' | 'nom' | 'numero' = 'text', initialFontSize?: number, _zoneCategory?: string, rotation?: number) => {
     const resolvedPosition: [number, number, number] = position || [0.5, 0.5, 0];
     const resolvedFontSize = initialFontSize || 700;
 
@@ -904,7 +696,7 @@ export default function ConfigurePage() {
       fontSize: resolvedFontSize,
       color: '#000000',
       editable: true,
-      rotation: 0,
+      rotation: typeof rotation === 'number' ? rotation : 0,
       category,
       fontFamily: defaultFontFamily || CONFIGURATOR_PANEL_FONT,
       strokeColor: '#000000',
@@ -919,6 +711,7 @@ export default function ConfigurePage() {
     
     setTexts(prev => [...prev, newText]);
     setSelectedTextId(newText.id);
+    setSelectedLogoId(null);
     setIsPlacingText(null);
   }, []);
 
@@ -938,6 +731,7 @@ export default function ConfigurePage() {
   const selectText = useCallback((id: string | null) => {
     setSelectedTextId(id);
     if (id) {
+      setSelectedLogoId(null);
       setActiveTextTab('contenu');
     }
   }, []);
@@ -958,6 +752,7 @@ export default function ConfigurePage() {
 
   const selectLogo = useCallback((id: string | null) => {
     setSelectedLogoId(id);
+    if (id) setSelectedTextId(null);
   }, []);
 
   const toggleLogoLock = useCallback((id: string) => {
@@ -1052,37 +847,42 @@ export default function ConfigurePage() {
 
   const textConstraints = getTextConstraintValues();
 
-  // Fonction pour confirmer la suppression de texte
+  // État pour les modaux de confirmation de suppression (comme le builder)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'text'; id: string; name: string } | { type: 'logo'; id: string; name: string } | null>(null);
+
   const confirmDeleteText = useCallback((id: string) => {
     const text = texts.find(t => t.id === id);
-    if (text) {
-      if (window.confirm(`Supprimer le texte "${text.content || 'Texte vide'}" ?`)) {
-        removeText(id);
-      }
-    }
-  }, [texts, removeText]);
+    if (text) setDeleteConfirm({ type: 'text', id, name: text.content || 'Texte vide' });
+  }, [texts]);
 
-  // Fonction pour confirmer la suppression de logo
-  const confirmDeleteLogo = useCallback((id: string) => {
+  const confirmDeleteLogo = useCallback((id: string, name?: string) => {
     const logo = placedLogos.find(l => l.id === id);
-    if (logo) {
-      if (window.confirm(`Supprimer ce logo ?`)) {
-        removeLogo(id);
-      }
+    if (logo) setDeleteConfirm({ type: 'logo', id, name: name || 'Logo' });
+  }, [placedLogos]);
+
+  const executeDeleteAndClose = useCallback(() => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.type === 'text') {
+      removeText(deleteConfirm.id);
+      if (selectedTextId === deleteConfirm.id) setSelectedTextId(null);
+    } else {
+      removeLogo(deleteConfirm.id);
+      if (selectedLogoId === deleteConfirm.id) setSelectedLogoId(null);
     }
-  }, [placedLogos, removeLogo]);
+    setDeleteConfirm(null);
+  }, [deleteConfirm, removeText, removeLogo, selectedTextId, selectedLogoId]);
 
   // Calculer les valeurs pour le viewer 3D
   const viewerConfig = useMemo(() => {
     if (!selectedModel3DId) return null;
 
+    const snapshot = product?.snapshot;
     const selectedModel = models3D.find(m => m.id === selectedModel3DId);
-    const modelUrl = selectedModel?.glb_url || selectedModel?.glbUrl || '';
+    const modelUrl = snapshot?.model3D?.url || selectedModel?.glb_url || selectedModel?.glbUrl || '';
     
     // Chercher le design sélectionné - Même logique que le builder (priorité aux selectedItems des modules)
     let designIdToUse: string | null = null;
     let designUrl: string | null = null;
-    const snapshot = product?.snapshot;
     
     // 1. Vérifier les selectedItems des modules (comme le builder fait)
     customizationModules.forEach(module => {
@@ -1108,15 +908,15 @@ export default function ConfigurePage() {
     // Trouver le design pour selectedDesign
     const selectedDesign = designIdToUse ? designs2D.find(d => d.id === designIdToUse) : null;
     
-    // PRIORITÉ ABSOLUE à l'URL du snapshot si disponible (c'est la source de vérité)
-    // Le snapshot contient l'URL complète du design 2D avec toutes les couleurs appliquées
-    if (snapshot?.design2D?.url) {
-      designUrl = snapshot.design2D.url;
-      console.log('✅ Utilisation du design 2D du snapshot:', snapshot.design2D.url, 'ID:', snapshot.design2D.id);
-    } else if (selectedDesign) {
-      // Fallback: utiliser l'URL depuis designs2D seulement si pas de snapshot
+    // Toujours utiliser le SVG brut depuis designs2D pour permettre le re-coloriage dynamique côté client
+    // Priorité à selectedDesign (raw SVG) pour que le ModelViewer puisse appliquer designColors
+    if (selectedDesign) {
       designUrl = selectedDesign.svg_url || selectedDesign.svgUrl || null;
-      console.log('⚠️ Utilisation du design 2D depuis designs2D (pas de snapshot):', designUrl, 'ID:', selectedDesign.id);
+      if (designUrl) console.log('✅ Design 2D (raw SVG pour couleurs dynamiques):', designUrl, 'ID:', selectedDesign.id);
+    }
+    if (!designUrl && snapshot?.design2D?.url) {
+      designUrl = snapshot.design2D.url;
+      console.log('✅ Fallback design 2D snapshot:', snapshot.design2D.url);
     }
     
     // DEBUG: Vérifier que l'URL est bien définie
@@ -1124,38 +924,54 @@ export default function ConfigurePage() {
       console.warn('⚠️ Aucune URL de design 2D trouvée. Snapshot:', snapshot?.design2D, 'SelectedDesign:', selectedDesign);
     }
     
-    // Calculer les couleurs pour le viewer 3D
-    // IMPORTANT : on se base uniquement sur les mappings du design + overrides utilisateur,
-    // pour correspondre exactement au pipeline du builder (les clés doivent être primary, secondary, etc.)
+    // Calculer les couleurs pour le viewer 3D - Même logique que le builder
     let colorsForViewer: Record<string, string> = {};
     const allColors = colorPalettes.flatMap(p => p.colors || []);
-    const designColorMappings = selectedDesign?.color_mappings || null;
-
-    // 1. Couleurs de base définies par le design (même logique que le builder)
-    if (designColorMappings) {
-      Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
-        const overrideColorId = designColors[colorClass];
-        const colorIdToUse = overrideColorId || mappedColorId;
-        const color = allColors.find(c => c.id === colorIdToUse);
-        if (color?.hex) {
-          colorsForViewer[colorClass] = color.hex;
-        }
+    const colorModule = customizationModules.find((m: any) => m.contentType === 'colors');
+    const allowedColorsFromModule = (colorModule as any)?.allowedColors || [];
+    const colorLookup = [...allColors];
+    allowedColorsFromModule.forEach((c: any) => {
+      if (c && !colorLookup.find(x => x.id === (c.id || c.hex))) {
+        colorLookup.push({ id: c.id || c.hex, hex: (c.hex || '').startsWith('#') ? c.hex : `#${c.hex}`, name: c.label || c.name });
+      }
+    });
+    const normalizeColorKey = (k: string) => k.replace(/^--/, '').toLowerCase();
+    const toHex = (v: string) => (typeof v === 'string' && v) ? (v.startsWith('#') ? v : `#${v}`) : '';
+    const getHexFromColorId = (colorId: string): string | null => {
+      if (!colorId || typeof colorId !== 'string') return null;
+      const hexMatch = colorId.match(/#([0-9a-f]{3,6})$/i);
+      if (hexMatch) return `#${hexMatch[1]}`;
+      const color = colorLookup.find((c: any) => (c.id || '') === colorId || (c.hex || '').toLowerCase() === (colorId || '').toLowerCase().replace(/^#?/, '#'));
+      return color?.hex ? ((color.hex || '').startsWith('#') ? color.hex : `#${color.hex}`) : null;
+    };
+    if (snapshot?.resolvedColors && Object.keys(snapshot.resolvedColors).length > 0) {
+      Object.entries(snapshot.resolvedColors).forEach(([k, v]) => {
+        const hex = toHex(v);
+        if (hex) colorsForViewer[normalizeColorKey(k)] = hex;
       });
     }
-
-    // 2. Overrides explicites choisis dans le configurator (designColors)
+    const designColorMappings = selectedDesign?.color_mappings || null;
+    if (designColorMappings) {
+      Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+        const key = normalizeColorKey(colorClass);
+        const overrideColorId = designColors[colorClass] || designColors[key];
+        const colorIdToUse = overrideColorId || mappedColorId;
+        const hex = getHexFromColorId(colorIdToUse);
+        if (hex) colorsForViewer[key] = hex;
+      });
+    }
     if (Object.keys(designColors).length > 0) {
       Object.entries(designColors).forEach(([colorClass, colorId]) => {
-        const color = allColors.find(c => c.id === colorId);
-        if (color?.hex) {
-          colorsForViewer[colorClass] = color.hex;
-        }
+        const hex = getHexFromColorId(colorId);
+        if (hex) colorsForViewer[normalizeColorKey(colorClass)] = hex;
       });
     }
     
-    // Material maps
-    const materialMapsForModel: Record<string, any> = {};
-    if (selectedModel?.parts) {
+    // Material maps - priorité au snapshot (preview live) puis fallback sur model parts
+    let materialMapsForModel: Record<string, any> = {};
+    if (snapshot?.model3D?.materialMaps && Object.keys(snapshot.model3D.materialMaps).length > 0) {
+      materialMapsForModel = snapshot.model3D.materialMaps;
+    } else if (selectedModel?.parts) {
       selectedModel.parts.forEach((part: any) => {
         if (part.material_map_id && modelMaterialMaps[part.material_map_id]) {
           const materialMap = modelMaterialMaps[part.material_map_id];
@@ -1213,6 +1029,132 @@ export default function ConfigurePage() {
     return allFonts;
   }, [product, customizationModules, fontGroups]);
 
+  // addLogo pour le mode libre (ConfiguratorLogoPanel)
+  const addLogoForConfigure = useCallback(async (
+    logoId: string,
+    variantId: string | undefined,
+    variantFile: string,
+    position: [number, number, number],
+    category: 'torse' | 'dos' | 'bras-gauche' | 'bras-droit',
+    zoneWidth?: number,
+    zoneHeight?: number,
+    zoneRotation?: number
+  ) => {
+    let scale = 0.1;
+    let logoWidth: number | undefined;
+    let logoHeight: number | undefined;
+    if (zoneWidth && zoneHeight && zoneWidth > 0 && zoneHeight > 0) {
+      try {
+        let actualWidth = 0, actualHeight = 0;
+        if (logoId === 'imported' || variantFile.startsWith('data:') || variantFile.startsWith('blob:')) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => { actualWidth = img.naturalWidth || img.width; actualHeight = img.naturalHeight || img.height; resolve(); };
+            img.onerror = () => reject(new Error('Failed to load'));
+            img.src = variantFile;
+          });
+        } else {
+          const res = await fetch(variantFile);
+          const svgText = await res.text();
+          const parser = new DOMParser();
+          const svg = parser.parseFromString(svgText, 'image/svg+xml').querySelector('svg');
+          if (svg) {
+            const vb = svg.getAttribute('viewBox')?.split(' ').map(parseFloat);
+            actualWidth = parseFloat(svg.getAttribute('width') || '0') || (vb?.[2] ?? 100);
+            actualHeight = parseFloat(svg.getAttribute('height') || '0') || (vb?.[3] ?? 100);
+          }
+        }
+        if (actualWidth > 0 && actualHeight > 0) {
+          logoWidth = actualWidth;
+          logoHeight = actualHeight;
+          const CANVAS_SIZE = 2048;
+          const SCALE_FACTOR = 0.5;
+          const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+          const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+          const targetW = zoneWidthPx * 0.8, targetH = zoneHeightPx * 0.8;
+          scale = Math.min(targetW / (actualWidth * SCALE_FACTOR), targetH / (actualHeight * SCALE_FACTOR));
+        }
+      } catch {
+        scale = 0.1;
+      }
+    }
+    const newLogo = {
+      id: `logo-${Date.now()}`,
+      logoId,
+      variantId: variantId ?? '',
+      variantFile,
+      position,
+      scale,
+      rotation: zoneRotation ?? 0,
+      category,
+      width: logoWidth,
+      height: logoHeight,
+    };
+    setPlacedLogos((prev: any[]) => [...prev, newLogo]);
+    setSelectedLogoId(newLogo.id);
+    setSelectedTextId(null);
+  }, [setPlacedLogos, setSelectedLogoId, setSelectedTextId]);
+
+  // Contenu du panel Logo (ConfiguratorLogoPanel partagé avec le builder)
+  const renderConfigureLogoPanelContent = useCallback(() => {
+    const logoModule = customizationModules.find(m => m.contentType === 'logos');
+    return (
+      <ConfiguratorLogoPanel
+        activeModule={logoModule ? { ...logoModule, contentType: 'logos' } : null}
+        placedLogos={placedLogos}
+        setPlacedLogos={setPlacedLogos}
+        logoLibraries={logoLibraries}
+        selectedLogoId={selectedLogoId}
+        setSelectedLogoId={selectLogo}
+        showLogoLibrary={showLogoLibrary}
+        setShowLogoLibrary={setShowLogoLibrary}
+        activeLogoView={activeLogoView}
+        setActiveLogoView={(v) => setActiveLogoView(v)}
+        logoSearchQuery={logoSearchQuery}
+        setLogoSearchQuery={setLogoSearchQuery}
+        selectedLogoForVariants={selectedLogoForVariants}
+        setSelectedLogoForVariants={setSelectedLogoForVariants}
+        logoToReplace={logoToReplace}
+        setLogoToReplace={setLogoToReplace}
+        hoveredLogoViewId={hoveredLogoViewId}
+        setHoveredLogoViewId={setHoveredLogoViewId}
+        isAddLogoHovered={isAddLogoHovered}
+        setIsAddLogoHovered={setIsAddLogoHovered}
+        models3D={models3D.map(m => ({ ...m, cameraViews: m.cameraViews || m.camera_views || [] }))}
+        selectedModel3DId={selectedModel3DId}
+        setShowLogoZoneModal={(v) => { if (!v) setShowZoneSelector(null); }}
+        setSelectedLogoForZone={(v) => { if (v) { setShowZoneSelector({ logoId: v.logoId, variantId: v.variantId ?? 'base', variantFile: v.variantFile ?? '' }); setSelectedLogoZoneId(null); } }}
+        onAddLogo={addLogoForConfigure}
+        onRequestDeleteLogo={(id, name) => confirmDeleteLogo(id, name)}
+      />
+    );
+  }, [customizationModules, placedLogos, selectedLogoId, selectLogo, logoLibraries, logoSearchQuery, showLogoLibrary, selectedLogoForVariants, logoToReplace, activeLogoView, hoveredLogoViewId, isAddLogoHovered, models3D, selectedModel3DId, confirmDeleteLogo, addLogoForConfigure]);
+
+  // Quand un logo est sélectionné sur le 3D : ouvrir la bibliothèque en mode remplacement (comme le builder)
+  // Pas de modal de zones : on remplace directement, l'onglet logos s'affiche via controlledActiveTab
+  useEffect(() => {
+    const logoModule = customizationModules.find(m => m.contentType === 'logos');
+    if (!logoModule) return;
+    // Lors d'un clic sur un logo 3D, selectedLogoId est défini et controlledActiveTab bascule sur logos
+    const isLogosTabActive = activeCustomizerTab === logoModule.id || !!selectedLogoId;
+    if (!isLogosTabActive) return;
+    if (selectedLogoId) {
+      const logo = placedLogos.find(l => l.id === selectedLogoId);
+      if (logo && !logoToReplace) {
+        setLogoToReplace(selectedLogoId);
+        setShowLogoLibrary(true);
+        setActiveCustomizerTab(logoModule.id); // S'assurer que l'onglet logos est actif
+      }
+    } else {
+      if (logoToReplace && showLogoLibrary) {
+        setShowLogoLibrary(false);
+        setLogoToReplace(null);
+        setSelectedLogoForVariants(null);
+      }
+    }
+  }, [selectedLogoId, activeCustomizerTab, customizationModules, placedLogos, logoToReplace, showLogoLibrary]);
+
   if (isLoading) {
     return (
       <div style={{
@@ -1247,2994 +1189,684 @@ export default function ConfigurePage() {
 
   const activeModule = customizationModules.find(m => m.id === activeCustomizerTab);
 
-  return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      overflow: 'hidden',
-      backgroundColor: '#f8f8f8'
-    }}>
-      {/* Sidebar - Customizer Tabs */}
-      {customizationModules.length > 0 && (
-        <div style={{
-          width: '80px',
-          backgroundColor: '#ffffff',
-          borderRight: '1px solid #e0e0e0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '8px',
-          gap: '8px'
-        }}>
-          {customizationModules.map((module) => (
-            <button
-              key={module.id}
-              onClick={() => setActiveCustomizerTab(module.id)}
-              style={{
-                width: '64px',
-                height: '64px',
-                padding: '0',
-                backgroundColor: activeCustomizerTab === module.id ? CONFIGURATOR_PANEL_PRIMARY_COLOR : '#ffffff',
-                border: 'none',
-                borderRadius: activeCustomizerTab === module.id ? '12px' : '8px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                gap: '4px'
+  // Canvas 3D - Même logique que le builder (IIFE, colorsForViewer inline, key avec colors)
+  const renderConfigure3DCanvas = () => {
+    return (() => {
+      const snapshot = product?.snapshot;
+      const selectedModel = selectedModel3DId ? models3D.find((m) => m.id === selectedModel3DId) : models3D[0];
+      const modelUrl = snapshot?.model3D?.url || selectedModel?.glb_url || selectedModel?.glbUrl || '';
+      const designIdToUse = customizationModules.find((m: any) => m.contentType === 'designs-2d')?.selectedItems?.design2DId
+        || snapshot?.design2D?.id || selectedDesign2DId;
+      const selectedDesign = designIdToUse ? designs2D.find((d) => d.id === designIdToUse) : null;
+      const designUrl = selectedDesign?.svg_url || selectedDesign?.svgUrl || snapshot?.design2D?.url || null;
+      const allColors = colorPalettes.flatMap((p) => p.colors || []);
+      const colorModule = customizationModules.find((m: any) => m.contentType === 'colors');
+      const allowedColorsFromModule = (colorModule as any)?.allowedColors || (snapshot?.customizationModules?.find((m: any) => m.contentType === 'colors') as any)?.allowedColors || [];
+      const colorLookup = [...allColors];
+      allowedColorsFromModule.forEach((c: any) => {
+        if (c?.hex && !colorLookup.some((x: any) => (x.id || x.hex) === (c.id || c.hex))) {
+          colorLookup.push({ id: c.id || c.hex, hex: (c.hex || '').startsWith('#') ? c.hex : `#${c.hex}` });
+        }
+      });
+      const designColorMappings = selectedDesign?.color_mappings || null;
+      let colorsForViewer: Record<string, string> = {};
+      const getHexFromColorId = (colorId: string): string | null => {
+        if (!colorId) return null;
+        const hexMatch = String(colorId).match(/#([0-9a-f]{3,6})$/i);
+        if (hexMatch) return `#${hexMatch[1]}`;
+        const norm = (s: string) => (s || '').toLowerCase().replace(/^#?/, '#');
+        const c = colorLookup.find((x: any) => (x.id || '') === colorId || (x.hex || '').toLowerCase() === norm(colorId));
+        return c?.hex ? ((c.hex || '').startsWith('#') ? c.hex : `#${c.hex}`) : null;
+      };
+      if (designColorMappings) {
+        Object.entries(designColorMappings).forEach(([colorClass, mappedColorId]) => {
+          const overrideColorId = designColors[colorClass] || designColors[colorClass.toLowerCase()];
+          const colorIdToUse = overrideColorId || mappedColorId;
+          const hex = getHexFromColorId(colorIdToUse);
+          if (hex) colorsForViewer[colorClass.toLowerCase()] = hex;
+        });
+      }
+      if (Object.keys(designColors).length > 0) {
+        Object.entries(designColors).forEach(([colorClass, colorId]) => {
+          const hex = getHexFromColorId(colorId);
+          if (hex) colorsForViewer[colorClass.toLowerCase()] = hex;
+        });
+      }
+      if (Object.keys(colorsForViewer).length === 0 && snapshot?.resolvedColors) {
+        Object.entries(snapshot.resolvedColors).forEach(([k, v]) => {
+          const hex = (v || '').toString().startsWith('#') ? String(v) : `#${v}`;
+          if (hex && hex !== '#') colorsForViewer[k.replace(/^--/, '').toLowerCase()] = hex;
+        });
+      }
+      const materialMapsForModel = snapshot?.model3D?.materialMaps && Object.keys(snapshot.model3D.materialMaps).length > 0
+        ? snapshot.model3D.materialMaps : {};
+      if (!modelUrl) return <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>Modèle 3D non disponible</div>;
+      return (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
+          <Canvas
+            key={`canvas-${selectedModel?.id || 'default'}`}
+            camera={{ position: [0, 0, product?.snapshot?.cameraSettings?.initialZoom || 15], fov: 50 }}
+            gl={{ preserveDrawingBuffer: true }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ambientLight intensity={0.4} color="#f5f5f5" />
+            <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
+            <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
+            <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
+            <Suspense fallback={null}>
+              <ModelViewer
+                key={`${modelUrl}-${designIdToUse || 'no-design'}`}
+                url={modelUrl}
+                color="#ffffff"
+                designTexture={designUrl || undefined}
+                materialMaps={Object.keys(materialMapsForModel).length > 0 ? materialMapsForModel : undefined}
+                colors={colorsForViewer}
+                selectedDesign={selectedDesign ? { id: selectedDesign.id, svgUrl: designUrl } : undefined}
+              texts={texts}
+              fonts={fontsForViewer}
+              textZones={textZones}
+              placedLogos={placedLogos}
+              updateTextPosition={updateTextPosition}
+              updateTextRotation={updateTextRotation}
+              updateTextSize={updateTextSize}
+              toggleTextLock={toggleTextLock}
+              removeText={removeText}
+              onRequestTextDelete={(id) => { const t = texts.find(x => x.id === id); if (t) setDeleteConfirm({ type: 'text', id, name: t.content || 'Texte vide' }); }}
+              selectedTextId={selectedTextId}
+              selectText={selectText}
+              isDraggingText={isDraggingText}
+              setIsDraggingText={setIsDraggingText}
+              isRotatingText={isRotatingText}
+              setIsRotatingText={setIsRotatingText}
+              isResizingText={isResizingText}
+              setIsResizingText={setIsResizingText}
+              updateLogoPosition={updateLogoPosition}
+              updateLogoScale={updateLogoScale}
+              updateLogoRotation={updateLogoRotation}
+              selectedLogoId={selectedLogoId}
+              selectLogo={selectLogo}
+              onRequestLogoDelete={(id) => { const l = placedLogos.find(x => x.id === id); if (l) setDeleteConfirm({ type: 'logo', id, name: l.logoId || 'Logo' }); }}
+              toggleLogoLock={toggleLogoLock}
+              setIsDraggingLogo={setIsDraggingLogo}
+              isPlacingText={isPlacingText === 'text' ? 'nom' : isPlacingText}
+              onTextPlaced={(category, position, zoneCategory, rotation) => {
+                addText('Votre texte', position, undefined, category === 'numero' ? 'numero' : 'text', 700);
+                setIsPlacingText(null);
               }}
-              title={module.tabName}
-            >
-              {module.iconUrl ? (
-                <img
-                  src={module.iconUrl}
-                  alt={module.tabName}
-                  style={{
-                    width: '14px',
-                    height: '14px',
-                    objectFit: 'contain',
-                    filter: activeCustomizerTab === module.id ? 'invert(1)' : 'invert(0)'
-                  }}
-                />
-              ) : (
-                <span style={{
-                  fontSize: '14px',
-                  color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
-                }}>
-                  {module.icon || '📦'}
-                </span>
-              )}
-              <span style={{
-                fontSize: '10px',
-                fontWeight: '400',
-                textAlign: 'center',
-                color: activeCustomizerTab === module.id ? '#ffffff' : '#000000'
-              }}>
-                {module.tabName}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+            />
+          </Suspense>
+          <OrbitControls
+            ref={(c) => { if (c) (window as any).__orbitControlsRef = c; }}
+            enablePan enableZoom enableRotate
+            minDistance={product?.snapshot?.cameraSettings?.minZoom || 5}
+            maxDistance={product?.snapshot?.cameraSettings?.maxZoom || 25}
+            zoomSpeed={product?.snapshot?.cameraSettings?.zoomSpeed}
+            rotateSpeed={product?.snapshot?.cameraSettings?.rotateSpeed}
+          />
+        </Canvas>
+      </div>
+      );
+    })();
+  };
 
-      {/* Customizer Tab Panel */}
-      {activeModule && (
-        <div style={{
-          width: '420px',
-          backgroundColor: '#ffffff',
-          borderRight: '1px solid #e0e0e0',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            padding: '16px',
-            borderBottom: '1px solid #e0e0e0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            {activeModule.iconUrl ? (
-              <img
-                src={activeModule.iconUrl}
-                alt={activeModule.tabName}
-                style={{ width: '28px', height: '28px' }}
-              />
-            ) : (
-              <span style={{ fontSize: '20px' }}>{activeModule.icon || '📦'}</span>
-            )}
-            <span style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: CONFIGURATOR_PANEL_FONT
-            }}>
-              {activeModule.tabName}
-            </span>
-          </div>
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px'
-          }}>
-            {/* Contenu selon le type de module */}
-            {activeModule.contentType === 'designs-2d' ? (() => {
-              const allowedIds = activeModule.selectedItems?.design2DIds;
-              const visibleDesigns = Array.isArray(allowedIds) && allowedIds.length > 0
-                ? designs2D.filter(d => allowedIds.includes(d.id))
-                : designs2D;
-              const selectedDesignId = activeModule.selectedItems?.design2DId;
-              
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {visibleDesigns.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                      <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '4px' }}>
-                        Aucun design disponible
-                      </p>
-                      <p style={{ fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                        Uploadez des designs dans l'admin
-                      </p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {/* Grille des designs */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: '12px'
-                      }}>
-                        {visibleDesigns.map((design) => {
-                          const isSelected = design.id === selectedDesignId;
-                          return (
-                            <button
-                              key={design.id}
-                              onClick={() => {
-                                const updated = {
-                                  ...activeModule,
-                                  selectedItems: {
-                                    ...activeModule.selectedItems,
-                                    design2DId: design.id
-                                  }
-                                };
-                                setCustomizationModules(customizationModules.map(m =>
-                                  m.id === activeModule.id ? updated : m
-                                ));
-                              }}
-                              style={{
-                                padding: '12px',
-                                backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                                borderRadius: '8px',
-                                border: isSelected ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '8px'
-                              }}
-                            >
-                              <div style={{
-                                width: '100%',
-                                height: '64px',
-                                backgroundColor: '#ffffff',
-                                borderRadius: '4px',
-                                border: '1px solid #e5e7eb',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                overflow: 'hidden'
-                              }}>
-                                {(design.preview_url && design.preview_url.trim() !== '') ? (
-                                  <img
-                                    src={design.preview_url}
-                                    alt={design.name}
-                                    style={{
-                                      width: '100%',
-                                      height: '100%',
-                                      objectFit: 'contain'
-                                    }}
-                                    onError={(e) => {
-                                      const svgUrl = design.svg_url || design.svgUrl;
-                                      if (svgUrl) {
-                                        e.currentTarget.src = svgUrl;
-                                      }
-                                    }}
-                                  />
-                                ) : (
-                                  <img
-                                    src={design.svg_url || design.svgUrl}
-                                    alt={design.name}
-                                    style={{
-                                      maxWidth: '100%',
-                                      maxHeight: '100%',
-                                      objectFit: 'contain'
-                                    }}
-                                  />
-                                )}
-                              </div>
-                              <p style={{
-                                color: '#111827',
-                                fontSize: '12px',
-                                fontFamily: CONFIGURATOR_PANEL_FONT,
-                                fontWeight: isSelected ? '600' : '400',
-                                textAlign: 'center',
-                                margin: 0
-                              }}>
-                                {design.name}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })() : activeModule.contentType === 'colors' ? (() => {
-              // Détecter automatiquement les couleurs disponibles à modifier
-              const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary'];
-              
-              // Trouver le design 2D sélectionné pour détecter les couleurs
-              let availableColorClasses: string[] = [];
-              let designIdToUse: string | null = null;
-              customizationModules.forEach(m => {
-                if (m.contentType === 'designs-2d' && m.selectedItems?.design2DId) {
-                  designIdToUse = m.selectedItems.design2DId;
-                }
-              });
-              if (!designIdToUse) {
-                designIdToUse = selectedDesign2DId;
+  return (
+    <div
+      className="configurator-panel configurator-viewer-isolated"
+      style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        backgroundColor: '#ffffff'
+      }}
+    >
+      {/* Toggle Vue desktop / mobile (identique test-viewer) */}
+      <div style={{ position: 'fixed', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', gap: 4, padding: 4, backgroundColor: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <button type="button" onClick={() => setViewportMode('desktop')} title="Vue ordinateur" style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: viewportMode === 'desktop' ? '#000000' : 'transparent', color: viewportMode === 'desktop' ? '#ffffff' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>🖥️ Desktop</button>
+        <button type="button" onClick={() => setViewportMode('mobile')} title="Vue téléphone" style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: viewportMode === 'mobile' ? '#000000' : 'transparent', color: viewportMode === 'mobile' ? '#ffffff' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>📱 Mobile</button>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+      <ProductConfiguratorPanel
+        embedMode
+        showTestSidebar={false}
+        controlledMobile={viewportMode === 'mobile'}
+        onSave={() => {}}
+        onAddToCart={() => {}}
+        canvasContent={renderConfigure3DCanvas()}
+        designModuleFromBuilder={(() => {
+          const designModule = customizationModules.find((m) => m.contentType === 'designs-2d');
+          if (!designModule) return undefined;
+          const snapshot = product?.snapshot;
+          const snapshotModule = snapshot?.customizationModules?.find((m: any) => m.id === designModule.id);
+          const allowedDesigns = snapshotModule?.allowedDesigns;
+          let designs: any[];
+          let selId = designModule.selectedItems?.design2DId || selectedDesign2DId;
+          if (Array.isArray(allowedDesigns) && allowedDesigns.length > 0) {
+            designs = allowedDesigns.map((d: any, i: number) => ({ id: d.id || `d-${i}`, name: d.label || d.name || `Design ${i + 1}`, label: d.label, svg_url: d.svgUrl, svgUrl: d.svgUrl, color_mappings: null }));
+            if (!selId && snapshot?.design2D?.id) selId = snapshot.design2D.id;
+            else if (!selId && designs.length) selId = designs[0].id;
+          } else {
+            const allowedIds = designModule.selectedItems?.design2DIds || [];
+            designs = allowedIds.length ? designs2D.filter((d) => allowedIds.includes(d.id)) : designs2D;
+            selId = designModule.selectedItems?.design2DId || selectedDesign2DId;
+          }
+          const colorModule = customizationModules.find((m) => m.contentType === 'colors');
+          const palette = colorPalettes.find((p) => p.id === colorModule?.selectedItems?.colorPaletteId) || colorPalettes[0];
+          const paletteColors = (palette?.colors || []).map((c: any, i: number) => ({ id: c.id || `${palette?.id}-${i}`, name: c.name || '', hex: (c.hex || '#000000').toLowerCase() }));
+          return {
+            tabName: designModule.tabName || 'Design',
+            icon: designModule.icon,
+            iconUrl: designModule.iconUrl,
+            designs,
+            paletteColors: paletteColors.length ? paletteColors : [{ id: 'default', name: 'Noir', hex: '#000000' }],
+            selectedDesignId: selId,
+            onSelectDesign: (id: string) => {
+              setSelectedDesign2DId(id);
+              setCustomizationModules(customizationModules.map((m) => m.contentType === 'designs-2d' ? { ...m, selectedItems: { ...m.selectedItems, design2DId: id } } : m));
+            },
+          };
+        })()}
+        colorsModuleFromBuilder={(() => {
+          const colorModule = customizationModules.find((m) => m.contentType === 'colors');
+          if (!colorModule) return undefined;
+          const paletteId = colorModule.selectedItems?.colorPaletteId || colorModule.config?.paletteId;
+          const palette = paletteId ? colorPalettes.find((p) => p.id === paletteId) : null;
+          const allowedColors = (colorModule as any).allowedColors || [];
+          const normHex = (h: string) => {
+            let s = (h || '#000000').toString().trim().toLowerCase();
+            if (!s.startsWith('#')) s = '#' + s;
+            return /^#[0-9a-f]{3}$/i.test(s) ? '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] : s;
+          };
+          let paletteColorsList = palette
+            ? (palette.colors || []).map((c: any, i: number) => ({ id: c.id || `${palette.id}-${i}`, name: c.name || '', hex: normHex(c.hex) }))
+            : allowedColors.map((c: any, i: number) => ({ id: c.id || c.hex || `c-${i}`, name: c.label || c.name || '', hex: normHex(c.hex) }));
+          const seen = new Set(paletteColorsList.map((p: any) => p.hex?.toLowerCase()));
+          allowedColors.forEach((c: any) => {
+            const hex = normHex(c.hex);
+            const id = c.id || c.hex || hex;
+            if (hex && !seen.has(hex.toLowerCase()) && !paletteColorsList.some((p: any) => p.id === id)) {
+              paletteColorsList = [...paletteColorsList, { id, name: c.label || c.name || '', hex }];
+              seen.add(hex.toLowerCase());
+            }
+          });
+          if (!paletteColorsList.length) return undefined;
+          const ordinalColors = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary'];
+          const designIdToUse = customizationModules.find((m) => m.contentType === 'designs-2d')?.selectedItems?.design2DId || selectedDesign2DId;
+          const selectedDesign = designs2D.find((d) => d.id === designIdToUse);
+          const mappingKeys = selectedDesign?.color_mappings ? Object.keys(selectedDesign.color_mappings).filter((c) => ordinalColors.includes(c.toLowerCase())) : [];
+          const colorClassesList = mappingKeys.length ? mappingKeys : ['primary', 'secondary', 'tertiary'];
+          const colorClasses = colorClassesList.map((id) => ({ id, label: colorModule.colorClassLabels?.[id] ?? (id === 'primary' ? 'Principal' : id === 'secondary' ? 'Secondaire' : id === 'tertiary' ? 'Tertiaire' : id.charAt(0).toUpperCase() + id.slice(1)) }));
+          const resolvedColorHex = (viewerConfig?.colors && Object.keys(viewerConfig.colors).length > 0)
+            ? viewerConfig.colors
+            : product?.snapshot?.resolvedColors
+              ? Object.fromEntries(
+                  Object.entries(product.snapshot.resolvedColors).map(([k, v]) => [k.replace(/^--/, '').toLowerCase(), (v || '').toString().startsWith('#') ? (v as string) : `#${(v as string)}`])
+                )
+              : undefined;
+          Object.entries(designColors || {}).forEach(([colorClass, colorId]) => {
+            if (colorId && !paletteColorsList.some((p: any) => p.id === colorId || p.hex?.toLowerCase() === colorId?.toLowerCase())) {
+              const hex = resolvedColorHex?.[colorClass.toLowerCase()] ?? (colorId.startsWith('#') ? colorId : null);
+              if (hex) paletteColorsList = [...paletteColorsList, { id: colorId, name: '', hex: normHex(hex) }];
+            }
+          });
+          return {
+            tabName: colorModule.tabName || 'Couleur',
+            icon: colorModule.icon,
+            iconUrl: colorModule.iconUrl,
+            paletteColors: paletteColorsList,
+            colorClasses,
+            designColors,
+            resolvedColorHex: resolvedColorHex && Object.keys(resolvedColorHex).length > 0 ? resolvedColorHex : undefined,
+            onDesignColorsChange: (colorClass: string, colorId: string) => {
+              setDesignColors((prev) => ({ ...prev, [colorClass]: colorId }));
+              if (selectedDesign) {
+                setDesigns2D(designs2D.map((d) => d.id === selectedDesign.id ? { ...d, color_mappings: { ...(d.color_mappings || {}), [colorClass]: colorId } } : d));
               }
-              
-              const selectedDesign = designs2D.find(d => d.id === designIdToUse);
-              
-              // PRIORITÉ à design.colors (source de vérité depuis SVG Color Mapper)
-              if (selectedDesign?.colors && Array.isArray(selectedDesign.colors) && selectedDesign.colors.length > 0) {
-                availableColorClasses = selectedDesign.colors.map((c: any) => c.name).filter(Boolean);
-              } else if (selectedDesign?.color_mappings) {
-                availableColorClasses = Object.keys(selectedDesign.color_mappings);
+            },
+          };
+        })()}
+        textModuleFromBuilder={(() => {
+          const textModule = customizationModules.find((m) => m.contentType === 'text' || m.contentType === 'texts');
+          if (!textModule) return undefined;
+          const textPalette = colorPalettes.find((p) => p.id === textModule.textColorPaletteId);
+          const strokePalette = textModule.textStrokePaletteId ? colorPalettes.find((p) => p.id === textModule.textStrokePaletteId) : null;
+          const paletteColors = (textPalette?.colors || []).map((c: any, i: number) => ({ id: c.id || `c-${i}`, name: c.name || '', hex: (c.hex || '#000000').toLowerCase() }));
+          if (!paletteColors.length) paletteColors.push({ id: 'default', name: 'Noir', hex: '#000000' });
+          const strokeColors = strokePalette && strokePalette.id !== textPalette?.id ? (strokePalette.colors || []).map((c: any, i: number) => ({ id: c.id || `s-${i}`, name: c.name || '', hex: (c.hex || '#000000').toLowerCase() })) : undefined;
+          const allowedFontGroupIds = textModule?.selectedItems?.fontGroupIds;
+          const visibleFonts = (() => {
+            const all: any[] = [];
+            fontGroups.forEach((group: any) => {
+              if (group.fonts) {
+                group.fonts.forEach((f: any) => {
+                  if (!allowedFontGroupIds?.length || allowedFontGroupIds.includes(group.id)) {
+                    all.push({ id: f.id, name: f.name || f.id, display_name: f.display_name || f.name, font_url: f.font_url || f.file_url || f.url });
+                  }
+                });
+              }
+            });
+            return all;
+          })();
+          const mappedTexts = texts.map((t: any) => ({ id: t.id, content: t.content || '', fontFamily: t.fontFamily, color: t.color ? String(t.color).toLowerCase() : undefined, fillType: t.fillType || 'solid', gradientColors: t.gradientColors, gradientDirection: t.gradientDirection || 'horizontal', strokeColor: t.strokeColor ? String(t.strokeColor).toLowerCase() : undefined, strokeWidth: t.strokeWidth, deformation: t.deformation || 'aucune', deformationIntensity: t.deformationIntensity ?? 0 }));
+          return {
+            tabName: textModule.tabName || 'Texte',
+            icon: textModule.icon,
+            iconUrl: textModule.iconUrl,
+            texts: mappedTexts,
+            selectedTextId,
+            onSelectText: selectText,
+            onUpdateText: (id: string, patch: any) => { const p = { ...patch }; if (p.color) p.color = p.color.toLowerCase(); if (p.strokeColor) p.strokeColor = p.strokeColor?.toLowerCase(); updateText(id, p); },
+            onRemoveText: (id: string) => { const t = texts.find(x => x.id === id); if (t) setDeleteConfirm({ type: 'text', id, name: t.content || 'Texte vide' }); },
+            onAddText: () => {
+              const textModule = customizationModules.find(m => m.contentType === 'text' || m.contentType === 'texts');
+              const textPlacementMode = (textModule as any)?.textPlacementMode || (textModule as any)?.config?.textPlacementMode;
+              if (textPlacementMode === 'zones') {
+                setShowTextZoneModal(true);
+                setSelectedTextZoneId(null);
+                setTextInputValue('');
               } else {
-                availableColorClasses = ['primary', 'secondary', 'tertiary'];
+                setIsPlacingText((prev) => (prev ? null : 'text'));
               }
-              
-              availableColorClasses = availableColorClasses.filter(c => ordinalColors.includes(c.toLowerCase()));
-              if (availableColorClasses.length === 0) {
-                availableColorClasses = ['primary', 'secondary', 'tertiary'];
-              }
-              
-              // Si on a sélectionné une classe de couleur, afficher la grille de couleurs
-              if (selectedColorClass && activeModule.selectedItems?.colorPaletteId) {
-                const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
-                if (!palette) return <p style={{ color: '#111827', fontSize: '14px' }}>Palette non trouvée</p>;
-                
-                const allColors: Array<{ id: string; name: string; hex: string }> = [];
-                if (palette.colors) {
-                  palette.colors.forEach((color: any, index: number) => {
-                    const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
-                    allColors.push({
-                      id: colorId,
-                      name: color.name || '',
-                      hex: color.hex || '#000000'
-                    });
-                  });
-                }
-                
-                const selectedColorId = designColors[selectedColorClass] || selectedDesign?.color_mappings?.[selectedColorClass];
-                const currentColorHex = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.hex : null;
-                const currentColorName = selectedColorId ? allColors.find(c => c.id === selectedColorId)?.name : '';
-                
-                return (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '16px',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      <button
-                        onClick={() => setSelectedColorClass(null)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#111827',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}
-                      >
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Retour
-                      </button>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#111827',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}>
-                          {currentColorName || activeModule.colorClassLabels?.[selectedColorClass] || selectedColorClass.charAt(0).toUpperCase() + selectedColorClass.slice(1)}
-                        </span>
-                        <div style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          border: '2px solid #d1d5db',
-                          backgroundColor: currentColorHex || 'transparent'
-                        }} />
-                      </div>
-                    </div>
-                    
-                    <div style={{
-                      flex: 1,
-                      padding: '16px',
-                      overflowY: 'auto'
-                    }}>
-                      <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(6, 1fr)', 
-                        gap: '12px' 
-                      }}>
-                        {allColors.map((color) => {
-                          const isSelected = color.id === selectedColorId;
-                          return (
-                            <button
-                              key={color.id}
-                              onClick={() => {
-                                const newDesignColors = { ...designColors };
-                                newDesignColors[selectedColorClass] = color.id;
-                                setDesignColors(newDesignColors);
-                              }}
-                              style={{
-                                position: 'relative',
-                                aspectRatio: '1',
-                                borderRadius: '50%',
-                                border: '2px solid #e5e7eb',
-                                backgroundColor: color.hex,
-                                cursor: 'pointer',
-                                padding: 0,
-                                overflow: 'hidden'
-                              }}
-                            >
-                              {isSelected && (
-                                <div style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}>
-                                  <div style={{
-                                    width: '24px',
-                                    height: '24px',
-                                    backgroundColor: '#ffffff',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                                  }}>
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+            },
+            colors: paletteColors,
+            strokeColors: strokeColors?.length ? strokeColors : undefined,
+            fonts: visibleFonts,
+            enabledTabs: { contenu: textModule.enableTextContent !== false, police: textModule.enableTextFont !== false, couleur: textModule.enableTextColor !== false, contour: textModule.enableTextStroke !== false, deformation: textModule.enableTextDeformation !== false },
+            enabledDeformationIds: textModule.textEnabledDeformations?.length ? textModule.textEnabledDeformations : undefined,
+            addTextLabel: textModule.addTextButtonLabel || 'Ajouter un texte',
+            placedTextsLabel: textModule.placedTextsLabel || 'Textes ajoutés',
+            strokeMinWidthPx: Math.max(0, Number(textModule.textStrokeMinWidth ?? 0)),
+            strokeMaxWidthPx: Math.max(50, Number(textModule.textStrokeMaxWidth ?? 50)),
+          } satisfies TextModuleFromBuilder;
+        })()}
+        logoPanelContent={renderConfigureLogoPanelContent()}
+        orderedModulesFromBuilder={customizationModules.map((m) => ({ id: m.id, name: m.tabName || m.id, icon: m.icon, iconUrl: m.iconUrl, contentType: m.contentType ?? null }))}
+        controlledActiveTab={selectedTextId ? (customizationModules.find((m) => m.contentType === 'text' || m.contentType === 'texts')?.id ?? '') : selectedLogoId ? (customizationModules.find((m) => m.contentType === 'logos')?.id ?? '') : (activeCustomizerTab || '')}
+        onControlledTabChange={(id) => {
+          setActiveCustomizerTab(id);
+          const logoMod = customizationModules.find((m) => m.contentType === 'logos');
+          if (logoMod && id !== logoMod.id) setSelectedLogoId(null);
+          const textMod = customizationModules.find((m) => m.contentType === 'text' || m.contentType === 'texts');
+          if (textMod && id !== textMod.id) setSelectedTextId(null);
+        }}
+      />
+      </div>
+      {showZoneSelector && (() => {
+        const logoModule = customizationModules.find(m => m.contentType === 'logos');
+        const logoZoneGroupIds = (logoModule as any)?.selectedItems?.logoZoneGroupIds || (logoModule as any)?.config?.logoZoneGroupIds || [];
+        let availableZones = zoneGroups
+          .filter((g: any) => logoZoneGroupIds.includes(g.id))
+          .flatMap((g: any) => (g.zones || []).map((z: any) => ({ ...z, groupName: g.name })));
+        return typeof document !== 'undefined' && createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999
+            }}
+            onClick={() => { setShowZoneSelector(null); setSelectedLogoZoneId(null); }}
+          >
+            <div
+              className="zone-selection-modal-content"
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                padding: '32px',
+                width: '90%',
+                maxWidth: '700px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                color: '#111827',
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <style>{`
+                .zone-selection-modal-content button:not([style*="background-color: #000"]):not([style*="background-color:#000"]):not(.zone-confirm-button) { color: #111827 !important; }
+                .zone-selection-modal-content button[style*="background-color: #000"],
+                .zone-selection-modal-content button[style*="background-color:#000"],
+                .zone-selection-modal-content .zone-confirm-button { color: #ffffff !important; }
+              `}</style>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT, margin: 0 }}>
+                  {logoModule?.addLogoButtonLabel || 'Placer un logo'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowZoneSelector(null); setSelectedLogoZoneId(null); }}
+                  style={{ background: 'none', border: 'none', color: '#666666', fontSize: 24, cursor: 'pointer', padding: 0, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+              {availableZones.length === 0 ? (
+                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
+                  Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les paramètres du module.
+                </p>
+              ) : (
+                <>
+                  <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#000000', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '16px' }}>
+                    Choisissez une position standard
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                    {availableZones.map((zone: any) => {
+                      const isSelected = selectedLogoZoneId === zone.id;
+                      return (
+                        <div
+                          key={zone.id}
+                          onClick={() => setSelectedLogoZoneId(zone.id)}
+                          style={{
+                            position: 'relative',
+                            cursor: 'pointer',
+                            border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                            borderRadius: 8,
+                            overflow: 'hidden',
+                            backgroundColor: '#ffffff',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, backgroundColor: '#000000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                              <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                          )}
+                          <div style={{ width: '100%', height: 140, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 8 }}>
+                            {(zone.thumbnailUrl || zone.thumbnail_url) ? (
+                              <img src={zone.thumbnailUrl || zone.thumbnail_url} alt={zone.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'grayscale(100%)' }} />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#111827', textAlign: 'center', padding: 8 }}>{zone.name}</div>
+                            )}
+                          </div>
+                          <div style={{ padding: '12px', textAlign: 'center', backgroundColor: '#ffffff' }}>
+                            <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>{zone.name}{zone.view ? ` (${zone.view})` : ''}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              }
-              
-              // Afficher les cartes de sélection de classe de couleur
-              return (
-                <div>
-                  {!activeModule.selectedItems?.colorPaletteId ? (
-                    <p style={{ color: '#111827', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      Veuillez sélectionner une palette dans les paramètres du module.
-                    </p>
-                  ) : (
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: '12px'
-                    }}>
-                      {availableColorClasses.map((colorClass) => {
-                        const currentColorId = designColors[colorClass] || selectedDesign?.color_mappings?.[colorClass];
-                        let currentColorHex = '#cccccc';
-                        
-                        if (currentColorId && activeModule.selectedItems?.colorPaletteId) {
-                          const palette = colorPalettes.find(p => p.id === activeModule.selectedItems?.colorPaletteId);
-                          if (palette?.colors) {
-                            palette.colors.forEach((color: any, index: number) => {
-                              const colorId = color.id || `${palette.id}-${index}-${color.hex}`;
-                              if (colorId === currentColorId) {
-                                currentColorHex = color.hex || '#cccccc';
-                              }
-                            });
-                          }
+                  {selectedLogoZoneId && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const zone = availableZones.find((z: any) => z.id === selectedLogoZoneId);
+                        if (zone && showZoneSelector) {
+                          const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = { 'Face': 'torse', 'Dos': 'dos', 'Gauche': 'bras-gauche', 'Droite': 'bras-droit' };
+                          const cat = zone.view ? viewToCategory[zone.view] : 'torse';
+                          const pos: [number, number, number] = [zone.position?.[0] ?? 0.5, 1 - (zone.position?.[1] ?? 0.5), zone.position?.[2] ?? 0];
+                          const zoneWidth = zone.width;
+                          const zoneHeight = zone.height;
+                          const zoneRotation = zone.defaultRotation != null ? zone.defaultRotation * (Math.PI / 180) : undefined;
+                          await addLogoForConfigure(showZoneSelector.logoId, showZoneSelector.variantId === 'base' ? undefined : showZoneSelector.variantId, showZoneSelector.variantFile, pos, cat, zoneWidth, zoneHeight, zoneRotation);
                         }
-                        
+                        setShowZoneSelector(null);
+                        setSelectedLogoZoneId(null);
+                      }}
+                      className="zone-confirm-button"
+                      style={{
+                        width: '100%',
+                        padding: '10px 20px',
+                        backgroundColor: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: 8,
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      Confirmer
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        , document.body);
+      })()}
+      {showTextZoneModal && (() => {
+        const textModule = customizationModules.find(m => m.contentType === 'text' || m.contentType === 'texts');
+        if (!textModule) return null;
+        const textZoneGroupIds = (textModule as any)?.zoneGroupIds || (textModule as any)?.config?.zoneGroupIds || (textModule as any)?.selectedItems?.zoneGroupIds || [];
+        const availableZones = zoneGroups
+          .filter((g: any) => textZoneGroupIds.includes(g.id))
+          .flatMap((g: any) => (g.zones || []).map((z: any) => ({ ...z, groupName: g.name })));
+        return typeof document !== 'undefined' && createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999
+            }}
+            onClick={() => { setShowTextZoneModal(false); setSelectedTextZoneId(null); setTextInputValue(''); }}
+          >
+            <div
+              className="zone-selection-modal-content"
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                padding: '32px',
+                width: '90%',
+                maxWidth: '700px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                color: '#111827',
+                fontFamily: CONFIGURATOR_PANEL_FONT
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <style>{`
+                .zone-selection-modal-content input,
+                .zone-selection-modal-content label,
+                .zone-selection-modal-content h2,
+                .zone-selection-modal-content h3,
+                .zone-selection-modal-content p { color: #111827 !important; }
+              `}</style>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT, margin: 0 }}>
+                  {(textModule as any)?.addTextButtonLabel || 'Ajouter un texte'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowTextZoneModal(false); setSelectedTextZoneId(null); setTextInputValue(''); }}
+                  style={{ background: 'none', border: 'none', color: '#666666', fontSize: 24, cursor: 'pointer', padding: 0, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+              {availableZones.length === 0 ? (
+                <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, padding: '12px' }}>
+                  Aucune zone disponible. Veuillez sélectionner des groupes de zones dans les paramètres du module.
+                </p>
+              ) : (
+                <>
+                  <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#000000', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '16px' }}>
+                      Choisissez une position standard
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                      {availableZones.map((zone: any) => {
+                        const isSelected = selectedTextZoneId === zone.id;
+                        const thumbUrl = zone.thumbnail_url || zone.thumbnailUrl;
                         return (
                           <div
-                            key={colorClass}
-                            onClick={() => setSelectedColorClass(colorClass)}
+                            key={zone.id}
+                            onClick={() => { setSelectedTextZoneId(zone.id); setTextInputValue(''); }}
                             style={{
-                              padding: '16px',
-                              backgroundColor: '#ffffff',
-                              borderRadius: '8px',
-                              border: '1px solid #e5e7eb',
+                              position: 'relative',
                               cursor: 'pointer',
-                              transition: 'all 0.2s',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '8px'
+                              border: isSelected ? '3px solid #000000' : '1px solid #e0e0e0',
+                              borderRadius: 8,
+                              overflow: 'hidden',
+                              backgroundColor: '#ffffff',
+                              transition: 'all 0.2s'
                             }}
                           >
-                            <div style={{
-                              width: '32px',
-                              height: '32px',
-                              backgroundColor: currentColorHex !== '#cccccc' ? currentColorHex : 'transparent',
-                              borderRadius: '50%',
-                              border: currentColorHex !== '#cccccc' ? '2px solid #d1d5db' : '2px solid #6b7280'
-                            }} />
-                            <span style={{
-                              fontSize: '14px',
-                              fontWeight: '500',
-                              color: '#111827',
-                              fontFamily: CONFIGURATOR_PANEL_FONT,
-                              textAlign: 'center'
-                            }}>
-                              {activeModule.colorClassLabels?.[colorClass] || colorClass.charAt(0).toUpperCase() + colorClass.slice(1)}
-                            </span>
+                            {isSelected && (
+                              <div style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, backgroundColor: '#000000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                                <svg width="14" height="14" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
+                              </div>
+                            )}
+                            <div style={{ width: '100%', height: 140, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 8 }}>
+                              {thumbUrl ? (
+                                <img src={thumbUrl} alt={zone.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'grayscale(100%)' }} />
+                              ) : (
+                                <div style={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#111827', textAlign: 'center', padding: 8 }}>{zone.name}</div>
+                              )}
+                            </div>
+                            <div style={{ padding: '12px', textAlign: 'center', backgroundColor: '#ffffff' }}>
+                              <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>{zone.name}{zone.view ? ` (${zone.view})` : ''}</p>
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                  )}
-                </div>
-              );
-            })() : activeModule.contentType === 'texts' || activeModule.contentType === 'text' ? (
-              <div>
-  {!selectedTextId && (
-    <>
-      <button
-        className="btn-primary"
-        onClick={() => {
-          if (activeModule.textPlacementMode === 'zones') {
-            setIsAddingText(true);
-            // Sélectionner automatiquement la première zone si disponible
-            const textZoneGroupIds = (activeModule as any).zoneGroupIds || 
-                                     ((activeModule as any).config as any)?.textZoneGroupIds || 
-                                     (activeModule.selectedItems as any)?.textZoneGroupIds || 
-                                     [];
-            const category = textZoneGroupIds.length > 0 ? 'text' : 'text';
-            const filteredZones = textZones.filter((zone: any) => 
-              zone.categories && zone.categories.includes(category)
-            );
-            if (filteredZones.length > 0 && !selectedZone) {
-              setSelectedZone(filteredZones[0].id);
-            }
-          } else {
-            if (isPlacingText) {
-              setIsPlacingText(null);
-            } else {
-              setIsPlacingText('nom');
-            }
-          }
-        }}
-        style={{
-          width: '100%',
-          padding: '10px 20px',
-          backgroundColor: isPlacingText ? '#8eff36' : '#3b82f6',
-          border: 'none',
-          borderRadius: '8px',
-          fontSize: '14px',
-          fontFamily: CONFIGURATOR_PANEL_FONT,
-          color: '#ffffff',
-          cursor: 'pointer',
-          fontWeight: '500',
-          transition: 'all 0.2s ease',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          textTransform: 'none',
-          letterSpacing: 'normal'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = isPlacingText ? '#7ae62e' : '#2563eb';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = isPlacingText ? '#8eff36' : '#3b82f6';
-        }}
-      >
-        <span style={{ color: '#ffffff' }}>
-          {isPlacingText ? 'Cliquez sur le modèle pour placer le texte (ou cliquez ici pour annuler)' : (activeModule.addTextButtonLabel || 'Ajouter un texte')}
-        </span>
-      </button>
-
-      {/* Modal d'ajout de texte avec sélection de zones */}
-      {isAddingText && activeModule.textPlacementMode === 'zones' && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px',
-          backgroundColor: 'rgba(0, 0, 0, 0.25)'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            padding: '24px',
-            width: '100%',
-            maxWidth: '512px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-          }}>
-            <h3 style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#111827',
-              marginBottom: '16px',
-              fontFamily: CONFIGURATOR_PANEL_FONT
-            }}>
-              {activeModule.addTextButtonLabel || 'Ajouter un texte'}
-            </h3>
-            
-            {/* Sélecteur de zone avec vignettes */}
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '12px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Choisissez une position standard
-              </label>
-              
-              {isLoadingZones ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    border: '2px solid #3b82f6',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    margin: '0 auto 8px'
-                  }} />
-                  Chargement des zones...
-                </div>
-              ) : (() => {
-                const textZoneGroupIds = (activeModule as any).zoneGroupIds || 
-                                         ((activeModule as any).config as any)?.textZoneGroupIds || 
-                                         (activeModule.selectedItems as any)?.textZoneGroupIds || 
-                                         [];
-                const category = textZoneGroupIds.length > 0 ? 'text' : 'text';
-                const filteredZones = textZones.filter((zone: any) => 
-                  zone.categories && zone.categories.includes(category)
-                );
-                
-                return filteredZones.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                    <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '4px' }}>
-                      Aucune zone définie pour cette catégorie
-                    </p>
-                    <p style={{ fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      Configurez des zones via l'interface admin
-                    </p>
                   </div>
-                ) : (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '12px'
-                  }}>
-                    {filteredZones.map((zone: any) => (
-                      <button
-                        key={zone.id}
-                        onClick={() => setSelectedZone(zone.id)}
-                        style={{
-                          position: 'relative',
-                          padding: '12px',
-                          border: selectedZone === zone.id ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                          borderRadius: '8px',
-                          backgroundColor: selectedZone === zone.id ? '#eff6ff' : '#ffffff',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}
-                      >
-                        {/* Image de la vignette */}
-                        {zone.image ? (
-                          <div style={{
-                            width: '100%',
-                            height: '128px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            backgroundColor: '#f9fafb',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <Image
-                              src={zone.image}
-                              alt={zone.name}
-                              width={160}
-                              height={128}
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '100%',
-                                objectFit: 'contain'
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div style={{
-                            width: '100%',
-                            height: '128px',
-                            borderRadius: '6px',
-                            backgroundColor: '#f3f4f6',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: 'column',
-                            color: '#6b7280'
-                          }}>
-                            <div style={{ fontSize: '24px', marginBottom: '4px' }}>👕</div>
-                            <div style={{ fontSize: '12px' }}>Pas d'image</div>
-                          </div>
-                        )}
-                        
-                        {/* Nom de la zone */}
-                        <div style={{
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#111827',
-                          textAlign: 'center',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}>
-                          {zone.name}
-                        </div>
-                        
-                        {/* Indicateur de sélection */}
-                        {selectedZone === zone.id && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            width: '20px',
-                            height: '20px',
-                            backgroundColor: '#3b82f6',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <svg width="12" height="12" fill="none" stroke="white" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Champ de texte */}
-            <div style={{ marginBottom: '24px' }}>
-              <label htmlFor="newText" style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '4px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Contenu du texte
-              </label>
-              <input
-                type="text"
-                id="newText"
-                value={newTextContent}
-                onChange={(e) => setNewTextContent(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && newTextContent.trim() && selectedZone) {
-                    const zone = textZones.find((z: any) => z.id === selectedZone);
-                    const defaultFont = fontGroups.length > 0 && fontGroups[0]?.fonts?.[0] 
-                      ? fontGroups[0].fonts[0].id 
-                      : 'Arial';
-                    addText(newTextContent.trim(), zone?.position, defaultFont, 'text');
-                    setNewTextContent('');
-                    setIsAddingText(false);
-                    setSelectedZone('');
-                  }
-                }}
-                placeholder="Saisir l'inscription ici..."
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  color: '#111827',
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                autoFocus
-              />
-            </div>
-            
-            {/* Boutons d'action */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={() => {
-                  setIsAddingText(false);
-                  setNewTextContent('');
-                  setSelectedZone('');
-                }}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => {
-                  if (newTextContent.trim() && selectedZone) {
-                    const zone = textZones.find((z: any) => z.id === selectedZone);
-                    const defaultFont = fontGroups.length > 0 && fontGroups[0]?.fonts?.[0] 
-                      ? fontGroups[0].fonts[0].id 
-                      : 'Arial';
-                    addText(newTextContent.trim(), zone?.position, defaultFont, 'text');
-                    setNewTextContent('');
-                    setIsAddingText(false);
-                    setSelectedZone('');
-                  }
-                }}
-                disabled={!newTextContent.trim() || !selectedZone}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  backgroundColor: (!newTextContent.trim() || !selectedZone) ? '#d1d5db' : '#3b82f6',
-                  color: '#ffffff',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  cursor: (!newTextContent.trim() || !selectedZone) ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  if (newTextContent.trim() && selectedZone) {
-                    e.currentTarget.style.backgroundColor = '#2563eb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (newTextContent.trim() && selectedZone) {
-                    e.currentTarget.style.backgroundColor = '#3b82f6';
-                  }
-                }}
-              >
-                {activeModule.addTextButtonLabel || 'Ajouter'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Modal de sélection de zones pour les logos */}
-      {showZoneSelector && activeModule?.logoPlacementMode === 'zones' && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)'
-        }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            setShowZoneSelector(null);
-            setSelectedLogoZoneId('');
-          }
-        }}
-        >
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            padding: '24px',
-            width: '100%',
-            maxWidth: '700px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-          }}
-          onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '24px'
-            }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: '#111827',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowZoneSelector(null);
-                  setSelectedLogoZoneId('');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#666666',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  padding: '0',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                ×
-              </button>
-            </div>
-            
-            {(() => {
-              // Récupérer les zones de logos depuis logoZoneGroupIds
-              const logoZoneGroupIds = (activeModule as any).logoZoneGroupIds || 
-                                     ((activeModule as any).config as any)?.logoZoneGroupIds || 
-                                     [];
-              
-              const availableZones = zoneGroups
-                .filter(group => logoZoneGroupIds.includes(group.id))
-                .flatMap(group => group.zones.map((zone: any) => ({ ...zone, groupName: group.name })));
-              
-              // Filtrer par vue active si nécessaire
-              const filteredZones = availableZones.filter((zone: any) => {
-                if (zone.view) {
-                  const viewMap: Record<string, string> = {
-                    'front': 'front',
-                    'back': 'back',
-                    'left': 'left',
-                    'right': 'right'
-                  };
-                  return viewMap[zone.view] === activeLogoView || zone.view === activeLogoView;
-                }
-                return true;
-              });
-              
-              if (filteredZones.length === 0) {
-                return (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                    <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '4px' }}>
-                      Aucune zone disponible pour cette vue
-                    </p>
-                    <p style={{ fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      Configurez des zones via l'interface admin
-                    </p>
-                  </div>
-                );
-              }
-              
-              return (
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#111827',
-                    marginBottom: '12px',
-                    fontFamily: CONFIGURATOR_PANEL_FONT
-                  }}>
-                    Choisissez une position standard
-                  </label>
-                  
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '12px',
-                    marginBottom: '24px'
-                  }}>
-                    {filteredZones.map((zone: any) => (
-                      <button
-                        key={zone.id}
-                        onClick={() => setSelectedLogoZoneId(zone.id)}
-                        style={{
-                          position: 'relative',
-                          padding: '12px',
-                          border: selectedLogoZoneId === zone.id ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                          borderRadius: '8px',
-                          backgroundColor: selectedLogoZoneId === zone.id ? '#eff6ff' : '#ffffff',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px'
-                        }}
-                      >
-                        {zone.thumbnail_url && (
-                          <img
-                            src={zone.thumbnail_url}
-                            alt={zone.name}
-                            style={{
-                              width: '100%',
-                              height: '120px',
-                              objectFit: 'cover',
-                              borderRadius: '4px'
-                            }}
-                          />
-                        )}
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          color: '#111827',
-                          textAlign: 'center',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}>
-                          {zone.name}
-                        </span>
-                        {selectedLogoZoneId === zone.id && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            width: '20px',
-                            height: '20px',
-                            backgroundColor: '#3b82f6',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            <svg width="12" height="12" fill="none" stroke="white" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                      onClick={() => {
-                        setShowZoneSelector(null);
-                        setSelectedLogoZoneId('');
-                      }}
+                  <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#000000', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '12px' }}>
+                      Contenu du texte
+                    </h3>
+                    <input
+                      type="text"
+                      value={textInputValue}
+                      onChange={(e) => setTextInputValue(e.target.value)}
+                      placeholder="Saisir l'inscription ici..."
                       style={{
-                        flex: 1,
-                        padding: '10px 16px',
-                        backgroundColor: '#f3f4f6',
-                        color: '#111827',
-                        borderRadius: '8px',
-                        border: 'none',
+                        width: '100%',
+                        padding: '12px',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #d1d5db',
+                        borderRadius: 6,
                         fontSize: '14px',
-                        fontWeight: '500',
                         fontFamily: CONFIGURATOR_PANEL_FONT,
-                        cursor: 'pointer'
+                        color: '#111827',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowTextZoneModal(false); setSelectedTextZoneId(null); setTextInputValue(''); }}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#f3f4f6',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 8,
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        color: '#374151',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                       }}
                     >
                       Annuler
                     </button>
                     <button
-                      onClick={async () => {
-                        if (!selectedLogoZoneId || !showZoneSelector) return;
-                        
-                        const zone = filteredZones.find((z: any) => z.id === selectedLogoZoneId);
-                        if (!zone) return;
-                        
-                        // Ajouter le logo à la zone sélectionnée
-                        const categoryMap: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                          'front': 'torse',
-                          'back': 'dos',
-                          'left': 'bras-gauche',
-                          'right': 'bras-droit'
-                        };
-                        
-                        const category = categoryMap[zone.view || activeLogoView] || 'torse';
-                        
-                        // Calculer le scale pour la zone (simplifié pour l'instant)
-                        const scale = 0.1;
-                        
-                        const newLogo = {
-                          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                          logoId: showZoneSelector.logoId,
-                          variantId: showZoneSelector.variantId,
-                          variantFile: showZoneSelector.variantFile,
-                          position: zone.position || [0.5, 0.5, 0],
-                          scale,
-                          rotation: zone.rotation || zone.default_rotation || 0,
-                          category,
-                          locked: false,
-                          width: zone.width || zone.default_logo_width,
-                          height: zone.height || zone.default_logo_height
-                        };
-                        
-                        setPlacedLogos(prev => [...prev, newLogo]);
-                        setShowZoneSelector(null);
-                        setSelectedLogoZoneId('');
-                        setShowLogoLibrary(false);
-                      }}
-                      disabled={!selectedLogoZoneId}
-                      style={{
-                        flex: 1,
-                        padding: '10px 16px',
-                        backgroundColor: !selectedLogoZoneId ? '#d1d5db' : '#3b82f6',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        border: 'none',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                        cursor: !selectedLogoZoneId ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-    </>
-  )}
-
-  {!selectedTextId && texts.length > 0 && (
-    <div style={{
-      marginTop: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    }}>
-      <div style={{
-        fontSize: '14px',
-        color: '#000000',
-        fontFamily: CONFIGURATOR_PANEL_FONT,
-        marginBottom: '4px',
-        fontWeight: '600'
-      }}>
-        {activeModule.placedTextsLabel || 'Textes ajoutés'} ({texts.length})
-      </div>
-      {texts.map((text) => (
-        <div
-          key={text.id}
-          style={{
-            padding: '16px',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            transition: 'all 0.2s',
-            cursor: 'default'
-          }}
-        >
-          <div 
-            onClick={() => selectText(text.id)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-              cursor: 'pointer'
-            }}
-          >
-            <div style={{
-              fontSize: text.fontSize ? `${text.fontSize / 10}px` : '15px',
-              color: text.color || '#111827',
-              fontFamily: text.fontFamily || CONFIGURATOR_PANEL_FONT,
-              fontWeight: '500',
-              lineHeight: '1.4',
-              ...(text.strokeColor && text.strokeWidth ? {
-                WebkitTextStroke: `${text.strokeWidth}px ${text.strokeColor}`,
-                textStroke: `${text.strokeWidth}px ${text.strokeColor}`
-              } : {})
-            }}>
-              {text.content || '(Texte vide)'}
-              {text.locked && ' 🔒'}
-            </div>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              confirmDeleteText(text.id);
-            }}
-            style={{
-              padding: '8px',
-              backgroundColor: '#ef4444',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#ffffff',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              flexShrink: 0,
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#dc2626';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ef4444';
-            }}
-            title="Supprimer"
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
-
-  {selectedTextId && (() => {
-    const selectedText = texts.find(t => t.id === selectedTextId);
-    if (!selectedText) return null;
-    
-    const tabs = [
-      { id: 'contenu' as const, label: 'Contenu', enabled: activeModule.enableTextContent !== false },
-      { id: 'police' as const, label: 'Police', enabled: activeModule.enableTextFont !== false },
-      { id: 'couleur' as const, label: 'Couleur', enabled: activeModule.enableTextColor !== false },
-      { id: 'contour' as const, label: 'Contour', enabled: activeModule.enableTextStroke !== false },
-      { id: 'deformation' as const, label: 'Déformation', enabled: activeModule.enableTextDeformation !== false }
-    ].filter(tab => tab.enabled);
-    
-    return (
-      <div style={{
-        marginTop: '20px',
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        border: '1px solid #e5e5e5'
-      }}>
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e5e5e5',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <button
-            onClick={() => selectText(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '16px',
-              color: '#111827',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontFamily: CONFIGURATOR_PANEL_FONT
-            }}
-          >
-            <span style={{ color: '#111827' }}>←</span>
-            <span style={{ color: '#111827' }}>Retour</span>
-          </button>
-          <div style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            color: '#111827',
-            fontFamily: CONFIGURATOR_PANEL_FONT
-          }}>
-            Typographie
-          </div>
-          <div style={{ width: '80px' }} />
-        </div>
-
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid #e5e5e5',
-          backgroundColor: '#ffffff',
-          overflow: 'hidden'
-        }}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTextTab(tab.id)}
-              style={{
-                flex: '1 1 0',
-                minWidth: '0',
-                padding: '10px 8px',
-                background: 'none',
-                border: 'none',
-                borderBottom: activeTextTab === tab.id ? '2px solid #111827' : '2px solid transparent',
-                color: activeTextTab === tab.id ? '#111827' : '#6b7280',
-                fontSize: '12px',
-                fontWeight: activeTextTab === tab.id ? '600' : '400',
-                fontFamily: CONFIGURATOR_PANEL_FONT,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ padding: '20px' }}>
-          {activeTextTab === 'contenu' && (
-            <div>
-              <div style={{
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '12px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Contenu du texte
-              </div>
-              <input
-                type="text"
-                value={selectedText.content}
-                onChange={(e) => updateText(selectedTextId, { content: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  color: '#111827',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#8eff36'}
-                onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-              />
-            </div>
-          )}
-
-          {activeTextTab === 'police' && (() => {
-            const allowedGroupIds = activeModule?.selectedItems?.fontGroupIds;
-            const visibleFonts = (() => {
-              const allFonts: Array<{ id: string; name: string; display_name?: string; file_url?: string; file_type?: string; groupId: string }> = [];
-              fontGroups.forEach(group => {
-                if (group.fonts) {
-                  group.fonts.forEach((font: any) => {
-                    allFonts.push({
-                      id: font.id,
-                      name: font.name || font.id,
-                      display_name: font.display_name,
-                      file_url: font.file_url,
-                      file_type: font.file_type || font.format,
-                      groupId: group.id
-                    });
-                  });
-                }
-              });
-              
-              if (allowedGroupIds && allowedGroupIds.length > 0) {
-                return allFonts.filter(font => allowedGroupIds.includes(font.groupId));
-              }
-              return allFonts;
-            })();
-            
-            const previewText = selectedText.content && selectedText.content.trim() !== '' 
-              ? selectedText.content 
-              : 'ZG';
-            
-            return (
-              <div>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#111827',
-                  marginBottom: '12px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT
-                }}>
-                  Police
-                </div>
-                {visibleFonts.length === 0 ? (
-                  <p style={{ 
-                    color: '#6b7280', 
-                    fontSize: '12px', 
-                    fontFamily: CONFIGURATOR_PANEL_FONT,
-                    padding: '12px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px'
-                  }}>
-                    Aucune police disponible. Cochez des groupes de polices dans les settings du module.
-                  </p>
-                ) : (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '12px',
-                    padding: '4px'
-                  }}>
-                    {visibleFonts.map((font) => {
-                      const isSelected = selectedText.fontFamily === font.id;
-                      const fontFamilyValue = font.display_name || font.name;
-                      const fontFamilyQuoted = fontFamilyValue ? `"${fontFamilyValue}"` : '';
-                      
-                      return (
-                        <div
-                          key={font.id}
-                          onClick={() => updateText(selectedTextId, { fontFamily: font.id })}
-                          style={{
-                            padding: '12px',
-                            backgroundColor: isSelected ? '#f0f0f0' : '#ffffff',
-                            borderRadius: '8px',
-                            border: isSelected ? '2px solid #111827' : '1px solid #e5e7eb',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '8px',
-                            minHeight: '100px',
-                            position: 'relative'
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: '100%',
-                              padding: '8px',
-                              backgroundColor: '#f5f5f5',
-                              borderRadius: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              minHeight: '60px',
-                              fontFamily: fontFamilyValue ? `${fontFamilyQuoted}, sans-serif` : 'sans-serif',
-                              fontSize: '18px',
-                              fontWeight: 'bold',
-                              color: '#111827'
-                            }}
-                            ref={(el) => {
-                              if (el && fontFamilyValue) {
-                                el.style.fontFamily = `${fontFamilyQuoted}, sans-serif`;
-                                el.style.setProperty('font-family', `${fontFamilyQuoted}, sans-serif`, 'important');
-                              }
-                            }}
-                          >
-                            {previewText}
-                          </div>
-                          <span style={{
-                            fontSize: '11px',
-                            color: '#111827',
-                            fontFamily: CONFIGURATOR_PANEL_FONT,
-                            textAlign: 'center',
-                            fontWeight: '500'
-                          }}>
-                            {font.display_name || font.name}
-                          </span>
-                          {isSelected && (
-                            <div style={{
-                              position: 'absolute',
-                              bottom: '8px',
-                              right: '8px',
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '50%',
-                              backgroundColor: '#111827',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}>
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <div style={{ marginTop: '16px' }}>
-                  <div style={{
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: '#111827',
-                    marginBottom: '8px',
-                    fontFamily: CONFIGURATOR_PANEL_FONT,
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}>
-                    <span>Taille du texte</span>
-                    <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                      {Math.round(textConstraints.minFontSizePx)} px – {Math.round(textConstraints.maxFontSizePx)} px
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input
-                      type="range"
-                      min={textConstraints.minFontSizePx}
-                      max={textConstraints.maxFontSizePx}
-                      step={1}
-                      value={selectedText.fontSize}
-                      onChange={(e) => updateText(selectedTextId, { fontSize: parseFloat(e.target.value) })}
-                      style={{
-                        flex: 1,
-                        accentColor: '#111827'
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      color: '#111827',
-                      minWidth: '48px',
-                      textAlign: 'right',
-                      fontFamily: CONFIGURATOR_PANEL_FONT
-                    }}>
-                      {Math.round(selectedText.fontSize)} px
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
-          {activeTextTab === 'couleur' && (
-            <div>
-              <div style={{
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '12px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Couleur
-              </div>
-              {activeModule.textColorPaletteId ? (() => {
-                const palette = colorPalettes.find(p => p.id === activeModule.textColorPaletteId);
-                if (!palette) {
-                  return (
-                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      Palette introuvable.
-                    </p>
-                  );
-                }
-                const paletteColors = palette.colors || [];
-                if (paletteColors.length === 0) {
-                  return (
-                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      La palette sélectionnée ne contient aucune couleur.
-                    </p>
-                  );
-                }
-                return (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                    gap: '12px'
-                  }}>
-                    {paletteColors.map((color: any, index: number) => {
-                      const hex = (color?.hex || '#000000').toLowerCase();
-                      const isSelected = (selectedText.color || '').toLowerCase() === hex;
-                      return (
-                        <button
-                          key={color?.id || `${palette.id}-${index}`}
-                          onClick={() => updateText(selectedTextId, { color: color?.hex || '#000000' })}
-                          style={{
-                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
-                            borderRadius: '10px',
-                            padding: '10px',
-                            backgroundColor: '#ffffff',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '6px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <span style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            border: '1px solid #d1d5db',
-                            backgroundColor: color?.hex || '#000000',
-                            display: 'inline-block'
-                          }} />
-                          <span style={{
-                            fontSize: '11px',
-                            color: '#111827',
-                            fontFamily: CONFIGURATOR_PANEL_FONT,
-                            textAlign: 'center'
-                          }}>
-                            {color?.name || (color?.hex || '#000000').toUpperCase()}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })() : (
-                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                  Sélectionnez une palette de couleurs pour le texte dans les réglages du module.
-                </p>
-              )}
-            </div>
-          )}
-
-          {activeTextTab === 'contour' && (
-            <div>
-              <div style={{
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '12px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Contour
-              </div>
-              {activeModule.textStrokePaletteId ? (() => {
-                const palette = colorPalettes.find(p => p.id === activeModule.textStrokePaletteId);
-                if (!palette) {
-                  return (
-                    <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      Palette introuvable.
-                    </p>
-                  );
-                }
-                const paletteColors = palette.colors || [];
-                return (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                    gap: '12px',
-                    marginBottom: '20px'
-                  }}>
-                    {paletteColors.map((color: any, index: number) => {
-                      const hex = (color?.hex || '#000000').toLowerCase();
-                      const isSelected = (selectedText.strokeColor || '').toLowerCase() === hex;
-                      return (
-                        <button
-                          key={color?.id || `${palette.id}-${index}`}
-                          onClick={() => updateText(selectedTextId, { strokeColor: color?.hex || '#000000' })}
-                          style={{
-                            border: isSelected ? '2px solid #111827' : '1px solid #e5e5e5',
-                            borderRadius: '10px',
-                            padding: '10px',
-                            backgroundColor: '#ffffff',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '6px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <span style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            border: '1px solid #d1d5db',
-                            backgroundColor: color?.hex || '#000000',
-                            display: 'inline-block'
-                          }} />
-                          <span style={{
-                            fontSize: '11px',
-                            color: '#111827',
-                            fontFamily: CONFIGURATOR_PANEL_FONT,
-                            textAlign: 'center'
-                          }}>
-                            {color?.name || (color?.hex || '#000000').toUpperCase()}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })() : (
-                <p style={{ color: '#6b7280', fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '20px' }}>
-                  Sélectionnez une palette de contours dans les réglages du module.
-                </p>
-              )}
-              <div>
-                {(() => {
-                  const sliderMin = textConstraints.strokeMinWidthPx;
-                  const sliderMax = textConstraints.strokeMaxWidthPx;
-                  const rawValue = selectedText.strokeWidth ?? textConstraints.baseStrokeWidthPx;
-                  let currentPxValue = Number.isFinite(rawValue) ? rawValue : sliderMin;
-                  currentPxValue = Math.min(sliderMax, Math.max(sliderMin, currentPxValue));
-                  currentPxValue = Math.round(currentPxValue);
-                  if (currentPxValue < sliderMin) currentPxValue = sliderMin;
-                  if (currentPxValue > sliderMax) currentPxValue = sliderMax;
-                  
-                  const sliderId = `stroke-slider-${selectedTextId}`;
-                  
-                  return (
-                    <div style={{ width: '100%' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <div style={{
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          color: '#111827',
-                          fontFamily: CONFIGURATOR_PANEL_FONT
-                        }}>
-                          Épaisseur {currentPxValue}
-                        </div>
-                      </div>
-                      <style>{`
-                        #${sliderId} {
-                          -webkit-appearance: none;
-                          appearance: none;
-                          width: 100%;
-                          height: 6px;
-                          border-radius: 3px;
-                          background: #e5e7eb;
-                          outline: none;
-                          padding: 0;
-                          margin: 0;
-                        }
-                        #${sliderId}::-webkit-slider-thumb {
-                          -webkit-appearance: none;
-                          appearance: none;
-                          width: 18px;
-                          height: 18px;
-                          border-radius: 50%;
-                          background: #3b82f6;
-                          cursor: pointer;
-                          border: none;
-                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                        }
-                        #${sliderId}::-moz-range-thumb {
-                          width: 18px;
-                          height: 18px;
-                          border-radius: 50%;
-                          background: #3b82f6;
-                          cursor: pointer;
-                          border: none;
-                          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                        }
-                      `}</style>
-                      <input
-                        id={sliderId}
-                        type="range"
-                        min={sliderMin}
-                        max={sliderMax}
-                        step="1"
-                        value={currentPxValue}
-                        onChange={(e) => {
-                          const pxValue = parseFloat(e.target.value);
-                          if (!Number.isFinite(pxValue)) return;
-                          let clampedValue = Math.min(sliderMax, Math.max(sliderMin, pxValue));
-                          clampedValue = Math.round(clampedValue);
-                          if (clampedValue < sliderMin) clampedValue = sliderMin;
-                          if (clampedValue > sliderMax) clampedValue = sliderMax;
-                          updateText(selectedTextId, { strokeWidth: clampedValue });
-                        }}
-                      />
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-
-          {activeTextTab === 'deformation' && (
-            <div>
-              <div style={{
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#111827',
-                marginBottom: '12px',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                Type de déformation
-              </div>
-              <select
-                value={selectedText.deformation || ''}
-                onChange={(e) => updateText(selectedTextId, { 
-                  deformation: e.target.value || undefined 
-                })}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  color: '#111827',
-                  fontSize: '14px',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  cursor: 'pointer',
-                  outline: 'none',
-                  marginBottom: selectedText.deformation ? '20px' : '0',
-                  transition: 'border-color 0.2s'
-                }}
-              >
-                {(() => {
-                  const allDeformations = [
-                    { value: '', label: 'Aucune' },
-                    { value: 'arc', label: 'Arc' },
-                    { value: 'wave', label: 'Vague' },
-                    { value: 'bulge', label: 'Bombé' },
-                    { value: 'pinch', label: 'Pincement' },
-                    { value: 'flag', label: 'Drapeau' },
-                    { value: 'fisheye', label: 'Fisheye' },
-                    { value: 'squeeze', label: 'Compression' },
-                    { value: 'skew', label: 'Inclinaison' },
-                    { value: 'spiral', label: 'Spirale' },
-                    { value: 'rotate', label: 'Rotation progressive' },
-                    { value: 'tilt', label: 'Tilt' },
-                    { value: 'perspective', label: 'Perspective' },
-                    { value: 'fade', label: 'Fondu' },
-                    { value: 'ribbon', label: 'Ruban' },
-                    { value: 'incline', label: 'Montée/descente' },
-                    { value: 'staircase', label: 'Escalier' },
-                    { value: 'wave-arc', label: 'Vague + Arc' },
-                    { value: 'pulse', label: 'Pulse' },
-                  ];
-                  
-                  const enabledDeformations = activeModule?.textEnabledDeformations;
-                  const filteredDeformations = enabledDeformations && enabledDeformations.length > 0
-                    ? allDeformations.filter(def => 
-                        def.value === '' || enabledDeformations.includes(def.value)
-                      )
-                    : allDeformations;
-                  
-                  return filteredDeformations.map(def => (
-                    <option key={def.value} value={def.value}>{def.label}</option>
-                  ));
-                })()}
-              </select>
-              {selectedText.deformation && (() => {
-                const sliderId = `deformation-slider-${selectedTextId}`;
-                const intensity = selectedText.deformationIntensity ?? 0;
-                
-                return (
-                  <div style={{ marginTop: '20px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <div style={{
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        color: '#111827',
-                        fontFamily: CONFIGURATOR_PANEL_FONT
-                      }}>
-                        Intensité
-                      </div>
-                      <div style={{
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        color: '#111827',
-                        fontFamily: CONFIGURATOR_PANEL_FONT,
-                        minWidth: '60px',
-                        textAlign: 'right'
-                      }}>
-                        {intensity > 0 ? `+${intensity}` : intensity.toString()}
-                      </div>
-                    </div>
-                    <style>{`
-                      #${sliderId} {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 100%;
-                        height: 6px;
-                        border-radius: 3px;
-                        background: #e5e7eb;
-                        outline: none;
-                        padding: 0;
-                        margin: 0;
-                      }
-                      #${sliderId}::-webkit-slider-thumb {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 18px;
-                        height: 18px;
-                        border-radius: 50%;
-                        background: #8eff36;
-                        border: 2px solid #ffffff;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                        cursor: pointer;
-                      }
-                      #${sliderId}::-moz-range-thumb {
-                        width: 18px;
-                        height: 18px;
-                        border-radius: 50%;
-                        background: #8eff36;
-                        border: 2px solid #ffffff;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                        cursor: pointer;
-                      }
-                    `}</style>
-                    <input
-                      id={sliderId}
-                      type="range"
-                      min="-100"
-                      max="100"
-                      step="1"
-                      value={intensity}
-                      onChange={(e) => updateText(selectedTextId, { 
-                        deformationIntensity: parseInt(e.target.value) 
-                      })}
-                    />
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginTop: '6px',
-                      paddingTop: '4px',
-                      fontSize: '11px',
-                      fontFamily: CONFIGURATOR_PANEL_FONT,
-                      fontWeight: '400'
-                    }}>
-                      <span style={{ color: '#111827' }}>-100</span>
-                      <span style={{ color: '#111827' }}>0</span>
-                      <span style={{ color: '#111827' }}>+100</span>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  })()}
-            </div>
-            ) : activeModule.contentType === 'logos' ? (
-              <div>
-                {(() => {
-    const buttonLabel = activeModule.addLogoButtonLabel || 'Ajouter un logo';
-    let content: React.JSX.Element | null = null;
-    
-    // Fonction helper pour garantir un retour JSX.Element
-    const ensureJSX = (element: React.JSX.Element | null): React.JSX.Element => {
-      return element || <div style={{ padding: '16px' }}>Aucun contenu disponible</div>;
-    };
-    
-    // Type de retour explicite pour le IIFE
-    let result: React.JSX.Element;
-    const hasSelectedLibraries = activeModule.selectedItems?.logoLibraryIds && 
-      Array.isArray(activeModule.selectedItems.logoLibraryIds) && 
-      activeModule.selectedItems.logoLibraryIds.length > 0;
-    
-    if (!hasSelectedLibraries) {
-      return (
-        <div>
-          <p style={{ color: '#666', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-            Sélectionnez des bibliothèques de logos dans les settings du module.
-          </p>
-        </div>
-      );
-    }
-    
-    const selectedLibraries = logoLibraries.filter(l => 
-      activeModule.selectedItems?.logoLibraryIds?.includes(l.id)
-    );
-    
-    const allLogos: any[] = [];
-    selectedLibraries.forEach(library => {
-      if (library.logos && Array.isArray(library.logos)) {
-        allLogos.push(...library.logos);
-      }
-    });
-    
-    const filteredPlacedLogos = placedLogos.filter(logo => {
-      if (activeModule.logoPlacementMode === 'zones') {
-        const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
-          'torse': 'front',
-          'dos': 'back',
-          'bras-gauche': 'left',
-          'bras-droit': 'right'
-        };
-        const logoView = categoryToView[logo.category as keyof typeof categoryToView];
-        const currentView = typeof activeLogoView === 'string' && (activeLogoView === 'front' || activeLogoView === 'back' || activeLogoView === 'left' || activeLogoView === 'right') 
-          ? activeLogoView 
-          : 'front';
-        return logoView === currentView;
-      }
-      return true;
-    });
-    
-    // Afficher la bibliothèque de logos si elle est ouverte
-    if (showLogoLibrary && activeCustomizerTab === activeModule.id) {
-      if (selectedLogoForVariants) {
-        const baseVariant = {
-          id: 'base',
-          file_url: selectedLogoForVariants.file_url || '',
-          name: selectedLogoForVariants.name || 'Logo de base'
-        };
-        const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
-        
-        content = (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Header avec bouton retour */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '16px',
-              borderBottom: '1px solid #e5e7eb',
-              marginBottom: '16px'
-            }}>
-              <button
-                onClick={() => setSelectedLogoForVariants(null)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#111827'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-              >
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span>Retour</span>
-              </button>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#111827',
-                  fontFamily: CONFIGURATOR_PANEL_FONT
-                }}>
-                  Choisir une variante
-                </span>
-              </div>
-            </div>
-            
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
-              <h3 style={{
-                fontSize: '18px',
-                fontWeight: '600',
-                color: '#111827',
-                fontFamily: CONFIGURATOR_PANEL_FONT,
-                marginBottom: '16px'
-              }}>
-                {selectedLogoForVariants.name}
-              </h3>
-            
-              {allVariants.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                  <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                    Aucune variante disponible
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {allVariants.map((variant: any, index: number) => (
-                  <div
-                    key={variant.id || `base-${index}`}
-                    onClick={async () => {
-                      if (logoToReplace) {
-                        const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
-                        if (logoToReplaceData) {
-                          const fileToUse = variant.id === 'base' 
-                            ? selectedLogoForVariants.file_url 
-                            : (variant.file_url || selectedLogoForVariants.file_url);
-                          setPlacedLogos(prev => prev.map(l => 
-                            l.id === logoToReplace 
-                              ? {
-                                  ...l,
-                                  logoId: selectedLogoForVariants.id,
-                                  variantId: variant.id === 'base' ? undefined : variant.id,
-                                  variantFile: fileToUse
-                                }
-                              : l
-                          ));
-                          setSelectedLogoId(logoToReplace);
-                          setLogoToReplace(null);
-                          setSelectedLogoForVariants(null);
-                          setShowLogoLibrary(false);
-                          return;
-                        }
-                      }
-                      
-                      if (activeModule.logoPlacementMode === 'zones') {
-                        alert('Mode zones à implémenter');
-                      } else {
-                        console.log('Mode libre - variante sélectionnée:', variant.id);
-                      }
-                    }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      cursor: 'pointer',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #e0e0e0',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '4px',
-                        border: '1px solid #e0e0e0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '8px'
-                      }}
-                    >
-                      <img
-                        src={variant.id === 'base' 
-                          ? selectedLogoForVariants.file_url 
-                          : (variant.file_url || selectedLogoForVariants.file_url)}
-                        alt={variant.name || selectedLogoForVariants.name}
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain'
-                        }}
-                      />
-                    </div>
-                    <span style={{ 
-                      fontSize: '11px', 
-                      color: '#000000', 
-                      textAlign: 'center',
-                      fontWeight: '500'
-                    }}>
-                      {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
-                    </span>
-                  </div>
-                ))}
-                </div>
-              )}
-            </div>
-        </div>
-      );
-    } else {
-      // Afficher la bibliothèque de logos (pas de variante sélectionnée)
-      // Filtrer les logos par recherche
-      const filteredLibraryLogos = allLogos.filter(logo => {
-        if (!logoSearchQuery.trim()) return true;
-        const query = logoSearchQuery.toLowerCase();
-        return (
-          (logo.name && logo.name.toLowerCase().includes(query)) ||
-          (logo.tags && Array.isArray(logo.tags) && logo.tags.some((tag: string) => tag.toLowerCase().includes(query)))
-        );
-      });
-      
-      content = (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Header avec bouton retour */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px',
-            borderBottom: '1px solid #e5e7eb',
-            marginBottom: '16px'
-          }}>
-            <button
-              onClick={() => {
-                setShowLogoLibrary(false);
-                setSelectedLogoForVariants(null);
-                setLogoToReplace(null);
-                setSelectedLogoId(null);
-                setLogoSearchQuery('');
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#6b7280',
-                fontFamily: CONFIGURATOR_PANEL_FONT,
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#111827'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>Retour</span>
-            </button>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#111827',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}>
-                {activeModule.addLogoButtonLabel || 'Ajouter un logo'}
-              </span>
-            </div>
-          </div>
-          
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
-            {!selectedLogoForVariants && (
-              <>
-                {/* Bouton d'importation */}
-                <div style={{ marginBottom: '16px' }}>
-                  <button
-                    onClick={() => {
-                      alert('Import logo à implémenter');
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      backgroundColor: '#3b82f6',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      fontFamily: CONFIGURATOR_PANEL_FONT,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
-                  >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    {activeModule.importLogoButtonLabel || 'Importer un logo'}
-                  </button>
-                </div>
-
-                {/* Barre de recherche */}
-                <input
-                  type="text"
-                  placeholder="Rechercher un logo..."
-                  value={logoSearchQuery}
-                  onChange={(e) => setLogoSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontFamily: CONFIGURATOR_PANEL_FONT,
-                    color: '#111827',
-                    marginBottom: '16px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-                />
-              </>
-            )}
-            
-            {allLogos.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT, marginBottom: '4px' }}>
-                  Aucun logo disponible dans les bibliothèques sélectionnées
-                </p>
-                <p style={{ fontSize: '12px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                  Ajoutez des logos dans l'admin
-                </p>
-              </div>
-            ) : filteredLibraryLogos.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280' }}>
-                <p style={{ fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                  {logoSearchQuery ? 'Aucun logo trouvé' : 'Aucun logo disponible'}
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {filteredLibraryLogos.map((logo: any) => {
-                const hasVariants = logo.variants && logo.variants.length > 0;
-                
-                return (
-                  <div
-                    key={logo.id}
-                    onClick={() => {
-                      if (logoToReplace) {
-                        if (hasVariants) {
-                          setSelectedLogoForVariants(logo);
-                          return;
-                        }
-                        
-                        const logoToReplaceData = placedLogos.find(l => l.id === logoToReplace);
-                        if (logoToReplaceData) {
-                          setPlacedLogos(prev => prev.map(l => 
-                            l.id === logoToReplace 
-                              ? {
-                                  ...l,
-                                  logoId: logo.id,
-                                  variantId: undefined,
-                                  variantFile: logo.file_url
-                                }
-                              : l
-                          ));
-                          setSelectedLogoId(logoToReplace);
-                          setLogoToReplace(null);
-                          setShowLogoLibrary(false);
-                          return;
-                        }
-                      }
-                      
-                      if (hasVariants) {
-                        setSelectedLogoForVariants(logo);
-                        return;
-                      }
-                      
-                      if (activeModule.logoPlacementMode === 'zones') {
-                        // Ouvrir le modal de sélection de zones
-                        setShowZoneSelector({
-                          logoId: logo.id,
-                          variantId: 'base',
-                          variantFile: logo.file_url || ''
-                        });
-                      } else {
-                        console.log('Mode libre - logo sélectionné:', logo.id);
-                      }
-                    }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      cursor: 'pointer',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #e0e0e0',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '4px',
-                        border: '1px solid #e0e0e0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '8px'
-                      }}
-                    >
-                      <img
-                        src={logo.file_url}
-                        alt={logo.name}
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain'
-                        }}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                      <span style={{ 
-                        fontSize: '11px', 
-                        color: '#000000', 
-                        textAlign: 'center', 
-                        fontWeight: '500'
-                      }}>
-                        {logo.name}
-                      </span>
-                      {hasVariants && (
-                        <span style={{ 
-                          fontSize: '10px', 
-                          color: '#999999', 
-                          textAlign: 'center'
-                        }}>
-                          variantes
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          </div>
-        </div>
-      );
-    }
-    }
-    
-    // Code par défaut : afficher la liste des logos placés (si showLogoLibrary est false)
-    if (!content) {
-      content = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {activeModule.logoPlacementMode === 'zones' && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px',
-            padding: '4px',
-            backgroundColor: '#f9fafb',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb'
-          }}>
-            {(() => {
-              // Utiliser les viewLabels du module si disponibles, sinon les valeurs par défaut
-              const customViews = (activeModule as any).viewLabels || [];
-              const defaultViews = ['front', 'back', 'left', 'right'] as const;
-              
-              // Si des vues personnalisées sont définies, les utiliser
-              if (customViews.length > 0) {
-                return customViews.map((view: any) => {
-                  const viewId = view.id || view;
-                  const viewLabel = view.label || (view.id === 'front' ? 'Face' : view.id === 'back' ? 'Dos' : view.id === 'left' ? 'Gauche' : view.id === 'right' ? 'Droite' : view.id);
-                  const isActive = activeLogoView === viewId;
-                  
-                  return (
-                    <button
-                      key={viewId}
+                      type="button"
+                      disabled={!textInputValue.trim() || !selectedTextZoneId}
                       onClick={() => {
-                        setActiveLogoView(viewId);
-                        // Si une vue de caméra est configurée, l'utiliser
-                        if (view.cameraViewId) {
-                          const selectedModel = models3D.find(m => m.id === selectedModel3DId);
-                          const modelCameraViews = selectedModel?.cameraViews || [];
-                          const cameraView = modelCameraViews.find((cv: any) => cv.id === view.cameraViewId);
+                        const zone = availableZones.find((z: any) => z.id === selectedTextZoneId);
+                        if (zone && textInputValue.trim()) {
+                          const viewToCategory: Record<string, 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = { 'Face': 'torse', 'Dos': 'dos', 'Gauche': 'bras-gauche', 'Droite': 'bras-droit', 'front': 'torse', 'back': 'dos', 'left': 'bras-gauche', 'right': 'bras-droit' };
+                          const cat = zone.view ? viewToCategory[zone.view] || 'torse' : 'torse';
+                          const pos: [number, number, number] = [zone.position?.[0] ?? 0.5, 1 - (zone.position?.[1] ?? 0.5), zone.position?.[2] ?? 0];
+                          // Rotation de la zone (deg → rad). Pour les zones "dos", si pas de rotation définie, ajouter 180° pour orienter le texte vers la caméra
+                          const zoneViewRaw = zone.view || (zone as any).zone_category || '';
+                          const isBackZone = /dos|back/i.test(String(zoneViewRaw));
+                          let zoneRotationRaw = (zone as any).rotation ?? zone.default_rotation ?? zone.defaultRotation;
+                          if (zoneRotationRaw == null && isBackZone) zoneRotationRaw = 180;
+                          if (zoneRotationRaw == null) zoneRotationRaw = 0;
+                          const zoneRotationRad = zoneRotationRaw * (Math.PI / 180);
+                          const CANVAS_SIZE = 2048;
+                          const SCALE_FACTOR = 0.5;
+                          // width/height en UV space (0-1); fallback default_text_width/height si pixels → diviser par CANVAS_SIZE
+                          let zoneWidth = (zone as any).width;
+                          let zoneHeight = (zone as any).height;
+                          if (zoneWidth == null && zone.default_text_width != null) zoneWidth = zone.default_text_width / CANVAS_SIZE;
+                          if (zoneHeight == null && zone.default_text_height != null) zoneHeight = zone.default_text_height / CANVAS_SIZE;
+                          if (zoneWidth == null) zoneWidth = 0.1;
+                          if (zoneHeight == null) zoneHeight = 0.1;
+                          const zoneWidthPx = zoneWidth * CANVAS_SIZE;
+                          const zoneHeightPx = zoneHeight * CANVAS_SIZE;
+                          const availableWidth = zoneWidthPx * 0.8;
+                          const availableHeight = zoneHeightPx * 0.8;
+                          const estimatedCharWidth = 0.6;
+                          const textLen = textInputValue.length || 1;
+                          const fontSizeFromWidth = (availableWidth / textLen) / estimatedCharWidth / SCALE_FACTOR;
+                          const fontSizeFromHeight = availableHeight / SCALE_FACTOR;
+                          const calculatedFontSize = Math.min(fontSizeFromWidth, fontSizeFromHeight);
+                          const finalFontSize = Math.max(100, Math.min(2000, calculatedFontSize));
+                          addText(textInputValue.trim(), pos, undefined, 'text', finalFontSize, undefined, zoneRotationRad);
+                          // Pivoter la caméra vers la vue correspondant à la zone (ex: dos → back)
+                          const viewMap: Record<string, 'front' | 'back' | 'left' | 'right'> = { 'torse': 'front', 'dos': 'back', 'bras-gauche': 'left', 'bras-droit': 'right', 'Face': 'front', 'Dos': 'back', 'Gauche': 'left', 'Droite': 'right', 'front': 'front', 'back': 'back', 'left': 'left', 'right': 'right' };
+                          const zoneView = zone.view || (zone as any).zone_category;
+                          const cameraView = zoneView ? viewMap[zoneView] || viewMap[(zoneView as string).toLowerCase()] : undefined;
                           if (cameraView) {
-                            window.dispatchEvent(new CustomEvent('goToCameraView', { 
-                              detail: {
-                                position: cameraView.position,
-                                target: cameraView.target
-                              }
-                            }));
+                            setTimeout(() => window.dispatchEvent(new CustomEvent('setCameraView', { detail: cameraView })), 50);
                           }
                         }
+                        setShowTextZoneModal(false);
+                        setSelectedTextZoneId(null);
+                        setTextInputValue('');
                       }}
                       style={{
-                        flex: 1,
-                        height: '42px',
-                        padding: '0 16px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        backgroundColor: isActive ? '#111827' : 'transparent',
-                        cursor: 'pointer',
-                        color: isActive ? '#ffffff' : '#6b7280',
-                        transition: 'all 0.2s ease',
-                        whiteSpace: 'nowrap',
-                        fontFamily: CONFIGURATOR_PANEL_FONT
-                      }}
-                    >
-                      {viewLabel}
-                    </button>
-                  );
-                });
-              }
-              
-              // Sinon, utiliser les vues par défaut
-              return defaultViews.map((view) => {
-                const viewLabels: Record<'front' | 'back' | 'left' | 'right', string> = {
-                  'front': 'Face',
-                  'back': 'Dos',
-                  'left': 'Gauche',
-                  'right': 'Droite'
-                };
-                const isActive = activeLogoView === view;
-                return (
-                  <button
-                    key={view}
-                    onClick={() => setActiveLogoView(view)}
-                    style={{
-                      flex: 1,
-                      height: '42px',
-                      padding: '0 16px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      border: isActive ? '2px solid #374151' : '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      backgroundColor: isActive ? '#111827' : 'transparent',
-                      cursor: 'pointer',
-                      color: isActive ? '#ffffff' : '#6b7280',
-                      transition: 'all 0.2s ease',
-                      whiteSpace: 'nowrap',
-                      fontFamily: CONFIGURATOR_PANEL_FONT
-                    }}
-                  >
-                    {viewLabels[view]}
-                  </button>
-                );
-              });
-            })()}
-          </div>
-        )}
-        
-        {!logoToReplace && (
-          <button
-            onClick={() => {
-              setShowLogoLibrary(true);
-            }}
-            style={{
-              width: '100%',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: '500',
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <span style={{ fontSize: '18px', fontWeight: '300', color: '#ffffff' }}>+</span>
-            <span style={{ color: '#ffffff' }}>{buttonLabel}</span>
-          </button>
-        )}
-        
-        {filteredPlacedLogos.length > 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              color: '#000000',
-              fontFamily: CONFIGURATOR_PANEL_FONT,
-              fontWeight: '600',
-              marginBottom: '4px'
-            }}>
-              {activeModule.placedLogosLabel || 'Logos placés'} ({filteredPlacedLogos.length})
-            </div>
-            {filteredPlacedLogos.map((logo) => {
-              let logoName = 'Logo';
-              for (const library of logoLibraries) {
-                const foundLogo = library.logos?.find((l: any) => l.id === logo.logoId);
-                if (foundLogo) {
-                  logoName = foundLogo.name || 'Logo';
-                  break;
-                }
-              }
-              
-              return (
-                <div
-                  key={logo.id}
-                  onClick={() => {
-                    setSelectedLogoId(logo.id);
-                    setLogoToReplace(logo.id);
-                    setShowLogoLibrary(true);
-                  }}
-                  style={{
-                    padding: '14px',
-                    backgroundColor: selectedLogoId === logo.id ? '#fafafa' : '#fafafa',
-                    border: selectedLogoId === logo.id ? '2px solid #000000' : '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    <div style={{
-                      width: '48px',
-                      height: '48px',
-                      backgroundColor: '#f3f4f6',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      padding: '4px'
-                    }}>
-                      {logo.variantFile ? (
-                        <img
-                          src={logo.variantFile}
-                          alt={logoName}
-                          style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      ) : (
-                        <div style={{
-                          fontSize: '10px',
-                          color: '#6b7280',
-                          textAlign: 'center'
-                        }}>
-                          No img
-                        </div>
-                      )}
-                    </div>
-                    <span style={{ fontSize: '14px', color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                      {logoName}
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      confirmDeleteLogo(logo.id);
-                    }}
-                    style={{
-                      padding: '8px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      borderRadius: '4px',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-    }
-    
-    // Si content est défini (bibliothèque de logos ouverte), retourner content
-    if (content) {
-      result = content;
-    } else {
-      // Sinon, retourner le contenu par défaut avec les boutons et la liste des logos placés
-      // content est déjà défini par le if (!content) plus haut, donc on peut le retourner directement
-      // S'assurer de toujours retourner un JSX.Element
-      result = ensureJSX(content);
-    }
-    
-    return result;
-  })()}
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: '#111827', fontSize: '14px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                  Module de personnalisation: {activeModule.contentType || 'Non configuré'}
-                </p>
-              </div>
-            )}
-          </div>
-          
-          {/* Boutons d'action en bas */}
-          <div style={{
-            padding: '16px',
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #e0e0e0',
-            display: 'flex',
-            gap: '12px'
-          }}>
-            <button
-              onClick={async () => {
-                // TODO: Implémenter la sauvegarde
-                console.log('Sauvegarder');
-              }}
-              style={{
-                flex: 1,
-                padding: '10px 20px',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s ease',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e5e7eb';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-              </svg>
-              Sauvegarder
-            </button>
-            <button
-              onClick={() => {
-                // TODO: Implémenter l'ajout au panier
-                console.log('Ajouter au panier');
-              }}
-              style={{
-                flex: 1,
-                padding: '10px 20px',
-                backgroundColor: '#3b82f6',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                fontFamily: CONFIGURATOR_PANEL_FONT
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#2563eb';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#3b82f6';
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Ajouter au panier
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Viewer 3D */}
-      <div style={{
-        flex: 1,
-        backgroundColor: '#f8f8f8',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        ...(viewportMode === 'mobile' ? {
-          padding: '20px'
-        } : {})
-      }}>
-        {/* Viewport Mode Toggle */}
-        <div 
-          style={{ 
-            position: 'absolute',
-            top: '16px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 10000,
-            pointerEvents: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <div 
-            style={{
-              backgroundColor: 'white',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-              border: '2px solid #d1d5db',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              borderRadius: '8px',
-              padding: '4px'
-            }}
-          >
-            <button
-              onClick={() => setViewportMode('desktop')}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                transition: 'all 0.2s',
-                backgroundColor: viewportMode === 'desktop' ? '#3b82f6' : 'transparent',
-                color: viewportMode === 'desktop' ? '#ffffff' : '#374151',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title="Vue ordinateur"
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setViewportMode('mobile')}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                transition: 'all 0.2s',
-                backgroundColor: viewportMode === 'mobile' ? '#3b82f6' : 'transparent',
-                color: viewportMode === 'mobile' ? '#ffffff' : '#374151',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title="Vue téléphone"
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {viewerConfig && viewerConfig.modelUrl ? (
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: viewportMode === 'mobile' ? 'column' : 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...(viewportMode === 'mobile' ? {
-              maxWidth: '393px',
-              maxHeight: '852px',
-              width: '393px',
-              height: '852px',
-              margin: '0 auto',
-              border: '8px solid #1f2937',
-              borderRadius: '20px',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-              overflow: 'hidden',
-              backgroundColor: '#e8e8e8'
-            } : {})
-          }}>
-            {/* Canvas 3D - prend l'espace restant */}
-            <div style={{ flex: '1 1 0%', minHeight: 0, position: 'relative', overflow: 'hidden', width: '100%', height: '100%' }}>
-              <Canvas
-                camera={{ 
-                  position: viewportMode === 'mobile' ? [0, 0, 8] : [0, 0, product?.snapshot?.cameraSettings?.initialZoom || 15], 
-                  fov: viewportMode === 'mobile' ? 65 : 50 
-                }}
-                gl={{ preserveDrawingBuffer: true }}
-                style={{ width: '100%', height: '100%' }}
-              >
-              <ambientLight intensity={0.4} color="#f5f5f5" />
-              <directionalLight position={[12, 18, 12]} intensity={2.0} color="#ffffff" />
-              <directionalLight position={[-8, 12, 8]} intensity={1.0} color="#f8f8ff" />
-              <directionalLight position={[0, 8, -15]} intensity={1.2} color="#fafafa" />
-              <Suspense fallback={null}>
-                <ModelViewer
-                  url={viewerConfig.modelUrl}
-                  color="#ffffff"
-                  designTexture={viewerConfig.designUrl || undefined}
-                  materialMaps={Object.keys(viewerConfig.materialMaps).length > 0 ? viewerConfig.materialMaps : undefined}
-                  colors={Object.keys(viewerConfig.colors).length > 0 ? viewerConfig.colors : undefined}
-                  selectedDesign={viewerConfig.selectedDesign}
-                  texts={texts}
-                  fonts={fontsForViewer}
-                  textZones={textZones}
-                  placedLogos={placedLogos}
-                  updateTextPosition={updateTextPosition}
-                  updateTextRotation={updateTextRotation}
-                  updateTextSize={updateTextSize}
-                  toggleTextLock={toggleTextLock}
-                  removeText={removeText}
-                  selectedTextId={selectedTextId}
-                  selectText={selectText}
-                  isDraggingText={isDraggingText}
-                  setIsDraggingText={setIsDraggingText}
-                  isRotatingText={isRotatingText}
-                  setIsRotatingText={setIsRotatingText}
-                  isResizingText={isResizingText}
-                  setIsResizingText={setIsResizingText}
-                  updateLogoPosition={updateLogoPosition}
-                  updateLogoScale={updateLogoScale}
-                  updateLogoRotation={updateLogoRotation}
-                  selectedLogoId={selectedLogoId}
-                  selectLogo={selectLogo}
-                  toggleLogoLock={toggleLogoLock}
-                  setIsDraggingLogo={setIsDraggingLogo}
-                />
-              </Suspense>
-              <OrbitControls
-                ref={(controls) => {
-                  if (controls) {
-                    // Stocker la référence pour les événements de caméra
-                    (window as any).__orbitControlsRef = controls;
-                  }
-                }}
-                enablePan={true}
-                enableZoom={true}
-                enableRotate={true}
-                minDistance={product?.snapshot?.cameraSettings?.minZoom || (viewportMode === 'mobile' ? 3 : 5)}
-                maxDistance={product?.snapshot?.cameraSettings?.maxZoom || (viewportMode === 'mobile' ? 15 : 25)}
-                zoomSpeed={product?.snapshot?.cameraSettings?.zoomSpeed}
-                rotateSpeed={product?.snapshot?.cameraSettings?.rotateSpeed}
-              />
-            </Canvas>
-            </div>
-
-            {/* Barre mobile en bas du téléphone - Style stretchmx */}
-            {viewportMode === 'mobile' && (
-              <div style={{ 
-                flexShrink: 0, 
-                backgroundColor: '#ffffff', 
-                borderTop: '1px solid #e5e7eb', 
-                color: '#111827'
-              }}>
-            <style>{`
-              [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] *,
-              [style*="backgroundColor: '#ffffff'"] [style*="flexShrink: 0"] span {
-                color: #111827 !important;
-              }
-            `}</style>
-            {/* Onglets des modules */}
-            <div style={{ display: 'flex', padding: '8px 4px', gap: '2px', color: '#111827' }}>
-              <style>{`
-                .mobile-tab-btn,
-                .mobile-tab-btn span {
-                  color: inherit !important;
-                }
-                .mobile-tab-btn[style*="color"] span {
-                  color: inherit !important;
-                }
-              `}</style>
-              {customizationModules.length > 0 ? (
-                customizationModules.map((module) => {
-                  const isActive = mobileActivePanel === module.id;
-                  return (
-                    <button
-                      key={module.id}
-                      className="mobile-tab-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const newPanel = isActive ? null : module.id;
-                        setMobileActivePanel(newPanel);
-                        // Si on ouvre un module, on l'active aussi dans la sidebar desktop
-                        if (newPanel) {
-                          setActiveCustomizerTab(newPanel);
-                        }
-                      }}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '8px 4px',
-                        borderRadius: '8px',
-                        backgroundColor: isActive ? '#f3f4f6' : 'transparent',
+                        padding: '10px 20px',
+                        backgroundColor: (!textInputValue.trim() || !selectedTextZoneId) ? '#cccccc' : '#000000',
                         border: 'none',
-                        cursor: 'pointer',
-                        color: isActive ? '#111827' : '#6b7280'
+                        borderRadius: 8,
+                        fontSize: '14px',
+                        fontFamily: CONFIGURATOR_PANEL_FONT,
+                        color: '#ffffff',
+                        cursor: (!textInputValue.trim() || !selectedTextZoneId) ? 'not-allowed' : 'pointer',
+                        fontWeight: 500,
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                       }}
                     >
-                      <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                        {module.iconUrl ? (
-                          <img src={module.iconUrl} alt={module.tabName} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-                        ) : (
-                          <span style={{ fontSize: '18px' }}>{module.icon || '🎨'}</span>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '10px', color: isActive ? '#111827' : '#6b7280', fontWeight: isActive ? '600' : '400', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                        {module.tabName || 'Module'}
-                      </span>
+                      Confirmer
                     </button>
-                  );
-                })
-              ) : (
-                <>
-                  {['Design', 'Couleur', 'Texte', 'Logo'].map((name, i) => (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 4px', color: '#111827' }}>
-                      <span style={{ fontSize: '18px', marginBottom: '4px' }}>{['🎨', '🎨', '✏️', '🖼️'][i]}</span>
-                      <span style={{ fontSize: '10px', color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT }}>{name}</span>
-                    </div>
-                  ))}
+                  </div>
                 </>
               )}
             </div>
-            {/* Barre d'actions - Toujours réserver l'espace pour éviter le redimensionnement du Canvas */}
-            <div style={{ display: 'flex', padding: '8px 12px 12px', gap: '8px', visibility: mobileActivePanel ? 'hidden' : 'visible', height: mobileActivePanel ? 'auto' : 'auto', minHeight: '60px' }}>
-              <button className="mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '10px', fontSize: '12px', fontWeight: '500', color: '#374151', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', transition: 'all 0.2s ease' }}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                Sauvegarder
-              </button>
-              <button className="btn-primary mobile-action-btn" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', backgroundColor: '#3b82f6', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '500', color: '#ffffff', cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', transition: 'all 0.2s ease' }}>
-                <svg width="14" height="14" fill="none" stroke="#ffffff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} stroke="#ffffff" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                <span style={{ color: '#ffffff' }}>Ajouter au panier</span>
-              </button>
+          </div>
+        , document.body);
+      })()}
+      {deleteConfirm && typeof document !== 'undefined' && createPortal(
+        <div className="configurator-panel-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000000 }} onClick={() => setDeleteConfirm(null)}>
+          <div className="configurator-panel-modal" style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '32px', width: '90%', maxWidth: '400px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>🗑️</div>
+            <h2 style={{ fontSize: 20, fontWeight: 600, color: '#111827', fontFamily: CONFIGURATOR_PANEL_FONT, margin: 0, textAlign: 'center' }}>Supprimer l&apos;élément ?</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'center' }}>
+              <p style={{ fontSize: 14, color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT, margin: 0 }}>
+                Êtes-vous sûr de vouloir supprimer {deleteConfirm.type === 'logo' ? 'le logo' : 'le texte'} &quot;{deleteConfirm.name}&quot; ?
+              </p>
+              <p style={{ fontSize: 14, color: '#6b7280', fontFamily: CONFIGURATOR_PANEL_FONT, margin: 0 }}>Cette action ne peut pas être annulée.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+              <button type="button" onClick={() => setDeleteConfirm(null)} className="btn-primary" style={{ flex: 1, padding: '10px 16px', backgroundColor: '#f3f4f6', color: '#111827', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, fontWeight: 600 }}>Annuler</button>
+              <button type="button" onClick={() => { executeDeleteAndClose(); }} className="btn-primary mobile-action-btn-black" style={{ flex: 1, padding: '10px 16px', backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: CONFIGURATOR_PANEL_FONT, fontWeight: 600 }}>Supprimer</button>
             </div>
           </div>
-            )}
-          </div>
-        ) : (
-          <div style={{
-            fontSize: '16px',
-            color: '#111827',
-            fontFamily: CONFIGURATOR_PANEL_FONT
-          }}>
-            Modèle 3D non disponible
-          </div>
-        )}
-      </div>
+        </div>
+      , document.body)}
     </div>
   );
 }
