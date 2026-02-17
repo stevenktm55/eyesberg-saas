@@ -958,6 +958,18 @@ function SimpleViewer({
           // Ensure uv2 exists for AO
           const g = m.geometry as THREE.BufferGeometry;
           if (!g.getAttribute('uv2')) { const uv = g.getAttribute('uv'); if (uv) g.setAttribute('uv2', uv); }
+          const existingMat = m.material as THREE.MeshStandardMaterial & { map?: THREE.Texture };
+          // Si le material existe déjà avec des maps PBR, ne mettre à jour que la texture design (map)
+          // pour éviter de recharger normal/roughness/ao à chaque changement de couleur
+          const hasExistingMaps = existingMat && (existingMat.normalMap || existingMat.roughnessMap || existingMat.aoMap);
+          if (hasExistingMaps) {
+            existingMat.map = tex;
+            existingMat.map.needsUpdate = true;
+            existingMat.needsUpdate = true;
+            (m as any).castShadow = true;
+            (m as any).receiveShadow = true;
+            return;
+          }
           const newMaterial = new THREE.MeshStandardMaterial({ map: tex, color: 0xffffff, roughness: 0.6, metalness: 0.0, transparent: false });
           (newMaterial as any).name = ((m.material as any)?.name) || (m as any)?.userData?.materialName || (m.name ? `${m.name}_FRONT` : 'FRONT');
           // Apply admin maps if any
