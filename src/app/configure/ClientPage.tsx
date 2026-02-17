@@ -251,7 +251,9 @@ export default function ConfigurePage() {
   const designColorsLoadedFromProductRef = useRef(false);
   useEffect(() => {
     async function loadProduct() {
-      if (!productId || !shop) {
+      // Mode preview live : ne pas exiger productId/shop, on charge depuis localStorage
+      const isPreviewLiveMode = isPreviewLive && typeof window !== 'undefined';
+      if (!isPreviewLiveMode && (!productId || !shop)) {
         setIsLoading(false);
         return;
       }
@@ -261,16 +263,25 @@ export default function ConfigurePage() {
         let productData: any = null;
 
         // Mode preview live : charger depuis localStorage (snapshot généré par le builder)
-        if (isPreviewLive && typeof window !== 'undefined') {
+        if (isPreviewLiveMode) {
           const stored = localStorage.getItem('preview_snapshot_live');
           if (stored) {
-            const parsed = JSON.parse(stored);
-            productData = { id: productId, name: 'Preview', snapshot: parsed, builder_data: null };
+            try {
+              const parsed = JSON.parse(stored);
+              productData = {
+                id: productId || 'preview',
+                name: 'Preview',
+                snapshot: parsed,
+                builder_data: null,
+              };
+            } catch (e) {
+              console.error('Erreur parse preview_snapshot_live:', e);
+            }
           }
         }
 
-        // Sinon charger depuis l'API
-        if (!productData) {
+        // Sinon charger depuis l'API (nécessite productId et shop)
+        if (!productData && productId && shop) {
           const previewParam = isPreview ? '&preview=true' : '';
           const res = await fetch(`/api/product-builder?id=${encodeURIComponent(productId)}&shop=${encodeURIComponent(shop)}&for=client${previewParam}`);
           if (res.ok) {
@@ -1171,7 +1182,9 @@ export default function ConfigurePage() {
     );
   }
 
-  if (!product || !selectedModel3DId) {
+  // Afficher "non trouvé" seulement si pas de produit OU pas de modèle 3D utilisable (id ou url dans snapshot)
+  const hasUsableModel3D = selectedModel3DId || product?.snapshot?.model3D?.url || product?.snapshot?.model3D?.id;
+  if (!product || !hasUsableModel3D) {
     return (
       <div style={{
         width: '100vw',
