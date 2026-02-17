@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
@@ -9,6 +10,7 @@ import { useThree } from '@react-three/fiber';
 import { ModelViewer } from '@/components/ModelViewer';
 import ConfiguratorViewer from "@/components/ConfiguratorViewer";
 import { TextModulePanel } from "@/components/TextModulePanel";
+import { ConfiguratorLogoPanel } from "@/components/ConfiguratorLogoPanel";
 import { ProductConfiguratorPanel, type TextModuleFromBuilder } from "@/app/test-viewer/page";
 // Constante pour la font du configurator-panel (Inter - style Tailwind moderne)
 const CONFIGURATOR_PANEL_FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
@@ -1851,6 +1853,17 @@ export default function ProductBuilderPage() {
             }, 100);
             setSelectedModel3DId(product.builder_data?.model3DId || null);
             setSelectedDesign2DId(product.builder_data?.design2DId || null);
+            // Charger defaultState (texts, logos) et designColors depuis builder_data
+            const defaultState = product.builder_data?.defaultState;
+            if (defaultState?.texts && Array.isArray(defaultState.texts)) {
+              setTexts(defaultState.texts);
+            }
+            if (defaultState?.logos && Array.isArray(defaultState.logos)) {
+              setPlacedLogos(defaultState.logos);
+            }
+            if (product.builder_data?.designColors && typeof product.builder_data.designColors === 'object') {
+              setDesignColors(product.builder_data.designColors);
+            }
             // Charger les réglages 3D
             const settings = product.builder_data?.settings || {};
             if (settings.zoomSpeed !== undefined) {
@@ -1909,12 +1922,14 @@ export default function ProductBuilderPage() {
     fetchZoneGroups();
   }, [searchParams, router]);
 
-  // Charger les snapshots quand on entre en preview mode
+  // Charger les snapshots quand on entre en preview mode (seulement si produit lié à Shopify)
   useEffect(() => {
-    if (previewMode && productId && searchParams.get('shop')) {
+    if (previewMode && productId && searchParams.get('shop') && shopifyProductId) {
       loadSnapshots();
+    } else if (previewMode) {
+      setSnapshots(null);
     }
-  }, [previewMode, productId, searchParams]);
+  }, [previewMode, productId, searchParams, shopifyProductId]);
 
   const loadSnapshots = async () => {
     if (!productId || !searchParams.get('shop')) return;
@@ -2117,7 +2132,13 @@ export default function ProductBuilderPage() {
             activeTab: activeTab,
             model3DId: selectedModel3DId,
             design2DId: selectedDesign2DId,
-            settings: settingsToSave
+            settings: settingsToSave,
+            defaultState: {
+              design2DId: selectedDesign2DId,
+              texts,
+              logos: placedLogos,
+            },
+            designColors: Object.keys(designColors).length > 0 ? designColors : undefined,
           },
         }),
       });
@@ -2130,7 +2151,7 @@ export default function ProductBuilderPage() {
     } finally {
       setSaving(false);
     }
-  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance]);
+  }, [productId, productName, questions, customizationModules, activeTab, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, viewDistance, texts, placedLogos, designColors]);
 
   // Action explicite "Sauvegarder" du configurateur :
   // on réutilise la même logique que l'auto-save.
@@ -2138,8 +2159,8 @@ export default function ProductBuilderPage() {
     await autoSave();
   }, [autoSave]);
 
-  // Fonction pour générer un preview snapshot à la volée
-  const handlePreview = useCallback(async () => {
+  // Génère et stocke le snapshot live (utilisé par l'œil preview ET le bouton Preview 3D)
+  const generateAndStorePreviewSnapshot = useCallback(async (): Promise<boolean> => {
     try {
       // --- CORRECTIF URL IMAGE ---
       // 1. On cherche le vrai objet design dans la liste chargée en mémoire
@@ -2160,7 +2181,7 @@ export default function ProductBuilderPage() {
           availableDesigns: designs2D?.map(d => ({ id: d.id, hasUrl: !!(d.svgUrl || d.svg_url || d.url) }))
         });
         alert("Erreur: Aucune URL de design trouvée. Vérifiez que le design est bien sélectionné.");
-        return;
+        return false;
       }
 
       // 2. Construire un builderData cohérent avec ce qui est sauvegardé en DB
@@ -2183,6 +2204,7 @@ export default function ProductBuilderPage() {
         },
         customizationModules: customizationModules,
         questions: questions,
+        designColors: Object.keys(designColors).length > 0 ? designColors : undefined,
         settings: {
           zoomSpeed,
           rotateSpeed,
@@ -2223,7 +2245,7 @@ export default function ProductBuilderPage() {
         const error = await res.json().catch(() => ({}));
         console.error("❌ Preview snapshot error:", error);
         alert(error?.error ?? "Erreur lors de la génération du preview.");
-        return;
+        return false;
       }
 
       const snapshot = await res.json();
@@ -2255,25 +2277,21 @@ export default function ProductBuilderPage() {
         design2DId: snapshot.design2D.id
       });
 
-      // 3. Stockage dans le LocalStorage (Plus fiable que l'URL sur Vercel)
+      // 3. Stockage dans le LocalStorage
       if (typeof window !== "undefined") {
         localStorage.setItem("preview_snapshot_live", JSON.stringify(snapshot));
       }
-
-      // 4. Ouverture de la page Preview (URL courte et propre)
-      // --- CHANGEMENT ICI ---
-      // On ouvre la NOUVELLE route "view-3d" qui n'a pas de cache pourri
-      if (typeof window !== "undefined") {
-        window.open("/view-3d?mode=live", "_blank", "noopener,noreferrer");
-      }
+      return true;
     } catch (err) {
-      console.error("❌ handlePreview error:", err);
+      console.error("❌ generateAndStorePreviewSnapshot error:", err);
       alert("Erreur inattendue lors du preview.");
+      return false;
     }
   }, [
     selectedModel3DId,
     selectedDesign2DId,
     designs2D,
+    designColors,
     texts,
     placedLogos,
     customizationModules,
@@ -2290,6 +2308,13 @@ export default function ProductBuilderPage() {
     productId,
     searchParams
   ]);
+
+  const handlePreview = useCallback(async () => {
+    const ok = await generateAndStorePreviewSnapshot();
+    if (ok && typeof window !== "undefined") {
+      window.open("/view-3d?mode=live", "_blank", "noopener,noreferrer");
+    }
+  }, [generateAndStorePreviewSnapshot]);
 
   // Debounce pour la sauvegarde automatique
   useEffect(() => {
@@ -2310,7 +2335,7 @@ export default function ProductBuilderPage() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, autoSave]);
+  }, [productName, questions, customizationModules, activeTab, productId, selectedModel3DId, selectedDesign2DId, zoomSpeed, rotateSpeed, minZoom, maxZoom, initialZoom, initialRotation, texts, placedLogos, designColors, autoSave]);
 
   // Ref pour empêcher la réouverture automatique du panneau après fermeture manuelle
   const isManuallyClosingRef = useRef(false);
@@ -3413,225 +3438,36 @@ export default function ProductBuilderPage() {
     </div>
   );
   const renderLogoPanelContent = () => {
-    // Module logo = celui configuré dans Settings (customizationModules), pas de mockup test-viewer
     const activeModule = customizationModules.find(m => (m.contentType ?? (m as any).content_type) === 'logos');
-    if (!activeModule) {
       return (
-        <div style={{ padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: '13px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-          Configurez le module Logo dans l&apos;onglet <strong>Paramètres</strong> du produit (réglages du module Logo, bibliothèques, zones, etc.).
-        </div>
-      );
-    }
-    // Vues personnalisées et bibliothèques = depuis les réglages du module (Settings)
-    const customViews = activeModule.viewLabels || [];
-                                    
-    // Charger les vues de caméra du modèle 3D
-    const selectedModel = models3D.find(m => m.id === selectedModel3DId);
-    const modelCameraViews = selectedModel?.cameraViews || [];
-                                
-    // Filtrer les logos selon la vue active (comme sur desktop)
-    const categoryToView: Record<'torse' | 'dos' | 'bras-gauche' | 'bras-droit', 'front' | 'back' | 'left' | 'right'> = {
-      'torse': 'front',
-      'dos': 'back',
-      'bras-gauche': 'left',
-      'bras-droit': 'right'
-    };
-                                
-    let modulePlacedLogos = placedLogos.filter(l => l.category);
-                                
-    // Filtrer selon la vue active si mode zones
-    // Mapper activeLogoView (qui peut être un ID personnalisé) vers 'front'/'back'/'left'/'right'
-    let currentViewForFilter: 'front' | 'back' | 'left' | 'right' | null = null;
-    if (activeModule.logoPlacementMode === 'zones') {
-      const activeViewConfig = customViews.find(v => v.id === activeLogoView);
-      if (activeViewConfig) {
-        // Si la vue personnalisée a un ID standard, l'utiliser
-        if (activeViewConfig.id === 'front' || activeViewConfig.id === 'back' || 
-            activeViewConfig.id === 'left' || activeViewConfig.id === 'right') {
-          currentViewForFilter = activeViewConfig.id;
-        } else {
-          // Sinon, mapper le label vers la vue standard
-          const labelToView: Record<string, 'front' | 'back' | 'left' | 'right'> = {
-            'Face': 'front',
-            'DOS': 'back',
-            'Dos': 'back',
-            'Gauche': 'left',
-            'Left': 'left',
-            'Droite': 'right',
-            'Right': 'right'
-          };
-          currentViewForFilter = labelToView[activeViewConfig.label] || null;
-        }
-      } else if (activeLogoView === 'front' || activeLogoView === 'back' || 
-                 activeLogoView === 'left' || activeLogoView === 'right') {
-        currentViewForFilter = activeLogoView;
-      }
-                                  
-      if (currentViewForFilter) {
-        modulePlacedLogos = modulePlacedLogos.filter(logo => {
-          const logoView = categoryToView[logo.category as keyof typeof categoryToView];
-          return logoView === currentViewForFilter;
-        });
-      }
-    }
-                                
-    // Bibliothèques à afficher = Settings > Réglages du module Logo > "Bibliothèque(s) de logos à afficher"
-    const libIds = activeModule.selectedItems?.logoLibraryIds;
-    const selectedLibraries = libIds?.length
-      ? logoLibraries.filter(l => libIds.includes(l.id))
-      : logoLibraries;
-                                
-    // Récupérer tous les logos de toutes les bibliothèques sélectionnées
-    const allLogos: any[] = [];
-    selectedLibraries.forEach(library => {
-      if (library.logos && Array.isArray(library.logos)) {
-        allLogos.push(...library.logos);
-      }
-    });
-                                
-    // Filtrer les logos selon la recherche
-    const filteredLogos = logoSearchQuery.trim() 
-      ? allLogos.filter(logo => 
-          logo.name?.toLowerCase().includes(logoSearchQuery.toLowerCase())
-        )
-      : allLogos;
-                                
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          padding: showLogoLibrary ? '0 4px' : '16px 4px',
-          ...(showLogoLibrary
-            ? { height: '70vh', maxHeight: '70vh', minHeight: 0, overflow: 'hidden' }
-            : { height: '100%', maxHeight: '100%', minHeight: 0, overflow: 'hidden' }),
-        }}
-      >
-        {/* Tabs de vue (customViews = viewLabels configurés dans Settings) */}
-        {activeModule.logoPlacementMode === 'zones' && !selectedLogoForVariants && !showLogoLibrary && customViews.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-              gap: '8px',
-            }}
-          >
-            {customViews.map((viewConfig) => {
-              const isActive = activeLogoView === viewConfig.id;
-              const isHovered = hoveredLogoViewId === viewConfig.id;
-              return (
-                <div
-                  key={viewConfig.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    setActiveLogoView(viewConfig.id as any);
-                    if (viewConfig.cameraViewId) {
-                      const cameraView = modelCameraViews.find((cv: any) => cv.id === viewConfig.cameraViewId);
-                      if (cameraView) {
-                        window.dispatchEvent(new CustomEvent('goToCameraView', {
-                          detail: { position: cameraView.position, target: cameraView.target }
-                        }));
-                      } else {
-                        window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
-                      }
-                    } else {
-                      window.dispatchEvent(new CustomEvent('setCameraView', { detail: viewConfig.id }));
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredLogoViewId(viewConfig.id)}
-                  onMouseLeave={() => setHoveredLogoViewId((prev) => (prev === viewConfig.id ? null : prev))}
-                  style={{
-                    padding: '8px 16px',
-                    height: '38px',
-                    boxSizing: 'border-box',
-                    borderRadius: '10px',
-                    border: isActive ? '2px solid #111827' : isHovered ? '1px solid #6b7280' : '1px solid #e5e7eb',
-                    backgroundColor: isActive ? '#e5e7eb' : isHovered ? '#f3f4f6' : '#f9fafb',
-                    color: '#111827',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    transition: 'border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease',
-                    boxShadow: isActive ? '0 0 0 1px rgba(0,0,0,0.15)' : isHovered ? '0 0 0 1px rgba(148,163,184,0.35)' : 'none',
-                    width: '100%',
-                  }}
-                >
-                  {viewConfig.label}
-                </div>
-              );
-            })}
-          </div>
-        )}
-                                    
-        {/* Si la bibliothèque est ouverte (logos = selectedItems.logoLibraryIds depuis Settings) */}
-        {showLogoLibrary ? (
-          <div
-            className="logo-library-container"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              padding: '0 4px',
-              flex: 1,
-              minHeight: 0,
-              overflow: 'hidden',
-            }}
-          >
-            {/* Header : Retour + titre "Bibliothèque de logos" */}
-            <div
-              className="logo-library-header"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 4px 8px',
-                flexShrink: 0,
-              }}
-            >
-              <button
-                type="button"
-                className="typography-back-button"
-                onClick={() => {
-                  setShowLogoLibrary(false);
-                  setSelectedLogoForVariants(null);
-                  setLogoToReplace(null);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  color: '#000000',
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#000000' }}>Retour</span>
-              </button>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', marginLeft: 'auto' }}>
-                Bibliothèque de logos
-              </span>
-            </div>
-            {/* Bouton Importer un logo et barre de recherche : masqués lorsqu'on affiche les variantes d'un logo */}
-            {!selectedLogoForVariants && (
-              <>
-                <div
-                  className="cv-panel-add-logo-btn"
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+      <ConfiguratorLogoPanel
+        activeModule={activeModule ? { ...activeModule, contentType: activeModule.contentType ?? (activeModule as any).content_type } : null}
+        placedLogos={placedLogos}
+        setPlacedLogos={setPlacedLogos}
+        logoLibraries={logoLibraries}
+        selectedLogoId={selectedLogoId}
+        setSelectedLogoId={setSelectedLogoId}
+        showLogoLibrary={showLogoLibrary}
+        setShowLogoLibrary={setShowLogoLibrary}
+        activeLogoView={activeLogoView}
+        setActiveLogoView={setActiveLogoView}
+        logoSearchQuery={logoSearchQuery}
+        setLogoSearchQuery={setLogoSearchQuery}
+        selectedLogoForVariants={selectedLogoForVariants}
+        setSelectedLogoForVariants={setSelectedLogoForVariants}
+        logoToReplace={logoToReplace}
+        setLogoToReplace={setLogoToReplace}
+        hoveredLogoViewId={hoveredLogoViewId}
+        setHoveredLogoViewId={setHoveredLogoViewId}
+        isAddLogoHovered={isAddLogoHovered}
+        setIsAddLogoHovered={setIsAddLogoHovered}
+        models3D={models3D}
+        selectedModel3DId={selectedModel3DId}
+        setShowLogoZoneModal={setShowLogoZoneModal}
+        setSelectedLogoForZone={setSelectedLogoForZone}
+        onAddLogo={addLogo}
+        onRequestDeleteLogo={(id, name) => { setItemToDelete({ id, name, type: 'logo' }); setShowDeleteModal(true); }}
+        onOpenImportModal={() => {
                     setImportedFile(null);
                     setImportedFilePreview(null);
                     setShowBackgroundRemoverModal(false);
@@ -3639,679 +3475,10 @@ export default function ProductBuilderPage() {
                     if (fileInputRef.current) fileInputRef.current.value = '';
                     setShowImportModal(true);
                   }}
-                  style={{
-                    height: '44px',
-                    padding: '0 40px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    backgroundColor: isAddLogoHovered ? '#374151' : '#000000',
-                    color: '#ffffff',
-                    WebkitTextFillColor: '#ffffff',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    width: '100%',
-                    transition: 'background-color 0.2s ease',
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={() => setIsAddLogoHovered(true)}
-                  onMouseLeave={() => setIsAddLogoHovered(false)}
-                >
-                  <span style={{ fontSize: '18px', lineHeight: 1, marginTop: '-1px', color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>＋</span>
-                  <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>{activeModule.importLogoButtonLabel || 'Importer un logo'}</span>
-                </div>
-                {/* Barre de recherche */}
-                <input
-                  type="text"
-                  placeholder="Rechercher un logo..."
-                  value={logoSearchQuery}
-                  onChange={(e) => setLogoSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    borderRadius: '9999px',
-                    border: '1px solid #e5e7eb',
-                    padding: '10px 14px',
-                    fontSize: '13px',
-                    backgroundColor: '#f9fafb',
-                    flexShrink: 0,
-                  }}
-                />
-              </>
-            )}
-            <div
-              className="logo-library-content"
-              style={{
-                backgroundColor: '#ffffff',
-                padding: '14px 0px 12px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                flex: 1,
-                minHeight: 0,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-                                        
-            {/* Si un logo est sélectionné pour afficher ses variantes */}
-            {selectedLogoForVariants ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Titre centré sans bouton retour (le bouton retour principal du header suffit) */}
-                <div style={{ paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0, fontFamily: CONFIGURATOR_PANEL_FONT, textAlign: 'center' }}>
-                    {selectedLogoForVariants.name}
-                  </h3>
-                </div>
-                                            
-                {/* Liste des variantes en scroll horizontal */}
-                {(() => {
-                  const baseVariant = {
-                    id: 'base',
-                    file_url: selectedLogoForVariants.file_url || '',
-                    name: selectedLogoForVariants.name || 'Logo de base'
-                  };
-                  const allVariants = [baseVariant, ...(selectedLogoForVariants.variants || [])];
-                                              
-                  return (
-                    <div style={{ position: 'relative' }}>
-                      {/* Scroll horizontal des variantes */}
-                      <div
-                        ref={logoScrollRef}
-                        className="logo-variants-scroll"
-                        onWheel={(e) => {
-                          if (logoScrollRef.current) {
-                            e.preventDefault();
-                            logoScrollRef.current.scrollLeft += e.deltaY;
-                          }
-                        }}
-                        style={{
-                          display: 'flex',
-                          gap: '12px',
-                          overflowX: 'auto',
-                          overflowY: 'hidden',
-                          padding: '8px 0',
-                          scrollBehavior: 'smooth',
-                          WebkitOverflowScrolling: 'touch',
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none'
-                        }}
-                      >
-                        <style>{`
-                          .logo-variants-scroll::-webkit-scrollbar {
-                            display: none;
-                          }
-                        `}</style>
-                        {allVariants.map((variant: any, index: number) => {
-                          const fileToUse = variant.id === 'base' 
-                            ? selectedLogoForVariants.file_url 
-                            : (variant.file_url || selectedLogoForVariants.file_url);
-                                                      
-                          return (
-                            <div
-                              key={variant.id || `base-${index}`}
-                              onClick={async () => {
-                                                            
-                                // Si on est en mode remplacement, remplacer directement le logo
-                                if (logoToReplace) {
-                                  const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
-                                  if (logoToUpdate) {
-                                    // Calculer les dimensions du nouveau logo
-                                    let logoWidth: number | undefined = undefined;
-                                    let logoHeight: number | undefined = undefined;
-                                                                
-                                    try {
-                                      const response = await fetch(fileToUse);
-                                      const svgText = await response.text();
-                                      const parser = new DOMParser();
-                                      const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-                                      const svgElement = svgDoc.querySelector('svg');
-                                      if (svgElement) {
-                                        const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
-                                        const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
-                                        const viewBox = svgElement.getAttribute('viewBox');
-                                                                    
-                                        let actualWidth = svgWidth;
-                                        let actualHeight = svgHeight;
-                                                                    
-                                        if (viewBox) {
-                                          const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
-                                          if (vbWidth && vbHeight) {
-                                            actualWidth = vbWidth;
-                                            actualHeight = vbHeight;
-                                          }
-                                        }
-                                                                    
-                                        if (actualWidth > 0 && actualHeight > 0) {
-                                          logoWidth = actualWidth;
-                                          logoHeight = actualHeight;
-                                        }
-                                      }
-                                    } catch (error) {
-                                      console.error('Erreur lors du calcul des dimensions du logo:', error);
-                                    }
-                                                                
-                                    // Calculer le nouveau scale pour conserver la même taille visuelle
-                                    let newScale = logoToUpdate.scale;
-                                    if (logoWidth && logoHeight && logoToUpdate.width && logoToUpdate.height) {
-                                      const SCALE_FACTOR = 0.50;
-                                      const currentVisualWidth = logoToUpdate.width * logoToUpdate.scale * SCALE_FACTOR;
-                                      const currentVisualHeight = logoToUpdate.height * logoToUpdate.scale * SCALE_FACTOR;
-                                                                  
-                                      const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
-                                      const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
-                                                                  
-                                      newScale = Math.min(scaleX, scaleY);
-                                                                  
-                                      console.log('📐 Mobile - Scale adjustment (variante):', {
-                                        oldWidth: logoToUpdate.width,
-                                        oldHeight: logoToUpdate.height,
-                                        oldScale: logoToUpdate.scale,
-                                        newWidth: logoWidth,
-                                        newHeight: logoHeight,
-                                        newScale: newScale,
-                                        currentVisualWidth,
-                                        currentVisualHeight
-                                      });
-                                    }
-                                                                
-                                    // Mettre à jour le logo avec les nouvelles dimensions
-                                    setPlacedLogos(placedLogos.map(l => 
-                                      l.id === logoToReplace 
-                                        ? { 
-                                            ...l, 
-                                            logoId: selectedLogoForVariants.id, 
-                                            variantId: variant.id === 'base' ? undefined : variant.id, 
-                                            variantFile: fileToUse,
-                                            width: logoWidth,
-                                            height: logoHeight,
-                                            scale: newScale
-                                          }
-                                        : l
-                                    ));
-                                                                
-                                    // Réinitialiser les états (mais garder le logo sélectionné pour pouvoir continuer à le modifier)
-                                    setLogoToReplace(null);
-                                    setShowLogoLibrary(false);
-                                    setSelectedLogoForVariants(null);
-                                    // setSelectedLogoId(null); // Ne pas désélectionner pour pouvoir continuer à modifier le logo
-                                  }
-                                  return;
-                                }
-                                                            
-                                // Sinon, comportement normal
-                                // Si mode zones, ouvrir le modal de sélection de zone
-                                if (activeModule.logoPlacementMode === 'zones') {
-                                  setSelectedLogoForZone({
-                                    logoId: selectedLogoForVariants.id,
-                                    variantId: variant.id === 'base' ? undefined : variant.id,
-                                    variantFile: fileToUse
-                                  });
-                                  setShowLogoZoneModal(true);
-                                  setSelectedLogoForVariants(null);
-                                } else {
-                                  // Mode libre : ajouter directement au centre
-                                  const categoryToView: Record<'front' | 'back' | 'left' | 'right', 'torse' | 'dos' | 'bras-gauche' | 'bras-droit'> = {
-                                    'front': 'torse',
-                                    'back': 'dos',
-                                    'left': 'bras-gauche',
-                                    'right': 'bras-droit'
-                                  };
-                                  const category = categoryToView[activeLogoView] || 'torse';
-                                  await addLogo(
-                                    selectedLogoForVariants.id,
-                                    variant.id === 'base' ? undefined : variant.id,
-                                    fileToUse,
-                                    [0.5, 0.5, 0],
-                                    category
-                                  );
-                                  setSelectedLogoForVariants(null);
-                                }
-                              }}
-                              style={{
-                                minWidth: '100px',
-                                width: '100px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '8px',
-                                cursor: 'pointer',
-                                padding: '8px',
-                                borderRadius: '8px',
-                                border: '1px solid #e5e7eb',
-                                backgroundColor: '#ffffff',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <div style={{
-                                width: '80px',
-                                height: '80px',
-                                backgroundColor: '#f5f5f5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                overflow: 'hidden',
-                                borderRadius: '6px',
-                                padding: '4px'
-                              }}>
-                                <img
-                                  src={fileToUse}
-                                  alt={variant.name || selectedLogoForVariants.name}
-                                  style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'contain'
-                                  }}
-                                />
-                              </div>
-                              <p style={{
-                                margin: 0,
-                                fontSize: '10px',
-                                fontWeight: '500',
-                                color: '#111827',
-                                fontFamily: CONFIGURATOR_PANEL_FONT,
-                                textAlign: 'center'
-                              }}>
-                                {variant.id === 'base' ? 'Logo de base' : variant.name || 'Variante'}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            ) : (
-              <>
-                {/* Bibliothèque de logos en scroll horizontal */}
-                {allLogos.length === 0 ? (
-                  <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                    Aucun logo disponible. Veuillez sélectionner des bibliothèques de logos dans les settings du module.
-                  </p>
-                ) : filteredLogos.length === 0 ? (
-                  <p style={{ color: '#9ca3af', fontSize: '13px', textAlign: 'center', padding: '20px', fontFamily: CONFIGURATOR_PANEL_FONT }}>
-                    Aucun logo trouvé pour "{logoSearchQuery}"
-                  </p>
-                ) : (
-                  <div style={{ position: 'relative' }}>
-                    {/* Scroll horizontal des logos */}
-                    <div
-                      ref={logoScrollRef}
-                      className="logo-library-scroll"
-                      onWheel={(e) => {
-                        if (logoScrollRef.current) {
-                          e.preventDefault();
-                          logoScrollRef.current.scrollLeft += e.deltaY;
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        gap: '12px',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        padding: '8px 0',
-                        scrollBehavior: 'smooth',
-                        WebkitOverflowScrolling: 'touch',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none'
-                      }}
-                    >
-                      <style>{`
-                        .logo-library-scroll::-webkit-scrollbar {
-                          display: none;
-                        }
-                      `}</style>
-                      {filteredLogos.map((logo: any) => {
-                        const hasVariants = logo.variants && Array.isArray(logo.variants) && logo.variants.length > 0;
-                                                    
-                        return (
-                          <button
-                            key={logo.id}
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              // Pas en mode remplacement : si logo a des variantes, les proposer d'abord ; sinon ouvrir modal zones
-                              if (!logoToReplace) {
-                                if (activeModule?.logoPlacementMode === 'zones') {
-                                  if (hasVariants) {
-                                    setSelectedLogoForVariants(logo);
-                                  } else {
-                                    setSelectedLogoForZone({
-                                      logoId: logo.id,
-                                      variantId: undefined,
-                                      variantFile: logo.file_url
-                                    });
-                                    setShowLogoZoneModal(true);
-                                    window.dispatchEvent(new CustomEvent('open-logo-zone-modal', {
-                                      detail: { logoId: logo.id, variantId: undefined, variantFile: logo.file_url }
-                                    }));
-                                  }
-                                } else {
-                                  setSelectedLogoForVariants(logo);
-                                }
-                                return;
-                              }
-                              // Mode remplacement : si variantes, ouvrir la vue variantes
-                              if (hasVariants) {
-                                setSelectedLogoForVariants(logo);
-                                return;
-                              }
-                              // Sinon remplacer (async)
-                              const doReplace = async () => {
-                                const logoToUpdate = placedLogos.find(l => l.id === logoToReplace);
-                                if (logoToUpdate) {
-                                  const fileToUse = logo.file_url;
-                                  let logoWidth: number | undefined = undefined;
-                                  let logoHeight: number | undefined = undefined;
-                                  try {
-                                    const response = await fetch(fileToUse);
-                                    const svgText = await response.text();
-                                    const parser = new DOMParser();
-                                    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-                                    const svgElement = svgDoc.querySelector('svg');
-                                    if (svgElement) {
-                                      const svgWidth = parseFloat(svgElement.getAttribute('width') || '0');
-                                      const svgHeight = parseFloat(svgElement.getAttribute('height') || '0');
-                                      const viewBox = svgElement.getAttribute('viewBox');
-                                      let actualWidth = svgWidth;
-                                      let actualHeight = svgHeight;
-                                      if (viewBox) {
-                                        const [, , vbWidth, vbHeight] = viewBox.split(' ').map(parseFloat);
-                                        if (vbWidth && vbHeight) {
-                                          actualWidth = vbWidth;
-                                          actualHeight = vbHeight;
-                                        }
-                                      }
-                                      if (actualWidth > 0 && actualHeight > 0) {
-                                        logoWidth = actualWidth;
-                                        logoHeight = actualHeight;
-                                      }
-                                    }
-                                  } catch (error) {
-                                    console.error('Erreur lors du calcul des dimensions du logo:', error);
-                                  }
-                                  let newScale = logoToUpdate.scale;
-                                  if (logoWidth && logoHeight && logoToUpdate.width && logoToUpdate.height) {
-                                    const SCALE_FACTOR = 0.50;
-                                    const currentVisualWidth = logoToUpdate.width * logoToUpdate.scale * SCALE_FACTOR;
-                                    const currentVisualHeight = logoToUpdate.height * logoToUpdate.scale * SCALE_FACTOR;
-                                    const scaleX = currentVisualWidth / (logoWidth * SCALE_FACTOR);
-                                    const scaleY = currentVisualHeight / (logoHeight * SCALE_FACTOR);
-                                    newScale = Math.min(scaleX, scaleY);
-                                  }
-                                  setPlacedLogos(placedLogos.map(l =>
-                                    l.id === logoToReplace
-                                      ? { ...l, logoId: logo.id, variantId: undefined, variantFile: fileToUse, width: logoWidth, height: logoHeight, scale: newScale }
-                                      : l
-                                  ));
-                                  setLogoToReplace(null);
-                                  setShowLogoLibrary(false);
-                                }
-                              };
-                              doReplace().catch(err => console.error('Logo click error:', err));
-                            }}
-                            style={{
-                              minWidth: '100px',
-                              width: '100px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '8px',
-                              cursor: 'pointer',
-                              padding: '8px',
-                              borderRadius: '8px',
-                              border: '1px solid #e5e7eb',
-                              backgroundColor: '#ffffff',
-                              transition: 'all 0.2s',
-                              fontFamily: 'inherit',
-                              textAlign: 'left'
-                            }}
-                          >
-                            <div style={{
-                              width: '80px',
-                              height: '80px',
-                              backgroundColor: '#f5f5f5',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              overflow: 'hidden',
-                              borderRadius: '6px',
-                              padding: '4px'
-                            }}>
-                              {logo.file_url ? (
-                                <img
-                                  src={logo.file_url}
-                                  alt={logo.name}
-                                  style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'contain'
-                                  }}
-                                />
-                              ) : (
-                                <div style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  backgroundColor: '#e0e0e0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '10px',
-                                  color: '#666',
-                                  textAlign: 'center',
-                                  padding: '4px'
-                                }}>
-                                  {logo.name}
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                              <p style={{
-                                margin: 0,
-                                fontSize: '10px',
-                                fontWeight: '500',
-                                color: '#111827',
-                                fontFamily: CONFIGURATOR_PANEL_FONT,
-                                textAlign: 'center'
-                              }}>
-                                {logo.name}
-                              </p>
-                              {hasVariants && (
-                                <p style={{
-                                  margin: '2px 0 0',
-                                  fontSize: '9px',
-                                  fontWeight: 400,
-                                  color: '#6b7280',
-                                  fontFamily: CONFIGURATOR_PANEL_FONT,
-                                  textAlign: 'center'
-                                }}>
-                                  variantes
-                                </p>
-                              )}
-                            </div>
-                          </button>
-                      );
-                    })}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-            </div>
-            </div>
-        ) : (
-          /* Vue normale : séparateur, bouton Ajouter un logo, Logos placés (labels depuis Settings) */
-          <>
-            <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '12px 0 8px' }} />
-            <div style={{ width: '100%', marginBottom: '8px' }}>
-              <div
-                className="cv-panel-add-logo-btn"
-                role="button"
-                tabIndex={0}
-                onClick={() => setShowLogoLibrary(true)}
-              style={{
-                height: '44px',
-                padding: '0 40px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                borderRadius: '12px',
-                border: 'none',
-                backgroundColor: isAddLogoHovered ? '#374151' : '#000000',
-                color: '#ffffff',
-                WebkitTextFillColor: '#ffffff',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'background-color 0.2s ease',
-                width: '100%',
-                }}
-                onMouseEnter={() => setIsAddLogoHovered(true)}
-                onMouseLeave={() => setIsAddLogoHovered(false)}
-              >
-                <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>＋</span>
-                <span style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>{activeModule.addLogoButtonLabel || 'Ajouter un logo'}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>
-                {activeModule.placedLogosLabel || 'Logos placés'} ({modulePlacedLogos.length})
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {modulePlacedLogos.length === 0 ? (
-                <span style={{ fontSize: '12px', color: '#9ca3af' }}>Aucun logo placé sur cette vue</span>
-              ) : (
-                modulePlacedLogos.map((logo) => {
-                  let logoLabel = 'Logo';
-                  for (const library of logoLibraries) {
-                    const found = library.logos?.find((l: any) => l.id === logo.logoId);
-                    if (found) {
-                      logoLabel = found.name || 'Logo';
-                      break;
-                    }
-                  }
-                  return (
-                    <div
-                      key={logo.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
-                        const categoryToViewId: Record<string, string> = {
-                          torse: 'front',
-                          dos: 'back',
-                          'bras-gauche': 'left',
-                          'bras-droit': 'right'
-                        };
-                        const logoViewId = categoryToViewId[logo.category];
-                        if (logoViewId) {
-                          setActiveLogoView(logoViewId as any);
-                          const viewConfig = customViews.find((v: any) => v.id === logoViewId);
-                          if (viewConfig?.cameraViewId) {
-                            const cameraView = modelCameraViews.find((cv: any) => cv.id === viewConfig.cameraViewId);
-                            if (cameraView) {
-                              window.dispatchEvent(new CustomEvent('goToCameraView', { detail: { position: cameraView.position, target: cameraView.target } }));
-                            }
-                          } else {
-                            window.dispatchEvent(new CustomEvent('setCameraView', { detail: logoViewId }));
-                          }
-                        }
-                        setSelectedLogoId(logo.id);
-                        setLogoToReplace(logo.id);
-                        setShowLogoLibrary(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setSelectedLogoId(logo.id);
-                          setLogoToReplace(logo.id);
-                          setShowLogoLibrary(true);
-                        }
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '10px 12px',
-                        backgroundColor: '#ffffff',
-                        border: selectedLogoId === logo.id ? '1px solid #111827' : '1px solid #e0e0e0',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          minWidth: '48px',
-                          borderRadius: '8px',
-                          backgroundColor: '#f3f4f6',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {logo.variantFile ? (
-                          <img src={logo.variantFile} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                        ) : (
-                          <span style={{ fontSize: '10px', color: '#9ca3af' }}>Aperçu</span>
-                        )}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>{logoLabel}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setItemToDelete({ id: logo.id, name: logoLabel, type: 'logo' });
-                          setShowDeleteModal(true);
-                        }}
-                        aria-label="Supprimer le logo"
-                        style={{
-                          flexShrink: 0,
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 0,
-                          border: 'none',
-                          borderRadius: '6px',
-                          backgroundColor: 'transparent',
-                          cursor: 'pointer',
-                          color: '#dc2626',
-                        }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </>
-        )}
-      </div>
+        dispatchOpenLogoZoneModal={(detail) => window.dispatchEvent(new CustomEvent('open-logo-zone-modal', { detail }))}
+      />
     );
-
   };
-
 
   return (
     <div
@@ -4579,7 +3746,14 @@ export default function ProductBuilderPage() {
           {/* Right: Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
-              onClick={() => setPreviewMode(!previewMode)}
+              onClick={async () => {
+                if (!previewMode) {
+                  const ok = await generateAndStorePreviewSnapshot();
+                  if (ok) setPreviewMode(true);
+                } else {
+                  setPreviewMode(false);
+                }
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -4765,7 +3939,7 @@ export default function ProductBuilderPage() {
               {/* Afficher le configurateur complet avec la configuration sauvegardée */}
               {(() => {
                 const shopParam = searchParams.get('shop') || '';
-                const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1`;
+                const configuratorUrl = `/configure?shop=${shopParam}&productId=${productId}&variantId=1&preview=live`;
                 
                 return (
                   <div style={{
@@ -6168,6 +5342,9 @@ export default function ProductBuilderPage() {
     <ProductConfiguratorPanel
       embedMode
       showTestSidebar={false}
+      controlledMobile={viewportMode === 'mobile'}
+      onSave={handleSaveProduct}
+      onAddToCart={undefined}
       canvasContent={renderAdmin3DCanvas()}
       designModuleFromBuilder={(() => {
         const designModule = customizationModules.find((m) => m.contentType === 'designs-2d');
@@ -7208,9 +6385,9 @@ export default function ProductBuilderPage() {
                             );
                           })()}
                           
-                          {/* Modal de sélection de zones de logos - Mobile uniquement */}
+                          {/* Modal de sélection de zones de logos - Mobile uniquement (portal) */}
                           {showLogoZoneModal && viewportMode === 'mobile' && selectedLogoForZone && (() => {
-                            const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab);
+                            const activeModule = customizationModules.find(m => m.id === mobileActivePanel) || customizationModules.find(m => m.id === activeCustomizerTab) || customizationModules.find(m => m.id === buildPanelActiveTab) || customizationModules.find(m => m.contentType === 'logos');
                             if (!activeModule || activeModule.contentType !== 'logos') return null;
                             
                             // Récupérer les zones des groupes sélectionnés pour les logos
@@ -7255,10 +6432,10 @@ export default function ProductBuilderPage() {
                                 .flatMap(group => group.zones.map(zone => ({ ...zone, groupName: group.name })));
                             }
                             
-                            return (
+                            return createPortal(
                               <div
                                 style={{
-                                  position: 'absolute',
+                                  position: 'fixed',
                                   top: 0,
                                   left: 0,
                                   right: 0,
@@ -7267,7 +6444,7 @@ export default function ProductBuilderPage() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  zIndex: 10002,
+                                  zIndex: 100002,
                                   padding: '12px',
                                   boxSizing: 'border-box'
                                 }}
@@ -7584,7 +6761,7 @@ export default function ProductBuilderPage() {
                                   )}
                                 </div>
                               </div>
-                            );
+                            , document.body);
                           })()}
                           
                           {/* Modal de sélection de zones - Mobile uniquement (rendu dans le conteneur mobile) */}
@@ -14372,15 +13549,16 @@ export default function ProductBuilderPage() {
         );
       })()}
 
-      {/* Modal de sélection de zones pour les logos - DESKTOP uniquement */}
+      {/* Modal de sélection de zones pour les logos - DESKTOP uniquement (portal pour garantir visibilité) */}
       {viewportMode === 'desktop' && showLogoZoneModal && selectedLogoForZone && (() => {
         const activeModule = customizationModules.find(m => m.id === activeCustomizerTab && m.contentType === 'logos')
+          || customizationModules.find(m => m.id === buildPanelActiveTab && m.contentType === 'logos')
           || customizationModules.find(m => m.contentType === 'logos');
         if (!activeModule) {
           return null;
         }
         
-        return (
+        return createPortal(
           <div
             style={{
               position: 'fixed',
@@ -14812,7 +13990,7 @@ export default function ProductBuilderPage() {
               })()}
             </div>
           </div>
-        );
+        , document.body);
       })()}
       
       {/* Modal d'importation de logo - Version DESKTOP */}
