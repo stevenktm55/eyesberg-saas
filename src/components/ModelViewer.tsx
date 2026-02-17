@@ -775,7 +775,7 @@ function SimpleViewer({
         m.material = newMaterial as any;
       });
     }
-  }, [gltf?.scene, designSrc, colorsHash, materialMaps]);
+  }, [gltf?.scene, designSrc, materialMaps]);
 
   // Recolor pass: rebuild texture from cached original SVG on base SVG ready and on color changes
   useEffect(() => {
